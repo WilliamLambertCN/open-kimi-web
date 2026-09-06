@@ -152,6 +152,7 @@ Node ≥ 22 + pnpm 10.33（`corepack pnpm …`，root 已锁版本）：
 
 ```sh
 pnpm dev            # 直接启动 launcher，连接本机官方 Kimi 服务
+pnpm dev -- --lan   # pnpm 透传参数；也可写作 pnpm dev --lan
 pnpm lint           # ESLint + 复杂度硬门禁
 pnpm typecheck      # TypeScript 检查
 pnpm test:ut        # 单元测试（分支覆盖率 <60% 即失败）

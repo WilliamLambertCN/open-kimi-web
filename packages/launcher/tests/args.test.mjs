@@ -95,6 +95,18 @@ describe('parseArgs', () => {
   });
 });
 
+describe('parseArgs pnpm pass-through separator', () => {
+  it('accepts one separator immediately after serve', () => {
+    const opts = parseArgs(argv('serve', '--', '--lan'));
+    expect(opts.host).toBe('0.0.0.0');
+    expect(opts.https).toBe(true);
+  });
+
+  it('still rejects a separator after serve options', () => {
+    expect(() => parseArgs(argv('serve', '--lan', '--'))).toThrow(/unknown argument: --/);
+  });
+});
+
 describe('parseArgs web source selection', () => {
   it('accepts the legacy official no-op plus web-dir and web-version', () => {
     const opts = parseArgs(
@@ -200,8 +212,11 @@ describe('parseArgs validation', () => {
     expect(() => parseArgs(argv('serve', '--target'))).toThrow(UsageError);
   });
 
-  it('treats --help / no args as help, not an error', () => {
+  it('treats global and serve-scoped --help / no args as help, not an error', () => {
     expect(parseArgs(argv('--help')).command).toBe('help');
+    expect(parseArgs(argv('--help', 'ignored')).command).toBe('help');
+    expect(parseArgs(argv('serve', '--help')).command).toBe('help');
+    expect(parseArgs(argv('serve', '--', '--help')).command).toBe('help');
     expect(parseArgs(argv()).command).toBe('help');
   });
 });
