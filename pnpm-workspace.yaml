@@ -1,0 +1,6 @@
+packages:
+  - packages/*
+
+catalog:
+  typescript: 6.0.2
+  vitest: 4.1.4

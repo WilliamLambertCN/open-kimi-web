@@ -1,0 +1,26 @@
+{
+  "name": "open-kimi-web",
+  "version": "0.1.0",
+  "description": "Lightweight enhancement launcher for the official Kimi Code web UI and backend, with single-origin proxying, LAN HTTPS, and mobile fixes.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "bin": {
+    "open-kimi-web": "bin/open-kimi-web.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "prepack": "node scripts/prepare-pack.mjs",
+    "postpack": "node scripts/clean-pack.mjs"
+  },
+  "dependencies": {
+    "selfsigned": "^5.5.0",
+    "ws": "^8.18.0"
+  }
+}
