@@ -124,7 +124,7 @@ async function expectPresentationAssets(baseUrl) {
     const body = await response.text();
     if (name === 'presentation.js') {
       expect(body).toContain("document.querySelector('.side .ch-brand .ch-name')");
-      expect(body).toContain("label.textContent = 'open kimi web'");
+      expect(body).toContain("label.textContent = 'OPEN-KIMI-WEB'");
     }
     const head = await fetch(url, { method: 'HEAD' });
     expect(head.headers.get('content-length')).toBe(response.headers.get('content-length'));

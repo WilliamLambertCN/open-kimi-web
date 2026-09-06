@@ -222,7 +222,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
 
   const enhanceBrand = () => {
     const label = document.querySelector('.side .ch-brand .ch-name');
-    if (label?.textContent.trim() === 'Kimi Code') label.textContent = 'open kimi web';
+    if (label?.textContent.trim() === 'Kimi Code') label.textContent = 'OPEN-KIMI-WEB';
   };
 
   const enhance = () => {

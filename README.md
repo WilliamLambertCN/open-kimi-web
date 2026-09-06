@@ -99,7 +99,7 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
 - **首次启动需联网**：launcher 会从 npm registry 下载对应版本的包（约 20 MB，仅一次），自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到已测版本 `0.41.0`）；先试 npmjs，再试 npmmirror 镜像，尊重 `HTTPS_PROXY`/`HTTP_PROXY`。
 - **下载校验范围**：当前检查下载、解包和必需文件是否完整；未实施独立来源的 SRI 校验，也不会在每次启动时对缓存逐文件计算哈希。
 - **缓存**：解包后缓存在 `~/.open-kimi-web/official-web/<版本>/`，之后离线可用；title 补丁只在缓存时打一次，`boot.js`（官方原样）与上游 `LICENSE` 一并落盘。
-- **手机展示层**：由 launcher 在官方页面响应中加载 `src/mobile/` 的独立样式与脚本；既有缓存也会生效，无需重下载或修改上游缓存。资源使用 `no-cache`；布局调整仅在手机宽度启用，侧栏品牌文字在桌面和手机侧栏统一显示为 `open kimi web`；`--web-dir` 不注入该展示层。已对照的上游构建为 `0.41.0`，未来版本若改变组件结构，需要重新检查这些选择器。
+- **手机展示层**：由 launcher 在官方页面响应中加载 `src/mobile/` 的独立样式与脚本；既有缓存也会生效，无需重下载或修改上游缓存。资源使用 `no-cache`；布局调整仅在手机宽度启用，侧栏品牌文字在桌面和手机侧栏统一显示为 `OPEN-KIMI-WEB`；`--web-dir` 不注入该展示层。已对照的上游构建为 `0.41.0`，未来版本若改变组件结构，需要重新检查这些选择器。
 - **失败行为（兼容性变更）**：官方 bundle 不可用时 launcher 现在会明确中止启动，不再静默改用不同的界面。恢复 npm 网络与 `curl` / `tar` 后重试，或用 `--web-dir` 指向你已准备好的官方前端构建。
 - **显式指定**：`open-kimi-web serve --web-dir <path>` 直接服务现成构建目录（优先级最高）；`--web-version <ver>` 固定官方包版本。接管后的 `kimi web` 使用环境变量 `OPEN_KIMI_WEB_DIR` / `OPEN_KIMI_WEB_VERSION` 选择目录或版本。
 
