@@ -116,12 +116,27 @@ describe('concurrent official frontends', () => {
 });
 
 async function expectPresentationAssets(baseUrl) {
-  for (const name of ['presentation.css', 'presentation.js', 'themes.css', 'themes.js']) {
+  for (const name of [
+    'presentation.css',
+    'presentation.js',
+    'themes.css',
+    'themes.js',
+    'backgrounds/aurora.png',
+    'backgrounds/twilight.png',
+    'backgrounds/ember.png',
+    'backgrounds/mineral.png',
+    'backgrounds/nocturne.png',
+  ]) {
     const url = `${baseUrl}/__open-kimi-mobile/${name}`;
     const response = await fetch(url);
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-cache');
-    const body = await response.text();
+    const body = name.endsWith('.png') ? await response.arrayBuffer() : await response.text();
+    if (name.endsWith('.png')) {
+      expect(response.headers.get('content-type')).toBe('image/png');
+      expect(Number(response.headers.get('content-length'))).toBeGreaterThan(0);
+      expect(body.byteLength).toBe(Number(response.headers.get('content-length')));
+    }
     if (name === 'presentation.js') {
       expect(body).toContain("document.querySelector('.side .ch-brand .ch-name')");
       expect(body).toContain("label.textContent = 'OPEN-KIMI-WEB'");

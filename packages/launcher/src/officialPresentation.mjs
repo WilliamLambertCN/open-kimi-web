@@ -6,6 +6,11 @@ const FILES = new Map([
   ['presentation.js', 'text/javascript; charset=utf-8'],
   ['themes.css', 'text/css; charset=utf-8'],
   ['themes.js', 'text/javascript; charset=utf-8'],
+  ['backgrounds/aurora.png', 'image/png'],
+  ['backgrounds/twilight.png', 'image/png'],
+  ['backgrounds/ember.png', 'image/png'],
+  ['backgrounds/mineral.png', 'image/png'],
+  ['backgrounds/nocturne.png', 'image/png'],
 ]);
 
 const SCRIPTS = ['themes.js', 'presentation.js'];
