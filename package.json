@@ -1,0 +1,29 @@
+{
+  "name": "open-kimi-web-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "node packages/launcher/bin/open-kimi-web.mjs serve",
+    "lint": "eslint .",
+    "typecheck": "corepack pnpm -r --if-present typecheck && tsc -p tests/tsconfig.json --noEmit",
+    "test": "corepack pnpm test:ut && corepack pnpm test:it",
+    "test:ut": "vitest run --config vitest.ut.config.ts --coverage",
+    "test:it": "vitest run --config vitest.it.config.ts --coverage",
+    "test:pack": "node scripts/pack-smoke.mjs",
+    "audit": "corepack pnpm audit --prod",
+    "licenses": "corepack pnpm licenses list --prod"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "4.1.4",
+    "eslint": "^9.18.0",
+    "typescript": "catalog:",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "4.1.4",
+    "ws": "^8.18.0"
+  }
+}

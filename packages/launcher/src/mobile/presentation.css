@@ -1,0 +1,538 @@
+@media (max-width: 640px) {
+  :root {
+    --okw-edge: 12px;
+    --okw-sheet: #292929;
+    --okw-panel: #1f1f1f;
+  }
+
+  .app.mobile,
+  .app.mobile button,
+  .app.mobile input,
+  .app.mobile [contenteditable='true'],
+  .sheet-root,
+  .ui-menu {
+    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .app.mobile .topbar {
+    height: 55px;
+    min-height: 55px;
+    padding: 5px var(--okw-edge);
+    background: var(--color-bg);
+    border-bottom-color: rgba(255, 255, 255, .08);
+  }
+
+  .app.mobile .topbar .tb-main {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 14px;
+    grid-template-rows: 22px 17px;
+    column-gap: 9px;
+    width: min(280px, calc(100vw - 58px));
+    min-width: 0;
+    padding: 0;
+    text-align: left;
+  }
+
+  .app.mobile .topbar .okw-workspace-badge {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 27px;
+    align-self: center;
+    color: #151515;
+    background: rgba(255, 255, 255, .88);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .app.mobile .topbar .tb-line {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    min-width: 0;
+    align-self: end;
+    gap: 3px;
+  }
+
+  .app.mobile .topbar .dir {
+    max-width: calc(100% - 18px);
+    overflow: hidden;
+    color: rgba(255, 255, 255, .84);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app.mobile .topbar .tb-line .cv {
+    width: 12px;
+    height: 12px;
+    color: rgba(255, 255, 255, .48);
+  }
+
+  .app.mobile .topbar .okw-workspace-status {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    min-width: 0;
+    overflow: hidden;
+    color: rgba(255, 255, 255, .45);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app.mobile .topbar .okw-workspace-status::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 6px 1px 0;
+    background: rgba(255, 255, 255, .38);
+    border-radius: 50%;
+  }
+
+  .app.mobile .topbar > .ui-icon-button {
+    width: 34px;
+    height: 34px;
+    color: rgba(255, 255, 255, .67);
+  }
+
+  .app.mobile .empty-doodle .doodle-canvas {
+    display: none;
+  }
+
+  .app.mobile .empty-doodle .doodle-fallback {
+    display: block !important;
+  }
+
+  .app.mobile .empty-hint-title {
+    color: rgba(255, 255, 255, .84);
+    font-size: 31px;
+    font-weight: 400;
+    letter-spacing: -.025em;
+  }
+
+  .app.mobile .content-wrap > .empty-spacer:not(.empty-tail) {
+    flex-grow: 1.75;
+  }
+
+  .app.mobile .empty-hint-text {
+    color: rgba(255, 255, 255, .54);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .app.mobile .empty-composer {
+    width: 100%;
+    max-width: none;
+  }
+
+  .app.mobile .empty-composer .composer-card {
+    height: 140px;
+    min-height: 136px;
+    box-sizing: border-box;
+    border-color: rgba(255, 255, 255, .16);
+    border-radius: 24px;
+  }
+
+  .app.mobile .empty-composer .cin-wrap {
+    min-height: 85px;
+  }
+
+  .app.mobile .composer-card .perm-pill {
+    display: none;
+  }
+
+  .app.mobile .composer-card .toolbar-left,
+  .app.mobile .composer-card .toolbar-right {
+    min-width: 0;
+  }
+
+  .app.mobile .composer-card .toolbar {
+    transform: translateY(-7px);
+  }
+
+  .app.mobile .composer-card .toolbar-right {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .app.mobile .composer-card .model-pill {
+    width: auto;
+    max-width: calc(100vw - 142px);
+    padding-inline: 8px 5px;
+  }
+
+  .app.mobile .composer-card .model-pill .mp-name {
+    max-width: none;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app.mobile .composer-card .model-pill .think-suffix {
+    flex: 0 0 auto;
+    font-size: 14px;
+  }
+
+  .app.mobile .composer-card:has(.model-pill.open) > .cin-wrap {
+    visibility: hidden;
+  }
+
+  .app.mobile .composer-card:has(.model-pill.open)::after {
+    opacity: 0;
+  }
+
+  .app.mobile .composer-footer {
+    min-height: 49px;
+  }
+
+  .app.mobile .ws-chip-name {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .sheet-root .sheet-scrim {
+    background: rgba(0, 0, 0, .26);
+  }
+
+  .sheet-root.okw-settings .sheet-panel,
+  .sheet-root.okw-workspaces .sheet-panel {
+    top: 4px;
+    bottom: 0;
+    height: calc(100dvh - 4px);
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 4px);
+    background: var(--color-surface-raised, var(--okw-sheet));
+    border: 1px solid rgba(255, 255, 255, .07);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: none;
+  }
+
+  .sheet-root.okw-settings .sheet-grab,
+  .sheet-root.okw-workspaces .sheet-grab {
+    top: 0;
+    width: 56px;
+    height: 18px;
+    margin-top: 4px;
+    background: none;
+  }
+
+  .sheet-root.okw-settings .sheet-grab::after,
+  .sheet-root.okw-workspaces .sheet-grab::after {
+    width: 36px;
+    height: 4px;
+    background: var(--color-line);
+  }
+
+  .sheet-root.okw-settings .sheet-head {
+    min-height: 0;
+    padding: 6px 13px 10px;
+  }
+
+  .sheet-root.okw-settings .sheet-title {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-settings .sheet-body {
+    padding: 0 12px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .sheet-root.okw-settings .group-title {
+    margin: 9px 1px 4px;
+    color: rgba(255, 255, 255, .43);
+    font-size: 13px;
+    font-weight: 400;
+    padding: 0 0 2px;
+  }
+
+  .sheet-root.okw-settings .card {
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .sheet-root.okw-settings .card .srow {
+    min-height: 65px;
+    padding: 9px 1px;
+    background: transparent;
+    border: 0;
+  }
+
+  .sheet-root.okw-settings .card .srow[data-okw-row='思考强度'] {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    min-height: 77px;
+    gap: 5px;
+  }
+
+  .sheet-root.okw-settings .srow-label {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-settings .srow-sub,
+  .sheet-root.okw-settings .srow-val {
+    margin-top: 3px;
+    color: rgba(255, 255, 255, .43);
+    font-size: 13.5px;
+    font-weight: 400;
+    line-height: 1.35;
+  }
+
+  .sheet-root.okw-settings .card .ui-seg {
+    min-width: 0;
+  }
+
+  .sheet-root.okw-settings .card .ui-seg__item {
+    min-width: 0;
+    padding-inline: 4px;
+    font-size: 12.5px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-settings .toggle {
+    width: 42px;
+    height: 26px;
+  }
+
+  .sheet-root.okw-settings .cache-note {
+    display: none;
+  }
+
+  .sheet-root.okw-settings .okw-cache-note-inline {
+    margin: -2px 0 3px;
+    color: rgba(255, 255, 255, .43);
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .sheet-root.okw-settings .ctx-meter {
+    max-width: 92px;
+  }
+
+  .ui-menu.model-dropdown {
+    right: 39px !important;
+    left: auto !important;
+    width: calc(100vw - 64px) !important;
+    max-width: none !important;
+    max-height: min(338px, calc(100dvh - 110px)) !important;
+    padding: 4px;
+    background: var(--color-surface-raised, var(--okw-sheet));
+    border-color: rgba(255, 255, 255, .12);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .38);
+    z-index: 100;
+  }
+
+  .ui-menu.model-dropdown .md-section {
+    padding: 6px 10px 4px;
+    color: rgba(255, 255, 255, .46);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .ui-menu.model-dropdown .md-row {
+    min-height: 31px;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .ui-menu.model-dropdown .md-name {
+    font-weight: 400;
+  }
+
+  .ui-menu.model-dropdown .md-thinking {
+    display: block;
+    padding: 8px 6px;
+  }
+
+  .ui-menu.model-dropdown .md-thinking > .md-name {
+    display: block;
+    font-size: 14px;
+  }
+
+  .ui-menu.model-dropdown .md-thinking > .ui-seg {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .ui-menu.model-dropdown .ui-seg__item {
+    min-width: 0;
+    padding-inline: 4px;
+    font-size: 12.5px;
+    font-weight: 400;
+  }
+
+  .ui-menu.model-dropdown .md-cache-note {
+    padding: 7px 6px;
+    color: rgba(255, 255, 255, .43);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .sheet-root.okw-workspaces .sheet-body {
+    padding: 0 12px calc(22px + env(safe-area-inset-bottom));
+  }
+
+  .sheet-root.okw-workspaces .actions {
+    gap: 0;
+    padding: 0 0 10px;
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .sheet-root.okw-workspaces .actions .newrow {
+    min-height: 41px;
+    padding: 6px 3px;
+    color: rgba(255, 255, 255, .58);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-workspaces .actions .newrow:first-child {
+    color: var(--color-accent);
+  }
+
+  .sheet-root.okw-workspaces .view-tabs {
+    display: none;
+  }
+
+  .sheet-root.okw-workspaces .mlist {
+    padding: 0;
+  }
+
+  .sheet-root.okw-workspaces .mgroup {
+    padding-top: 4px;
+  }
+
+  .sheet-root.okw-workspaces .mgh {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) 34px 34px;
+    grid-template-rows: 22px 19px;
+    gap: 0 4px;
+    min-height: 58px;
+    margin: 0;
+    padding: 6px 2px;
+  }
+
+  .sheet-root.okw-workspaces .mgh-folder {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  .sheet-root.okw-workspaces .mgh-name {
+    grid-column: 2;
+    grid-row: 1;
+    max-width: 100%;
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-workspaces .mgh-path {
+    grid-column: 2;
+    grid-row: 2;
+    color: var(--color-text-faint);
+    font-size: 12.5px;
+  }
+
+  .sheet-root.okw-workspaces .mgh-more {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+
+  .sheet-root.okw-workspaces .mgh-add {
+    grid-column: 4;
+    grid-row: 1 / 3;
+  }
+
+  .sheet-root.okw-workspaces .mgh-add svg {
+    display: none;
+  }
+
+  .sheet-root.okw-workspaces .mgh-add::after {
+    content: '+';
+    color: var(--color-text-muted);
+    font-size: 25px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .sheet-root.okw-workspaces .mgroup > div:last-child .srow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 34px;
+    grid-template-rows: 23px 18px;
+    gap: 0 4px;
+    min-height: 58px;
+    margin: 1px 0;
+    padding: 7px 2px 7px 24px;
+  }
+
+  .sheet-root.okw-workspaces .mgroup > div:last-child .srow .t {
+    grid-column: 1;
+    grid-row: 1;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sheet-root.okw-workspaces .mgroup > div:last-child .srow .time {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    color: var(--color-text-faint);
+    font-size: 12.5px;
+  }
+
+  .sheet-root.okw-workspaces .mgroup > div:last-child .srow .kb {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  .sheet-root.okw-workspaces .srow-flat {
+    min-height: 58px;
+    padding: 8px 5px 8px 24px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .sheet-root.okw-workspaces .srow-flat.cur {
+    background: rgba(255, 255, 255, .05);
+  }
+
+  .sheet-root.okw-workspaces .srow-flat .t {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-workspaces .srow-flat .srow-sub,
+  .sheet-root.okw-workspaces .srow-flat .time {
+    color: rgba(255, 255, 255, .43);
+    font-size: 12.5px;
+    font-weight: 400;
+  }
+
+  .sheet-root.okw-workspaces .srow-flat .kb {
+    color: rgba(255, 255, 255, .48);
+  }
+}

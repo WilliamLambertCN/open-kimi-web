@@ -1,0 +1,27 @@
+# Main gate: everything self-contained — no external repo, no model calls.
+# Runs lint, typecheck, unit/integration tests, and the pack smoke test.
+name: ci
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+      - run: corepack pnpm lint
+      - run: corepack pnpm typecheck
+      - run: corepack pnpm test:ut
+      - run: corepack pnpm test:it
+      - run: corepack pnpm test:pack

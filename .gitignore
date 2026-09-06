@@ -1,0 +1,27 @@
+node_modules/
+dist/
+coverage/
+.cache/
+test-results/
+*.log
+*.tgz
+.env
+.env.*
+*.token
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+tmp/
+temp/
+.DS_Store
+packages/launcher/LICENSE
+packages/launcher/THIRD_PARTY_NOTICES.md
+
+# Local debug maps, history backups, and credential/config overrides
+*.map
+*.bundle
+.npmrc
+.pnpmrc
