@@ -191,11 +191,26 @@ function applyWebEnvDefaults(args, opts, env) {
   }
 }
 
+function normalizeArgs(argv) {
+  const rawArgs = argv.slice(2);
+  // pnpm may preserve its pass-through separator in scripts whose command
+  // already supplies `serve` (`pnpm dev -- --lan` -> `serve -- --lan`).
+  // Consume only that one leading serve separator; a later `--` remains an
+  // unsupported CLI argument rather than silently changing option semantics.
+  return rawArgs[0] === 'serve' && rawArgs[1] === '--'
+    ? [rawArgs[0], ...rawArgs.slice(2)]
+    : rawArgs;
+}
+
+function isHelpRequest(args) {
+  if (args.length === 0) return true;
+  if (args[0] === '--help' || args[0] === '-h') return true;
+  return args.length === 2 && args[0] === 'serve' && (args[1] === '--help' || args[1] === '-h');
+}
+
 export function parseArgs(argv, env = process.env) {
-  const args = argv.slice(2);
-  if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-    return { command: 'help' };
-  }
+  const args = normalizeArgs(argv);
+  if (isHelpRequest(args)) return { command: 'help' };
   if (args[0] !== 'serve') throw new UsageError(`unknown command: ${args[0]}`);
   assertFlagConflicts(args);
   const opts = { command: 'serve', ...DEFAULTS };
