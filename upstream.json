@@ -1,0 +1,15 @@
+{
+  "protocolBaseline": {
+    "commit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",
+    "cliVersion": "0.41.0"
+  },
+  "minimumServerVersion": "0.41.0",
+  "testedServerCommits": ["f9ca33376604ae91ea35a4ac1d6f1d4425a5aead"],
+  "testedServerVersions": ["0.41.0"],
+  "contracts": {
+    "capturedFrom": "live kap-server booted from the sibling kimi-code checkout",
+    "metadata": "contracts/upstream/metadata.json",
+    "openapi": "contracts/upstream/openapi.json",
+    "asyncapi": "contracts/upstream/asyncapi.json"
+  }
+}

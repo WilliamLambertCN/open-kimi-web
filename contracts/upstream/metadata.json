@@ -1,0 +1,17 @@
+{
+  "captured_at": "2026-09-04T18:48:39.710Z",
+  "upstream_repo": "MoonshotAI/kimi-code (local sibling checkout)",
+  "upstream_commit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",
+  "cli_version": "0.41.0",
+  "server_base": "http://127.0.0.1 (ephemeral port)",
+  "artifacts": {
+    "openapi.json": {
+      "sha256": "22bd0f29d3e8db62e67bf43bfae161c36b61789b9f20740482beb52b01a091bf",
+      "bytes": 353228
+    },
+    "asyncapi.json": {
+      "sha256": "88c0d7c88d8617297d27782a6d8bb764831bd68e030481445459b8b20ecbd8ac",
+      "bytes": 80218
+    }
+  }
+}
