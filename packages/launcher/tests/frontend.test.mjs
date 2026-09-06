@@ -14,6 +14,7 @@ const baseOpts = (over = {}) => ({
 });
 
 const listenError = (code) => Object.assign(new Error(`listen ${code}`), { code });
+const reachableTarget = () => new Response(null, { status: 204 });
 
 describe('createLauncherWithRetry', () => {
   it('does not retry when the port was set explicitly', async () => {
@@ -77,6 +78,62 @@ describe('createLauncherWithRetry', () => {
   });
 });
 
+describe('startFrontend target reachability', () => {
+  const servers = [];
+  afterAll(async () => {
+    await Promise.all(servers.map((s) => new Promise((resolve) => s.close(resolve))));
+  });
+
+  it('fails before TLS, bundle resolution, and listening when the backend is unreachable', async () => {
+    const targetFetch = vi.fn(async () => {
+      throw new TypeError('fetch failed');
+    });
+    const officialDownload = vi.fn();
+    const log = vi.fn();
+
+    await expect(startFrontend({
+      target: 'http://127.0.0.1:58627',
+      host: '127.0.0.1',
+      port: 0,
+      https: true,
+      certFile: 'missing-server.crt',
+      keyFile: 'missing-server.key',
+      officialDownload,
+      targetFetch,
+      log,
+      warn: () => {},
+    })).rejects.toThrow(
+      /backend is unreachable at http:\/\/127\.0\.0\.1:58627[\s\S]*real Kimi binary[\s\S]*kimi web --host[\s\S]*pnpm dev/,
+    );
+
+    expect(targetFetch).toHaveBeenCalledWith(
+      new URL('http://127.0.0.1:58627/api/v1/healthz'),
+      { redirect: 'manual', signal: expect.any(AbortSignal) },
+    );
+    expect(officialDownload).not.toHaveBeenCalled();
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  it('treats an HTTP error response as a reachable backend', async () => {
+    const targetFetch = vi.fn(async () => new Response(null, { status: 401 }));
+    const { launcher } = await startFrontend({
+      target: 'http://127.0.0.1:58627',
+      publicDir: 'public',
+      host: '127.0.0.1',
+      port: 0,
+      interfaces: {},
+      noTokenLink: true,
+      targetFetch,
+      log: () => {},
+      warn: () => {},
+    });
+    servers.push(launcher.server);
+
+    expect(targetFetch).toHaveBeenCalledOnce();
+    expect(launcher.server.listening).toBe(true);
+  });
+});
+
 describe('startFrontend port fallback', () => {
   const servers = [];
   afterAll(async () => {
@@ -97,6 +154,7 @@ describe('startFrontend port fallback', () => {
       port: occupied,
       interfaces: {},
       noTokenLink: true,
+      targetFetch: reachableTarget,
       log,
       warn: () => {},
     });
@@ -142,6 +200,7 @@ describe('startFrontend port fallback', () => {
       port: startPort,
       interfaces: {},
       noTokenLink: true,
+      targetFetch: reachableTarget,
       log: () => {},
       warn,
     });

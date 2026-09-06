@@ -6,7 +6,7 @@
 
 ## 用法
 
-前提：`kimi web` 已在运行，手上有它的 bearer token（启动时打印；也在 `<KIMI_CODE_HOME>/server.token`）。
+前提：官方后端已在 target 运行，手上有它的 bearer token（启动时打印；也在 `<KIMI_CODE_HOME>/server.token`）。未接管时先用真实的官方 Kimi 二进制启动后端，再运行下列 `serve`；如果 `kimi` 已由本项目接管，则改用 `kimi web --host` 一次启动受管后端和 launcher，不要同时运行独立的 `serve`。
 
 ```sh
 open-kimi-web serve                     # http://127.0.0.1:4173
