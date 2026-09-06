@@ -15,15 +15,25 @@
 
 **桌面端：工作区、会话与对话界面**
 
-![桌面端演示：工作区列表、示例对话与输入区](docs/images/official-demo-desktop.png)
+![余烬主题：工作区列表、示例对话与玻璃输入区](docs/images/theme-ember-desktop.png)
 
-**手机端：对话、模型选择与会话设置**
+**手机端：夜幕对话、余烬模型菜单与极光主题切换**
 
 <p>
-  <img src="docs/images/official-demo-mobile-home.png" alt="手机端示例对话与底部输入区" width="31%" />
-  <img src="docs/images/official-demo-mobile-models.png" alt="手机端模型与思考强度选择" width="31%" />
-  <img src="docs/images/official-demo-mobile-settings.png" alt="手机端会话设置与应用偏好" width="31%" />
+  <img src="docs/images/theme-nocturne-mobile.png" alt="夜幕主题：手机对话与底部输入区" width="31%" />
+  <img src="docs/images/theme-ember-mobile.png" alt="余烬主题：模型与思考强度选择" width="31%" />
+  <img src="docs/images/theme-aurora-mobile.png" alt="极光主题：六选项主题切换面板" width="31%" />
 </p>
+
+**五套主题实机预览**（点击图片查看原图；手机栏分别展示主题切换、设置、模型菜单、工作区和对话）：
+
+| 主题 | 桌面 | 手机 |
+| --- | --- | --- |
+| 极光 · Aurora | <a href="docs/images/theme-aurora-desktop.png"><img src="docs/images/theme-aurora-desktop.png" alt="极光桌面" width="680" /></a> | <a href="docs/images/theme-aurora-mobile.png"><img src="docs/images/theme-aurora-mobile.png" alt="极光手机主题切换" width="180" /></a> |
+| 暮色 · Twilight | <a href="docs/images/theme-twilight-desktop.png"><img src="docs/images/theme-twilight-desktop.png" alt="暮色桌面" width="680" /></a> | <a href="docs/images/theme-twilight-mobile.png"><img src="docs/images/theme-twilight-mobile.png" alt="暮色手机设置" width="180" /></a> |
+| 余烬 · Ember | <a href="docs/images/theme-ember-desktop.png"><img src="docs/images/theme-ember-desktop.png" alt="余烬桌面" width="680" /></a> | <a href="docs/images/theme-ember-mobile.png"><img src="docs/images/theme-ember-mobile.png" alt="余烬手机模型菜单" width="180" /></a> |
+| 矿物青绿 · Mineral | <a href="docs/images/theme-mineral-desktop.png"><img src="docs/images/theme-mineral-desktop.png" alt="矿物青绿桌面" width="680" /></a> | <a href="docs/images/theme-mineral-mobile.png"><img src="docs/images/theme-mineral-mobile.png" alt="矿物青绿手机工作区" width="180" /></a> |
+| 夜幕 · Nocturne | <a href="docs/images/theme-nocturne-desktop.png"><img src="docs/images/theme-nocturne-desktop.png" alt="夜幕桌面" width="680" /></a> | <a href="docs/images/theme-nocturne-mobile.png"><img src="docs/images/theme-nocturne-mobile.png" alt="夜幕手机对话" width="180" /></a> |
 
 ## 它能干什么
 
