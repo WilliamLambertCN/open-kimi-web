@@ -15,7 +15,7 @@ By default the launcher resolves the web bundle version from the target
 server, with its configured fallback when metadata is unavailable.
 `--web-version` / `OPEN_KIMI_WEB_VERSION` pins the official frontend version;
 it does not pin or upgrade the backend. `--web-dir` / `OPEN_KIMI_WEB_DIR`
-serves a prepared build without injecting the mobile presentation layer.
+serves a prepared build without injecting the presentation layer or theme picker.
 
 ## Maintaining enhancements
 
@@ -24,6 +24,13 @@ in `packages/launcher/src/mobile/`. When adopting another official version,
 check the affected selectors and behaviors. Remove a local workaround when
 the upstream version fixes the corresponding issue. Do not rebuild session
 state management in DOM patches.
+
+The presentation layer also provides five optional CSS atmosphere themes through
+the official settings panel. Theme selection uses its own local browser storage
+and root attribute; restoring the original appearance removes these overrides
+without changing the official light/dark/system preference. Keep theme colors
+on upstream semantic tokens where possible and check component selectors when
+upgrading the official bundle.
 
 The removed `--web-ui open` frontend is not a fallback. If an official bundle
 cannot be loaded, restore access to its package or provide a prepared build.

@@ -4,7 +4,12 @@ const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
+  ['themes.css', 'text/css; charset=utf-8'],
+  ['themes.js', 'text/javascript; charset=utf-8'],
 ]);
+
+const SCRIPTS = ['themes.js', 'presentation.js'];
+const STYLES = ['presentation.css', 'themes.css'];
 
 // Serve the presentation layer from the installed launcher, so existing
 // official caches receive updates without rewriting upstream assets.
@@ -28,10 +33,11 @@ export async function servePresentationAsset(req, res) {
 }
 
 export function addMobilePresentation(html) {
-  const script = `<script src="${PREFIX}presentation.js"></script>\n`;
+  const scripts = SCRIPTS.map((name) => `<script src="${PREFIX}${name}"></script>`).join('\n') + '\n';
   const moduleTag = /<script\b[^>]*\btype\s*=\s*["']module["'][^>]*>/i;
   const withScript = moduleTag.test(html)
-    ? html.replace(moduleTag, (tag) => `${script}${tag}`)
-    : html.replace('</head>', `${script}</head>`);
-  return withScript.replace('</head>', `<link rel="stylesheet" href="${PREFIX}presentation.css">\n</head>`);
+    ? html.replace(moduleTag, (tag) => `${scripts}${tag}`)
+    : html.replace('</head>', `${scripts}</head>`);
+  const styles = STYLES.map((name) => `<link rel="stylesheet" href="${PREFIX}${name}">`).join('\n') + '\n';
+  return withScript.replace('</head>', `${styles}</head>`);
 }

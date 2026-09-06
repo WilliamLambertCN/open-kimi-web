@@ -116,7 +116,7 @@ describe('concurrent official frontends', () => {
 });
 
 async function expectPresentationAssets(baseUrl) {
-  for (const name of ['presentation.css', 'presentation.js']) {
+  for (const name of ['presentation.css', 'presentation.js', 'themes.css', 'themes.js']) {
     const url = `${baseUrl}/__open-kimi-mobile/${name}`;
     const response = await fetch(url);
     expect(response.status).toBe(200);
@@ -125,6 +125,11 @@ async function expectPresentationAssets(baseUrl) {
     if (name === 'presentation.js') {
       expect(body).toContain("document.querySelector('.side .ch-brand .ch-name')");
       expect(body).toContain("label.textContent = 'OPEN-KIMI-WEB'");
+    }
+    if (name === 'themes.css') {
+      for (const theme of ['aurora', 'twilight', 'ember', 'mineral', 'nocturne']) {
+        expect(body).toContain(`html[data-okw-theme='${theme}']`);
+      }
     }
     const head = await fetch(url, { method: 'HEAD' });
     expect(head.headers.get('content-length')).toBe(response.headers.get('content-length'));
@@ -152,6 +157,10 @@ describe('official mode end-to-end', () => {
       expect(indexText).not.toContain('Kimi Code Web');
       expect(indexText).toContain('/__open-kimi-mobile/presentation.css');
       expect(indexText).toContain('/__open-kimi-mobile/presentation.js');
+      expect(indexText).toContain('/__open-kimi-mobile/themes.css');
+      expect(indexText).toContain('/__open-kimi-mobile/themes.js');
+      expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
+      expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(Number(index.headers.get('content-length'))).toBe(Buffer.byteLength(indexText));
 
