@@ -1,0 +1,470 @@
+html[data-okw-theme] {
+  color-scheme: dark;
+  --color-bg: var(--okw-bg);
+  --color-surface: var(--okw-surface);
+  --color-surface-raised: var(--okw-raised);
+  --color-surface-overlay: var(--okw-overlay);
+  --color-surface-sunken: var(--okw-deep);
+  --color-surface-deep: var(--okw-deep);
+  --color-well: var(--okw-surface);
+  --color-inline-code-bg: rgba(255, 255, 255, .085);
+  --color-text: rgba(247, 250, 255, .9);
+  --color-text-strong: #fff;
+  --color-text-muted: rgba(235, 242, 252, .65);
+  --color-text-faint: rgba(227, 236, 249, .46);
+  --color-text-on-accent: var(--okw-accent-ink);
+  --color-line: rgba(226, 238, 255, .13);
+  --color-line-strong: rgba(230, 241, 255, .22);
+  --color-subtle: rgba(237, 246, 255, .065);
+  --color-hover: rgba(239, 247, 255, .075);
+  --color-selected: var(--okw-selected);
+  --color-selected-hover: var(--okw-selected-hover);
+  --color-sidebar-bg: var(--okw-sidebar);
+  --color-sidebar-tint: rgba(255, 255, 255, .08);
+  --color-user-bubble-bg: var(--okw-bubble);
+  --color-accent: var(--okw-accent);
+  --color-accent-hover: var(--okw-accent-hover);
+  --color-accent-soft: var(--okw-accent-soft);
+  --color-accent-bd: var(--okw-accent-line);
+  --color-info: var(--okw-accent);
+  --color-menu-bg: var(--okw-menu);
+  --color-menu-bg-frost: var(--okw-menu);
+  --color-topbar-bg-frost: var(--okw-topbar);
+  --color-composer-bg: var(--okw-composer);
+  --color-composer-line: rgba(231, 241, 255, .16);
+  --color-composer-focus-line: var(--okw-accent-line);
+  --color-send-bg: var(--okw-accent);
+  --color-send-bg-hover: var(--okw-accent-hover);
+  --color-send-icon: var(--okw-accent-ink);
+  --color-send-bg-disabled: rgba(237, 245, 255, .11);
+  --color-send-icon-disabled: rgba(235, 242, 252, .34);
+  --color-scrim: rgba(2, 5, 10, .62);
+  --color-scrim-strong: rgba(2, 5, 10, .78);
+  --dim: rgba(244, 248, 255, .62);
+  --muted: rgba(235, 242, 252, .48);
+  --faint: rgba(227, 236, 249, .3);
+  --panel: var(--okw-surface);
+  --panel2: var(--okw-deep);
+  --bg: var(--okw-bg);
+  --blue: var(--okw-accent);
+  --blue2: var(--okw-accent-hover);
+  --soft: var(--okw-accent-soft);
+  --bd: var(--okw-accent-line);
+  --logo: var(--okw-accent);
+  --bluebg: var(--okw-raised);
+  --blueln: rgba(235, 244, 255, .08);
+  --okw-sheet: var(--okw-raised);
+  --okw-panel: var(--okw-surface);
+  --p-selection: var(--okw-accent-soft);
+  --color-code-selection: var(--okw-accent-soft);
+  --shadow-menu: 0 18px 48px rgba(0, 0, 0, .34), 0 2px 8px rgba(0, 0, 0, .3);
+  --shadow-input: 0 14px 34px -22px rgba(0, 0, 0, .7);
+  --shadow-md: 0 14px 38px rgba(0, 0, 0, .23), 0 2px 8px rgba(0, 0, 0, .2);
+  --shadow-lg: 0 22px 54px rgba(0, 0, 0, .3), 0 5px 14px rgba(0, 0, 0, .24);
+  --shadow-xl: 0 30px 78px rgba(0, 0, 0, .42), 0 9px 24px rgba(0, 0, 0, .28);
+}
+
+html[data-okw-theme='aurora'] {
+  --okw-bg: rgba(6, 24, 38, .84);
+  --okw-surface: rgba(8, 39, 51, .76);
+  --okw-raised: rgba(12, 52, 65, .88);
+  --okw-overlay: rgba(86, 222, 220, .12);
+  --okw-deep: rgba(3, 17, 28, .9);
+  --okw-sidebar: rgba(3, 22, 34, .9);
+  --okw-topbar: rgba(5, 27, 41, .78);
+  --okw-composer: rgba(10, 45, 58, .82);
+  --okw-menu: rgba(10, 43, 56, .96);
+  --okw-bubble: rgba(34, 112, 126, .3);
+  --okw-accent: #25c6d3;
+  --okw-accent-hover: #50dbe1;
+  --okw-accent-ink: #032128;
+  --okw-accent-soft: rgba(37, 198, 211, .19);
+  --okw-accent-line: rgba(70, 222, 224, .46);
+  --okw-selected: rgba(38, 188, 199, .2);
+  --okw-selected-hover: rgba(51, 207, 215, .27);
+  --okw-atmosphere:
+    repeating-linear-gradient(117deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 7px),
+    radial-gradient(ellipse at 84% 20%, rgba(29, 213, 213, .32), transparent 42%),
+    radial-gradient(ellipse at 68% 86%, rgba(60, 201, 157, .18), transparent 42%),
+    linear-gradient(136deg, #061725 0%, #073345 56%, #071c2b 100%);
+}
+
+html[data-okw-theme='twilight'] {
+  --okw-bg: rgba(24, 24, 43, .84);
+  --okw-surface: rgba(39, 38, 69, .75);
+  --okw-raised: rgba(48, 47, 82, .89);
+  --okw-overlay: rgba(198, 176, 255, .13);
+  --okw-deep: rgba(17, 17, 35, .9);
+  --okw-sidebar: rgba(20, 20, 42, .9);
+  --okw-topbar: rgba(30, 29, 58, .79);
+  --okw-composer: rgba(45, 43, 78, .83);
+  --okw-menu: rgba(44, 42, 76, .96);
+  --okw-bubble: rgba(133, 123, 203, .25);
+  --okw-accent: #8f91ff;
+  --okw-accent-hover: #aaa9ff;
+  --okw-accent-ink: #11122d;
+  --okw-accent-soft: rgba(143, 145, 255, .19);
+  --okw-accent-line: rgba(168, 163, 255, .44);
+  --okw-selected: rgba(131, 127, 221, .22);
+  --okw-selected-hover: rgba(157, 144, 235, .29);
+  --okw-atmosphere:
+    repeating-linear-gradient(126deg, rgba(255, 255, 255, .011) 0 1px, transparent 1px 8px),
+    radial-gradient(ellipse at 82% 82%, rgba(231, 149, 191, .3), transparent 43%),
+    radial-gradient(ellipse at 55% 12%, rgba(112, 105, 212, .25), transparent 46%),
+    linear-gradient(138deg, #17172b 0%, #2b2b54 54%, #3b2948 100%);
+}
+
+html[data-okw-theme='ember'] {
+  --okw-bg: rgba(27, 17, 32, .85);
+  --okw-surface: rgba(52, 29, 48, .76);
+  --okw-raised: rgba(68, 35, 56, .89);
+  --okw-overlay: rgba(255, 174, 153, .13);
+  --okw-deep: rgba(20, 12, 25, .91);
+  --okw-sidebar: rgba(24, 14, 31, .91);
+  --okw-topbar: rgba(39, 23, 43, .8);
+  --okw-composer: rgba(59, 31, 51, .84);
+  --okw-menu: rgba(57, 31, 52, .96);
+  --okw-bubble: rgba(197, 91, 101, .25);
+  --okw-accent: #f27872;
+  --okw-accent-hover: #ff9586;
+  --okw-accent-ink: #2b1016;
+  --okw-accent-soft: rgba(242, 120, 114, .19);
+  --okw-accent-line: rgba(255, 142, 130, .46);
+  --okw-selected: rgba(223, 94, 101, .2);
+  --okw-selected-hover: rgba(239, 113, 109, .28);
+  --okw-atmosphere:
+    repeating-linear-gradient(121deg, rgba(255, 255, 255, .011) 0 1px, transparent 1px 7px),
+    radial-gradient(ellipse at 90% 78%, rgba(255, 117, 83, .36), transparent 39%),
+    radial-gradient(ellipse at 56% 18%, rgba(141, 65, 111, .28), transparent 47%),
+    linear-gradient(137deg, #1b1121 0%, #3a2037 58%, #4e272f 100%);
+}
+
+html[data-okw-theme='mineral'] {
+  --okw-bg: rgba(10, 35, 34, .85);
+  --okw-surface: rgba(24, 63, 59, .75);
+  --okw-raised: rgba(31, 78, 70, .88);
+  --okw-overlay: rgba(180, 241, 216, .13);
+  --okw-deep: rgba(7, 26, 27, .91);
+  --okw-sidebar: rgba(7, 32, 32, .91);
+  --okw-topbar: rgba(17, 48, 47, .79);
+  --okw-composer: rgba(27, 68, 63, .83);
+  --okw-menu: rgba(25, 65, 60, .96);
+  --okw-bubble: rgba(85, 173, 147, .23);
+  --okw-accent: #73d7b3;
+  --okw-accent-hover: #91e6c7;
+  --okw-accent-ink: #08291f;
+  --okw-accent-soft: rgba(115, 215, 179, .19);
+  --okw-accent-line: rgba(145, 230, 199, .44);
+  --okw-selected: rgba(86, 183, 153, .2);
+  --okw-selected-hover: rgba(109, 203, 171, .27);
+  --okw-atmosphere:
+    repeating-linear-gradient(114deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 8px),
+    radial-gradient(ellipse at 86% 20%, rgba(185, 235, 202, .28), transparent 38%),
+    radial-gradient(ellipse at 64% 86%, rgba(69, 174, 151, .24), transparent 44%),
+    linear-gradient(137deg, #0a2524 0%, #194c46 56%, #173a35 100%);
+}
+
+html[data-okw-theme='nocturne'] {
+  --okw-bg: rgba(8, 12, 18, .87);
+  --okw-surface: rgba(15, 23, 36, .78);
+  --okw-raised: rgba(23, 34, 51, .9);
+  --okw-overlay: rgba(150, 173, 229, .1);
+  --okw-deep: rgba(5, 9, 15, .93);
+  --okw-sidebar: rgba(5, 10, 17, .93);
+  --okw-topbar: rgba(11, 17, 28, .82);
+  --okw-composer: rgba(20, 31, 47, .86);
+  --okw-menu: rgba(20, 30, 47, .97);
+  --okw-bubble: rgba(79, 105, 156, .23);
+  --okw-accent: #83b8e8;
+  --okw-accent-hover: #9cc9f0;
+  --okw-accent-ink: #08131f;
+  --okw-accent-soft: rgba(131, 184, 232, .17);
+  --okw-accent-line: rgba(146, 191, 235, .39);
+  --okw-selected: rgba(92, 126, 180, .2);
+  --okw-selected-hover: rgba(112, 143, 195, .27);
+  --okw-atmosphere:
+    repeating-linear-gradient(122deg, rgba(255, 255, 255, .009) 0 1px, transparent 1px 8px),
+    radial-gradient(ellipse at 93% 16%, rgba(102, 119, 194, .24), transparent 38%),
+    radial-gradient(ellipse at 76% 88%, rgba(73, 122, 159, .19), transparent 43%),
+    linear-gradient(138deg, #080b10 0%, #0c111a 54%, #151d29 100%);
+}
+
+html[data-okw-theme] body,
+html[data-okw-theme] #app,
+html[data-okw-theme] .app {
+  background: var(--okw-atmosphere) fixed !important;
+}
+
+html[data-okw-theme] .con {
+  background: transparent !important;
+}
+
+html[data-okw-theme] .side,
+html[data-okw-theme] .sidebar-actions,
+html[data-okw-theme] .side-footer {
+  background: var(--color-sidebar-bg) !important;
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+html[data-okw-theme] .chat-header,
+html[data-okw-theme] .app.mobile .topbar {
+  background: var(--color-topbar-bg-frost) !important;
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+html[data-okw-theme] .composer-card,
+html[data-okw-theme] .sheet-panel,
+html[data-okw-theme] .ui-menu {
+  backdrop-filter: blur(22px) saturate(120%);
+}
+
+html[data-okw-theme] .sheet-panel {
+  background: var(--color-surface-raised) !important;
+}
+
+html[data-okw-theme] .markstream-vue {
+  --ms-background: 220 34% 8%;
+  --ms-foreground: 216 33% 94%;
+  --ms-muted: 217 25% 14%;
+  --ms-muted-foreground: 216 16% 67%;
+  --ms-secondary: 218 22% 18%;
+  --ms-secondary-foreground: 216 33% 94%;
+  --ms-accent: 216 24% 25%;
+  --ms-accent-foreground: 216 33% 94%;
+  --ms-primary: 216 33% 94%;
+  --ms-primary-foreground: 220 34% 8%;
+  --ms-border: 216 18% 25%;
+  --ms-ring: 212 58% 72%;
+  --ms-popover: 220 28% 11%;
+  --ms-popover-foreground: 216 33% 94%;
+}
+
+.okw-theme-section {
+  margin: var(--space-3) 0;
+  font-family: var(--font-ui, sans-serif);
+}
+
+.okw-theme-section .okw-theme-heading {
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-caption, 450);
+}
+
+.okw-theme-picker {
+  position: relative;
+}
+
+.okw-theme-trigger {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 58px;
+  padding: 9px 12px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: .5px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.okw-theme-trigger:hover {
+  background: color-mix(in srgb, var(--color-surface) 82%, var(--color-accent-soft));
+  border-color: var(--color-accent-bd);
+}
+
+.okw-theme-trigger:focus-visible,
+.okw-theme-option:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.okw-theme-trigger-swatch,
+.okw-theme-swatch {
+  display: block;
+  border: 1px solid var(--color-line-strong);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04);
+}
+
+.okw-theme-trigger-swatch {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--color-bg), var(--color-accent));
+  border-radius: 10px;
+}
+
+.okw-theme-trigger-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.okw-theme-trigger-label {
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+}
+
+.okw-theme-current {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.okw-theme-chevron {
+  color: var(--color-text-muted);
+  font-size: 20px;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+.okw-theme-trigger[aria-expanded='true'] .okw-theme-chevron {
+  transform: rotate(180deg) translateY(2px);
+}
+
+.okw-theme-dialog {
+  position: absolute;
+  right: 0;
+  z-index: var(--z-modal-dropdown, 500);
+  width: min(360px, calc(100vw - 40px));
+  margin-top: 8px;
+  padding: 12px;
+  color: var(--color-text);
+  background: var(--color-menu-bg);
+  border: .5px solid var(--color-line-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(24px) saturate(130%);
+}
+
+.okw-theme-dialog[hidden] {
+  display: none;
+}
+
+.okw-theme-intro {
+  margin: 0 2px 10px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.okw-theme-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.okw-theme-option {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 7px 8px;
+  color: var(--color-text);
+  background: var(--color-subtle);
+  border: .5px solid transparent;
+  border-radius: var(--radius-md);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.okw-theme-option:hover {
+  background: var(--color-hover);
+  border-color: var(--color-line);
+}
+
+.okw-theme-option.selected {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-bd);
+}
+
+.okw-theme-swatch {
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+}
+
+.okw-theme-option[data-theme='original'] .okw-theme-swatch {
+  background: linear-gradient(135deg, #f4f4f4 0 48%, #171717 52% 100%);
+}
+
+.okw-theme-option[data-theme='aurora'] .okw-theme-swatch {
+  background: linear-gradient(135deg, #061725, #25c6d3 68%, #72dfbe);
+}
+
+.okw-theme-option[data-theme='twilight'] .okw-theme-swatch {
+  background: linear-gradient(135deg, #17172b, #797ce4 60%, #d78db7);
+}
+
+.okw-theme-option[data-theme='ember'] .okw-theme-swatch {
+  background: linear-gradient(135deg, #1b1121, #b45069 60%, #f48a6e);
+}
+
+.okw-theme-option[data-theme='mineral'] .okw-theme-swatch {
+  background: linear-gradient(135deg, #0a2524, #43a98d 60%, #b7e4cd);
+}
+
+.okw-theme-option[data-theme='nocturne'] .okw-theme-swatch {
+  background: linear-gradient(135deg, #080b10, #293a59 62%, #83b8e8);
+}
+
+.okw-theme-option-label {
+  min-width: 0;
+  font-size: var(--text-xs);
+  line-height: 1.25;
+}
+
+.okw-theme-check {
+  color: var(--color-accent);
+  font-size: 13px;
+  opacity: 0;
+}
+
+.okw-theme-option.selected .okw-theme-check {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .sheet-root.okw-settings .okw-theme-section {
+    margin: 9px 1px 13px;
+  }
+
+  .sheet-root.okw-settings .okw-theme-heading {
+    margin-bottom: 4px;
+    color: rgba(255, 255, 255, .48);
+    font-size: 13px;
+  }
+
+  .sheet-root.okw-settings .okw-theme-trigger {
+    min-height: 58px;
+    padding-inline: 1px 8px;
+    background: transparent;
+    border-color: transparent;
+    border-radius: 0;
+  }
+
+  .sheet-root.okw-settings .okw-theme-dialog {
+    position: fixed;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 12px;
+    width: auto;
+    max-height: min(460px, calc(100dvh - 24px));
+    margin: 0;
+    overflow: auto;
+  }
+
+  .sheet-root.okw-settings .okw-theme-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
