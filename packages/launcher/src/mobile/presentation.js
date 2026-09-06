@@ -161,6 +161,35 @@ const mobile = window.matchMedia('(max-width: 640px)');
     return method.toUpperCase();
   };
 
+  const isSessionCreate = (input, init) => {
+    const url = requestUrl(input);
+    return url.origin === location.origin && url.pathname === '/api/v1/sessions' && requestMethod(input, init) === 'POST';
+  };
+
+  const explainMissingWorkspace = async (input, init, response) => {
+    if (!isSessionCreate(input, init)) return response;
+    let body;
+    try {
+      body = await response.clone().json();
+    } catch {
+      return response;
+    }
+    if (body?.code !== 40409) return response;
+    const language = document.documentElement.lang || navigator.language || '';
+    const guidance = language.toLocaleLowerCase().startsWith('zh')
+      ? '工作区目录不存在。请恢复原目录，或返回工作区列表选择现有目录后重试。旧会话和配置仍保留。'
+      : 'The workspace directory no longer exists. Restore it, or return to the workspace list and choose an existing directory before retrying. Existing sessions and configuration are preserved.';
+    const message = typeof body.msg === 'string' && body.msg !== '' ? `${guidance} ${body.msg}` : guidance;
+    const headers = new Headers(response.headers);
+    headers.delete('content-length');
+    headers.delete('content-encoding');
+    return new Response(JSON.stringify({ ...body, msg: message }), {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  };
+
   const isObservedPath = (pathname) => pathname === '/api/v2/sessions' ||
     pathname === '/api/v1/workspaces' ||
     /^\/api\/v1\/sessions\/[^/]+(?:\/fs:git_status)?$/.test(pathname);
@@ -183,8 +212,9 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const nativeFetch = window.fetch;
   window.fetch = async function observedFetch(input, init) {
     const response = await nativeFetch.apply(this, arguments);
-    void observeResponse(input, init, response);
-    return response;
+    const explained = await explainMissingWorkspace(input, init, response);
+    void observeResponse(input, init, explained);
+    return explained;
   };
 
   const enhanceSettings = (root) => {
