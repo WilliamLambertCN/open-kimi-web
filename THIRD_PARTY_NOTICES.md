@@ -15,7 +15,8 @@ the cached bundle, and its `boot.js` is preserved.
 The launcher applies a title patch and loads this project's separate mobile
 presentation stylesheet and script into HTML responses. The mobile assets
 adapt the layout while retaining upstream interactions and do not rewrite
-the cached upstream assets. The official UI retains its upstream branding. The mobile presentation is
+the cached upstream assets. The sidebar brand label is changed to `open kimi web`; upstream logos and
+license notices are retained. The mobile presentation is
 informed by the earlier public Kimi Web layout and user-provided references.
 
 Older cached bundles may contain the equivalent official 0.41.0 `boot.js`

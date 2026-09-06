@@ -121,6 +121,11 @@ async function expectPresentationAssets(baseUrl) {
     const response = await fetch(url);
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-cache');
+    const body = await response.text();
+    if (name === 'presentation.js') {
+      expect(body).toContain("document.querySelector('.side .ch-brand .ch-name')");
+      expect(body).toContain("label.textContent = 'open kimi web'");
+    }
     const head = await fetch(url, { method: 'HEAD' });
     expect(head.headers.get('content-length')).toBe(response.headers.get('content-length'));
     expect(await head.text()).toBe('');

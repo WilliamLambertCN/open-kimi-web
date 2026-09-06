@@ -220,7 +220,13 @@ const mobile = window.matchMedia('(max-width: 640px)');
     if (grouped && grouped.getAttribute('aria-selected') !== 'true') grouped.click();
   };
 
+  const enhanceBrand = () => {
+    const label = document.querySelector('.side .ch-brand .ch-name');
+    if (label?.textContent.trim() === 'Kimi Code') label.textContent = 'open kimi web';
+  };
+
   const enhance = () => {
+    enhanceBrand();
     if (!mobile.matches) return;
     const main = document.querySelector('.app.mobile .topbar .tb-main');
     if (main) renderObservedHeaderState();
@@ -256,5 +262,5 @@ const mobile = window.matchMedia('(max-width: 640px)');
     if (mobile.matches) enhance();
     else restoreDesktop();
   });
-  if (mobile.matches) enhance();
+  enhance();
 }
