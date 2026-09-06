@@ -13,11 +13,11 @@
 
 以下截图来自官方 `0.41.0` 前端与本项目增强层，使用隔离浏览器和固定演示数据。`demo-project`、对话内容与 `Demo` 模型均为虚构示例，不代表真实账号或额外提供的模型服务。
 
-**桌面端：工作区、会话与对话界面**
+**主推：夜幕 · Nocturne — 工作区、会话与对话界面**
 
-![余烬主题：工作区列表、示例对话与玻璃输入区](docs/images/theme-ember-desktop.png)
+![夜幕主题：工作区列表、示例对话与玻璃输入区](docs/images/theme-nocturne-desktop.png)
 
-**手机端：夜幕对话、余烬模型菜单与极光主题切换**
+**手机端：主推夜幕对话、极光主题切换与余烬模型菜单**
 
 <p>
   <img src="docs/images/theme-nocturne-mobile.png" alt="夜幕主题：手机对话与底部输入区" width="31%" />
@@ -25,22 +25,22 @@
   <img src="docs/images/theme-aurora-mobile.png" alt="极光主题：六选项主题切换面板" width="31%" />
 </p>
 
-**五套主题实机预览**（点击图片查看原图；手机栏分别展示主题切换、设置、模型菜单、工作区和对话）：
+**五套主题实机预览**（夜幕为主推视觉；点击图片查看原图）：
 
 | 主题 | 桌面 | 手机 |
 | --- | --- | --- |
+| **夜幕 · Nocturne（主推）** | <a href="docs/images/theme-nocturne-desktop.png"><img src="docs/images/theme-nocturne-desktop.png" alt="夜幕主题主推桌面" width="680" /></a> | <a href="docs/images/theme-nocturne-mobile.png"><img src="docs/images/theme-nocturne-mobile.png" alt="夜幕主题主推手机对话" width="180" /></a> |
 | 极光 · Aurora | <a href="docs/images/theme-aurora-desktop.png"><img src="docs/images/theme-aurora-desktop.png" alt="极光桌面" width="680" /></a> | <a href="docs/images/theme-aurora-mobile.png"><img src="docs/images/theme-aurora-mobile.png" alt="极光手机主题切换" width="180" /></a> |
 | 暮色 · Twilight | <a href="docs/images/theme-twilight-desktop.png"><img src="docs/images/theme-twilight-desktop.png" alt="暮色桌面" width="680" /></a> | <a href="docs/images/theme-twilight-mobile.png"><img src="docs/images/theme-twilight-mobile.png" alt="暮色手机设置" width="180" /></a> |
 | 余烬 · Ember | <a href="docs/images/theme-ember-desktop.png"><img src="docs/images/theme-ember-desktop.png" alt="余烬桌面" width="680" /></a> | <a href="docs/images/theme-ember-mobile.png"><img src="docs/images/theme-ember-mobile.png" alt="余烬手机模型菜单" width="180" /></a> |
 | 矿物青绿 · Mineral | <a href="docs/images/theme-mineral-desktop.png"><img src="docs/images/theme-mineral-desktop.png" alt="矿物青绿桌面" width="680" /></a> | <a href="docs/images/theme-mineral-mobile.png"><img src="docs/images/theme-mineral-mobile.png" alt="矿物青绿手机工作区" width="180" /></a> |
-| 夜幕 · Nocturne | <a href="docs/images/theme-nocturne-desktop.png"><img src="docs/images/theme-nocturne-desktop.png" alt="夜幕桌面" width="680" /></a> | <a href="docs/images/theme-nocturne-mobile.png"><img src="docs/images/theme-nocturne-mobile.png" alt="夜幕手机对话" width="180" /></a> |
 
 ## 它能干什么
 
 - **局域网安全开放**：`kimi web --host` 自动升级成 HTTPS——官方 server 只监听 `127.0.0.1`，launcher 在局域网入口架自签名 HTTPS，打印 SHA-256 指纹供核对。
 - **token 直达链接**：打印的链接自带 `#token=...`，手机点开即用，不用手抄令牌。
 - **移动页面修复**：在官方 Web 上补充小屏展示层，改善首页、会话设置、模型菜单和工作区列表的手机布局。
-- **五套氛围主题**：极光、暮色、余烬、矿物青绿、夜幕可在桌面和手机的设置中切换，覆盖页面、侧栏、输入区与弹层；也可随时恢复原始外观。
+- **五套氛围主题**：主推夜幕 · Nocturne；极光、暮色、余烬、矿物青绿也可在桌面和手机的设置中切换，覆盖页面、侧栏、输入区与弹层；也可随时恢复原始外观。
 - **可选接管、完整可逆**：`integrate install` 可让 `kimi web` 经过本增强层；其余 `kimi` 命令原样透传官方二进制，`integrate uninstall` 可撤销 wrapper 与 PATH 改动，官方安装一个字节不动。
 
 项目定位是官方 Web/后端的轻量增强层。维护移动补丁时优先保持改动局部，上游修复对应问题后移除补丁。
@@ -51,11 +51,11 @@
 
 | 主题 | 配色与背景 |
 | --- | --- |
+| **Nocturne · 夜幕（主推）** | 更深的墨蓝、克制的蓝紫边缘光，作为仓库主推展示风格 |
 | Aurora · 极光 | 海蓝底色、青色极光与柔和光晕 |
 | Twilight · 暮色 | 靛蓝底色、薰衣草紫与灰粉色暮光 |
 | Ember · 余烬 | 深梅紫底色、珊瑚与蜜桃色暖光 |
 | Mineral · 矿物青绿 | 深石油绿、鼠尾草与薄荷绿层次 |
-| Nocturne · 夜幕 | 更深的墨蓝、克制的蓝紫边缘光 |
 
 初次使用保留原始外观。主题选择保存在当前浏览器、当前站点的 `localStorage` 中，刷新后保持；不同设备需要各自选择。选择原始外观会移除主题覆盖，恢复官方浅色、深色或跟随系统设置。浏览器禁止本地存储时仍可切换，但无法保证刷新后保留。
 
