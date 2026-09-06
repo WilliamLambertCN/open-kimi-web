@@ -9,6 +9,22 @@
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。默认界面直接来自官方 npm 包（MIT 许可）的构建产物（见下文「官方界面与手机适配」），其中官方 logo 与样式版权归 Moonshot AI 所有。
 
 
+## 界面预览
+
+以下截图来自官方 `0.41.0` 前端与本项目增强层，使用隔离浏览器和固定演示数据。`demo-project`、对话内容与 `Demo` 模型均为虚构示例，不代表真实账号或额外提供的模型服务。
+
+**桌面端：工作区、会话与对话界面**
+
+![桌面端演示：工作区列表、示例对话与输入区](docs/images/official-demo-desktop.png)
+
+**手机端：对话、模型选择与会话设置**
+
+<p>
+  <img src="docs/images/official-demo-mobile-home.png" alt="手机端示例对话与底部输入区" width="31%" />
+  <img src="docs/images/official-demo-mobile-models.png" alt="手机端模型与思考强度选择" width="31%" />
+  <img src="docs/images/official-demo-mobile-settings.png" alt="手机端会话设置与应用偏好" width="31%" />
+</p>
+
 ## 它能干什么
 
 - **局域网安全开放**：`kimi web --host` 自动升级成 HTTPS——官方 server 只监听 `127.0.0.1`，launcher 在局域网入口架自签名 HTTPS，打印 SHA-256 指纹供核对。
