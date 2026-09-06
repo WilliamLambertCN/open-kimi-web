@@ -9,6 +9,26 @@ import { createLauncher } from './serve.mjs';
 import { tlsStatusLines } from './tlsMessages.mjs';
 import { ensureManagedTls, loadCustomTls } from './tlsStore.mjs';
 
+const TARGET_PROBE_TIMEOUT_MS = 3_000;
+
+async function assertTargetReachable(target, fetchImpl = fetch) {
+  const healthUrl = new URL('/api/v1/healthz', target);
+  try {
+    const response = await fetchImpl(healthUrl, {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(TARGET_PROBE_TIMEOUT_MS),
+    });
+    void response.body?.cancel().catch(() => undefined);
+  } catch (err) {
+    throw new Error(
+      `Kimi backend is unreachable at ${target}: ${err.message}. ` +
+      'Start the official backend on the configured target (use the real Kimi binary if ' +
+      '`kimi` is wrapped), or run `kimi web --host` with integration instead of `pnpm dev`.',
+      { cause: err },
+    );
+  }
+}
+
 async function resolveTls(opts, interfaces) {
   if (!opts.https) return null;
   if (opts.certFile) return loadCustomTls(opts);
@@ -110,6 +130,7 @@ export async function createLauncherWithRetry(opts, create = createLauncher) {
  * Returns { launcher, tls, tokenResult, publicDir }.
  */
 export async function startFrontend(opts) {
+  await assertTargetReachable(opts.target, opts.targetFetch);
   const interfaces = opts.interfaces ?? networkInterfaces();
   const [tls, tokenResult] = await Promise.all([
     resolveTls(opts, interfaces),

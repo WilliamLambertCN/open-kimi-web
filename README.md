@@ -159,6 +159,11 @@ pnpm test:ut        # 单元测试（分支覆盖率 <60% 即失败）
 pnpm test:it        # 集成测试（同上）
 ```
 
+`pnpm dev` 只启动 launcher，要求官方后端已经监听在配置的 target。已经执行过
+`integrate install` 时，直接用 `kimi web --host` 启动受管后端和增强层，不要再同时运行
+`pnpm dev`。未接管时，先用真实的官方 Kimi 二进制启动 target；如果 `kimi` 已指向
+wrapper，应调用它所记录的真实二进制，再运行 `pnpm dev`。
+
 结构：`packages/launcher` 包含 HTTPS、REST/WS 代理、官方资源加载和手机展示层；`contracts/upstream` 保留历史协议快照作为参考。上游版本与维护边界见 [`UPSTREAM.md`](UPSTREAM.md)。
 
 兼容性基线：CLI `0.41.0`（kimi-code `main` @ [`f9ca3337`](https://github.com/MoonshotAI/kimi-code/commit/f9ca33376604ae91ea35a4ac1d6f1d4425a5aead)）；后续官方版本仍需检查受影响的增强代码。
