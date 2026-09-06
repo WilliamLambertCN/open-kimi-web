@@ -86,6 +86,37 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     return element;
   };
 
+  const makeHexMarker = (className) => {
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    marker.setAttribute('class', `okw-hex-mark ${className}`);
+    marker.setAttribute('viewBox', '0 0 28 32');
+    marker.setAttribute('aria-hidden', 'true');
+    marker.setAttribute('focusable', 'false');
+    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    outline.setAttribute('d', 'M14 1.5 25.7 8.25v15.5L14 30.5 2.3 23.75V8.25Z');
+    outline.setAttribute('fill', 'none');
+    outline.setAttribute('stroke', 'currentColor');
+    outline.setAttribute('stroke-width', '1.7');
+    const core = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    core.setAttribute('d', 'm14 8 6.8 4v8L14 24l-6.8-4v-8Z');
+    core.setAttribute('fill', 'currentColor');
+    core.setAttribute('opacity', '.82');
+    marker.append(outline, core);
+    return marker;
+  };
+
+  const enhanceVisualAnchors = () => {
+    const brand = document.querySelector('.side .ch-brand');
+    if (brand && !brand.querySelector('.okw-brand-mark')) {
+      brand.prepend(makeHexMarker('okw-brand-mark'));
+    }
+    document.querySelectorAll('.a-msg').forEach((message) => {
+      if (!message.querySelector(':scope > .okw-assistant-mark')) {
+        message.prepend(makeHexMarker('okw-assistant-mark'));
+      }
+    });
+  };
+
   const buildThemePicker = () => {
     const section = makeElement('section', 'okw-theme-section');
     section.dataset.okwThemePicker = '';
@@ -166,7 +197,12 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
   currentTheme = readStoredTheme();
   applyTheme(currentTheme, false);
 
-  new MutationObserver(enhanceSettings).observe(document.documentElement, { childList: true, subtree: true });
+  const enhance = () => {
+    enhanceSettings();
+    enhanceVisualAnchors();
+  };
+
+  new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('pointerdown', (event) => {
     if (openPicker && !openPicker.contains(event.target)) closeThemePicker();
   });
@@ -176,5 +212,5 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
       closeThemePicker({ restoreFocus: true });
     }
   }, true);
-  enhanceSettings();
+  enhance();
 }

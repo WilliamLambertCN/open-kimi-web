@@ -70,9 +70,9 @@ html[data-okw-theme='aurora'] {
   --okw-raised: rgba(12, 52, 65, .88);
   --okw-overlay: rgba(86, 222, 220, .12);
   --okw-deep: rgba(3, 17, 28, .9);
-  --okw-sidebar: rgba(3, 22, 34, .9);
-  --okw-topbar: rgba(5, 27, 41, .78);
-  --okw-composer: rgba(10, 45, 58, .82);
+  --okw-sidebar: rgba(3, 22, 34, .78);
+  --okw-topbar: rgba(5, 27, 41, .6);
+  --okw-composer: rgba(10, 45, 58, .72);
   --okw-menu: rgba(10, 43, 56, .96);
   --okw-bubble: rgba(34, 112, 126, .3);
   --okw-accent: #25c6d3;
@@ -82,11 +82,8 @@ html[data-okw-theme='aurora'] {
   --okw-accent-line: rgba(70, 222, 224, .46);
   --okw-selected: rgba(38, 188, 199, .2);
   --okw-selected-hover: rgba(51, 207, 215, .27);
-  --okw-atmosphere:
-    repeating-linear-gradient(117deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 7px),
-    radial-gradient(ellipse at 84% 20%, rgba(29, 213, 213, .32), transparent 42%),
-    radial-gradient(ellipse at 68% 86%, rgba(60, 201, 157, .18), transparent 42%),
-    linear-gradient(136deg, #061725 0%, #073345 56%, #071c2b 100%);
+  --okw-atmosphere: url('/__open-kimi-mobile/backgrounds/aurora.png');
+  --okw-mobile-atmosphere-position: 72% center;
 }
 
 html[data-okw-theme='twilight'] {
@@ -95,9 +92,9 @@ html[data-okw-theme='twilight'] {
   --okw-raised: rgba(48, 47, 82, .89);
   --okw-overlay: rgba(198, 176, 255, .13);
   --okw-deep: rgba(17, 17, 35, .9);
-  --okw-sidebar: rgba(20, 20, 42, .9);
-  --okw-topbar: rgba(30, 29, 58, .79);
-  --okw-composer: rgba(45, 43, 78, .83);
+  --okw-sidebar: rgba(20, 20, 42, .78);
+  --okw-topbar: rgba(30, 29, 58, .6);
+  --okw-composer: rgba(45, 43, 78, .72);
   --okw-menu: rgba(44, 42, 76, .96);
   --okw-bubble: rgba(133, 123, 203, .25);
   --okw-accent: #8f91ff;
@@ -107,11 +104,8 @@ html[data-okw-theme='twilight'] {
   --okw-accent-line: rgba(168, 163, 255, .44);
   --okw-selected: rgba(131, 127, 221, .22);
   --okw-selected-hover: rgba(157, 144, 235, .29);
-  --okw-atmosphere:
-    repeating-linear-gradient(126deg, rgba(255, 255, 255, .011) 0 1px, transparent 1px 8px),
-    radial-gradient(ellipse at 82% 82%, rgba(231, 149, 191, .3), transparent 43%),
-    radial-gradient(ellipse at 55% 12%, rgba(112, 105, 212, .25), transparent 46%),
-    linear-gradient(138deg, #17172b 0%, #2b2b54 54%, #3b2948 100%);
+  --okw-atmosphere: url('/__open-kimi-mobile/backgrounds/twilight.png');
+  --okw-mobile-atmosphere-position: 70% center;
 }
 
 html[data-okw-theme='ember'] {
@@ -120,9 +114,9 @@ html[data-okw-theme='ember'] {
   --okw-raised: rgba(68, 35, 56, .89);
   --okw-overlay: rgba(255, 174, 153, .13);
   --okw-deep: rgba(20, 12, 25, .91);
-  --okw-sidebar: rgba(24, 14, 31, .91);
-  --okw-topbar: rgba(39, 23, 43, .8);
-  --okw-composer: rgba(59, 31, 51, .84);
+  --okw-sidebar: rgba(24, 14, 31, .78);
+  --okw-topbar: rgba(39, 23, 43, .6);
+  --okw-composer: rgba(59, 31, 51, .72);
   --okw-menu: rgba(57, 31, 52, .96);
   --okw-bubble: rgba(197, 91, 101, .25);
   --okw-accent: #f27872;
@@ -132,11 +126,8 @@ html[data-okw-theme='ember'] {
   --okw-accent-line: rgba(255, 142, 130, .46);
   --okw-selected: rgba(223, 94, 101, .2);
   --okw-selected-hover: rgba(239, 113, 109, .28);
-  --okw-atmosphere:
-    repeating-linear-gradient(121deg, rgba(255, 255, 255, .011) 0 1px, transparent 1px 7px),
-    radial-gradient(ellipse at 90% 78%, rgba(255, 117, 83, .36), transparent 39%),
-    radial-gradient(ellipse at 56% 18%, rgba(141, 65, 111, .28), transparent 47%),
-    linear-gradient(137deg, #1b1121 0%, #3a2037 58%, #4e272f 100%);
+  --okw-atmosphere: url('/__open-kimi-mobile/backgrounds/ember.png');
+  --okw-mobile-atmosphere-position: 72% center;
 }
 
 html[data-okw-theme='mineral'] {
@@ -145,9 +136,9 @@ html[data-okw-theme='mineral'] {
   --okw-raised: rgba(31, 78, 70, .88);
   --okw-overlay: rgba(180, 241, 216, .13);
   --okw-deep: rgba(7, 26, 27, .91);
-  --okw-sidebar: rgba(7, 32, 32, .91);
-  --okw-topbar: rgba(17, 48, 47, .79);
-  --okw-composer: rgba(27, 68, 63, .83);
+  --okw-sidebar: rgba(7, 32, 32, .78);
+  --okw-topbar: rgba(17, 48, 47, .6);
+  --okw-composer: rgba(27, 68, 63, .72);
   --okw-menu: rgba(25, 65, 60, .96);
   --okw-bubble: rgba(85, 173, 147, .23);
   --okw-accent: #73d7b3;
@@ -157,11 +148,8 @@ html[data-okw-theme='mineral'] {
   --okw-accent-line: rgba(145, 230, 199, .44);
   --okw-selected: rgba(86, 183, 153, .2);
   --okw-selected-hover: rgba(109, 203, 171, .27);
-  --okw-atmosphere:
-    repeating-linear-gradient(114deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 8px),
-    radial-gradient(ellipse at 86% 20%, rgba(185, 235, 202, .28), transparent 38%),
-    radial-gradient(ellipse at 64% 86%, rgba(69, 174, 151, .24), transparent 44%),
-    linear-gradient(137deg, #0a2524 0%, #194c46 56%, #173a35 100%);
+  --okw-atmosphere: url('/__open-kimi-mobile/backgrounds/mineral.png');
+  --okw-mobile-atmosphere-position: 72% center;
 }
 
 html[data-okw-theme='nocturne'] {
@@ -170,9 +158,9 @@ html[data-okw-theme='nocturne'] {
   --okw-raised: rgba(23, 34, 51, .9);
   --okw-overlay: rgba(150, 173, 229, .1);
   --okw-deep: rgba(5, 9, 15, .93);
-  --okw-sidebar: rgba(5, 10, 17, .93);
-  --okw-topbar: rgba(11, 17, 28, .82);
-  --okw-composer: rgba(20, 31, 47, .86);
+  --okw-sidebar: rgba(5, 10, 17, .8);
+  --okw-topbar: rgba(11, 17, 28, .62);
+  --okw-composer: rgba(20, 31, 47, .74);
   --okw-menu: rgba(20, 30, 47, .97);
   --okw-bubble: rgba(79, 105, 156, .23);
   --okw-accent: #83b8e8;
@@ -182,20 +170,207 @@ html[data-okw-theme='nocturne'] {
   --okw-accent-line: rgba(146, 191, 235, .39);
   --okw-selected: rgba(92, 126, 180, .2);
   --okw-selected-hover: rgba(112, 143, 195, .27);
-  --okw-atmosphere:
-    repeating-linear-gradient(122deg, rgba(255, 255, 255, .009) 0 1px, transparent 1px 8px),
-    radial-gradient(ellipse at 93% 16%, rgba(102, 119, 194, .24), transparent 38%),
-    radial-gradient(ellipse at 76% 88%, rgba(73, 122, 159, .19), transparent 43%),
-    linear-gradient(138deg, #080b10 0%, #0c111a 54%, #151d29 100%);
+  --okw-atmosphere: url('/__open-kimi-mobile/backgrounds/nocturne.png');
+  --okw-mobile-atmosphere-position: 74% center;
 }
 
 html[data-okw-theme] body,
 html[data-okw-theme] #app,
 html[data-okw-theme] .app {
-  background: var(--okw-atmosphere) fixed !important;
+  background-color: var(--okw-bg) !important;
+  background-image: var(--okw-atmosphere) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
 }
 
 html[data-okw-theme] .con {
+  background: transparent !important;
+}
+
+html[data-okw-theme] .okw-hex-mark {
+  display: block;
+  flex: none;
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--color-accent) 32%, transparent));
+}
+
+.okw-hex-mark {
+  display: none;
+}
+
+html[data-okw-theme] .side .ch-logo {
+  display: none;
+}
+
+html[data-okw-theme] .side .okw-brand-mark {
+  width: 20px;
+  height: 23px;
+}
+
+html[data-okw-theme] .app:not(.mobile) .side {
+  width: clamp(280px, 21vw, 304px) !important;
+}
+
+html[data-okw-theme] .app:not(.mobile) {
+  --content-font-size: 16px;
+}
+
+html[data-okw-theme] .app:not(.mobile) .side .col {
+  width: 100% !important;
+}
+
+html[data-okw-theme] .btn-new-chat {
+  min-height: 38px;
+  margin: 4px 0 6px;
+  padding-inline: 13px !important;
+  background: rgba(255, 255, 255, .025) !important;
+  border: .5px solid var(--color-line-strong) !important;
+  border-radius: 6px !important;
+}
+
+html[data-okw-theme] .btn-new-chat:hover,
+html[data-okw-theme] .btn-new-chat:focus-visible {
+  background: var(--color-hover) !important;
+  border-color: var(--color-accent-bd) !important;
+}
+
+html[data-okw-theme] .side .se.on {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-selected) !important;
+  border: .5px solid var(--color-accent-bd);
+  border-radius: 6px;
+}
+
+html[data-okw-theme] .side .se.on::before {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  width: 2px;
+  background: var(--color-accent);
+  border-radius: 0 2px 2px 0;
+  content: '';
+}
+
+html[data-okw-theme] .u-bub {
+  background: color-mix(in srgb, var(--okw-bubble) 86%, transparent) !important;
+  border: .5px solid var(--color-line-strong);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+  backdrop-filter: blur(18px) saturate(118%);
+}
+
+html[data-okw-theme] .a-msg {
+  position: relative;
+  padding-left: 42px;
+}
+
+html[data-okw-theme] .a-msg > .okw-assistant-mark {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  width: 28px;
+  height: 32px;
+}
+
+html[data-okw-theme] .dock-workbar {
+  width: min(100%, 620px);
+  margin-bottom: 10px;
+}
+
+html[data-okw-theme] .dock-workbar > .ui-pill {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 50px;
+  padding: 9px 14px;
+  background: color-mix(in srgb, var(--okw-raised) 48%, transparent);
+  border: .5px solid var(--color-line-strong);
+  border-radius: 11px;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+
+html[data-okw-theme] .dock-workbar > .ui-pill > svg {
+  box-sizing: content-box;
+  padding: 4px;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border: .5px solid var(--color-accent-bd);
+  border-radius: 50%;
+}
+
+html[data-okw-theme] .chat-dock.pills-compact .dock-workbar > .ui-pill > span {
+  display: inline !important;
+}
+
+html[data-okw-theme] .composer-card {
+  --composer-control-size: 34px;
+  --composer-send-size: 44px;
+  background: color-mix(in srgb, var(--okw-composer) 60%, transparent) !important;
+  border-color: var(--color-line-strong) !important;
+  border-radius: 15px !important;
+  corner-shape: initial !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025), 0 18px 54px rgba(0, 0, 0, .14);
+}
+
+html[data-okw-theme] .composer-card::after {
+  border-radius: 15px !important;
+  corner-shape: initial !important;
+}
+
+html[data-okw-theme] .composer-card .composer-attach,
+html[data-okw-theme] .composer-card .model-pill,
+html[data-okw-theme] .composer-card .perm-pill,
+html[data-okw-theme] .composer-card .compact-chip {
+  background: rgba(255, 255, 255, .022);
+  border-color: var(--color-line-strong);
+}
+
+html[data-okw-theme] .composer-card .model-pill:hover,
+html[data-okw-theme] .composer-card .perm-pill:hover,
+html[data-okw-theme] .composer-card .compact-chip:hover {
+  background: var(--color-hover);
+  border-color: var(--color-accent-bd);
+}
+
+html[data-okw-theme] .send[aria-label*='发送']:not(.is-starting) > svg,
+html[data-okw-theme] .send[aria-label*='Send']:not(.is-starting) > svg {
+  display: none;
+}
+
+html[data-okw-theme] .send[aria-label*='发送']:not(.is-starting)::before,
+html[data-okw-theme] .send[aria-label*='Send']:not(.is-starting)::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  content: '';
+  transform: translate(-50%, -50%) rotate(-8deg);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21.6 2.7 2.8 10.2c-1.1.44-1.08 1.18-.2 1.45l4.82 1.5 1.85 5.8c.22.62.11.87.75.87.5 0 .72-.23 1-.5l2.32-2.25 4.83 3.57c.9.5 1.53.24 1.76-.83L23.1 4.2c.34-1.34-.51-1.95-1.5-1.5ZM9.32 12.8l9.4-5.93c.47-.28.9-.13.55.18l-7.76 7-.3 3.25-1.89-4.5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21.6 2.7 2.8 10.2c-1.1.44-1.08 1.18-.2 1.45l4.82 1.5 1.85 5.8c.22.62.11.87.75.87.5 0 .72-.23 1-.5l2.32-2.25 4.83 3.57c.9.5 1.53.24 1.76-.83L23.1 4.2c.34-1.34-.51-1.95-1.5-1.5ZM9.32 12.8l9.4-5.93c.47-.28.9-.13.55.18l-7.76 7-.3 3.25-1.89-4.5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+html[data-okw-theme] .send[aria-label*='发送']:disabled::before,
+html[data-okw-theme] .send[aria-label*='Send']:disabled::before {
+  background: var(--color-send-icon-disabled);
+}
+
+html[data-okw-theme] .app:not(.mobile) .chat > .u-turn:first-child + .a-msg {
+  margin-top: clamp(28px, 5vh, 46px);
+}
+
+html[data-okw-theme] .app:not(.mobile) :is(.md, .md .markdown-renderer, .u-bub .u-text, .a-msg .msg) {
+  font-size: 16px;
+}
+
+html[data-okw-theme] .app:not(.mobile) .dock-workbar {
+  margin-bottom: clamp(24px, 7vh, 70px);
+}
+
+html[data-okw-theme] .chat-dock::before {
   background: transparent !important;
 }
 
@@ -214,12 +389,18 @@ html[data-okw-theme] .app.mobile .topbar {
 
 html[data-okw-theme] .composer-card,
 html[data-okw-theme] .sheet-panel,
+html[data-okw-theme] .ui-dialog,
 html[data-okw-theme] .ui-menu {
   backdrop-filter: blur(22px) saturate(120%);
 }
 
-html[data-okw-theme] .sheet-panel {
-  background: var(--color-surface-raised) !important;
+html[data-okw-theme] .sheet-panel,
+html[data-okw-theme] .ui-dialog {
+  background: color-mix(in srgb, var(--okw-raised) 72%, transparent) !important;
+}
+
+html[data-okw-theme] .ui-menu {
+  background: color-mix(in srgb, var(--okw-menu) 88%, transparent) !important;
 }
 
 html[data-okw-theme] .markstream-vue {
@@ -435,6 +616,135 @@ html[data-okw-theme] .markstream-vue {
 }
 
 @media (max-width: 640px) {
+  html[data-okw-theme] .app.mobile {
+    --content-font-size: 13px;
+    background-image:
+      linear-gradient(rgba(3, 10, 17, .18), rgba(3, 10, 17, .18)),
+      var(--okw-atmosphere) !important;
+    background-position: var(--okw-mobile-atmosphere-position) !important;
+    background-size: auto 100% !important;
+    background-attachment: scroll !important;
+  }
+
+  html[data-okw-theme] .app.mobile .topbar {
+    height: 49px;
+    min-height: 49px;
+    padding-block: 3px;
+  }
+
+  html[data-okw-theme] .app.mobile .topbar .tb-main {
+    grid-template-columns: 27px minmax(0, 1fr) 12px;
+    grid-template-rows: 19px 15px;
+    column-gap: 8px;
+    width: min(270px, calc(100vw - 56px));
+  }
+
+  html[data-okw-theme] .app.mobile .topbar .okw-workspace-badge {
+    width: 24px;
+    height: 26px;
+    color: transparent;
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-accent);
+    border-radius: 0;
+    clip-path: polygon(50% 0, 94% 25%, 94% 75%, 50% 100%, 6% 75%, 6% 25%);
+    font-size: 0;
+  }
+
+  html[data-okw-theme] .app.mobile .topbar .dir {
+    font-size: 12.5px;
+    font-weight: var(--weight-medium);
+    line-height: 17px;
+  }
+
+  html[data-okw-theme] .app.mobile .topbar .okw-workspace-status {
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  html[data-okw-theme] .app.mobile .topbar > .ui-icon-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  html[data-okw-theme] .app.mobile .u-bub {
+    max-width: 72%;
+    border-radius: 9px;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  html[data-okw-theme] .app.mobile .a-msg {
+    padding-left: 31px;
+  }
+
+  html[data-okw-theme] .app.mobile .a-msg > .okw-assistant-mark {
+    top: 1px;
+    width: 22px;
+    height: 25px;
+  }
+
+  html[data-okw-theme] .app.mobile .md,
+  html[data-okw-theme] .app.mobile .markdown-renderer {
+    font-size: 13px;
+    line-height: 1.58;
+  }
+
+  html[data-okw-theme] .app.mobile .dock-workbar {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  html[data-okw-theme] .app.mobile .dock-workbar > .ui-pill {
+    min-height: 42px;
+    padding: 7px 10px;
+    font-size: 11.5px;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card,
+  html[data-okw-theme] .app.mobile .empty-composer .composer-card {
+    --composer-control-size: 30px;
+    --composer-send-size: 36px;
+    height: auto !important;
+    min-height: 104px;
+    border-radius: 13px !important;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card::after {
+    border-radius: 13px !important;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card .cin-wrap,
+  html[data-okw-theme] .app.mobile .empty-composer .cin-wrap {
+    min-height: 55px;
+    padding: 10px 12px 3px;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card .ph {
+    min-height: 28px;
+    font-size: 13px;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card .toolbar {
+    padding: 3px 8px 8px;
+    transform: none;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card .model-pill {
+    max-width: calc(100vw - 132px);
+    padding-inline: 8px 5px;
+  }
+
+  html[data-okw-theme] .app.mobile .composer-card .model-pill .mp-name,
+  html[data-okw-theme] .app.mobile .composer-card .model-pill .think-suffix {
+    font-size: 11.5px;
+  }
+
+  html[data-okw-theme] .app.mobile .send[aria-label*='发送']:not(.is-starting)::before,
+  html[data-okw-theme] .app.mobile .send[aria-label*='Send']:not(.is-starting)::before {
+    width: 18px;
+    height: 18px;
+  }
+
   .sheet-root.okw-settings .okw-theme-section {
     margin: 9px 1px 13px;
   }
