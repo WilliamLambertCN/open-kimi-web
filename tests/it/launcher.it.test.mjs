@@ -18,6 +18,7 @@ let launcherUrl;
 let publicDir;
 let lastWsHeaders = null;
 let lastWsCloseCode = null;
+const upstreamWsConnections = [];
 
 function startFakeUpstream() {
   return new Promise((resolveListen) => {
@@ -62,10 +63,14 @@ function startFakeUpstream() {
         return;
       }
       wss.handleUpgrade(req, socket, head, (ws) => {
+        let resolveClosed;
+        const closed = new Promise((resolve) => (resolveClosed = resolve));
+        upstreamWsConnections.push({ ws, closed });
         ws.send('hello-from-upstream');
         ws.on('message', (data, isBinary) => ws.send(`echo:${data}`, { binary: isBinary }));
         ws.on('close', (code) => {
           lastWsCloseCode = code;
+          resolveClosed(code);
         });
       });
     });
@@ -395,10 +400,13 @@ describe('WebSocket upgrade routing', () => {
   });
 
   it('closes the upstream when the downstream handshake is malformed', async () => {
-    const clientsBefore = upstream.wss.clients.size;
+    const connectionIndex = upstreamWsConnections.length;
     const response = await rawWsRequest(launcherUrl, ['Sec-WebSocket-Version: 13']);
     expect(response).toContain('400 Bad Request');
-    await expect.poll(() => upstream.wss.clients.size).toBe(clientsBefore);
+    expect(upstreamWsConnections).toHaveLength(connectionIndex + 1);
+    const malformedConnection = upstreamWsConnections[connectionIndex];
+    await expect(malformedConnection.closed).resolves.toBe(1006);
+    expect(upstream.wss.clients.has(malformedConnection.ws)).toBe(false);
   });
 
   it('rejects duplicate subprotocols without crashing the launcher', async () => {
