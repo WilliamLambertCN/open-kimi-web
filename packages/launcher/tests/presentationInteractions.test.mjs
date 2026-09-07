@@ -147,7 +147,7 @@ function install({ isMobile = false, withComposer = false, withStrip = false } =
   document.querySelector = () => null;
   document.querySelectorAll = (selector) => {
     if (selector === '.mp > .chip-strip') return strip ? [strip] : [];
-    if (selector === '.app.mobile .composer') return composer ? [composer] : [];
+    if (selector === '.app .composer') return composer ? [composer] : [];
     if (selector === '.okw-steer-button') {
       const button = composer?.querySelector('.okw-steer-button');
       return button ? [button] : [];
@@ -252,7 +252,7 @@ describe('model provider navigation', () => {
   });
 });
 
-describe('mobile priority-send control', () => {
+describe('priority-send control', () => {
   it('appears only when official controls allow steering and dispatches one Ctrl+S', () => {
     const { composer, editor, observer } = install({ isMobile: true, withComposer: true });
     const received = [];
@@ -274,14 +274,20 @@ describe('mobile priority-send control', () => {
     expect(composer.querySelector('.okw-steer-button')).toBeNull();
   });
 
-  it('stays absent on desktop and is removed when the viewport leaves mobile mode', () => {
+  it('works on desktop and remains available across viewport changes', () => {
     const desktop = install({ withComposer: true });
-    expect(desktop.composer.querySelector('.okw-steer-button')).toBeNull();
+    const desktopEvents = [];
+    desktop.editor.addEventListener('keydown', (keydown) => desktopEvents.push(keydown));
+    const desktopButton = desktop.composer.querySelector('.okw-steer-button');
+    expect(desktopButton).not.toBeNull();
+    desktop.editor.dispatchEvent(event('keydown', { key: 's', ctrlKey: true }));
+    desktopButton.dispatchEvent(event('click'));
+    expect(desktopEvents).toHaveLength(2);
 
     const mobile = install({ isMobile: true, withComposer: true });
     expect(mobile.composer.querySelector('.okw-steer-button')).not.toBeNull();
     mobile.media.matches = false;
     mobile.mediaListeners[0]();
-    expect(mobile.composer.querySelector('.okw-steer-button')).toBeNull();
+    expect(mobile.composer.querySelector('.okw-steer-button')).not.toBeNull();
   });
 });
