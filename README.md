@@ -8,6 +8,16 @@
 
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。默认界面直接来自官方 npm 包（MIT 许可）的构建产物（见下文「官方界面与手机适配」），其中官方 logo 与样式版权归 Moonshot AI 所有。
 
+## 更新记录（最新在前）
+
+### [open-kimi-web v0.41.0](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0) — 2026-09-07
+
+- 新增夜幕、极光、暮色、余烬与矿物青绿五套桌面端和手机端主题。
+- 模型供应商标签栏支持触摸、拖动、滚轮与键盘横向导航。
+- 会话运行中可在桌面端和手机端使用“插队”发送，桌面端继续支持 `Ctrl+S`。
+- 改进工作区、后端与依赖异常的诊断，并修复 composer dock 控件布局错位。
+
+后续版本按日期倒序维护。完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 界面预览
 
