@@ -74,6 +74,31 @@ corepack pnpm install
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
+如果 Windows 在 `corepack pnpm install` 下载 `pnpm-10.33.0.tgz` 时出现
+`ECONNRESET`，先解决 Corepack 的下载链路，再运行 `integrate install`；直接跳过依赖安装
+只会得到不能启动 Web 服务的 launcher。Corepack 下载 pnpm 本体时使用自己的 registry，
+不会读取尚未启动的 pnpm 配置。可先重试；需要使用仓库已有的 npmmirror 回退时，
+在当前 PowerShell 中同时设置 Corepack 和 pnpm 的 registry，然后按锁文件重新安装：
+
+```powershell
+$env:COREPACK_NPM_REGISTRY = 'https://registry.npmmirror.com'
+$env:npm_config_registry = $env:COREPACK_NPM_REGISTRY
+corepack pnpm install --frozen-lockfile
+```
+
+如果网络必须经过代理，请设置真实可用的代理地址；新版 Corepack 通过 Node 的环境代理开关
+读取 `HTTPS_PROXY`：
+
+```powershell
+$env:NODE_USE_ENV_PROXY = '1'
+$env:HTTPS_PROXY = 'http://127.0.0.1:<port>'
+corepack pnpm install --frozen-lockfile
+```
+
+不要原样复制占位地址，也不要通过关闭完整性校验绕过下载问题。变量说明与网络排查项见
+[Corepack 官方文档](https://github.com/nodejs/corepack/blob/main/README.md#environment-variables)。安装成功后再执行上面的
+`integrate install`。
+
 然后**开一个新终端**：
 
 ```sh

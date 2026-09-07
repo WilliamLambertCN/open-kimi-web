@@ -6,9 +6,10 @@
 import { readFile } from 'node:fs/promises';
 
 import { parseArgs, USAGE, UsageError } from './args.mjs';
-import { startFrontend } from './frontend.mjs';
-import { integrateMain } from './integration/integrateMain.mjs';
-import { wrapMain } from './integration/wrapMain.mjs';
+import {
+  launcherDependencyMessage,
+  missingLauncherDependencies,
+} from './launcherDependencies.mjs';
 
 const SHUTDOWN_TIMEOUT_MS = 3_000;
 
@@ -24,6 +25,9 @@ async function serve(opts) {
         'to devices that can observe this network.',
     );
   }
+  const missing = await missingLauncherDependencies();
+  if (missing.length > 0) throw new Error(launcherDependencyMessage(missing));
+  const { startFrontend } = await import('./frontend.mjs');
   const { launcher } = await startFrontend(opts);
   let shuttingDown = false;
   const shutdown = () => {
@@ -54,6 +58,7 @@ async function serve(opts) {
 export async function run(argv) {
   const args = argv.slice(2);
   if (args[0] === '__wrap') {
+    const { wrapMain } = await import('./integration/wrapMain.mjs');
     process.exitCode = await wrapMain(args.slice(1));
     return;
   }
@@ -62,6 +67,7 @@ export async function run(argv) {
     return;
   }
   if (args[0] === 'integrate') {
+    const { integrateMain } = await import('./integration/integrateMain.mjs');
     process.exitCode = await integrateMain(args.slice(1));
     return;
   }

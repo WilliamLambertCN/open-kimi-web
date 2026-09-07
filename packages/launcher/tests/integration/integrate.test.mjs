@@ -165,6 +165,20 @@ describe('repair', () => {
     ).rejects.toThrow(/denied/);
     expect(readFileSync(wrapper, 'utf8')).toBe(original);
   });
+
+  it.each([installIntegration, repairIntegration])('refuses before writing when launcher dependencies are missing', async (action) => {
+    const loadDependency = async (name) => {
+      const error = new Error(`Cannot find package '${name}'`);
+      error.code = 'ERR_MODULE_NOT_FOUND';
+      throw error;
+    };
+
+    await expect(action(options({}, { loadDependency }))).rejects.toThrow(
+      /Integration was not changed.*launcher dependencies are missing: ws, selfsigned/s,
+    );
+    expect(existsSync(integrationPaths(stateHome).stateFile)).toBe(false);
+    expect(existsSync(integrationPaths(stateHome).bin)).toBe(false);
+  });
 });
 
 describe('status', () => {
@@ -197,6 +211,20 @@ describe('status', () => {
     const result = await statusIntegration(options());
     expect(result.code).toBe(1);
     expect(errors.join('\n')).toMatch(/wrapper/);
+  });
+
+  it('reports missing launcher dependencies without failing to load status', async () => {
+    await installIntegration(options());
+    const loadDependency = async (name) => {
+      const error = new Error(`Cannot find package '${name}'`);
+      error.code = 'ERR_MODULE_NOT_FOUND';
+      throw error;
+    };
+
+    const result = await statusIntegration(options({}, { loadDependency }));
+
+    expect(result.code).toBe(1);
+    expect(errors.join('\n')).toMatch(/launcher dependencies are missing: ws, selfsigned/);
   });
 });
 

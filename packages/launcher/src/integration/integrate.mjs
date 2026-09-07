@@ -6,6 +6,10 @@ import { readFile, rm, rmdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  launcherDependencyMessage,
+  missingLauncherDependencies,
+} from '../launcherDependencies.mjs';
 import { withIntegrationLock } from './lock.mjs';
 import {
   installRcBlock,
@@ -31,6 +35,12 @@ import {
   saveState,
 } from './state.mjs';
 import { isOurWrapper, writeWrappers, wrapperFileNames } from './wrapperGen.mjs';
+
+async function assertLauncherDependencies(ctx) {
+  const missing = await missingLauncherDependencies(ctx.loadDependency);
+  if (missing.length === 0) return;
+  throw new IntegrateError(`Integration was not changed. ${launcherDependencyMessage(missing)}`);
+}
 
 function launcherEntry() {
   return fileURLToPath(new URL('../../bin/open-kimi-web.mjs', import.meta.url));
@@ -212,11 +222,13 @@ export function makeContext(options) {
     readUserPath: options.readUserPath ?? (() => readWindowsUserPath(options.run)),
     readSystemPath: options.readSystemPath ?? (() => readWindowsSystemPath(options.run)),
     writeUserPath: options.writeUserPath ?? ((value) => writeWindowsUserPath(value, options.run)),
+    loadDependency: options.loadDependency,
   };
 }
 
 export async function installIntegration(options = {}) {
   const ctx = makeContext(options);
+  await assertLauncherDependencies(ctx);
   return withIntegrationLock(ctx.paths.lockFile, async () => {
     const existing = await loadState(ctx.paths);
     if (existing.error !== undefined) {
@@ -250,6 +262,7 @@ export async function installIntegration(options = {}) {
 
 export async function repairIntegration(options = {}) {
   const ctx = makeContext(options);
+  await assertLauncherDependencies(ctx);
   return withIntegrationLock(ctx.paths.lockFile, async () => {
     const existing = await loadState(ctx.paths);
     const installedAt = existing.state?.installedAt ?? new Date().toISOString();

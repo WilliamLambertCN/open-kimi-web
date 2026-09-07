@@ -369,4 +369,25 @@ describe('__wrap delegation', () => {
       expect(warnings.join('\n')).toMatch(/integrate repair/);
     },
   );
+
+  it('errors clearly before supervising when launcher dependencies are missing', async () => {
+    const supervise = vi.fn();
+    const loadDependency = async (name) => {
+      const error = new Error(`Cannot find package '${name}'`);
+      error.code = 'ERR_MODULE_NOT_FOUND';
+      throw error;
+    };
+
+    const code = await wrapMain(['web'], {
+      env: env(),
+      error: (line) => warnings.push(line),
+      loadDependency,
+      superviseWeb: supervise,
+    });
+
+    expect(code).toBe(1);
+    expect(warnings.join('\n')).toMatch(/launcher dependencies are missing: ws, selfsigned/);
+    expect(warnings.join('\n')).toMatch(/corepack pnpm install --frozen-lockfile/);
+    expect(supervise).not.toHaveBeenCalled();
+  });
 });
