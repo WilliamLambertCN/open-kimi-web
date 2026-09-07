@@ -2,8 +2,11 @@
 // <original argv>` with OPEN_KIMI_REAL_KIMI pointing at the real binary.
 // Route: supervise understood `web` invocations, delegate everything else
 // with stdio/cwd/env/exit-code fidelity.
+import {
+  launcherDependencyMessage,
+  missingLauncherDependencies,
+} from '../launcherDependencies.mjs';
 import { spawnMirror } from './proc.mjs';
-import { superviseWeb } from './supervisor.mjs';
 import { routeWrapArgv } from './wrapRoute.mjs';
 
 function missingRealKimi(error) {
@@ -29,7 +32,13 @@ export async function wrapMain(argv, deps = {}) {
   if (route.action === 'supervise') {
     const realKimi = env.OPEN_KIMI_REAL_KIMI;
     if (realKimi === undefined || realKimi === '') return missingRealKimi(error);
-    return superviseWeb({ realKimi, web: route.options, env, deps });
+    const missing = await missingLauncherDependencies(deps.loadDependency);
+    if (missing.length > 0) {
+      error(`open-kimi-web: ${launcherDependencyMessage(missing)}`);
+      return 1;
+    }
+    const supervise = deps.superviseWeb ?? (await import('./supervisor.mjs')).superviseWeb;
+    return supervise({ realKimi, web: route.options, env, deps });
   }
   if (route.reason !== null) error(`open-kimi-web: ${route.reason}`);
   return delegate(argv, env, deps, error);

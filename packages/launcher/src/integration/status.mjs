@@ -5,7 +5,10 @@
 import { readFile, stat } from 'node:fs/promises';
 import { delimiter, join } from 'node:path';
 
-import { tlsPaths } from '../tlsStore.mjs';
+import {
+  launcherDependencyMessage,
+  missingLauncherDependencies,
+} from '../launcherDependencies.mjs';
 import { makeContext } from './integrate.mjs';
 import { pickRcFile, removeRcBlock, windowsPathHasEntry } from './pathInstall.mjs';
 import { canonicalPath, isInsideWrapperDir, kimiCandidateNames, resolveRealKimi } from './realKimi.mjs';
@@ -109,7 +112,7 @@ async function checkPathSetup(ctx, report) {
 
 async function tlsFingerprintLine(home) {
   try {
-    const metadata = JSON.parse(await readFile(tlsPaths(home).metadata, 'utf8'));
+    const metadata = JSON.parse(await readFile(join(home, 'tls', 'certificate.json'), 'utf8'));
     if (typeof metadata.fingerprint === 'string') return `TLS certificate fingerprint: ${metadata.fingerprint}`;
   } catch {
     // no managed certificate yet
@@ -127,6 +130,10 @@ async function reportState(ctx, state, report) {
   }
   await checkPathSetup(ctx, report);
   await checkPathOrder(ctx, report);
+  const missing = await missingLauncherDependencies(ctx.loadDependency);
+  if (missing.length > 0) {
+    report.issues.push(launcherDependencyMessage(missing));
+  }
 }
 
 function printReport(ctx, report) {
