@@ -1,6 +1,6 @@
 {
   "name": "open-kimi-web",
-  "version": "0.1.0",
+  "version": "0.41.0",
   "description": "Lightweight enhancement launcher for the official Kimi Code web UI and backend, with single-origin proxying, LAN HTTPS, and mobile fixes.",
   "license": "MIT",
   "type": "module",

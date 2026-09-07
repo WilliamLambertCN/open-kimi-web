@@ -25,6 +25,19 @@
   <img src="docs/images/theme-aurora-mobile.png" alt="极光主题：六选项主题切换面板" width="31%" />
 </p>
 
+### 新功能展示
+
+供应商标签超出弹窗宽度时，可直接触摸滑动或按住鼠标拖动；鼠标滚轮和键盘方向键也可横向浏览。
+
+![桌面端：模型选择中的供应商横向导航](docs/images/feature-provider-navigation-desktop.png)
+
+会话运行中输入新内容后，桌面端和手机端均可点“插队”立即发送；桌面端的 `Ctrl+S` 快捷键继续可用。
+
+<p>
+  <img src="docs/images/feature-priority-send-desktop.png" alt="桌面端：运行中草稿的插队按钮" width="68%" />
+  <img src="docs/images/feature-priority-send-mobile.png" alt="手机端：运行中草稿的插队按钮" width="28%" />
+</p>
+
 **五套主题实机预览**（夜幕为主推视觉；点击图片查看原图）：
 
 | 主题 | 桌面 | 手机 |
