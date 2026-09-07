@@ -17,12 +17,15 @@ describe('presentation theme layout boundaries', () => {
     );
   });
 
-  it('keeps provider tabs scrollable and the mobile steer control touch-sized', () => {
+  it('keeps provider tabs scrollable and the steer control responsive', () => {
     expect(presentationCss).toMatch(
       /\.mp\s*>\s*\.chip-strip\.okw-provider-strip\s*\{[^}]*overflow-x:\s*auto/s,
     );
     expect(presentationCss).toMatch(
-      /\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s,
+      /\.composer-card\s+\.okw-steer-button\s*\{[^}]*height:\s*var\(--composer-control-size\)/s,
+    );
+    expect(presentationCss).toMatch(
+      /@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.composer-card\s+\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s,
     );
   });
 });

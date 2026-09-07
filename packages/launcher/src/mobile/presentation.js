@@ -329,10 +329,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
     revealProvider(strip.querySelector('.chip.is-active'));
   };
 
-  const removeSteerButtons = () => {
-    document.querySelectorAll('.okw-steer-button').forEach((button) => button.remove());
-  };
-
   const steerCopy = () => {
     const language = document.documentElement.lang || navigator.language || '';
     if (language.toLocaleLowerCase().startsWith('zh')) {
@@ -382,11 +378,8 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const enhance = () => {
     enhanceBrand();
     document.querySelectorAll('.mp > .chip-strip').forEach(enhanceProviderStrip);
-    if (!mobile.matches) {
-      removeSteerButtons();
-      return;
-    }
-    document.querySelectorAll('.app.mobile .composer').forEach(enhanceSteerButton);
+    document.querySelectorAll('.app .composer').forEach(enhanceSteerButton);
+    if (!mobile.matches) return;
     const main = document.querySelector('.app.mobile .topbar .tb-main');
     if (main) renderObservedHeaderState();
 
@@ -398,7 +391,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
   };
 
   const restoreDesktop = () => {
-    removeSteerButtons();
     document.querySelectorAll('.okw-workspace-badge, .okw-workspace-status, .okw-cache-note-inline').forEach((node) => node.remove());
     document.querySelectorAll('.sheet-root.okw-settings').forEach((root) => {
       root.classList.remove('okw-settings');
