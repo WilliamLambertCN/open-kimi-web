@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const themeCss = readFileSync(new URL('../src/mobile/themes.css', import.meta.url), 'utf8');
+const presentationCss = readFileSync(new URL('../src/mobile/presentation.css', import.meta.url), 'utf8');
 
 describe('presentation theme layout boundaries', () => {
   it('leaves the official dock geometry and compact mode intact', () => {
@@ -13,6 +14,15 @@ describe('presentation theme layout boundaries', () => {
     );
     expect(themeCss).not.toMatch(
       /\.chat-dock\.pills-compact\s+\.dock-workbar\s*>\s*\.ui-pill\s*>\s*span/,
+    );
+  });
+
+  it('keeps provider tabs scrollable and the mobile steer control touch-sized', () => {
+    expect(presentationCss).toMatch(
+      /\.mp\s*>\s*\.chip-strip\.okw-provider-strip\s*\{[^}]*overflow-x:\s*auto/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s,
     );
   });
 });

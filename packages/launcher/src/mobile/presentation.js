@@ -1,6 +1,7 @@
 const mobile = window.matchMedia('(max-width: 640px)');
 
 {
+  const enhancedProviderStrips = new WeakSet();
   const enhancedWorkspaceSheets = new WeakSet();
   const workspaceSheetViews = new WeakMap();
   const sessions = new Map();
@@ -255,9 +256,137 @@ const mobile = window.matchMedia('(max-width: 640px)');
     if (label?.textContent.trim() === 'Kimi Code') label.textContent = 'OPEN-KIMI-WEB';
   };
 
+  const revealProvider = (target) => {
+    const chip = target?.closest?.('.chip');
+    if (chip) chip.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  };
+
+  const enhanceProviderStrip = (strip) => {
+    if (enhancedProviderStrips.has(strip)) return;
+    enhancedProviderStrips.add(strip);
+    strip.classList.add('okw-provider-strip');
+
+    strip.addEventListener('focusin', (event) => revealProvider(event.target));
+    strip.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      const chips = Array.from(strip.querySelectorAll('.chip')).filter((chip) => !chip.disabled);
+      const current = event.target?.closest?.('.chip');
+      const index = chips.indexOf(current);
+      if (index < 0) return;
+      const next = chips[index + (event.key === 'ArrowRight' ? 1 : -1)];
+      if (!next) return;
+      event.preventDefault();
+      next.focus();
+      revealProvider(next);
+    });
+
+    strip.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || !event.deltaY) return;
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? strip.clientWidth : 1;
+      const previous = strip.scrollLeft;
+      const limit = Math.max(0, strip.scrollWidth - strip.clientWidth);
+      strip.scrollLeft = Math.max(0, Math.min(limit, previous + event.deltaY * unit));
+      if (strip.scrollLeft !== previous) event.preventDefault();
+    }, { passive: false });
+
+    let suppressClick = false;
+    strip.addEventListener('click', (event) => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
+    strip.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      const startX = event.clientX;
+      const startScroll = strip.scrollLeft;
+      let dragging = false;
+      const finish = (finishEvent) => {
+        if (finishEvent?.pointerId !== undefined && finishEvent.pointerId !== event.pointerId) return;
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', finish);
+        document.removeEventListener('pointercancel', finish);
+        strip.classList.remove('okw-provider-dragging');
+        if (dragging) {
+          suppressClick = true;
+          window.setTimeout(() => { suppressClick = false; }, 0);
+        }
+      };
+      const move = (moveEvent) => {
+        if (moveEvent.pointerId !== event.pointerId) return;
+        const distance = moveEvent.clientX - startX;
+        if (!dragging && Math.abs(distance) < 6) return;
+        dragging = true;
+        strip.classList.add('okw-provider-dragging');
+        strip.scrollLeft = startScroll - distance;
+        moveEvent.preventDefault();
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', finish);
+      document.addEventListener('pointercancel', finish);
+    });
+
+    revealProvider(strip.querySelector('.chip.is-active'));
+  };
+
+  const removeSteerButtons = () => {
+    document.querySelectorAll('.okw-steer-button').forEach((button) => button.remove());
+  };
+
+  const steerCopy = () => {
+    const language = document.documentElement.lang || navigator.language || '';
+    if (language.toLocaleLowerCase().startsWith('zh')) {
+      return { label: '插队', title: '插队：优先发送到当前回合' };
+    }
+    return { label: 'Send now', title: 'Priority send into the running turn' };
+  };
+
+  const directChild = (container, node) => {
+    let child = node;
+    while (child?.parentElement && child.parentElement !== container) child = child.parentElement;
+    return child?.parentElement === container ? child : null;
+  };
+
+  const enhanceSteerButton = (composer) => {
+    const existing = composer.querySelector('.okw-steer-button');
+    const editor = composer.querySelector('.ph [contenteditable="true"], .ph[contenteditable="true"]');
+    const stop = composer.querySelector('.stop');
+    const send = composer.querySelector('.send:not(:disabled)');
+    if (!stop || !send || !editor) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing) return;
+
+    const toolbar = composer.querySelector('.toolbar-right');
+    if (!toolbar) return;
+    const { label, title } = steerCopy();
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'okw-steer-button';
+    button.textContent = label;
+    button.title = title;
+    button.setAttribute('aria-label', title);
+    button.addEventListener('click', () => {
+      editor.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 's',
+        code: 'KeyS',
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true,
+      }));
+    });
+    toolbar.insertBefore(button, directChild(toolbar, stop));
+  };
+
   const enhance = () => {
     enhanceBrand();
-    if (!mobile.matches) return;
+    document.querySelectorAll('.mp > .chip-strip').forEach(enhanceProviderStrip);
+    if (!mobile.matches) {
+      removeSteerButtons();
+      return;
+    }
+    document.querySelectorAll('.app.mobile .composer').forEach(enhanceSteerButton);
     const main = document.querySelector('.app.mobile .topbar .tb-main');
     if (main) renderObservedHeaderState();
 
@@ -269,6 +398,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
   };
 
   const restoreDesktop = () => {
+    removeSteerButtons();
     document.querySelectorAll('.okw-workspace-badge, .okw-workspace-status, .okw-cache-note-inline').forEach((node) => node.remove());
     document.querySelectorAll('.sheet-root.okw-settings').forEach((root) => {
       root.classList.remove('okw-settings');
@@ -286,7 +416,12 @@ const mobile = window.matchMedia('(max-width: 640px)');
     });
   };
 
-  new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
+  new MutationObserver(enhance).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['disabled'],
+  });
   window.addEventListener('popstate', enhance);
   mobile.addEventListener('change', () => {
     if (mobile.matches) enhance();
