@@ -212,6 +212,15 @@ html[data-okw-theme] .app:not(.mobile) .side {
   width: clamp(280px, 21vw, 304px) !important;
 }
 
+@media (min-width: 641px) {
+  /* The official desktop shell animates the collapsed sidebar to zero width.
+     Release our themed width override so the conversation recenters in the
+     full visible viewport once that transition starts. */
+  html[data-okw-theme] .app:not(.mobile).sidebar-collapsed > .side.collapsed {
+    width: 0 !important;
+  }
+}
+
 html[data-okw-theme] .app:not(.mobile) {
   --content-font-size: 16px;
 }
