@@ -519,6 +519,24 @@ html[data-okw-theme] .markstream-vue {
   display: none;
 }
 
+.okw-theme-menu-dialog {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+}
+
+.okw-theme-menu-trigger .okw-theme-current {
+  flex: none;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  font-weight: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .okw-theme-intro {
   margin: 0 2px 10px;
   color: var(--color-text-muted);
