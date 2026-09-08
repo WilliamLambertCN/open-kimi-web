@@ -1,5 +1,5 @@
 // Supervisor for the intercepted `kimi web`: spawn the official server on
-// loopback with an ephemeral port, discover and verify it via the registry,
+// its fixed loopback port, discover and verify it via the registry,
 // then front it with the OpenWeb launcher. One process exits → the other is
 // shut down; SIGINT/SIGTERM tries the authenticated shutdown endpoint first.
 import { spawn } from 'node:child_process';
@@ -23,9 +23,12 @@ const KILL_GRACE_MS = 2_000;
 const FORCE_KILL_WAIT_MS = 500;
 const TOKEN_WAIT_MS = 5_000;
 const TOKEN_POLL_MS = 250;
+export const MANAGED_BACKEND_DEFAULT_PORT = 58_627;
+export const MANAGED_FRONTEND_DEFAULT_PORT = 48_627;
 
 export const managedBackendWebArgs = [
-  'web', '--no-open', '--host', '127.0.0.1', '--port', '0', '--debug-endpoints',
+  'web', '--no-open', '--host', '127.0.0.1',
+  '--port', String(MANAGED_BACKEND_DEFAULT_PORT), '--debug-endpoints',
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -145,8 +148,10 @@ export function frontendOptions(web, instancePort, env) {
   return {
     target: `http://127.0.0.1:${instancePort}`,
     host,
-    port: web.port ?? 4173,
-    portExplicit: web.port !== undefined,
+    // Keep the official backend on 58627 and expose the enhanced UI on the
+    // memorable companion port 48627.
+    port: web.port ?? MANAGED_FRONTEND_DEFAULT_PORT,
+    portExplicit: true,
     https: !isLoopbackHost(host),
     certFile: null,
     keyFile: null,

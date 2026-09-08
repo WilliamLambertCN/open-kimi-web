@@ -120,8 +120,8 @@ async function canTaskkillTree() {
   return result.code === 0;
 }
 
-// Port 0 (ephemeral): the default 4173 can fall inside a reserved port range
-// on some Windows machines (listen EACCES).
+// Use an ephemeral public frontend port so integration tests do not reserve a
+// stable user-facing port on the host running the suite.
 const WEB_DEFAULTS = { port: 0, host: undefined, hostBare: false, noOpen: true };
 
 describe('supervised kimi web', () => {

@@ -12,6 +12,11 @@
 
 版本号中的 `rN` 是同一官方 Kimi Code 兼容基线上的 GitHub 修订序号；例如 `v0.41.0-r3` 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本，不要依赖包管理器的自动升级排序。
 
+### develop（未发布）
+
+- 接管的 `kimi web` 保留官方后端固定端口 `58627`，并将 Open Kimi Web 固定在易记的配套端口 `48627`。
+- 修复 Windows 允许回环地址与 IPv4 通配地址同端口并存时，启动器可能打印出实际属于其他程序的 Local 链接的问题。
+
 ### [open-kimi-web v0.41.0-r3](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r3) — 2026-09-08
 
 - 在**设置 → 供应商**的供应商编辑表单中，模型支持鼠标和触摸拖拽排序；保存后顺序与每行能力配置保持一致。
@@ -165,12 +170,14 @@ kimi web --host
 终端会打印：
 
 ```text
-  Local:   https://127.0.0.1:4173#token=...
-  Network: https://192.168.x.x:4173#token=...   ← 手机连这个
+  Local:   https://127.0.0.1:48627#token=...
+  Network: https://192.168.x.x:48627#token=...   ← 手机连这个
   SHA-256 fingerprint: 9D:0A:F1:...              ← 首次访问先核对它
 ```
 
 手机连同一局域网，打开 Network 链接，浏览器提示证书不受信时**核对指纹一致**再接受。搞定。
+
+接管模式保留官方 Kimi 后端的固定回环端口 `58627`，Open Kimi Web 使用配套的固定对外端口 `48627`。如果端口已被其他程序占用，启动会明确失败；可关闭占用程序，或显式使用 `kimi web --port <port>` 更换 Open Kimi Web 的对外端口。
 
 接管后 `open-kimi-web` 命令本体也在 PATH 上：
 
