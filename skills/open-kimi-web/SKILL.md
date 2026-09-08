@@ -6,7 +6,7 @@ description: |
 
 # OpenWeb for Kimi Code（官方 Web 的轻量增强层）
 
-Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，在外层增加 HTTPS、直达链接和移动页面修复。个性化配置尚未实现。
+Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
 本 skill 只是已独立安装的 `open-kimi-web` 命令行工具的管理入口，驱动 `integrate install|status|repair|uninstall`。安装或移除 Kimi 插件都不会安装、启动或卸载 launcher，也不会自动修改或撤销 PATH 接管。
 
@@ -14,10 +14,17 @@ Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 
 
 1. `node --version` 必须 ≥ 22。
 2. `open-kimi-web --version` 必须可用。
-3. 如果不可用，**明确告诉用户需要先安装**，给出命令后停下等用户决定，不要静默联网安装：
+3. 如果不可用，**明确告诉用户需要先安装**，给出下面一种实际可用的方式后停下等用户决定，不要静默联网安装，也不要声称 npm registry 已发布本包：
 
 ```sh
-npm install -g open-kimi-web          # 或：npm install -g ./open-kimi-web-<version>.tgz
+# 源码方式
+git clone https://github.com/WilliamLambertCN/open-kimi-web.git
+cd open-kimi-web
+corepack pnpm install --frozen-lockfile
+node packages/launcher/bin/open-kimi-web.mjs integrate install
+
+# 或在 GitHub Release 提供版本化 tgz 后，下载附件并安装本地文件
+npm install -g ./open-kimi-web-<version>.tgz
 ```
 
 ## 安装接管（系统级修改，必须先确认）
@@ -57,3 +64,4 @@ open-kimi-web integrate status   # 安装后自动体检，确认全绿
 - 绝不读取、打印或保存 `server.token` 的内容；token 直达链接本身等同于完整凭证，提醒用户不要分享。
 - 不替用户接受 HTTPS 证书——指纹核对必须由用户完成。
 - 不要把插件删除描述成能恢复系统状态的操作：恢复只能靠 `integrate uninstall`。
+- `--web-dir` 只能指向隔离的前端构建目录；目录内所有可访问的静态文件都会公开给 launcher 访问者，不要在其中放日志、备份、配置或凭证。
