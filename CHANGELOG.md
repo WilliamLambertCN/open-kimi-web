@@ -1,9 +1,9 @@
 # Changelog
 
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
-版本号跟随已验证的官方 Kimi Code 兼容基线。
+版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀表示同一基线上的本项目修订版。
 
-## Unreleased
+## [open-kimi-web v0.41.0-r2] - 2026-09-08
 
 继续兼容官方 Kimi Code `0.41.0`。
 
@@ -19,6 +19,7 @@
 
 ### 修复
 
+- 修复桌面账号菜单中的主题弹层受官方菜单裁切、在窄视口越界的问题，并确保只有当前主题显示勾选标记。
 - 修复桌面侧栏收起后正文仍保留左侧空白的问题。
 
 ## [open-kimi-web v0.41.0] - 2026-09-07
@@ -41,4 +42,5 @@
 - 源码依赖未安装时，为 `integrate` 命令显示明确的缺失依赖提示。
 - 兼容 `corepack pnpm dev -- --lan` 中包管理器传入的参数分隔符。
 
+[open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0

@@ -1,6 +1,6 @@
 {
   "name": "open-kimi-web",
-  "version": "0.41.0",
+  "version": "0.41.0-r2",
   "description": "Management entry for a lightweight enhancement layer around the official Kimi Code web UI and backend, with LAN HTTPS, mobile fixes, and optional reversible `kimi web` integration.",
   "keywords": [
     "kimi",
