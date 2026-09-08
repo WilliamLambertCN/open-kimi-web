@@ -10,13 +10,20 @@
 
 ## 更新记录（最新在前）
 
-### main（未发布）— 2026-09-08
+版本号中的 `rN` 是同一官方 Kimi Code 兼容基线上的 GitHub 修订序号；例如 `v0.41.0-r3` 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本，不要依赖包管理器的自动升级排序。
+
+### [open-kimi-web v0.41.0-r3](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r3) — 2026-09-08
 
 - 在**设置 → 供应商**的供应商编辑表单中，模型支持鼠标和触摸拖拽排序；保存后顺序与每行能力配置保持一致。
 - 工作区更多菜单支持**置顶工作区 / 取消置顶**，多个置顶项按操作顺序排列；浏览器只保存工作区 ID。
 - 在**设置 → 已归档会话**中，每条会话右侧的 `⋯` 菜单新增**永久删除**。操作需要确认包含会话标题的不可撤销提示；托管模式调用官方会话管理器完成真实数据清理。
+- 修复官方 `0.41.0` 已归档页使用 v2 会话接口时，永久删除入口没有显示的问题。
 
-> `main` 中的这些功能尚未发布为新版本。更新代码后必须结束旧的 `kimi web` / launcher 进程并重新启动；已经运行的页面服务不会热加载新提交。若删除菜单仍未出现，先确认当前服务来自更新后的 `main`，并重新打开“已归档会话”页。
+下图使用隔离页面和虚构数据按实际增强层样式渲染，用于集中展示 r3 的三个入口：
+
+![v0.41.0-r3 功能总览：模型能力与拖拽排序、工作区置顶、已归档会话永久删除](docs/images/feature-r3-overview.png)
+
+> 从旧版本升级后必须结束旧的 `kimi web` / launcher 进程并重新启动；已经运行的页面服务不会热加载新版本。若删除菜单仍未出现，先确认当前服务来自更新后的版本，并重新打开“已归档会话”页。
 
 ### [open-kimi-web v0.41.0-r2](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2) — 2026-09-08
 
@@ -104,12 +111,21 @@
 
 ## 快速上手
 
-前提：已安装官方 [Kimi Code](https://github.com/MoonshotAI/kimi-code)（`kimi web` 可用）、Node ≥ 22 和 Corepack。下载官方界面还需 PATH 中有 `curl` 和 `tar`。
+前提：已安装官方 [Kimi Code](https://github.com/MoonshotAI/kimi-code)（`kimi web` 可用）和 Node ≥ 22。源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到 npm registry，可从 GitHub Release 的版本化 tgz 或源码安装。
+
+**GitHub Release tgz**（固定为 r3）：
+
+```sh
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.41.0-r3/open-kimi-web-0.41.0-r3.tgz
+open-kimi-web integrate install
+```
+
+**源码：**
 
 ```sh
 git clone https://github.com/WilliamLambertCN/open-kimi-web.git
 cd open-kimi-web
-corepack pnpm install
+corepack pnpm install --frozen-lockfile
 
 # 一次性接管 kimi web
 node packages/launcher/bin/open-kimi-web.mjs integrate install
@@ -164,7 +180,18 @@ open-kimi-web integrate repair      # 官方 kimi 升级后修一下
 open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 ```
 
-不想接管也行——自己先跑 `kimi web`，再 `node packages/launcher/bin/open-kimi-web.mjs serve --lan`，效果相同（详见 [`packages/launcher/README.md`](packages/launcher/README.md)）。
+### 升级
+
+全局 tgz 安装更新时，再次安装上面的版本化 URL；源码安装更新时，在仓库目录执行：
+
+```sh
+git pull --ff-only
+corepack pnpm install --frozen-lockfile
+```
+
+随后运行 `open-kimi-web integrate status`；仅在它报告 wrapper、PATH 或真实 `kimi` 路径异常时运行 `open-kimi-web integrate repair`。最后结束仍在运行的旧 `kimi web` / launcher 进程，再执行 `kimi web --host`，否则旧进程不会加载新版本。
+
+不想接管也行——自己先跑 `kimi web`，再 `node packages/launcher/bin/open-kimi-web.mjs serve --lan`，即可使用代理、HTTPS 与页面增强；已归档会话的永久删除例外，它需要由 launcher 托管启动官方后端（详见 [`packages/launcher/README.md`](packages/launcher/README.md)）。
 
 ## 工作原理
 
@@ -193,10 +220,10 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
 - **下载校验范围**：当前检查下载、解包和必需文件是否完整；未实施独立来源的 SRI 校验，也不会在每次启动时对缓存逐文件计算哈希。
 - **缓存**：解包后缓存在 `~/.open-kimi-web/official-web/<版本>/`，之后离线可用；title 补丁只在缓存时打一次，`boot.js`（官方原样）与上游 `LICENSE` 一并落盘。
 - **展示层与主题**：由 launcher 在官方页面响应中加载 `src/mobile/` 的独立样式与脚本；既有缓存也会生效，无需重下载或修改上游缓存。资源使用 `no-cache`；布局调整仅在手机宽度启用，主题支持桌面与手机，侧栏品牌文字统一显示为 `OPEN-KIMI-WEB`。供应商模型能力通过官方 `POST/PUT /api/v1/providers` 字段保存；模型发现请求由受当前页面 bearer token 保护的 launcher 同源端点转发，限制为 http(s)、短超时、1 MiB 响应且不跟随重定向，API Key 不写日志、不回显。`--web-dir` 不注入该展示层及主题功能。已对照的上游构建为 `0.41.0`，未来版本若改变组件结构，需要重新检查这些选择器。
-- **失败行为（兼容性变更）**：官方 bundle 不可用时 launcher 现在会明确中止启动，不再静默改用不同的界面。恢复 npm 网络与 `curl` / `tar` 后重试，或用 `--web-dir` 指向你已准备好的官方前端构建。
-- **显式指定**：`open-kimi-web serve --web-dir <path>` 直接服务现成构建目录（优先级最高）；`--web-version <ver>` 固定官方包版本。接管后的 `kimi web` 使用环境变量 `OPEN_KIMI_WEB_DIR` / `OPEN_KIMI_WEB_VERSION` 选择目录或版本。
+- **失败行为（兼容性变更）**：官方 bundle 不可用时 launcher 现在会明确中止启动，不再静默改用不同的界面。恢复 npm 网络与 `curl` / `tar` 后重试，或用 `--web-dir` 指向隔离且已准备好的官方前端构建目录。
+- **显式指定**：`open-kimi-web serve --web-dir <path>` 直接公开并服务现成构建目录（优先级最高）；目录内所有可访问的静态文件都会提供给 launcher 的访问者，不要把日志、备份、配置或凭证放进去。静态服务会拒绝通过符号链接越过该目录。`--web-version <ver>` 固定官方包版本；接管后的 `kimi web` 使用环境变量 `OPEN_KIMI_WEB_DIR` / `OPEN_KIMI_WEB_VERSION` 选择目录或版本。
 
-旧版内置前端已移除：请删除启动参数 `--web-ui open` 或环境变量 `OPEN_KIMI_WEB_UI=open`，使用默认官方界面。`--web-version` 仍可固定官方版本；`--web-dir` 用于加载自行修复后的官方构建。
+旧版内置前端已移除：请删除启动参数 `--web-ui open` 或环境变量 `OPEN_KIMI_WEB_UI=open`，使用默认官方界面。`--web-version` 仍可固定官方版本；`--web-dir` 仅用于加载自行修复后的隔离前端构建目录。
 
 ## Kimi 插件入口
 
