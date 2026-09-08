@@ -94,6 +94,20 @@ describe('createLauncherWithRetry', () => {
   });
 });
 
+describe('createLauncherWithRetry port boundary', () => {
+  it('does not try a numbered port beyond 65535', async () => {
+    const create = vi.fn((opts) => {
+      if (opts.port === 0) {
+        return Promise.resolve({ server: { address: () => ({ port: 55000 }) } });
+      }
+      throw listenError('EADDRINUSE');
+    });
+    const launcher = await createLauncherWithRetry(baseOpts({ port: 65535 }), create);
+    expect(launcher.server.address().port).toBe(55000);
+    expect(create.mock.calls.map(([opts]) => opts.port)).toEqual([65535, 0]);
+  });
+});
+
 describe('startFrontend target reachability', () => {
   const servers = [];
   afterAll(async () => {

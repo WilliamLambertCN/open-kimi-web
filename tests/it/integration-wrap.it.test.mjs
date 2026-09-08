@@ -309,15 +309,15 @@ describe('supervisor environment options', () => {
   });
 });
 
-describe('__wrap delegation', () => {
-  function captureSpawnMirror(recordPath, extraEnv = {}) {
-    return (cmd, args, opts) =>
-      spawnMirror(process.execPath, [FAKE_KIMI, ...args], {
-        ...opts,
-        env: { ...opts?.env, FAKE_RECORD: recordPath, ...extraEnv },
-      });
-  }
+function captureSpawnMirror(recordPath, extraEnv = {}) {
+  return (cmd, args, opts) =>
+    spawnMirror(process.execPath, [FAKE_KIMI, ...args], {
+      ...opts,
+      env: { ...opts?.env, FAKE_RECORD: recordPath, ...extraEnv },
+    });
+}
 
+describe('__wrap delegation', () => {
   it(
     'delegates non-web commands with argv/cwd/env/exit-code fidelity',
     { timeout: 30_000 },
@@ -337,14 +337,25 @@ describe('__wrap delegation', () => {
   );
 
   it(
-    'delegates web rotate-token and unsafe flags with a note',
+    'delegates unsupported, unsafe, and malformed web arguments losslessly',
     { timeout: 30_000 },
     async () => {
-      for (const argv of [['web', 'rotate-token'], ['web', '--dangerous-bypass-auth']]) {
-        const record = join(root, `delegate-${warnings.length}.json`);
+      const cases = [
+        ['web', 'rotate-token'],
+        ['web', '--dangerous-bypass-auth'],
+        ['web', '--rc'],
+        ['web', '--remote-control'],
+        ['web', '--allowed-host', 'example.test'],
+        ['web', '--port'],
+        ['web', '--port', 'abc'],
+        ['web', '--port', '70000'],
+        ['web', 'extra'],
+      ];
+      for (const [index, argv] of cases.entries()) {
+        const record = join(root, `delegate-${index}.json`);
         const code = await wrapMain(argv, {
           env: env(),
-          spawnMirror: captureSpawnMirror(record),
+          spawnMirror: captureSpawnMirror(record, { FAKE_FORCE_DELEGATE: '1' }),
           error: (line) => warnings.push(line),
         });
         expect(code).toBe(0);
@@ -352,9 +363,41 @@ describe('__wrap delegation', () => {
       }
       expect(warnings.join('\n')).toMatch(/rotate-token/);
       expect(warnings.join('\n')).toMatch(/dangerous-bypass-auth/);
+      expect(warnings.join('\n')).toMatch(/unsupported arguments/);
     },
   );
+});
 
+describe('__wrap supervision routing', () => {
+  it('passes every supported web option shape to the supervisor', async () => {
+    const superviseWeb = vi.fn(async () => 0);
+    const loadDependency = async () => ({});
+    const cases = [
+      [['web'], { port: undefined, host: undefined, hostBare: false, noOpen: false }],
+      [['web', '--port', '48627', '--no-open'], {
+        port: 48627, host: undefined, hostBare: false, noOpen: true,
+      }],
+      [['web', '--host'], { port: undefined, host: undefined, hostBare: true, noOpen: false }],
+      [['web', '--host', '--no-open'], {
+        port: undefined, host: undefined, hostBare: true, noOpen: true,
+      }],
+      [['web', '--host', '192.168.1.20'], {
+        port: undefined, host: '192.168.1.20', hostBare: false, noOpen: false,
+      }],
+    ];
+
+    for (const [argv, web] of cases) {
+      await expect(wrapMain(argv, {
+        env: env(), loadDependency, superviseWeb,
+      })).resolves.toBe(0);
+      expect(superviseWeb).toHaveBeenLastCalledWith(expect.objectContaining({
+        realKimi: 'fake-kimi', web,
+      }));
+    }
+  });
+});
+
+describe('__wrap startup errors', () => {
   it(
     'errors clearly when the wrapper lost track of the real kimi',
     { timeout: 30_000 },
