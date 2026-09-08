@@ -1,6 +1,31 @@
-import { describe, expect, it } from 'vitest';
+import { createServer } from 'node:http';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildProxyHeaders, filterHeaders } from '../src/httpProxy.mjs';
+import { buildProxyHeaders, filterHeaders, proxyRequest } from '../src/httpProxy.mjs';
+
+const servers = [];
+
+async function listen(handler) {
+  const server = createServer(handler);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  servers.push(server);
+  return `http://127.0.0.1:${server.address().port}`;
+}
+
+async function closedPort() {
+  const server = createServer();
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+  await new Promise((resolve) => server.close(resolve));
+  return port;
+}
+
+afterEach(async () => {
+  await Promise.all(servers.splice(0).map((server) => new Promise((resolve) => {
+    server.closeAllConnections();
+    server.close(resolve);
+  })));
+});
 
 describe('filterHeaders', () => {
   it('strips hop-by-hop headers', () => {
@@ -62,5 +87,28 @@ describe('buildProxyHeaders', () => {
       accept: 'application/json',
       host: 'example.test',
     });
+  });
+});
+
+describe('proxyRequest upstream failures', () => {
+  it('returns 502 when an HTTPS upstream cannot be reached', async () => {
+    const port = await closedPort();
+    const url = await listen((req, res) => proxyRequest(req, res, `https://127.0.0.1:${port}`));
+
+    const response = await fetch(`${url}/api/v1/healthz`);
+    expect(response.status).toBe(502);
+    await expect(response.text()).resolves.toBe('Bad Gateway');
+  });
+
+  it('destroys a partial response instead of writing a second status', async () => {
+    const port = await closedPort();
+    const url = await listen((req, res) => {
+      res.writeHead(200, { 'content-type': 'text/plain' });
+      res.write('partial');
+      proxyRequest(req, res, `https://127.0.0.1:${port}`);
+    });
+
+    await expect(fetch(`${url}/api/v1/stream`).then((response) => response.text()))
+      .rejects.toThrow();
   });
 });
