@@ -14,6 +14,7 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
   const mobile = window.matchMedia('(max-width: 640px)');
   let currentTheme = OKW_DEFAULT_THEME;
   let openPicker = null;
+  let desktopDialog = null;
 
   const readStoredTheme = () => {
     try {
@@ -37,7 +38,9 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
 
   const syncControls = () => {
     document.querySelectorAll('.okw-theme-current').forEach((current) => {
-      current.textContent = current.closest('.user-menu') ? shortThemeLabel(currentTheme) : themeLabel(currentTheme);
+      current.textContent = current.closest('.okw-theme-menu-trigger')
+        ? shortThemeLabel(currentTheme)
+        : themeLabel(currentTheme);
     });
     document.querySelectorAll('.okw-theme-option').forEach((option) => {
       const selected = option.dataset.theme === currentTheme;
@@ -72,15 +75,19 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     const anchor = trigger.getBoundingClientRect();
     const bounds = dialog.getBoundingClientRect();
     const rightSide = anchor.right + gap;
-    const left = rightSide + bounds.width <= window.innerWidth - margin
-      ? rightSide
-      : Math.max(margin, anchor.left - bounds.width - gap);
+    const leftSide = anchor.left - bounds.width - gap;
+    let left = Math.min(
+      Math.max(margin, anchor.left),
+      Math.max(margin, window.innerWidth - bounds.width - margin),
+    );
+    if (rightSide + bounds.width <= window.innerWidth - margin) left = rightSide;
+    else if (leftSide >= margin) left = leftSide;
     const top = Math.min(
       Math.max(margin, anchor.top),
       Math.max(margin, window.innerHeight - bounds.height - margin),
     );
-    dialog.style.left = `${Math.round(left)}px`;
-    dialog.style.top = `${Math.round(top)}px`;
+    dialog.style.left = `${Math.floor(left)}px`;
+    dialog.style.top = `${Math.floor(top)}px`;
   };
 
   const openThemePicker = (trigger, dialog) => {
@@ -148,7 +155,9 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
       const option = makeElement('button', 'okw-theme-option');
       option.type = 'button';
       option.dataset.theme = theme.id;
-      option.setAttribute('aria-pressed', String(theme.id === currentTheme));
+      const selected = theme.id === currentTheme;
+      option.setAttribute('aria-pressed', String(selected));
+      option.classList.toggle('selected', selected);
       option.append(
         makeElement('span', 'okw-theme-swatch'),
         makeElement('span', 'okw-theme-option-label', theme.label),
@@ -162,6 +171,14 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     }
     dialog.append(intro, options);
     return dialog;
+  };
+
+  const getDesktopDialog = () => {
+    if (desktopDialog) return desktopDialog;
+    desktopDialog = buildThemeDialog('okw-theme-menu-dialog');
+    desktopDialog.addEventListener('mousedown', (event) => event.stopPropagation());
+    document.body.append(desktopDialog);
+    return desktopDialog;
   };
 
   const connectThemeTrigger = (trigger, dialog) => {
@@ -203,9 +220,10 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
   const enhanceUserMenus = () => {
     if (mobile.matches) {
       if (openPicker?.trigger.matches('[data-okw-theme-menu-trigger]')) closeThemePicker();
+      desktopDialog?.remove();
+      desktopDialog = null;
       document.querySelectorAll('.user-menu').forEach((menu) => {
         menu.querySelector(':scope > [data-okw-theme-menu-trigger]')?.remove();
-        menu.querySelector(':scope > .okw-theme-menu-dialog')?.remove();
       });
       return;
     }
@@ -227,10 +245,9 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
         value.classList.add('okw-theme-current');
         value.textContent = shortThemeLabel(currentTheme);
       }
-      const dialog = buildThemeDialog('okw-theme-menu-dialog');
+      const dialog = getDesktopDialog();
       connectThemeTrigger(trigger, dialog);
       appearance.before(trigger);
-      menu.append(dialog);
       syncControls();
     });
   };
