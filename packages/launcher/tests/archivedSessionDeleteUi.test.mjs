@@ -92,6 +92,20 @@ class FakeCard extends FakeElement {
   }
 }
 
+class FakeSidebarRow extends FakeElement {
+  constructor(title = 'Archived title', { completed = true } = {}) {
+    super('se');
+    this.title = new FakeElement('t');
+    this.title.textContent = title;
+    this.actions = new FakeElement('ha');
+    if (completed) {
+      this.reopen = new FakeElement('reopen-btn');
+      this.actions.append(this.reopen);
+    }
+    this.append(this.title, this.actions);
+  }
+}
+
 const ARCHIVED_AT = '2026-09-08T12:34:00';
 
 function displayMinute(value) {
@@ -143,7 +157,15 @@ function archivedResponseV2(archived = true, items) {
   }), { status: 200, headers: { 'content-type': 'application/json' } });
 }
 
-async function install({ archived = true, apiItems, apiVersion = 'v1', deleteResponse, confirm = true, rowCount = 1 } = {}) {
+async function install({
+  archived = true,
+  apiItems,
+  apiVersion = 'v1',
+  deleteResponse,
+  confirm = true,
+  rowCount = 1,
+  sidebarRows = [new FakeSidebarRow()],
+} = {}) {
   const card = new FakeCard('C:\\work', 'Archived title', displayMinute(ARCHIVED_AT), rowCount);
   const documentListeners = new Map();
   const document = {
@@ -153,6 +175,7 @@ async function install({ archived = true, apiItems, apiVersion = 'v1', deleteRes
     querySelectorAll(selector) {
       if (selector === '.archive-list .archive-card') return [card];
       if (selector === '.archive-list .archive-row') return card.querySelectorAll('.archive-row');
+      if (selector === '.sessions .se') return sidebarRows.filter((row) => !row.removed);
       return [];
     },
   };
@@ -201,10 +224,9 @@ async function install({ archived = true, apiItems, apiVersion = 'v1', deleteRes
   await new Promise((resolve) => setTimeout(resolve, 0));
   observerCallback();
   const actions = card.row.querySelector('.okw-archive-actions');
-  const trigger = actions?.children[0];
-  const menu = actions?.children[1];
-  const remove = menu?.children[0];
-  return { archivedUrl, card, mutate: observerCallback, nativeFetch, remove, trigger, window };
+  const remove = actions?.querySelector('.okw-archive-delete');
+  const sidebarRemove = sidebarRows[0]?.querySelector('.okw-sidebar-archive-delete');
+  return { archivedUrl, card, mutate: observerCallback, nativeFetch, remove, sidebarRemove, sidebarRows, window };
 }
 
 const settleObservation = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -216,19 +238,47 @@ const deferred = () => {
 };
 
 describe('archived session delete UI', () => {
-  it('adds the action only to records confirmed archived by the official list', async () => {
-    expect((await install()).trigger).toBeDefined();
-    expect((await install({ apiVersion: 'v2' })).trigger).toBeDefined();
-    expect((await install({ archived: false })).trigger).toBeUndefined();
-    expect((await install({ apiVersion: 'v2', archived: false })).trigger).toBeUndefined();
+  it('adds direct delete buttons in settings and the completed sidebar list', async () => {
+    const v1 = await install();
+    expect(v1.remove).toBeDefined();
+    expect(v1.sidebarRemove).toBeDefined();
+    expect(v1.card.row.querySelector('.okw-archive-more')).toBeNull();
+    expect(v1.card.row.querySelector('.okw-archive-menu')).toBeNull();
+
+    const v2 = await install({ apiVersion: 'v2' });
+    expect(v2.remove).toBeDefined();
+    expect(v2.sidebarRemove).toBeDefined();
   });
 
+  it('adds no delete button to ordinary or API-unconfirmed sessions', async () => {
+    const ordinary = new FakeSidebarRow('Archived title', { completed: false });
+    const unarchived = await install({ archived: false, sidebarRows: [ordinary] });
+    expect(unarchived.remove).toBeUndefined();
+    expect(unarchived.sidebarRemove).toBeNull();
+
+    const unarchivedV2 = await install({ apiVersion: 'v2', archived: false });
+    expect(unarchivedV2.remove).toBeUndefined();
+    expect(unarchivedV2.sidebarRemove).toBeNull();
+  });
+
+  it('adds the sidebar button when a completed row appears after the API response', async () => {
+    const ui = await install({ sidebarRows: [] });
+    const lateRow = new FakeSidebarRow();
+    ui.sidebarRows.push(lateRow);
+    ui.mutate();
+
+    expect(lateRow.querySelector('.okw-sidebar-archive-delete')).not.toBeNull();
+  });
+});
+
+describe('archived session matching safety', () => {
   it('does not bind one DOM row when the API has two sessions with the same visible key', async () => {
     const ui = await install({
       apiVersion: 'v2',
       apiItems: [archivedItemV2('session_one'), archivedItemV2('session_two')],
     });
     expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
   });
 
   it('does not bind two DOM rows to one API session with the same visible key', async () => {
@@ -343,7 +393,6 @@ describe('archived session list cache failures', () => {
 describe('archived session delete interactions', () => {
   it('cancels without a request and deletes only after explicit title confirmation', async () => {
     const cancelled = await install({ confirm: false });
-    cancelled.trigger.dispatch('click');
     cancelled.remove.dispatch('click');
     await Promise.resolve();
     expect(cancelled.window.confirm).toHaveBeenCalledWith(expect.stringContaining('Archived title'));
@@ -351,20 +400,20 @@ describe('archived session delete interactions', () => {
     expect(cancelled.card.row.removed).toBe(false);
 
     const confirmed = await install();
-    confirmed.trigger.dispatch('click');
     confirmed.remove.dispatch('click');
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(confirmed.nativeFetch).toHaveBeenCalledTimes(2);
     expect(confirmed.card.row.removed).toBe(true);
+    expect(confirmed.sidebarRows[0].removed).toBe(true);
   });
 
-  it('prevents duplicate requests while deletion is pending', async () => {
+  it('prevents duplicate requests across both direct buttons while deletion is pending', async () => {
     let resolveDelete;
     const pending = new Promise((resolve) => { resolveDelete = resolve; });
     const ui = await install({ deleteResponse: () => pending });
-    ui.trigger.dispatch('click');
     ui.remove.dispatch('click');
     ui.remove.dispatch('click');
+    ui.sidebarRemove.dispatch('click');
     expect(ui.nativeFetch).toHaveBeenCalledTimes(2);
     resolveDelete(new Response(JSON.stringify({ deleted: true }), { status: 200 }));
     await Promise.resolve();
@@ -375,11 +424,22 @@ describe('archived session delete interactions', () => {
     const ui = await install({
       deleteResponse: () => new Response(JSON.stringify({ error: 'Backend unavailable' }), { status: 501 }),
     });
-    ui.trigger.dispatch('click');
     ui.remove.dispatch('click');
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(ui.card.row.removed).toBe(false);
     expect(ui.card.row.querySelector('.okw-archive-delete-error')?.textContent).toBe('Backend unavailable');
-    expect(ui.trigger.disabled).toBe(false);
+    expect(ui.remove.disabled).toBe(false);
+  });
+
+  it('keeps the completed sidebar row and restores its direct button after failure', async () => {
+    const ui = await install({
+      deleteResponse: () => new Response(JSON.stringify({ error: 'Backend unavailable' }), { status: 501 }),
+    });
+    ui.sidebarRemove.dispatch('click');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(ui.sidebarRows[0].removed).toBe(false);
+    expect(ui.sidebarRows[0].querySelector('.okw-archive-delete-error')?.textContent).toBe('Backend unavailable');
+    expect(ui.sidebarRemove.disabled).toBe(false);
+    expect(ui.sidebarRemove.textContent).toBe('Delete');
   });
 });

@@ -3,56 +3,17 @@
 }
 
 .okw-archive-actions {
-  position: relative;
   display: flex;
   align-items: center;
 }
 
-.okw-archive-more {
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 0.5px solid var(--color-line, rgba(128, 128, 128, 0.35));
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-surface-overlay, transparent);
-  color: var(--color-text-muted, currentColor);
-  font: 700 20px/1 sans-serif;
-  cursor: pointer;
-}
-
-.okw-archive-more:hover,
-.okw-archive-more:focus-visible {
-  background: var(--color-hover, rgba(128, 128, 128, 0.12));
-  color: var(--color-text, currentColor);
-  outline: none;
-}
-
-.okw-archive-menu {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 132px;
-  padding: 4px;
-  border: 0.5px solid var(--color-line, rgba(128, 128, 128, 0.35));
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-surface-overlay, Canvas);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
-}
-
-.okw-archive-menu[hidden] {
-  display: none;
-}
-
 .okw-archive-delete {
-  width: 100%;
   padding: 8px 10px;
-  border: 0;
+  border: 0.5px solid color-mix(in srgb, var(--color-danger, #c73535) 38%, transparent);
   border-radius: 6px;
-  background: transparent;
+  background: color-mix(in srgb, var(--color-danger, #c73535) 7%, transparent);
   color: var(--color-danger, #c73535);
   font: inherit;
-  text-align: left;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -61,6 +22,27 @@
 .okw-archive-delete:focus-visible {
   background: color-mix(in srgb, var(--color-danger, #c73535) 12%, transparent);
   outline: none;
+}
+
+.okw-archive-delete:disabled {
+  cursor: default;
+}
+
+.okw-sidebar-archive-delete {
+  min-height: var(--icon-button-sm, 28px);
+  padding: 4px 7px;
+  font-size: var(--text-xs, 12px);
+  line-height: 1;
+}
+
+.sessions .se .okw-sidebar-archive-actions {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sessions .se:has(.okw-sidebar-archive-delete) .t {
+  --sb-fade: 96px;
+  --sb-fade-len: 20px;
 }
 
 .okw-archive-deleting {
@@ -80,16 +62,11 @@
     gap: 8px;
   }
 
-  .okw-archive-menu {
-    position: fixed;
-    top: auto;
-    right: max(12px, env(safe-area-inset-right));
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: max(12px, env(safe-area-inset-left));
-  }
-
   .okw-archive-delete {
     min-height: 44px;
-    text-align: center;
+  }
+
+  .okw-sidebar-archive-delete {
+    min-height: var(--icon-button-sm, 28px);
   }
 }
