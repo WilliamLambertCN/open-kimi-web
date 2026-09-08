@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -151,6 +151,105 @@ describe('serveStatic sensitive-file boundary', () => {
     try {
       for (const path of ['/assets/app.js', '/assets/app.css', '/assets/data.json']) {
         expect((await fetch(base + path)).status, path).toBe(200);
+      }
+    } finally {
+      await new Promise((resolveClose) => server.close(resolveClose));
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('serveStatic realpath boundary', () => {
+  it('serves links within the root but refuses outside and broken directory links', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'open-kimi-static-'));
+    const outside = mkdtempSync(join(tmpdir(), 'open-kimi-outside-'));
+    mkdirSync(join(root, 'assets'));
+    mkdirSync(join(outside, 'removed'));
+    writeFileSync(join(root, 'index.html'), '<html>spa fallback</html>');
+    writeFileSync(join(root, 'assets', 'app.js'), 'export {};');
+    writeFileSync(join(outside, 'secret.txt'), 'outside fixture');
+    symlinkSync(join(root, 'assets'), join(root, 'inside'), process.platform === 'win32' ? 'junction' : 'dir');
+    symlinkSync(outside, join(root, 'outside'), process.platform === 'win32' ? 'junction' : 'dir');
+    symlinkSync(join(outside, 'removed'), join(root, 'broken'), process.platform === 'win32' ? 'junction' : 'dir');
+    rmSync(join(outside, 'removed'), { recursive: true });
+    const server = createServer((req, res) => {
+      serveStatic(root, req, res).then((served) => {
+        if (!served) res.writeHead(404).end('Not Found');
+      });
+    });
+    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    try {
+      expect((await fetch(`${base}/inside/app.js`)).status).toBe(200);
+      expect(await (await fetch(`${base}/client-route`)).text()).toContain('spa fallback');
+      for (const path of ['/outside/secret.txt', '/outside/missing.txt', '/broken/secret.txt']) {
+        const response = await fetch(base + path);
+        expect(response.status, path).toBe(404);
+        expect(await response.text(), path).toBe('Not Found');
+      }
+    } finally {
+      await new Promise((resolveClose) => server.close(resolveClose));
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses an SPA fallback index that resolves outside the root', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'open-kimi-static-'));
+    const outside = mkdtempSync(join(tmpdir(), 'open-kimi-outside-'));
+    writeFileSync(join(outside, 'index.html'), '<html>outside fixture</html>');
+    symlinkSync(outside, join(root, 'index.html'), process.platform === 'win32' ? 'junction' : 'dir');
+    const server = createServer((req, res) => {
+      serveStatic(root, req, res).then((served) => {
+        if (!served) res.writeHead(404).end('Not Found');
+      });
+    });
+    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    try {
+      const response = await fetch(`${base}/client-route`);
+      expect(response.status).toBe(404);
+      expect(await response.text()).toBe('Not Found');
+    } finally {
+      await new Promise((resolveClose) => server.close(resolveClose));
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('serveStatic realpath sensitive-file boundary', () => {
+  it('refuses in-root aliases to hidden paths and sensitive extensions', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'open-kimi-static-'));
+    mkdirSync(join(root, '.private'));
+    mkdirSync(join(root, 'certificate.pem'));
+    writeFileSync(join(root, 'index.html'), '<html>spa fallback</html>');
+    writeFileSync(join(root, '.private', 'data.json'), '{}');
+    writeFileSync(join(root, 'certificate.pem', 'index.html'), '<html>private</html>');
+    symlinkSync(join(root, '.private'), join(root, 'public-data'), process.platform === 'win32' ? 'junction' : 'dir');
+    symlinkSync(join(root, 'certificate.pem'), join(root, 'public-cert'), process.platform === 'win32' ? 'junction' : 'dir');
+
+    const refused = ['/public-data/data.json', '/public-data/missing.json', '/public-cert'];
+    try {
+      writeFileSync(join(root, 'server.pem'), 'private fixture');
+      symlinkSync(join(root, 'server.pem'), join(root, 'public.txt'), 'file');
+      refused.push('/public.txt');
+    } catch (error) {
+      if (error?.code !== 'EPERM' && error?.code !== 'EACCES') throw error;
+    }
+
+    const server = createServer((req, res) => {
+      serveStatic(root, req, res).then((served) => {
+        if (!served) res.writeHead(404).end('Not Found');
+      });
+    });
+    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    try {
+      for (const path of refused) {
+        const response = await fetch(base + path);
+        expect(response.status, path).toBe(404);
+        expect(await response.text(), path).toBe('Not Found');
       }
     } finally {
       await new Promise((resolveClose) => server.close(resolveClose));
