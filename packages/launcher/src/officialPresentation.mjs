@@ -4,6 +4,7 @@ const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
+  ['providerEnhancements.js', 'text/javascript; charset=utf-8'],
   ['themes.css', 'text/css; charset=utf-8'],
   ['themes.js', 'text/javascript; charset=utf-8'],
   ['backgrounds/aurora.png', 'image/png'],
@@ -13,7 +14,7 @@ const FILES = new Map([
   ['backgrounds/nocturne.png', 'image/png'],
 ]);
 
-const SCRIPTS = ['themes.js', 'presentation.js'];
+const SCRIPTS = ['themes.js', 'providerEnhancements.js', 'presentation.js'];
 const STYLES = ['presentation.css', 'themes.css'];
 
 // Serve the presentation layer from the installed launcher, so existing

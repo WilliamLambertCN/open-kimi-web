@@ -5,6 +5,7 @@ import { createServer as createHttpsServer } from 'node:https';
 
 import { createAccessUrls } from './accessUrls.mjs';
 import { proxyRequest } from './httpProxy.mjs';
+import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
 import { serveStatic } from './staticFiles.mjs';
 import { createWsProxy } from './wsProxy.mjs';
@@ -12,9 +13,10 @@ import { createWsProxy } from './wsProxy.mjs';
 export const WS_PATH = '/api/v1/ws';
 const DEFAULT_CLOSE_GRACE_MS = 1_000;
 
-function route(req, res, target, publicDir, officialPresentation) {
+async function route(req, res, target, publicDir, officialPresentation) {
   const url = req.url ?? '/';
   const pathname = url.split('?')[0];
+  if (officialPresentation && await serveModelDiscovery(req, res, target)) return;
   if (pathname === '/api' || pathname.startsWith('/api/')) {
     proxyRequest(req, res, target);
     return;
@@ -23,14 +25,8 @@ function route(req, res, target, publicDir, officialPresentation) {
     res.writeHead(405, { allow: 'GET, HEAD' }).end('Method Not Allowed');
     return;
   }
-  serveFrontendFiles(req, res, publicDir, officialPresentation)
-    .then((served) => {
-      if (!served) res.writeHead(404).end('Not Found');
-    })
-    .catch(() => {
-      if (!res.headersSent) res.writeHead(500);
-      res.end();
-    });
+  const served = await serveFrontendFiles(req, res, publicDir, officialPresentation);
+  if (!served) res.writeHead(404).end('Not Found');
 }
 
 async function serveFrontendFiles(req, res, publicDir, officialPresentation) {
@@ -60,7 +56,12 @@ export async function createLauncher({
   officialPresentation = false,
 }) {
   const { wss, handleUpgrade, closeConnections } = createWsProxy();
-  const listener = (req, res) => route(req, res, target, publicDir, officialPresentation);
+  const listener = (req, res) => {
+    route(req, res, target, publicDir, officialPresentation).catch(() => {
+      if (!res.headersSent) res.writeHead(500);
+      res.end();
+    });
+  };
   const server = tls
     ? createHttpsServer({ key: tls.key, cert: tls.cert, minVersion: 'TLSv1.2' }, listener)
     : createHttpServer(listener);

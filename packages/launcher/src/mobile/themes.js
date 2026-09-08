@@ -1,52 +1,53 @@
 const OKW_THEME_STORAGE_KEY = 'open-kimi-web.atmospheric-theme';
+const OKW_DEFAULT_THEME = 'nocturne';
 const OKW_THEMES = [
-  { id: 'original', label: '原始 · Original' },
-  { id: 'aurora', label: '极光 · Aurora' },
-  { id: 'twilight', label: '暮色 · Twilight' },
-  { id: 'ember', label: '余烬 · Ember' },
-  { id: 'mineral', label: '矿物青绿 · Mineral' },
-  { id: 'nocturne', label: '夜幕 · Nocturne' },
+  { id: 'original', label: '原始 · Original', shortLabel: '原始' },
+  { id: 'aurora', label: '极光 · Aurora', shortLabel: '极光' },
+  { id: 'twilight', label: '暮色 · Twilight', shortLabel: '暮色' },
+  { id: 'ember', label: '余烬 · Ember', shortLabel: '余烬' },
+  { id: 'mineral', label: '矿物青绿 · Mineral', shortLabel: '矿物青绿' },
+  { id: 'nocturne', label: '夜幕 · Nocturne', shortLabel: '夜幕' },
 ];
 const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
 
 {
-  let currentTheme = 'original';
+  const mobile = window.matchMedia('(max-width: 640px)');
+  let currentTheme = OKW_DEFAULT_THEME;
   let openPicker = null;
 
   const readStoredTheme = () => {
     try {
       const stored = localStorage.getItem(OKW_THEME_STORAGE_KEY);
-      return OKW_THEME_IDS.has(stored) ? stored : 'original';
+      return OKW_THEME_IDS.has(stored) ? stored : OKW_DEFAULT_THEME;
     } catch {
-      return 'original';
+      return OKW_DEFAULT_THEME;
     }
   };
 
   const storeTheme = (theme) => {
     try {
-      if (theme === 'original') localStorage.removeItem(OKW_THEME_STORAGE_KEY);
-      else localStorage.setItem(OKW_THEME_STORAGE_KEY, theme);
+      localStorage.setItem(OKW_THEME_STORAGE_KEY, theme);
     } catch {
       // The active page still updates when storage is unavailable.
     }
   };
 
   const themeLabel = (theme) => OKW_THEMES.find(({ id }) => id === theme)?.label ?? OKW_THEMES[0].label;
+  const shortThemeLabel = (theme) => OKW_THEMES.find(({ id }) => id === theme)?.shortLabel ?? OKW_THEMES[0].shortLabel;
 
   const syncControls = () => {
-    document.querySelectorAll('.okw-theme-picker').forEach((picker) => {
-      const current = picker.querySelector('.okw-theme-current');
-      if (current) current.textContent = themeLabel(currentTheme);
-      picker.querySelectorAll('.okw-theme-option').forEach((option) => {
-        const selected = option.dataset.theme === currentTheme;
-        option.setAttribute('aria-pressed', String(selected));
-        option.classList.toggle('selected', selected);
-      });
+    document.querySelectorAll('.okw-theme-current').forEach((current) => {
+      current.textContent = current.closest('.user-menu') ? shortThemeLabel(currentTheme) : themeLabel(currentTheme);
+    });
+    document.querySelectorAll('.okw-theme-option').forEach((option) => {
+      const selected = option.dataset.theme === currentTheme;
+      option.setAttribute('aria-pressed', String(selected));
+      option.classList.toggle('selected', selected);
     });
   };
 
   const applyTheme = (theme, persist = true) => {
-    currentTheme = OKW_THEME_IDS.has(theme) ? theme : 'original';
+    currentTheme = OKW_THEME_IDS.has(theme) ? theme : OKW_DEFAULT_THEME;
     if (currentTheme === 'original') document.documentElement.removeAttribute('data-okw-theme');
     else document.documentElement.dataset.okwTheme = currentTheme;
     if (persist) storeTheme(currentTheme);
@@ -55,8 +56,7 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
 
   const closeThemePicker = ({ restoreFocus = false } = {}) => {
     if (!openPicker) return;
-    const trigger = openPicker.querySelector('.okw-theme-trigger');
-    const dialog = openPicker.querySelector('.okw-theme-dialog');
+    const { trigger, dialog } = openPicker;
     if (dialog) dialog.hidden = true;
     if (trigger) {
       trigger.setAttribute('aria-expanded', 'false');
@@ -65,15 +65,31 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     openPicker = null;
   };
 
-  const openThemePicker = (picker) => {
-    if (openPicker && openPicker !== picker) closeThemePicker();
-    const trigger = picker.querySelector('.okw-theme-trigger');
-    const dialog = picker.querySelector('.okw-theme-dialog');
-    if (!trigger || !dialog) return;
-    openPicker = picker;
+  const positionMenuDialog = (trigger, dialog) => {
+    if (!dialog.classList.contains('okw-theme-menu-dialog')) return;
+    const margin = 8;
+    const gap = 6;
+    const anchor = trigger.getBoundingClientRect();
+    const bounds = dialog.getBoundingClientRect();
+    const rightSide = anchor.right + gap;
+    const left = rightSide + bounds.width <= window.innerWidth - margin
+      ? rightSide
+      : Math.max(margin, anchor.left - bounds.width - gap);
+    const top = Math.min(
+      Math.max(margin, anchor.top),
+      Math.max(margin, window.innerHeight - bounds.height - margin),
+    );
+    dialog.style.left = `${Math.round(left)}px`;
+    dialog.style.top = `${Math.round(top)}px`;
+  };
+
+  const openThemePicker = (trigger, dialog) => {
+    if (openPicker && openPicker.trigger !== trigger) closeThemePicker();
+    openPicker = { trigger, dialog };
     dialog.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
     requestAnimationFrame(() => {
+      positionMenuDialog(trigger, dialog);
       const selected = dialog.querySelector('.okw-theme-option.selected');
       (selected ?? dialog.querySelector('.okw-theme-option'))?.focus();
     });
@@ -117,29 +133,9 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     });
   };
 
-  const buildThemePicker = () => {
-    const section = makeElement('section', 'okw-theme-section');
-    section.dataset.okwThemePicker = '';
-
-    const heading = makeElement('div', 'group-title okw-theme-heading', '氛围主题 · Atmospheric theme');
-    const picker = makeElement('div', 'okw-theme-picker');
-    const trigger = makeElement('button', 'okw-theme-trigger');
-    trigger.type = 'button';
-    trigger.setAttribute('aria-haspopup', 'dialog');
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.setAttribute('aria-label', '选择氛围主题 · Choose atmospheric theme');
-    const swatch = makeElement('span', 'okw-theme-trigger-swatch');
-    swatch.setAttribute('aria-hidden', 'true');
-    const triggerText = makeElement('span', 'okw-theme-trigger-text');
-    triggerText.append(
-      makeElement('span', 'okw-theme-trigger-label', '当前主题 · Current theme'),
-      makeElement('span', 'okw-theme-current', themeLabel(currentTheme)),
-    );
-    const chevron = makeElement('span', 'okw-theme-chevron', '⌄');
-    chevron.setAttribute('aria-hidden', 'true');
-    trigger.append(swatch, triggerText, chevron);
-
+  const buildThemeDialog = (className = '') => {
     const dialog = makeElement('div', 'okw-theme-dialog');
+    if (className) dialog.classList.add(className);
     dialog.hidden = true;
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-label', '氛围主题 · Atmospheric themes');
@@ -165,13 +161,78 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
       options.append(option);
     }
     dialog.append(intro, options);
+    return dialog;
+  };
+
+  const connectThemeTrigger = (trigger, dialog) => {
     trigger.addEventListener('click', () => {
-      if (openPicker === picker) closeThemePicker({ restoreFocus: true });
-      else openThemePicker(picker);
+      if (openPicker?.trigger === trigger) closeThemePicker({ restoreFocus: true });
+      else openThemePicker(trigger, dialog);
     });
+  };
+
+  const buildThemePicker = () => {
+    const section = makeElement('section', 'okw-theme-section');
+    section.dataset.okwThemePicker = '';
+    const heading = makeElement('div', 'group-title okw-theme-heading', '氛围主题 · Atmospheric theme');
+    const picker = makeElement('div', 'okw-theme-picker');
+    const trigger = makeElement('button', 'okw-theme-trigger');
+    trigger.type = 'button';
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-label', '选择氛围主题 · Choose atmospheric theme');
+    const swatch = makeElement('span', 'okw-theme-trigger-swatch');
+    swatch.setAttribute('aria-hidden', 'true');
+    const triggerText = makeElement('span', 'okw-theme-trigger-text');
+    triggerText.append(
+      makeElement('span', 'okw-theme-trigger-label', '当前主题 · Current theme'),
+      makeElement('span', 'okw-theme-current', themeLabel(currentTheme)),
+    );
+    const chevron = makeElement('span', 'okw-theme-chevron', '⌄');
+    chevron.setAttribute('aria-hidden', 'true');
+    trigger.append(swatch, triggerText, chevron);
+    const dialog = buildThemeDialog();
+    connectThemeTrigger(trigger, dialog);
     picker.append(trigger, dialog);
     section.append(heading, picker);
     return section;
+  };
+
+  const itemLabel = (item) => item.querySelector('.user-menu-item-label')?.textContent?.trim() ?? '';
+
+  const enhanceUserMenus = () => {
+    if (mobile.matches) {
+      if (openPicker?.trigger.matches('[data-okw-theme-menu-trigger]')) closeThemePicker();
+      document.querySelectorAll('.user-menu').forEach((menu) => {
+        menu.querySelector(':scope > [data-okw-theme-menu-trigger]')?.remove();
+        menu.querySelector(':scope > .okw-theme-menu-dialog')?.remove();
+      });
+      return;
+    }
+    document.querySelectorAll('.user-menu[role="menu"], .user-menu').forEach((menu) => {
+      if (menu.querySelector(':scope > [data-okw-theme-menu-trigger]')) return;
+      const appearance = Array.from(menu.querySelectorAll(':scope > button.ui-menu-item'))
+        .find((item) => ['外观', 'Appearance'].includes(itemLabel(item)));
+      if (!appearance) return;
+      const trigger = appearance.cloneNode(true);
+      trigger.dataset.okwThemeMenuTrigger = '';
+      trigger.classList.add('okw-theme-menu-trigger');
+      trigger.setAttribute('aria-haspopup', 'dialog');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.setAttribute('aria-label', '氛围主题');
+      const label = trigger.querySelector('.user-menu-item-label');
+      const value = trigger.querySelector('.user-menu-row-value');
+      if (label) label.textContent = '氛围主题';
+      if (value) {
+        value.classList.add('okw-theme-current');
+        value.textContent = shortThemeLabel(currentTheme);
+      }
+      const dialog = buildThemeDialog('okw-theme-menu-dialog');
+      connectThemeTrigger(trigger, dialog);
+      appearance.before(trigger);
+      menu.append(dialog);
+      syncControls();
+    });
   };
 
   const isSettingsPanel = (panel) => {
@@ -185,7 +246,12 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     document.querySelectorAll('.sheet-panel, .ui-dialog[aria-label="设置"], .ui-dialog[aria-label="Settings"]').forEach((panel) => {
       if (!isSettingsPanel(panel)) return;
       const body = panel.querySelector('.sheet-body, .settings-region .body');
-      if (!body || body.querySelector('[data-okw-theme-picker]')) return;
+      if (!body) return;
+      if (!mobile.matches) {
+        body.querySelector('[data-okw-theme-picker]')?.remove();
+        return;
+      }
+      if (body.querySelector('[data-okw-theme-picker]')) return;
       const picker = buildThemePicker();
       const firstCard = body.querySelector('.card');
       if (firstCard) firstCard.after(picker);
@@ -198,13 +264,17 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
   applyTheme(currentTheme, false);
 
   const enhance = () => {
+    if (openPicker && !openPicker.trigger.isConnected) closeThemePicker();
+    enhanceUserMenus();
     enhanceSettings();
     enhanceVisualAnchors();
   };
 
   new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('pointerdown', (event) => {
-    if (openPicker && !openPicker.contains(event.target)) closeThemePicker();
+    if (openPicker && !openPicker.trigger.contains(event.target) && !openPicker.dialog.contains(event.target)) {
+      closeThemePicker();
+    }
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && openPicker) {
@@ -212,5 +282,9 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
       closeThemePicker({ restoreFocus: true });
     }
   }, true);
+  window.addEventListener('resize', () => {
+    if (openPicker) positionMenuDialog(openPicker.trigger, openPicker.dialog);
+  });
+  mobile.addEventListener('change', enhance);
   enhance();
 }

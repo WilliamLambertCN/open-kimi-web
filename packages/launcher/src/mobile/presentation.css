@@ -1,5 +1,138 @@
 /* The official model picker hides its provider scrollbar. Keep every provider
    reachable with touch, wheel, pointer drag, and keyboard focus. */
+.okw-model-discovery {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  gap: var(--space-2, 8px);
+  align-items: center;
+  margin: var(--space-2, 8px) 0 var(--space-4, 16px);
+}
+
+.okw-discovery-button,
+.okw-discovery-add,
+.okw-discovery-select {
+  min-height: 34px;
+  border: 1px solid var(--color-border, color-mix(in srgb, currentColor 20%, transparent));
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface, transparent);
+  color: var(--color-text, inherit);
+  font: inherit;
+}
+
+.okw-discovery-button,
+.okw-discovery-add {
+  padding: 0 var(--space-3, 12px);
+  cursor: pointer;
+}
+
+.okw-discovery-select {
+  width: 100%;
+  min-width: 0;
+  padding: 0 var(--space-3, 12px);
+}
+
+.okw-discovery-button:hover:not(:disabled),
+.okw-discovery-add:hover:not(:disabled) {
+  background: var(--color-hover, color-mix(in srgb, currentColor 10%, transparent));
+}
+
+.okw-discovery-button:focus-visible,
+.okw-discovery-add:focus-visible,
+.okw-discovery-select:focus-visible,
+.okw-model-option input:focus-visible {
+  outline: none;
+  box-shadow: var(--p-focus-ring, 0 0 0 2px #60a5fa);
+}
+
+.okw-discovery-button:disabled,
+.okw-discovery-add:disabled,
+.okw-discovery-select:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.okw-discovery-status {
+  grid-column: 1 / -1;
+  min-height: 18px;
+  color: var(--color-text-faint, inherit);
+  font-size: var(--text-xs, 12px);
+}
+
+.okw-discovery-status[data-state="error"] {
+  color: var(--color-danger, #c9364f);
+}
+
+.okw-discovery-status[data-state="success"] {
+  color: var(--color-success, #238636);
+}
+
+.pf-model-grid > .okw-model-options {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3, 12px);
+  padding: var(--space-2, 8px) 0 var(--space-3, 12px);
+  border-bottom: 1px solid var(--color-border, color-mix(in srgb, currentColor 20%, transparent));
+}
+
+.okw-model-option-group {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border: 1px solid var(--color-border, color-mix(in srgb, currentColor 20%, transparent));
+  border-radius: var(--radius-md, 8px);
+}
+
+.okw-model-option-group legend {
+  padding: 0 var(--space-1, 4px);
+  color: var(--color-text-muted, inherit);
+  font-size: var(--text-xs, 12px);
+}
+
+.okw-model-option-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px) var(--space-3, 12px);
+}
+
+.okw-model-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  color: var(--color-text, inherit);
+  font-size: var(--text-sm, 13px);
+  cursor: pointer;
+  user-select: none;
+}
+
+.okw-model-option:has(input:disabled) {
+  cursor: default;
+  opacity: .55;
+}
+
+.okw-model-option input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--color-accent, #60a5fa);
+}
+
+@media (max-width: 640px) {
+  .okw-model-discovery,
+  .pf-model-grid > .okw-model-options {
+    grid-template-columns: 1fr;
+  }
+
+  .okw-discovery-status {
+    grid-column: 1;
+  }
+
+  .okw-discovery-button,
+  .okw-discovery-add {
+    width: 100%;
+  }
+}
+
 .mp > .chip-strip.okw-provider-strip {
   overflow-x: auto;
   overflow-y: hidden;
