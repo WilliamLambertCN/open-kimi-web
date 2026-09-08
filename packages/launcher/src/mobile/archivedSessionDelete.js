@@ -4,10 +4,10 @@
   const archivedRequestIds = new Map();
   const archivedRequestGenerations = new Map();
   const rowSessions = new WeakMap();
+  const boundRows = new Set();
   const pendingIds = new Set();
   const deletedIds = new Set();
   let pageAuthorization = '';
-  let openMenu = null;
   let pendingArchivedRequests = 0;
 
   const isChinese = () => {
@@ -16,15 +16,15 @@
   };
 
   const copy = () => isChinese() ? {
-    more: '更多操作',
     remove: '永久删除',
+    removeShort: '删除',
     removing: '正在删除…',
     confirm: (title) => `永久删除会话「${title}」？\n\n此操作无法撤销，会删除该会话的消息、附件和历史记录。`,
     auth: '页面授权尚未就绪，请刷新后重试。',
     failed: '删除失败，请刷新后重试。',
   } : {
-    more: 'More actions',
     remove: 'Delete permanently',
+    removeShort: 'Delete',
     removing: 'Deleting…',
     confirm: (title) => `Permanently delete “${title}”?\n\nThis cannot be undone. Its messages, attachments, and history will be deleted.`,
     auth: 'Page authorization is not ready. Refresh and try again.',
@@ -165,15 +165,30 @@
     return grouped;
   };
 
+  const availableByTitle = () => {
+    const grouped = new Map();
+    for (const session of archivedSessions.values()) {
+      if (deletedIds.has(session.id)) continue;
+      const items = grouped.get(session.title) ?? [];
+      items.push(session);
+      grouped.set(session.title, items);
+    }
+    return grouped;
+  };
+
   const clearRowSession = (row) => {
     rowSessions.delete(row);
-    const actions = row.querySelector('.okw-archive-actions');
-    if (actions && openMenu && actions.contains(openMenu.menu)) closeMenu();
-    actions?.remove();
+    boundRows.delete(row);
+    row.querySelector('.okw-archive-actions')?.remove();
+    const sidebarButton = row.querySelector('.okw-sidebar-archive-delete');
+    const sidebarActions = sidebarButton?.parentElement;
+    sidebarButton?.remove();
+    sidebarActions?.classList.remove('okw-sidebar-archive-actions');
   };
 
   const clearVisibleRowSessions = () => {
     document.querySelectorAll('.archive-list .archive-row').forEach(clearRowSession);
+    document.querySelectorAll('.sessions .se').forEach(clearRowSession);
   };
 
   const rememberedKey = (row) => {
@@ -181,7 +196,7 @@
     return session && rowKey(session.cwd, session.title, session.time);
   };
 
-  const collectRowsByKey = () => {
+  const collectArchiveRowsByKey = () => {
     const rowsByKey = new Map();
     document.querySelectorAll('.archive-list .archive-card').forEach((card) => {
       const cwd = card.querySelector('.archive-workspace .path')?.textContent?.trim() ?? '';
@@ -200,6 +215,26 @@
     return rowsByKey;
   };
 
+  const collectSidebarRowsByTitle = () => {
+    const rowsByTitle = new Map();
+    document.querySelectorAll('.sessions .se').forEach((row) => {
+      if (!row.querySelector('.reopen-btn')) {
+        clearRowSession(row);
+        return;
+      }
+      const title = row.querySelector('.t')?.textContent?.trim() ?? '';
+      const remembered = rowSessions.get(row);
+      if (remembered && deletedIds.has(remembered.id) && remembered.title === title) {
+        row.remove();
+        return;
+      }
+      const rows = rowsByTitle.get(title) ?? [];
+      rows.push(row);
+      rowsByTitle.set(title, rows);
+    });
+    return rowsByTitle;
+  };
+
   const activeArchivedIds = () => new Set([...archivedRequestIds.values()].flatMap((ids) => [...ids]));
 
   const pruneStaleSessions = (rowsByKey, activeIds) => {
@@ -214,33 +249,33 @@
     return activeIds.has(sessions[0].id) ? sessions[0] : null;
   };
 
-  const bindUniqueRows = (key, rows, sessions, activeIds) => {
+  const bindUniqueRows = (key, rows, sessions, activeIds, rememberedKeyForRow) => {
     const session = uniqueActiveSession(rows, sessions, activeIds);
     for (const row of rows) {
       const remembered = rowSessions.get(row);
-      if (!session || remembered?.id !== session.id || rememberedKey(row) !== key) clearRowSession(row);
-      if (session) rowSessions.set(row, session);
+      if (!session || remembered?.id !== session.id || rememberedKeyForRow(row) !== key) clearRowSession(row);
+      if (session) {
+        rowSessions.set(row, session);
+        boundRows.add(row);
+      }
     }
   };
 
   const matchRows = () => {
-    const rowsByKey = collectRowsByKey();
+    const archiveRowsByKey = collectArchiveRowsByKey();
+    const sidebarRowsByTitle = collectSidebarRowsByTitle();
     const activeIds = activeArchivedIds();
-    pruneStaleSessions(rowsByKey, activeIds);
+    pruneStaleSessions(archiveRowsByKey, activeIds);
     const sessionsByKey = availableByKey();
-    for (const [key, rows] of rowsByKey) {
+    for (const [key, rows] of archiveRowsByKey) {
       const sessions = sessionsByKey.get(key) ?? [];
-      bindUniqueRows(key, rows, sessions, activeIds);
+      bindUniqueRows(key, rows, sessions, activeIds, rememberedKey);
     }
-  };
-
-  const closeMenu = ({ restoreFocus = false } = {}) => {
-    if (!openMenu) return;
-    const { trigger, menu } = openMenu;
-    menu.hidden = true;
-    trigger.setAttribute('aria-expanded', 'false');
-    if (restoreFocus) trigger.focus();
-    openMenu = null;
+    const sessionsByTitle = availableByTitle();
+    for (const [title, rows] of sidebarRowsByTitle) {
+      const sessions = sessionsByTitle.get(title) ?? [];
+      bindUniqueRows(title, rows, sessions, activeIds, (row) => rowSessions.get(row)?.title);
+    }
   };
 
   const showError = (row, message) => {
@@ -263,9 +298,17 @@
     if (card && rows.length === 0) card.remove();
   };
 
+  const removeSessionRows = (sessionId) => {
+    for (const row of [...boundRows]) {
+      if (rowSessions.get(row)?.id !== sessionId) continue;
+      clearRowSession(row);
+      removeRow(row);
+    }
+  };
+
   // This keeps the destructive request and all of its UI rollback in one place.
   // eslint-disable-next-line complexity
-  const deleteSession = async (row, session, trigger, removeButton) => {
+  const deleteSession = async (row, session, removeButton, idleText) => {
     if (pendingIds.has(session.id)) return;
     const labels = copy();
     if (!window.confirm(labels.confirm(session.title))) return;
@@ -275,7 +318,6 @@
     }
 
     pendingIds.add(session.id);
-    trigger.disabled = true;
     removeButton.disabled = true;
     removeButton.textContent = labels.removing;
     row.classList.add('okw-archive-deleting');
@@ -298,60 +340,56 @@
       if (!response.ok || body?.deleted !== true) throw new Error(body?.error || labels.failed);
       deletedIds.add(session.id);
       archivedSessions.delete(session.id);
-      closeMenu();
-      removeRow(row);
+      removeSessionRows(session.id);
     } catch (error) {
       showError(row, error instanceof Error && error.message ? error.message : labels.failed);
-      trigger.disabled = false;
       removeButton.disabled = false;
-      removeButton.textContent = labels.remove;
+      removeButton.textContent = idleText;
       row.classList.remove('okw-archive-deleting');
     } finally {
       pendingIds.delete(session.id);
     }
   };
 
-  const enhanceRow = (row) => {
+  const createDeleteButton = (row, session, className, text) => {
+    const labels = copy();
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = className;
+    const idleText = text ?? labels.remove;
+    removeButton.textContent = idleText;
+    removeButton.setAttribute('aria-label', labels.remove);
+    removeButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      void deleteSession(row, session, removeButton, idleText);
+    });
+    return removeButton;
+  };
+
+  const enhanceArchiveRow = (row) => {
     const session = rowSessions.get(row);
     if (!session || deletedIds.has(session.id)) return;
     if (row.querySelector('.okw-archive-actions')) return;
-    const labels = copy();
     const actions = document.createElement('div');
     actions.className = 'okw-archive-actions';
-
-    const trigger = document.createElement('button');
-    trigger.type = 'button';
-    trigger.className = 'okw-archive-more';
-    trigger.textContent = '⋯';
-    trigger.setAttribute('aria-label', labels.more);
-    trigger.setAttribute('aria-haspopup', 'menu');
-    trigger.setAttribute('aria-expanded', 'false');
-
-    const menu = document.createElement('div');
-    menu.className = 'okw-archive-menu';
-    menu.setAttribute('role', 'menu');
-    menu.hidden = true;
-
-    const removeButton = document.createElement('button');
-    removeButton.type = 'button';
-    removeButton.className = 'okw-archive-delete';
-    removeButton.setAttribute('role', 'menuitem');
-    removeButton.textContent = labels.remove;
-    removeButton.addEventListener('click', () => void deleteSession(row, session, trigger, removeButton));
-    menu.append(removeButton);
-    actions.append(trigger, menu);
+    actions.addEventListener('click', (event) => event.stopPropagation());
+    actions.append(createDeleteButton(row, session, 'okw-archive-delete'));
     row.append(actions);
+  };
 
-    trigger.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const opening = menu.hidden;
-      closeMenu();
-      if (!opening) return;
-      menu.hidden = false;
-      trigger.setAttribute('aria-expanded', 'true');
-      openMenu = { trigger, menu };
-      removeButton.focus();
-    });
+  const enhanceSidebarRow = (row) => {
+    const session = rowSessions.get(row);
+    if (!session || deletedIds.has(session.id)) return;
+    if (row.querySelector('.okw-sidebar-archive-delete')) return;
+    const reopenButton = row.querySelector('.reopen-btn');
+    if (!reopenButton?.parentElement) return;
+    reopenButton.parentElement.classList.add('okw-sidebar-archive-actions');
+    reopenButton.parentElement.append(createDeleteButton(
+      row,
+      session,
+      'okw-archive-delete okw-sidebar-archive-delete',
+      copy().removeShort,
+    ));
   };
 
   function enhance() {
@@ -360,18 +398,9 @@
       return;
     }
     matchRows();
-    document.querySelectorAll('.archive-list .archive-row').forEach(enhanceRow);
+    document.querySelectorAll('.archive-list .archive-row').forEach(enhanceArchiveRow);
+    document.querySelectorAll('.sessions .se').forEach(enhanceSidebarRow);
   }
-
-  document.addEventListener('click', (event) => {
-    if (openMenu && !openMenu.menu.contains(event.target) && event.target !== openMenu.trigger) closeMenu();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && openMenu) {
-      event.preventDefault();
-      closeMenu({ restoreFocus: true });
-    }
-  });
 
   new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
   enhance();
