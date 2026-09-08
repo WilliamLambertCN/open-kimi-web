@@ -27,6 +27,22 @@ describe('createLauncherWithRetry', () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 
+  it('rejects a wildcard port whose printed loopback address is already occupied', async () => {
+    const create = vi.fn();
+    const assertLocalPort = vi.fn(() => {
+      throw listenError('EADDRINUSE');
+    });
+    await expect(createLauncherWithRetry(
+      baseOpts({ host: '0.0.0.0', portExplicit: true }),
+      create,
+      assertLocalPort,
+    )).rejects.toThrow('listen EADDRINUSE');
+    expect(assertLocalPort).toHaveBeenCalledWith(expect.objectContaining({
+      host: '0.0.0.0', port: 5000,
+    }));
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it('retries on the next port after EADDRINUSE and reuses the other options', async () => {
     const create = vi
       .fn()
@@ -208,5 +224,37 @@ describe('startFrontend port fallback', () => {
     const boundPort = launcher.server.address().port;
     expect(boundPort < startPort || boundPort >= startPort + PORT_RETRY_ATTEMPTS).toBe(true);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining(`ephemeral port ${boundPort}`));
+  });
+});
+
+describe('startFrontend wildcard access safety', () => {
+  const servers = [];
+  afterAll(async () => {
+    await Promise.all(servers.map((s) => new Promise((resolve) => s.close(resolve))));
+  });
+
+  it('does not publish a Local URL owned by another loopback listener', async () => {
+    const blocker = createServer();
+    await new Promise((resolve) => blocker.listen(0, '127.0.0.1', resolve));
+    servers.push(blocker);
+    const occupied = blocker.address().port;
+
+    const { launcher } = await startFrontend({
+      target: 'http://127.0.0.1:1',
+      publicDir: 'public',
+      host: '0.0.0.0',
+      port: occupied,
+      interfaces: {},
+      noTokenLink: true,
+      targetFetch: reachableTarget,
+      log: () => {},
+      warn: () => {},
+    });
+    servers.push(launcher.server);
+
+    expect(launcher.server.address().port).not.toBe(occupied);
+    expect(launcher.accessUrls[0].url).toBe(
+      `http://127.0.0.1:${launcher.server.address().port}`,
+    );
   });
 });

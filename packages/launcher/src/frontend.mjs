@@ -2,6 +2,7 @@
 // integration supervisor: TLS resolution, token link resolution, launcher
 // creation and the Local/Network link output.
 import { networkInterfaces } from 'node:os';
+import { createServer as createTcpServer } from 'node:net';
 import { launchLinkLines, launchLinkWarnings } from './launchLinks.mjs';
 import { resolveLaunchToken } from './launchToken.mjs';
 import { ensureOfficialBundle, officialCacheDir, resolveOfficialVersion } from './officialBundle.mjs';
@@ -82,6 +83,24 @@ export const PORT_RETRY_ATTEMPTS = 10;
 
 const RETRYABLE_LISTEN_CODES = new Set(['EACCES', 'EADDRINUSE']);
 
+function wildcardLoopback(host) {
+  if (host === '0.0.0.0') return '127.0.0.1';
+  if (host === '::' || host === '[::]') return '::1';
+  return null;
+}
+
+async function assertLocalAccessPortAvailable(opts) {
+  const host = wildcardLoopback(opts.host);
+  if (host === null || opts.port === 0) return;
+  const probe = createTcpServer();
+  await new Promise((resolve, reject) => {
+    probe.once('error', reject);
+    probe.listen({ host, port: opts.port, exclusive: true }, () => {
+      probe.close((err) => (err ? reject(err) : resolve()));
+    });
+  });
+}
+
 const triedRange = (opts) =>
   `could not bind ${opts.host} on ports ${opts.port}-${Math.min(opts.port + PORT_RETRY_ATTEMPTS - 1, 65535)}`;
 
@@ -108,14 +127,23 @@ async function createOnEphemeralPort(opts, create, lastError) {
   }
 }
 
-export async function createLauncherWithRetry(opts, create = createLauncher) {
-  if (opts.portExplicit) return create(opts);
+export async function createLauncherWithRetry(
+  opts,
+  create = createLauncher,
+  assertLocalPort = assertLocalAccessPortAvailable,
+) {
+  if (opts.portExplicit) {
+    await assertLocalPort(opts);
+    return create(opts);
+  }
   let lastError;
   for (let attempt = 0; attempt < PORT_RETRY_ATTEMPTS; attempt += 1) {
     const port = opts.port + attempt;
     if (port > 65535) break;
     try {
-      return await create({ ...opts, port });
+      const candidate = { ...opts, port };
+      await assertLocalPort(candidate);
+      return await create(candidate);
     } catch (err) {
       if (!RETRYABLE_LISTEN_CODES.has(err?.code)) throw err;
       lastError = err;
