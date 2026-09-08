@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WebSocket, WebSocketServer } from 'ws';
 
+import { startFrontend } from '../../packages/launcher/src/frontend.mjs';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
 import { ensureManagedTls } from '../../packages/launcher/src/tlsStore.mjs';
 
@@ -74,6 +75,35 @@ afterAll(async () => {
 });
 
 describe('HTTPS launcher', () => {
+  it('starts the shared frontend path with custom TLS files', async () => {
+    const certFile = join(tlsHome, 'custom.crt');
+    const keyFile = join(tlsHome, 'custom.key');
+    writeFileSync(certFile, tlsMaterial.cert);
+    writeFileSync(keyFile, tlsMaterial.key);
+    const log = [];
+    const frontend = await startFrontend({
+      target: upstream.url,
+      publicDir,
+      host: '127.0.0.1',
+      port: 0,
+      https: true,
+      certFile,
+      keyFile,
+      noTokenLink: true,
+      interfaces: {},
+      log: (line) => log.push(line),
+      warn: () => {},
+    });
+    try {
+      const res = await httpsGet(`${frontend.launcher.url}/`, tlsMaterial.cert);
+      expect(res.status).toBe(200);
+      expect(frontend.tls.source).toBe('custom');
+      expect(log.join('\n')).toMatch(/open-kimi-web ready[\s\S]*SHA-256 fingerprint/);
+    } finally {
+      await frontend.launcher.close();
+    }
+  });
+
   it('serves static content with TLS 1.2+ and exposes stable metadata', async () => {
     const res = await httpsGet(`${launcher.url}/`, tlsMaterial.cert);
     expect(res.status).toBe(200);
@@ -123,5 +153,57 @@ describe('HTTPS launcher', () => {
     expect(lastWsHeaders.origin).toBe(new URL(upstream.url).origin);
     expect(lastWsHeaders['sec-websocket-protocol']).toBe('kimi-code.bearer.tls-test');
     ws.close();
+  });
+});
+
+describe('managed HTTPS frontend', () => {
+  it('creates and then reuses managed TLS material through the shared frontend path', async () => {
+    const managedHome = mkdtempSync(join(tmpdir(), 'launcher-managed-tls-'));
+    const previousHome = process.env.OPEN_KIMI_WEB_HOME;
+    process.env.OPEN_KIMI_WEB_HOME = managedHome;
+    let first;
+    let second;
+    try {
+      const firstLog = [];
+      first = await startFrontend({
+        target: upstream.url,
+        publicDir,
+        host: '127.0.0.1',
+        port: 0,
+        https: true,
+        noTokenLink: true,
+        interfaces: {},
+        log: (line) => firstLog.push(line),
+        warn: () => {},
+      });
+      const firstResponse = await httpsGet(`${first.launcher.url}/`, first.tls.cert);
+      expect(firstResponse.status).toBe(200);
+      expect(first.tls).toMatchObject({ source: 'managed', created: true, rotated: false });
+      expect(firstLog.join('\n')).toMatch(/not trusted on first use[\s\S]*Verify this fingerprint/);
+      await first.launcher.close();
+      first = null;
+
+      const secondLog = [];
+      second = await startFrontend({
+        target: upstream.url,
+        publicDir,
+        host: '127.0.0.1',
+        port: 0,
+        https: true,
+        noTokenLink: true,
+        interfaces: {},
+        log: (line) => secondLog.push(line),
+        warn: () => {},
+      });
+      expect(second.tls).toMatchObject({ source: 'managed', created: false, rotated: false });
+      expect(secondLog.join('\n')).not.toContain('not trusted on first use');
+      expect(secondLog.join('\n')).toContain('Verify this fingerprint');
+    } finally {
+      await first?.launcher.close();
+      await second?.launcher.close();
+      if (previousHome === undefined) delete process.env.OPEN_KIMI_WEB_HOME;
+      else process.env.OPEN_KIMI_WEB_HOME = previousHome;
+      rmSync(managedHome, { recursive: true, force: true });
+    }
   });
 });
