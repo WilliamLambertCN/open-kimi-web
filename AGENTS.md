@@ -43,7 +43,7 @@
 6. 运行最少必要校验并记录结果。完成后检查 `git diff --check` 和 `git status --short`，清理临时进程与数据。
 7. 除非任务明确要求，不提交、不推送、不发布。
 
-README 的更新记录保持最新在前。日常未发布内容在 `develop` 写入 `develop（未发布）`；合入 `main` 准备发布时整理成对应版本条目并链接 Release/CHANGELOG。当前 README 中的 `main（未发布）` 是分支模型启用前已经进入 `main` 的过渡批次，在下一次发布时转换为正式版本记录。
+README 的更新记录保持最新在前。日常未发布内容在 `develop` 写入 `develop（未发布）`；合入 `main` 准备发布时整理成对应版本条目并链接 Release/CHANGELOG。
 
 ### KISS 分支模型
 
