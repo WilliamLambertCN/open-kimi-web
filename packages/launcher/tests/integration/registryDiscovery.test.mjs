@@ -140,6 +140,27 @@ describe('verifyInstance', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('waits for HTTP readiness when the registry entry appears before the listener', async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new Error('refused'))
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true });
+    const pause = vi.fn(async () => undefined);
+    await expect(verifyInstance({
+      port: 1,
+      pid: process.pid,
+      token: 'tok',
+      fetchImpl: fetchMock,
+      sleep: pause,
+    })).resolves.toBeUndefined();
+    expect(pause).toHaveBeenCalledOnce();
+    expect(fetchMock.mock.calls.map(([url]) => new URL(url).pathname)).toEqual([
+      '/api/v1/healthz',
+      '/api/v1/healthz',
+      '/api/v1/meta',
+    ]);
+  });
+
   it('fails closed on a dead registered pid before making any request', async () => {
     const fetchMock = fetchImpl({});
     await expect(
@@ -166,7 +187,7 @@ describe('verifyInstance', () => {
 
     const offline = vi.fn(async () => { throw new Error('refused'); });
     await expect(
-      verifyInstance({ ...live, fetchImpl: offline }),
+      verifyInstance({ ...live, fetchImpl: offline, timeoutMs: 20, pollMs: 5 }),
     ).rejects.toThrow(/healthz unreachable/);
   });
 
