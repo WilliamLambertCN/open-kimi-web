@@ -1,9 +1,9 @@
 # Changelog
 
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
-版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀表示同一基线上的本项目修订版。
+版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
-## Unreleased
+## [open-kimi-web v0.41.0-r3] - 2026-09-08
 
 继续兼容官方 Kimi Code `0.41.0`。
 
@@ -16,6 +16,13 @@
 ### 安全
 
 - 永久删除端点要求同源请求和当前页面 Bearer 授权，并在删除前确认会话已归档；官方通用 debug 路由不会代理给浏览器。
+- 已归档会话只有在 API 记录与当前 DOM 行能一一唯一对应时才显示永久删除；列表刷新、分页、同名同分钟冲突或 DOM 行复用时会先撤销旧绑定。
+- `--web-dir` 静态文件解析会校验真实路径，拒绝通过文件、目录或 SPA fallback 的符号链接读取根目录外内容，也拒绝用别名绕过隐藏路径与 `.map`、证书、密钥文件限制。
+
+### 修复
+
+- 修复官方 `0.41.0` 已归档页改用 `GET /api/v2/sessions?meta.archived=true` 时，永久删除入口没有显示的问题；同时保留对旧版 v1 响应的兼容。
+- 修复已归档列表刷新或分页后可能保留陈旧会话映射的问题；请求失败或映射有歧义时不提供删除入口。
 
 ## [open-kimi-web v0.41.0-r2] - 2026-09-08
 
@@ -56,5 +63,6 @@
 - 源码依赖未安装时，为 `integrate` 命令显示明确的缺失依赖提示。
 - 兼容 `corepack pnpm dev -- --lan` 中包管理器传入的参数分隔符。
 
+[open-kimi-web v0.41.0-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r3
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
