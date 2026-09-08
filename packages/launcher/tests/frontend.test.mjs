@@ -1,4 +1,7 @@
 import { createServer } from 'node:http';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 
 import { createLauncherWithRetry, PORT_RETRY_ATTEMPTS, startFrontend } from '../src/frontend.mjs';
@@ -161,6 +164,91 @@ describe('startFrontend target reachability', () => {
 
     expect(targetFetch).toHaveBeenCalledOnce();
     expect(launcher.server.listening).toBe(true);
+  });
+});
+
+describe('startFrontend web directory resolution', () => {
+  const servers = [];
+  afterAll(async () => {
+    await Promise.all(servers.map((s) => new Promise((resolve) => s.close(resolve))));
+  });
+
+  it('serves an explicit web directory without resolving the official bundle', async () => {
+    const log = vi.fn();
+    const { launcher, publicDir } = await startFrontend({
+      target: 'http://127.0.0.1:58627',
+      webDir: 'prepared-web',
+      host: '127.0.0.1',
+      port: 0,
+      interfaces: {},
+      noTokenLink: true,
+      targetFetch: reachableTarget,
+      log,
+      warn: () => {},
+    });
+    servers.push(launcher.server);
+
+    expect(publicDir).toBe('prepared-web');
+    expect(log).toHaveBeenCalledWith('web UI: custom directory');
+  });
+
+  it('adds recovery guidance when every official bundle source fails', async () => {
+    const cacheRoot = mkdtempSync(join(tmpdir(), 'frontend-official-error-'));
+    const download = vi.fn(async () => {
+      throw new Error('network unavailable');
+    });
+    try {
+      await expect(startFrontend({
+        target: 'http://127.0.0.1:58627',
+        webVersion: '9.9.9',
+        officialCacheRoot: cacheRoot,
+        officialDownload: download,
+        host: '127.0.0.1',
+        port: 0,
+        interfaces: {},
+        noTokenLink: true,
+        targetFetch: reachableTarget,
+        log: () => {},
+        warn: () => {},
+      })).rejects.toThrow(
+        /official web UI 9\.9\.9 is unavailable[\s\S]*curl and tar[\s\S]*retry/,
+      );
+      expect(download).toHaveBeenCalledTimes(2);
+    } finally {
+      rmSync(cacheRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('startFrontend managed TLS', () => {
+  it('uses a managed certificate for the default HTTPS path', async () => {
+    const managedHome = mkdtempSync(join(tmpdir(), 'frontend-managed-tls-'));
+    const previousHome = process.env.OPEN_KIMI_WEB_HOME;
+    process.env.OPEN_KIMI_WEB_HOME = managedHome;
+    let launcher;
+    try {
+      const started = await startFrontend({
+        target: 'http://127.0.0.1:58627',
+        publicDir: 'public',
+        host: '127.0.0.1',
+        port: 0,
+        https: true,
+        interfaces: {},
+        noTokenLink: true,
+        targetFetch: reachableTarget,
+        log: () => {},
+        warn: () => {},
+      });
+      launcher = started.launcher;
+
+      expect(started.tls).toMatchObject({ source: 'managed', created: true });
+      expect(launcher.url).toMatch(/^https:\/\//);
+    } finally {
+      await launcher?.close();
+      if (previousHome === undefined) delete process.env.OPEN_KIMI_WEB_HOME;
+      else process.env.OPEN_KIMI_WEB_HOME = previousHome;
+      rmSync(managedHome, { recursive: true, force: true });
+    }
   });
 });
 
