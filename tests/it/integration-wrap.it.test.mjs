@@ -208,6 +208,31 @@ describe('supervised kimi web', () => {
 
 describe('supervisor startup and Windows process trees', () => {
   it(
+    'survives a transient connection refusal after registry discovery',
+    { timeout: 30_000 },
+    async () => {
+      let healthAttempts = 0;
+      const fetchImpl = vi.fn(async (url, init) => {
+        if (new URL(url).pathname === '/api/v1/healthz' && healthAttempts++ === 0) {
+          throw new Error('simulated listener startup race');
+        }
+        return fetch(url, init);
+      });
+      const supervised = superviseWeb({
+        realKimi: 'fake-kimi',
+        web: WEB_DEFAULTS,
+        env: env(),
+        deps: deps({
+          fetch: fetchImpl,
+          waitStop: async () => ({ kind: 'signal' }),
+        }),
+      });
+      await expect(supervised).resolves.toBe(0);
+      expect(healthAttempts).toBe(2);
+    },
+  );
+
+  it(
     'starts a fresh backend before waiting for its first server token',
     { timeout: 30_000 },
     async () => {
