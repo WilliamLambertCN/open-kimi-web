@@ -56,15 +56,28 @@
     const items = body?.data?.items ?? body?.items;
     if (!Array.isArray(items)) return;
     for (const item of items) {
-      if (item?.archived !== true || typeof item.id !== 'string') continue;
+      const v2 = item?.meta && item?.workspace;
+      const archived = v2 ? item.meta.archived : item?.archived;
+      if (archived !== true || typeof item.id !== 'string') continue;
+      const title = v2 ? item.meta.title ?? item.meta.last_prompt : item.title;
       archivedSessions.set(item.id, {
         id: item.id,
-        title: typeof item.title === 'string' && item.title !== '' ? item.title : item.id.slice(0, 12),
-        cwd: typeof item?.metadata?.cwd === 'string' ? item.metadata.cwd : '',
-        time: formatMinute(item.archived_at ?? item.updated_at),
+        title: typeof title === 'string' && title !== '' ? title : item.id.slice(0, 12),
+        cwd: v2
+          ? (typeof item.workspace.cwd === 'string' ? item.workspace.cwd : '')
+          : (typeof item?.metadata?.cwd === 'string' ? item.metadata.cwd : ''),
+        time: formatMinute(v2
+          ? item.meta.archived_at ?? item.meta.updated_at
+          : item.archived_at ?? item.updated_at),
       });
     }
   };
+
+  const isArchivedListRequest = (url) => (
+    url.pathname === '/api/v1/sessions' && url.searchParams.get('archived_only') === 'true'
+  ) || (
+    url.pathname === '/api/v2/sessions' && url.searchParams.get('meta.archived') === 'true'
+  );
 
   const observeResponse = async (input, init, response) => {
     try {
@@ -72,8 +85,7 @@
       rememberAuthorization(input, init, url);
       if (
         url.origin !== location.origin ||
-        url.pathname !== '/api/v1/sessions' ||
-        url.searchParams.get('archived_only') !== 'true' ||
+        !isArchivedListRequest(url) ||
         requestMethod(input, init) !== 'GET' ||
         !response.ok
       ) return;

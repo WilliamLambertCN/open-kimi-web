@@ -105,7 +105,24 @@ function archivedResponse(archived = true) {
   }), { status: 200, headers: { 'content-type': 'application/json' } });
 }
 
-async function install({ archived = true, deleteResponse, confirm = true } = {}) {
+function archivedResponseV2(archived = true) {
+  return new Response(JSON.stringify({
+    data: {
+      items: [{
+        id: 'session_archived',
+        workspace: { id: 'workspace_test', cwd: 'C:\\work' },
+        meta: {
+          title: 'Archived title',
+          archived,
+          archived_at: new Date(ARCHIVED_AT).getTime(),
+          updated_at: new Date(ARCHIVED_AT).getTime(),
+        },
+      }],
+    },
+  }), { status: 200, headers: { 'content-type': 'application/json' } });
+}
+
+async function install({ archived = true, apiVersion = 'v1', deleteResponse, confirm = true } = {}) {
   const card = new FakeCard('C:\\work');
   const documentListeners = new Map();
   const document = {
@@ -127,6 +144,7 @@ async function install({ archived = true, deleteResponse, confirm = true } = {})
   const nativeFetch = vi.fn(async (input) => {
     const url = String(input);
     if (url.includes('archived_only=true')) return archivedResponse(archived);
+    if (url.includes('meta.archived=true')) return archivedResponseV2(archived);
     return deleteResponse?.() ?? new Response(JSON.stringify({ deleted: true }), {
       status: 200,
       headers: { 'content-type': 'application/json' },
@@ -152,7 +170,10 @@ async function install({ archived = true, deleteResponse, confirm = true } = {})
     window,
   });
 
-  await window.fetch('http://localhost/api/v1/sessions?archived_only=true', {
+  const archivedUrl = apiVersion === 'v2'
+    ? 'http://localhost/api/v2/sessions?sort=meta.updated_at_desc&meta.archived=true'
+    : 'http://localhost/api/v1/sessions?archived_only=true';
+  await window.fetch(archivedUrl, {
     headers: { authorization: 'Bearer page-token' },
   });
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -167,7 +188,9 @@ async function install({ archived = true, deleteResponse, confirm = true } = {})
 describe('archived session delete UI', () => {
   it('adds the action only to records confirmed archived by the official list', async () => {
     expect((await install()).trigger).toBeDefined();
+    expect((await install({ apiVersion: 'v2' })).trigger).toBeDefined();
     expect((await install({ archived: false })).trigger).toBeUndefined();
+    expect((await install({ apiVersion: 'v2', archived: false })).trigger).toBeUndefined();
   });
 
   it('cancels without a request and deletes only after explicit title confirmation', async () => {
