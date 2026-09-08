@@ -523,7 +523,12 @@ html[data-okw-theme] .markstream-vue {
   position: fixed;
   right: auto;
   bottom: auto;
+  box-sizing: border-box;
+  width: min(280px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
   margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .okw-theme-menu-trigger .okw-theme-current {
@@ -548,6 +553,10 @@ html[data-okw-theme] .markstream-vue {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
+}
+
+.okw-theme-menu-dialog .okw-theme-options {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .okw-theme-option {
@@ -616,10 +625,12 @@ html[data-okw-theme] .markstream-vue {
   color: var(--color-accent);
   font-size: 13px;
   opacity: 0;
+  visibility: hidden;
 }
 
 .okw-theme-option.selected .okw-theme-check {
   opacity: 1;
+  visibility: visible;
 }
 
 @media (max-width: 640px) {
