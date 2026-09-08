@@ -1,0 +1,31 @@
+.okw-workspace-pin-mark {
+  display: inline-flex;
+  flex: 0 0 13px;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-left: auto;
+  color: var(--color-text-faint, currentColor);
+  opacity: .72;
+  pointer-events: none;
+}
+
+.okw-workspace-pin-mark svg,
+.okw-workspace-pin-menu-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.okw-workspace-pinned .gh-name,
+.okw-workspace-pinned .ws-dir-name {
+  min-width: 0;
+}
+
+.okw-workspace-pin-menu-item {
+  width: 100%;
+}
+
+.okw-workspace-pin-menu-label {
+  min-width: 0;
+}

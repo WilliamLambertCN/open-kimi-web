@@ -66,6 +66,63 @@
   color: var(--color-success, #238636);
 }
 
+.pf-model-grid.okw-sortable-model {
+  position: relative;
+  padding-left: 32px;
+  transition: opacity var(--duration-fast, 120ms) var(--ease-out, ease),
+    background var(--duration-fast, 120ms) var(--ease-out, ease),
+    box-shadow var(--duration-fast, 120ms) var(--ease-out, ease);
+}
+
+.okw-model-drag-handle {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-faint, currentColor);
+  font: 700 19px/1 var(--font-ui, sans-serif);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.okw-model-drag-handle:hover:not(:disabled) {
+  background: var(--color-hover, color-mix(in srgb, currentColor 10%, transparent));
+  color: var(--color-text, currentColor);
+}
+
+.okw-model-drag-handle:focus-visible {
+  outline: none;
+  box-shadow: var(--p-focus-ring, 0 0 0 2px #60a5fa);
+}
+
+.okw-model-drag-handle:disabled {
+  cursor: default;
+  opacity: .35;
+}
+
+.pf-model-grid.okw-model-dragging {
+  z-index: 1;
+  opacity: .66;
+  background: var(--color-hover, color-mix(in srgb, currentColor 8%, transparent));
+}
+
+.pf-model-grid.okw-model-drop-before {
+  box-shadow: inset 0 2px 0 var(--color-accent, #60a5fa);
+}
+
+.pf-model-grid.okw-model-drop-after {
+  box-shadow: inset 0 -2px 0 var(--color-accent, #60a5fa);
+}
+
 .pf-model-grid > .okw-model-options {
   grid-column: 1 / -1;
   display: grid;

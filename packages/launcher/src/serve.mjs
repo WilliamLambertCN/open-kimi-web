@@ -4,6 +4,7 @@ import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 
 import { createAccessUrls } from './accessUrls.mjs';
+import { serveArchivedSessionDelete } from './archivedSessionDelete.mjs';
 import { proxyRequest } from './httpProxy.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
@@ -13,10 +14,20 @@ import { createWsProxy } from './wsProxy.mjs';
 export const WS_PATH = '/api/v1/ws';
 const DEFAULT_CLOSE_GRACE_MS = 1_000;
 
+async function serveOfficialExtension(req, res, target, enabled) {
+  if (!enabled) return false;
+  if (await serveModelDiscovery(req, res, target)) return true;
+  return serveArchivedSessionDelete(req, res, target);
+}
+
 async function route(req, res, target, publicDir, officialPresentation) {
   const url = req.url ?? '/';
   const pathname = url.split('?')[0];
-  if (officialPresentation && await serveModelDiscovery(req, res, target)) return;
+  if (await serveOfficialExtension(req, res, target, officialPresentation)) return;
+  if (pathname === '/api/v1/debug' || pathname.startsWith('/api/v1/debug/')) {
+    res.writeHead(404).end('Not Found');
+    return;
+  }
   if (pathname === '/api' || pathname.startsWith('/api/')) {
     proxyRequest(req, res, target);
     return;

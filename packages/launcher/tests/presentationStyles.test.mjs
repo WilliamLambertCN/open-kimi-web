@@ -28,4 +28,17 @@ describe('presentation theme layout boundaries', () => {
       /@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.composer-card\s+\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s,
     );
   });
+
+  it('limits model drag gestures to the handle and shows both drop directions', () => {
+    expect(presentationCss).toMatch(
+      /\.okw-model-drag-handle\s*\{[^}]*cursor:\s*grab[^}]*touch-action:\s*none/s,
+    );
+    expect(presentationCss).toMatch(/\.pf-model-grid\.okw-model-dragging\s*\{/);
+    expect(presentationCss).toMatch(
+      /\.pf-model-grid\.okw-model-drop-before\s*\{[^}]*var\(--color-accent/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.pf-model-grid\.okw-model-drop-after\s*\{[^}]*var\(--color-accent/s,
+    );
+  });
 });
