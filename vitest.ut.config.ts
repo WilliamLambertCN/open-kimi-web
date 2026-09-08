@@ -16,10 +16,12 @@ const coverageExclude = [
 
 export const sharedCoverage = {
   provider: 'v8' as const,
+  reportsDirectory: 'coverage/ut',
   include: coverageInclude,
   exclude: coverageExclude,
   thresholds: {
-    branches: 60,
+    lines: 70,
+    branches: 70,
   },
 };
 

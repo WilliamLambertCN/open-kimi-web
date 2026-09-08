@@ -9,6 +9,21 @@ import {
 } from '../../src/integration/supervisor.mjs';
 
 describe('supervisor process termination', () => {
+  it('leaves an already stopped child untouched', async () => {
+    const exited = { exitCode: 0, signalCode: null, kill: vi.fn() };
+    const signaled = { exitCode: null, signalCode: 'SIGTERM', kill: vi.fn() };
+    await killBackend(exited, Promise.resolve({ code: 0 }));
+    await killBackend(signaled, Promise.resolve({ code: 0 }));
+    expect(exited.kill).not.toHaveBeenCalled();
+    expect(signaled.kill).not.toHaveBeenCalled();
+  });
+
+  it('stops after graceful SIGTERM when the child exits', async () => {
+    const child = { exitCode: null, signalCode: null, pid: 41, kill: vi.fn() };
+    await killBackend(child, Promise.resolve({ code: 0 }));
+    expect(child.kill).toHaveBeenCalledExactlyOnceWith('SIGTERM');
+  });
+
   it('escalates from SIGTERM to SIGKILL and warns if the backend remains alive', async () => {
     vi.useFakeTimers();
     const child = { exitCode: null, signalCode: null, pid: 42, kill: vi.fn() };
@@ -32,6 +47,17 @@ describe('supervisor process termination', () => {
     expect(killTree).toHaveBeenCalledWith(44);
     expect(child.kill).not.toHaveBeenCalled();
   });
+
+  it('reports a failed Windows tree termination using the child pid', async () => {
+    const killTree = vi.fn(async () => {
+      throw new Error('access denied');
+    });
+    const warn = vi.fn();
+    const child = { exitCode: null, signalCode: null, pid: 45, kill: vi.fn() };
+    await killBackend(child, Promise.resolve({ code: 1 }), { treeKill: true, killTree, warn });
+    expect(killTree).toHaveBeenCalledWith(45);
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/45.*access denied/));
+  });
 });
 
 describe('supervisor web options', () => {
@@ -49,6 +75,18 @@ describe('supervisor web options', () => {
     expect(frontendOptions({ port: 61234 }, 1234, {})).toMatchObject({
       port: 61234,
       portExplicit: true,
+    });
+  });
+
+  it('derives TLS from each supported host form', () => {
+    expect(frontendOptions({ hostBare: true }, 1234, {})).toMatchObject({
+      host: '0.0.0.0', https: true,
+    });
+    expect(frontendOptions({ host: 'localhost' }, 1234, {})).toMatchObject({
+      host: 'localhost', https: false,
+    });
+    expect(frontendOptions({ host: '192.168.1.20' }, 1234, {})).toMatchObject({
+      host: '192.168.1.20', https: true,
     });
   });
 

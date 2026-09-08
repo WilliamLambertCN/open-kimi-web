@@ -156,7 +156,20 @@ describe('launcher access URLs', () => {
       host: '0.0.0.0',
       port: 0,
       interfaces: {
-        Ethernet: [{ address: '192.168.1.20', family: 'IPv4', internal: false }],
+        Ethernet: [
+          { address: '192.168.1.20', family: 'IPv4', internal: false },
+          { address: '192.168.1.9', family: 4, internal: false },
+          { address: '127.0.0.2', family: 'IPv4', internal: false },
+          { address: '10.0.0.8', family: 'IPv4', internal: true },
+        ],
+        WiFi: [
+          { address: '192.168.1.20', family: 'IPv4', internal: false },
+          { address: 'FE80::1', family: 'IPv6', internal: false },
+          { address: '2001:DB8::20', family: 6, internal: false },
+          { address: '::1', family: 'IPv6', internal: false },
+          { address: 'not-an-address', family: 'unknown', internal: false },
+        ],
+        Empty: undefined,
       },
     });
     try {
@@ -164,7 +177,9 @@ describe('launcher access URLs', () => {
       expect(wildcard.url).toBe(`http://127.0.0.1:${actualPort}`);
       expect(wildcard.accessUrls).toEqual([
         { type: 'local', url: `http://127.0.0.1:${actualPort}` },
+        { type: 'network', url: `http://192.168.1.9:${actualPort}` },
         { type: 'network', url: `http://192.168.1.20:${actualPort}` },
+        { type: 'network', url: `http://[2001:db8::20]:${actualPort}` },
       ]);
     } finally {
       await wildcard.close();
