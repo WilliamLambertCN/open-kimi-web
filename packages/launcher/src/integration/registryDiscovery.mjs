@@ -11,6 +11,7 @@ import { IntegrateError } from './state.mjs';
 export const DEFAULT_DISCOVERY_TIMEOUT_MS = 15_000;
 export const DEFAULT_DISCOVERY_POLL_MS = 200;
 export const DEFAULT_VERIFY_TIMEOUT_MS = 3_000;
+export const DEFAULT_VERIFY_POLL_MS = 200;
 
 export function kimiCodeHome(env = process.env) {
   const base = env.KIMI_CODE_HOME || env.HOME || env.USERPROFILE || homedir();
@@ -102,31 +103,63 @@ export function pidAlive(pid) {
   }
 }
 
+class BackendNetworkError extends IntegrateError {}
+
+async function verifyHttp(fetchImpl, base, token, signal) {
+  let health;
+  try {
+    health = await fetchImpl(`${base}/api/v1/healthz`, { signal });
+  } catch (error) {
+    throw new BackendNetworkError(`backend healthz unreachable: ${error.message}`);
+  }
+  if (!health.ok) throw new IntegrateError(`backend healthz answered HTTP ${health.status}`);
+  let meta;
+  try {
+    meta = await fetchImpl(`${base}/api/v1/meta`, {
+      headers: { authorization: `Bearer ${token}` },
+      signal,
+    });
+  } catch (error) {
+    throw new BackendNetworkError(`backend meta unreachable: ${error.message}`);
+  }
+  if (!meta.ok) throw new IntegrateError(`backend meta answered HTTP ${meta.status}`);
+}
+
+function verificationOptions(options) {
+  return {
+    fetchImpl: options.fetchImpl ?? fetch,
+    alive: options.pidAlive ?? pidAlive,
+    signal: options.signal ?? AbortSignal.timeout(options.timeoutMs ?? DEFAULT_VERIFY_TIMEOUT_MS),
+    pause: options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms))),
+    pollMs: options.pollMs ?? DEFAULT_VERIFY_POLL_MS,
+    base: `http://${options.host ?? '127.0.0.1'}:${options.port}`,
+  };
+}
+
 /**
  * Verify the discovered backend: the pid recorded in the registry entry must
  * still be alive, unauthenticated healthz must answer, and authenticated
  * /api/v1/meta must succeed. The registry entry and the meta endpoint each
  * mint their own server_id per start (two independent id spaces), so ids are
  * never compared — the binding is pid liveness + port + token auth.
- * options: { port, pid, token, fetchImpl, host, pidAlive }
+ * A registry entry can be written shortly before the HTTP listener accepts
+ * connections, so transient network failures are retried within the bounded
+ * verification window. HTTP responses are definitive and still fail closed.
+ * options: { port, pid, token, fetchImpl, host, pidAlive, signal, timeoutMs,
+ *            pollMs, sleep }
  */
 export async function verifyInstance(options) {
-  const fetchImpl = options.fetchImpl ?? fetch;
-  const alive = options.pidAlive ?? pidAlive;
-  const signal = options.signal ?? AbortSignal.timeout(DEFAULT_VERIFY_TIMEOUT_MS);
-  if (!alive(options.pid)) {
-    throw new IntegrateError(`registered backend pid ${options.pid} is not alive`);
+  const { fetchImpl, alive, signal, pause, pollMs, base } = verificationOptions(options);
+  for (;;) {
+    if (!alive(options.pid)) {
+      throw new IntegrateError(`registered backend pid ${options.pid} is not alive`);
+    }
+    try {
+      await verifyHttp(fetchImpl, base, options.token, signal);
+      return;
+    } catch (error) {
+      if (!(error instanceof BackendNetworkError) || signal.aborted) throw error;
+    }
+    await pause(pollMs);
   }
-  const base = `http://${options.host ?? '127.0.0.1'}:${options.port}`;
-  const health = await fetchImpl(`${base}/api/v1/healthz`, { signal }).catch((error) => {
-    throw new IntegrateError(`backend healthz unreachable: ${error.message}`);
-  });
-  if (!health.ok) throw new IntegrateError(`backend healthz answered HTTP ${health.status}`);
-  const meta = await fetchImpl(`${base}/api/v1/meta`, {
-    headers: { authorization: `Bearer ${options.token}` },
-    signal,
-  }).catch((error) => {
-    throw new IntegrateError(`backend meta unreachable: ${error.message}`);
-  });
-  if (!meta.ok) throw new IntegrateError(`backend meta answered HTTP ${meta.status}`);
 }
