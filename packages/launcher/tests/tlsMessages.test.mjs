@@ -19,10 +19,23 @@ describe('tlsStatusLines', () => {
       reason: 'certificate SAN missing: 192.168.1.20',
       fingerprint: 'CC:DD',
     });
+    const stable = tlsStatusLines({
+      source: 'managed', created: false, rotated: false, fingerprint: 'EE:FF',
+    });
+    const custom = tlsStatusLines({
+      source: 'custom', created: false, rotated: false, fingerprint: '11:22',
+    });
 
     expect(created.join('\n')).toMatch(/SHA-256 fingerprint: AA:BB/);
     expect(created.join('\n')).toMatch(/self-signed.*not trusted/i);
     expect(rotated.join('\n')).toMatch(/fingerprint changed.*SAN missing/i);
-    expect([...created, ...rotated].join('\n')).not.toMatch(/PRIVATE KEY|BEGIN CERTIFICATE|secret/);
+    expect(stable).toEqual([
+      '  SHA-256 fingerprint: EE:FF',
+      '  Verify this fingerprint before accepting the browser warning.',
+    ]);
+    expect(custom).toEqual(['  SHA-256 fingerprint: 11:22']);
+    expect([...created, ...rotated, ...stable, ...custom].join('\n')).not.toMatch(
+      /PRIVATE KEY|BEGIN CERTIFICATE|secret/,
+    );
   });
 });

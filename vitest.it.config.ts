@@ -9,6 +9,7 @@ export default defineConfig({
     include: ['tests/it/**/*.it.test.ts', 'tests/it/**/*.it.test.mjs'],
     coverage: {
       ...sharedCoverage,
+      reportsDirectory: 'coverage/it',
       include: ['packages/launcher/src/**/*.mjs'],
       // Pure CLI/bootstrap helpers are owned by focused unit tests.
       // cli.mjs stays excluded repo-wide as entry glue.

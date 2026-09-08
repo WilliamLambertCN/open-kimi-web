@@ -257,7 +257,7 @@ pnpm dev            # 直接启动 launcher，连接本机官方 Kimi 服务
 pnpm dev -- --lan   # pnpm 透传参数；也可写作 pnpm dev --lan
 pnpm lint           # ESLint + 复杂度硬门禁
 pnpm typecheck      # TypeScript 检查
-pnpm test:ut        # 单元测试（分支覆盖率 <60% 即失败）
+pnpm test:ut        # 单元测试（行/分支覆盖率 <70% 即失败）
 pnpm test:it        # 集成测试（同上）
 ```
 

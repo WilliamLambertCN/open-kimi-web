@@ -5,7 +5,8 @@
 //                        ephemeral test port for its fake API server
 //   anything else        records {argv, cwd, marker} to FAKE_RECORD and exits
 //                        with FAKE_EXIT_CODE (default 0)
-// Env knobs: FAKE_KIMI_DIE_MS (exit before serving), FAKE_KIMI_DIE_CODE.
+// Env knobs: FAKE_KIMI_DIE_MS (exit before serving), FAKE_KIMI_DIE_CODE,
+// FAKE_FORCE_DELEGATE (record even web --port shapes instead of serving).
 import { createServer } from 'node:http';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -37,7 +38,7 @@ if (args[0] === '--version') {
 // Only `web … --port N` (the supervisor invocation) starts the server; other
 // web subcommands/flags (rotate-token, --dangerous-bypass-auth, …) are
 // delegated verbatim, so record them and exit like any other command.
-if (args[0] !== 'web' || !args.includes('--port')) {
+if (env.FAKE_FORCE_DELEGATE === '1' || args[0] !== 'web' || !args.includes('--port')) {
   record();
   process.exit(Number(env.FAKE_EXIT_CODE ?? 0));
 }
