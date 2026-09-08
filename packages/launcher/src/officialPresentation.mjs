@@ -4,7 +4,12 @@ const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
+  ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
+  ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
+  ['providerSorting.js', 'text/javascript; charset=utf-8'],
   ['providerEnhancements.js', 'text/javascript; charset=utf-8'],
+  ['workspacePins.css', 'text/css; charset=utf-8'],
+  ['workspacePins.js', 'text/javascript; charset=utf-8'],
   ['themes.css', 'text/css; charset=utf-8'],
   ['themes.js', 'text/javascript; charset=utf-8'],
   ['backgrounds/aurora.png', 'image/png'],
@@ -14,8 +19,8 @@ const FILES = new Map([
   ['backgrounds/nocturne.png', 'image/png'],
 ]);
 
-const SCRIPTS = ['themes.js', 'providerEnhancements.js', 'presentation.js'];
-const STYLES = ['presentation.css', 'themes.css'];
+const SCRIPTS = ['themes.js', 'providerSorting.js', 'providerEnhancements.js', 'workspacePins.js', 'archivedSessionDelete.js', 'presentation.js'];
+const STYLES = ['presentation.css', 'themes.css', 'workspacePins.css', 'archivedSessionDelete.css'];
 
 // Serve the presentation layer from the installed launcher, so existing
 // official caches receive updates without rewriting upstream assets.

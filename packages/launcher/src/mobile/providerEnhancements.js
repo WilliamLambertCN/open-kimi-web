@@ -45,6 +45,7 @@
     added: (id) => `已添加 ${id}，请补充上下文长度`,
     duplicate: '该模型已经在列表中',
     failed: '模型拉取失败',
+    drag: '拖动调整模型顺序',
   } : {
     capabilities: 'Model capabilities',
     efforts: 'Thinking efforts',
@@ -61,6 +62,7 @@
     added: (id) => `Added ${id}; enter its context size`,
     duplicate: 'That model is already in the list',
     failed: 'Could not fetch models',
+    drag: 'Drag to reorder model',
   };
 
   const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
@@ -131,6 +133,7 @@
 
   const modelRows = (form) => Array.from(form.querySelectorAll('.pf-models > .pf-model-grid:not(.pf-model-head)'));
   const textInputs = (row) => Array.from(row.querySelectorAll('input:not([type="checkbox"])'));
+  const sorting = window.OpenKimiProviderSorting;
 
   const savedList = (saved, field, fallback) => Array.isArray(saved?.[field]) ? saved[field] : fallback;
 
@@ -180,10 +183,11 @@
     return { fieldset, list };
   };
 
-  const enhanceModelRow = (row, provider) => {
-    if (row.querySelector('.okw-model-options')) return;
+  const enhanceModelRow = (row, form, provider) => {
     const inputs = textInputs(row);
     if (inputs.length < 2) return;
+    sorting.enhanceRow(form, row, inputs[0].disabled, copy().drag);
+    if (row.querySelector('.okw-model-options')) return;
     const model = inputs[0].value.trim();
     if (model && !configLoaded) return;
     const disabled = inputs[0].disabled;
@@ -274,7 +278,7 @@
       const input = row && textInputs(row)[0];
       if (!input) return false;
       dispatchInput(input, id);
-      enhanceModelRow(row, inputValue(form, ['名称', 'Name']));
+      enhanceModelRow(row, form, inputValue(form, ['名称', 'Name']));
       status.dataset.state = 'success';
       status.textContent = labels.added(id);
       return true;
@@ -404,8 +408,9 @@
 
   function enhance() {
     document.querySelectorAll('.pf-form').forEach((form) => {
+      sorting.reconcile(form);
       const provider = inputValue(form, ['名称', 'Name']);
-      modelRows(form).forEach((row) => enhanceModelRow(row, provider));
+      modelRows(form).forEach((row) => enhanceModelRow(row, form, provider));
       enhanceDiscovery(form);
       enhancedForms.add(form);
     });
@@ -436,6 +441,12 @@
     adaptive_thinking: state.adaptiveThinking,
   });
 
+  const orderedModels = (form, models, provider) => {
+    return sorting.mapModels(form, models).map(({ model, row }) => (
+      row ? serializeModelState(model, stateFor(row, provider)) : model
+    ));
+  };
+
   const mergeProviderFields = async (input, init, url, method) => {
     if (!isProviderSave(url, method)) return [input, init];
     const form = Array.from(document.querySelectorAll('.pf-form')).find((candidate) => enhancedForms.has(candidate));
@@ -444,13 +455,7 @@
     const originalBody = init?.body ?? (input instanceof Request ? await input.clone().text() : null);
     const body = parseBody(originalBody);
     if (!Array.isArray(body?.models)) return [input, init];
-    const rows = modelRows(form);
-    body.models = body.models.map((model, index) => {
-      const row = rows[index];
-      if (!row) return model;
-      const state = stateFor(row, inputValue(form, ['名称', 'Name']));
-      return serializeModelState(model, state);
-    });
+    body.models = orderedModels(form, body.models, inputValue(form, ['名称', 'Name']));
     const nextInit = { ...init, body: JSON.stringify(body) };
     if (input instanceof Request) return [new Request(input, nextInit), undefined];
     return [input, nextInit];

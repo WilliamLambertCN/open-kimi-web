@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { frontendOptions, killBackend } from '../../src/integration/supervisor.mjs';
+import { frontendOptions, killBackend, managedBackendWebArgs } from '../../src/integration/supervisor.mjs';
 
 describe('supervisor process termination', () => {
   it('escalates from SIGTERM to SIGKILL and warns if the backend remains alive', async () => {
@@ -29,6 +29,10 @@ describe('supervisor process termination', () => {
 });
 
 describe('supervisor web options', () => {
+  it('enables the private official service dispatcher for managed deletion', () => {
+    expect(managedBackendWebArgs).toContain('--debug-endpoints');
+  });
+
   it('passes directory/version environment options and lets explicit values win', () => {
     const env = {
       OPEN_KIMI_WEB_DIR: 'C:\\env-web',

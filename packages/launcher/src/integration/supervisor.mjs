@@ -24,6 +24,10 @@ const FORCE_KILL_WAIT_MS = 500;
 const TOKEN_WAIT_MS = 5_000;
 const TOKEN_POLL_MS = 250;
 
+export const managedBackendWebArgs = [
+  'web', '--no-open', '--host', '127.0.0.1', '--port', '0', '--debug-endpoints',
+];
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function readBackendToken(env, readFile) {
@@ -173,7 +177,7 @@ export async function superviseWeb(options) {
   // spawned directly — route through cmd.exe exactly like the wrappers do.
   const target = resolveSpawnTarget(
     options.realKimi,
-    ['web', '--no-open', '--host', '127.0.0.1', '--port', '0'],
+    managedBackendWebArgs,
     deps.platform,
   );
   const child = spawnImpl(target.cmd, target.args, {
