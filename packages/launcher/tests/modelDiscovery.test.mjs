@@ -53,6 +53,28 @@ describe('model discovery payloads', () => {
     });
     expect(init.headers.authorization).toBeUndefined();
   });
+
+  it('allows anonymous model endpoints without sending a provider credential', async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ data: [{ id: 'anonymous-model' }] }));
+    await expect(discoverModels({
+      baseUrl: 'http://127.0.0.1:8080/v1',
+      apiKey: '',
+      fetchImpl,
+    })).resolves.toEqual(['anonymous-model']);
+
+    const [, init] = fetchImpl.mock.calls[0];
+    expect(init.headers).toEqual({ accept: 'application/json' });
+  });
+
+  it('rejects a declared model response larger than the configured limit', async () => {
+    const fetchImpl = vi.fn(async () => Response.json([], {
+      headers: { 'content-length': String(1024 * 1024 + 1) },
+    }));
+    await expect(discoverModels({
+      baseUrl: 'https://example.invalid/v1',
+      fetchImpl,
+    })).rejects.toThrow('响应过大');
+  });
 });
 
 describe('model discovery route', () => {
