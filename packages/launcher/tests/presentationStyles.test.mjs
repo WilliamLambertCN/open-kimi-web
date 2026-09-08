@@ -17,6 +17,12 @@ describe('presentation theme layout boundaries', () => {
     );
   });
 
+  it('releases the themed sidebar width when the desktop shell collapses it', () => {
+    expect(themeCss).toMatch(
+      /@media\s*\(min-width:\s*641px\)[\s\S]*\.sidebar-collapsed\s*>\s*\.side\.collapsed\s*\{[^}]*width:\s*0\s*!important/s,
+    );
+  });
+
   it('keeps provider tabs scrollable and the steer control responsive', () => {
     expect(presentationCss).toMatch(
       /\.mp\s*>\s*\.chip-strip\.okw-provider-strip\s*\{[^}]*overflow-x:\s*auto/s,

@@ -122,6 +122,7 @@ async function expectPresentationAssets(baseUrl) {
     'archivedSessionDelete.css',
     'archivedSessionDelete.js',
     'providerSorting.js',
+    'providerEnhancements.js',
     'workspacePins.css',
     'workspacePins.js',
     'themes.css',
@@ -180,6 +181,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/archivedSessionDelete.css');
       expect(indexText).toContain('/__open-kimi-mobile/archivedSessionDelete.js');
       expect(indexText).toContain('/__open-kimi-mobile/providerSorting.js');
+      expect(indexText).toContain('/__open-kimi-mobile/providerEnhancements.js');
       expect(indexText).toContain('/__open-kimi-mobile/themes.css');
       expect(indexText).toContain('/__open-kimi-mobile/themes.js');
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.css');
@@ -188,6 +190,7 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText.indexOf('providerEnhancements.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(Number(index.headers.get('content-length'))).toBe(Buffer.byteLength(indexText));
 

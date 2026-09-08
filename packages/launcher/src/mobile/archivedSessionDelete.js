@@ -1,11 +1,14 @@
 {
   const DELETE_PATH = '/__open-kimi-mobile/sessions:delete';
   const archivedSessions = new Map();
+  const archivedRequestIds = new Map();
+  const archivedRequestGenerations = new Map();
   const rowSessions = new WeakMap();
   const pendingIds = new Set();
   const deletedIds = new Set();
   let pageAuthorization = '';
   let openMenu = null;
+  let pendingArchivedRequests = 0;
 
   const isChinese = () => {
     const language = document.documentElement.lang || navigator.language || '';
@@ -52,13 +55,15 @@
 
   // Wire normalization deliberately rejects every malformed field independently.
   // eslint-disable-next-line complexity
-  const rememberArchived = (body) => {
+  const rememberArchived = (body, requestKey) => {
     const items = body?.data?.items ?? body?.items;
     if (!Array.isArray(items)) return;
+    const nextIds = new Set();
     for (const item of items) {
       const v2 = item?.meta && item?.workspace;
       const archived = v2 ? item.meta.archived : item?.archived;
       if (archived !== true || typeof item.id !== 'string') continue;
+      nextIds.add(item.id);
       const title = v2 ? item.meta.title ?? item.meta.last_prompt : item.title;
       archivedSessions.set(item.id, {
         id: item.id,
@@ -71,6 +76,7 @@
           : item.archived_at ?? item.updated_at),
       });
     }
+    archivedRequestIds.set(requestKey, nextIds);
   };
 
   const isArchivedListRequest = (url) => (
@@ -79,7 +85,7 @@
     url.pathname === '/api/v2/sessions' && url.searchParams.get('meta.archived') === 'true'
   );
 
-  const observeResponse = async (input, init, response) => {
+  const observeResponse = async (input, init, response, requestGeneration) => {
     try {
       const url = requestUrl(input);
       rememberAuthorization(input, init, url);
@@ -89,7 +95,10 @@
         requestMethod(input, init) !== 'GET' ||
         !response.ok
       ) return;
-      rememberArchived(await response.clone().json());
+      const requestKey = `${url.pathname}${url.search}`;
+      const body = await response.clone().json();
+      if (archivedRequestGenerations.get(requestKey) !== requestGeneration) return;
+      rememberArchived(body, requestKey);
       queueMicrotask(enhance);
     } catch {
       // The official request and response stay untouched when enhancement data is unavailable.
@@ -98,8 +107,42 @@
 
   const nativeFetch = window.fetch;
   window.fetch = async function archivedSessionFetch(input, init) {
-    const response = await nativeFetch.apply(this, arguments);
-    void observeResponse(input, init, response);
+    let requestKey = null;
+    let requestGeneration = null;
+    try {
+      const url = requestUrl(input);
+      if (
+        url.origin === location.origin &&
+        isArchivedListRequest(url) &&
+        requestMethod(input, init) === 'GET'
+      ) requestKey = `${url.pathname}${url.search}`;
+    } catch {
+      // The original fetch handles malformed URLs.
+    }
+    if (requestKey !== null) {
+      requestGeneration = (archivedRequestGenerations.get(requestKey) ?? 0) + 1;
+      archivedRequestGenerations.set(requestKey, requestGeneration);
+      archivedRequestIds.delete(requestKey);
+      pendingArchivedRequests += 1;
+      clearVisibleRowSessions();
+    }
+    let response;
+    try {
+      response = await nativeFetch.apply(this, arguments);
+    } catch (error) {
+      if (requestKey !== null) {
+        pendingArchivedRequests -= 1;
+        queueMicrotask(enhance);
+      }
+      throw error;
+    }
+    const observation = observeResponse(input, init, response, requestGeneration);
+    if (requestKey !== null) {
+      void observation.finally(() => {
+        pendingArchivedRequests -= 1;
+        queueMicrotask(enhance);
+      });
+    } else void observation;
     return response;
   };
 
@@ -122,23 +165,73 @@
     return grouped;
   };
 
-  const matchRows = () => {
-    const grouped = availableByKey();
+  const clearRowSession = (row) => {
+    rowSessions.delete(row);
+    const actions = row.querySelector('.okw-archive-actions');
+    if (actions && openMenu && actions.contains(openMenu.menu)) closeMenu();
+    actions?.remove();
+  };
+
+  const clearVisibleRowSessions = () => {
+    document.querySelectorAll('.archive-list .archive-row').forEach(clearRowSession);
+  };
+
+  const rememberedKey = (row) => {
+    const session = rowSessions.get(row);
+    return session && rowKey(session.cwd, session.title, session.time);
+  };
+
+  const collectRowsByKey = () => {
+    const rowsByKey = new Map();
     document.querySelectorAll('.archive-list .archive-card').forEach((card) => {
       const cwd = card.querySelector('.archive-workspace .path')?.textContent?.trim() ?? '';
       card.querySelectorAll('.archive-row').forEach((row) => {
+        const key = rowKey(cwd, row.querySelector('.archive-name')?.textContent?.trim() ?? '', rowTime(row));
         const remembered = rowSessions.get(row);
-        if (remembered && deletedIds.has(remembered.id)) {
+        if (remembered && deletedIds.has(remembered.id) && rememberedKey(row) === key) {
           removeRow(row);
           return;
         }
-        if (remembered && !deletedIds.has(remembered.id)) return;
-        const title = row.querySelector('.archive-name')?.textContent?.trim() ?? '';
-        const candidates = grouped.get(rowKey(cwd, title, rowTime(row))) ?? [];
-        const session = candidates.shift();
-        if (session) rowSessions.set(row, session);
+        const rows = rowsByKey.get(key) ?? [];
+        rows.push(row);
+        rowsByKey.set(key, rows);
       });
     });
+    return rowsByKey;
+  };
+
+  const activeArchivedIds = () => new Set([...archivedRequestIds.values()].flatMap((ids) => [...ids]));
+
+  const pruneStaleSessions = (rowsByKey, activeIds) => {
+    for (const [id, session] of archivedSessions) {
+      const visible = rowsByKey.has(rowKey(session.cwd, session.title, session.time));
+      if (!activeIds.has(id) && !visible) archivedSessions.delete(id);
+    }
+  };
+
+  const uniqueActiveSession = (rows, sessions, activeIds) => {
+    if (rows.length !== 1 || sessions.length !== 1) return null;
+    return activeIds.has(sessions[0].id) ? sessions[0] : null;
+  };
+
+  const bindUniqueRows = (key, rows, sessions, activeIds) => {
+    const session = uniqueActiveSession(rows, sessions, activeIds);
+    for (const row of rows) {
+      const remembered = rowSessions.get(row);
+      if (!session || remembered?.id !== session.id || rememberedKey(row) !== key) clearRowSession(row);
+      if (session) rowSessions.set(row, session);
+    }
+  };
+
+  const matchRows = () => {
+    const rowsByKey = collectRowsByKey();
+    const activeIds = activeArchivedIds();
+    pruneStaleSessions(rowsByKey, activeIds);
+    const sessionsByKey = availableByKey();
+    for (const [key, rows] of rowsByKey) {
+      const sessions = sessionsByKey.get(key) ?? [];
+      bindUniqueRows(key, rows, sessions, activeIds);
+    }
   };
 
   const closeMenu = ({ restoreFocus = false } = {}) => {
@@ -262,6 +355,10 @@
   };
 
   function enhance() {
+    if (pendingArchivedRequests > 0) {
+      clearVisibleRowSessions();
+      return;
+    }
     matchRows();
     document.querySelectorAll('.archive-list .archive-row').forEach(enhanceRow);
   }
