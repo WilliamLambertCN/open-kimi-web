@@ -1,8 +1,8 @@
 // Fake `kimi` binary for integration tests. Stands in for the official
 // native binary without touching a real installation. Behaviour:
 //   --version            prints FAKE_KIMI_VERSION (default "kimi 9.9.9-fake")
-//   web --port 0 …       writes a registry instance file, serves
-//                        /api/v1/{healthz,meta,shutdown} on 127.0.0.1
+//   web --port N …       accepts the supervisor shape, then uses an isolated
+//                        ephemeral test port for its fake API server
 //   anything else        records {argv, cwd, marker} to FAKE_RECORD and exits
 //                        with FAKE_EXIT_CODE (default 0)
 // Env knobs: FAKE_KIMI_DIE_MS (exit before serving), FAKE_KIMI_DIE_CODE.

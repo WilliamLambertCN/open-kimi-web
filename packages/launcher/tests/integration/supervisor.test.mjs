@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { frontendOptions, killBackend, managedBackendWebArgs } from '../../src/integration/supervisor.mjs';
+import {
+  frontendOptions,
+  killBackend,
+  managedBackendWebArgs,
+  MANAGED_BACKEND_DEFAULT_PORT,
+  MANAGED_FRONTEND_DEFAULT_PORT,
+} from '../../src/integration/supervisor.mjs';
 
 describe('supervisor process termination', () => {
   it('escalates from SIGTERM to SIGKILL and warns if the backend remains alive', async () => {
@@ -31,6 +37,19 @@ describe('supervisor process termination', () => {
 describe('supervisor web options', () => {
   it('enables the private official service dispatcher for managed deletion', () => {
     expect(managedBackendWebArgs).toContain('--debug-endpoints');
+    expect(managedBackendWebArgs).toContain(String(MANAGED_BACKEND_DEFAULT_PORT));
+  });
+
+  it('uses the fixed companion port for the managed public endpoint', () => {
+    expect(frontendOptions({}, 1234, {})).toMatchObject({
+      target: 'http://127.0.0.1:1234',
+      port: MANAGED_FRONTEND_DEFAULT_PORT,
+      portExplicit: true,
+    });
+    expect(frontendOptions({ port: 61234 }, 1234, {})).toMatchObject({
+      port: 61234,
+      portExplicit: true,
+    });
   });
 
   it('passes directory/version environment options and lets explicit values win', () => {

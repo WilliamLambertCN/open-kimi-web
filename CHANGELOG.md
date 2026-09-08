@@ -3,6 +3,16 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## develop（未发布）
+
+### 变更
+
+- 接管模式保留官方 Kimi 后端固定回环端口 `58627`，Open Kimi Web 固定使用配套端口 `48627`。
+
+### 修复
+
+- 启动 IPv4 局域网入口前先检查将要打印的 `127.0.0.1` 地址，避免 Windows 在通配监听与回环监听并存时打印出属于其他程序的 HTTPS 链接。
+
 ## [open-kimi-web v0.41.0-r3] - 2026-09-08
 
 继续兼容官方 Kimi Code `0.41.0`。
