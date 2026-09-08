@@ -14,12 +14,14 @@ export default defineConfig({
       // cli.mjs stays excluded repo-wide as entry glue.
       // The integrate install/status machinery is likewise UT-owned (temp-HOME
       // mocks); IT covers the supervisor/delegate runtime paths instead.
-      // Model discovery is exercised by focused request/response unit tests.
+      // Model discovery and archived-session deletion are exercised by focused
+      // request/response unit tests.
       exclude: [
         ...sharedCoverage.exclude,
         'packages/launcher/src/args.mjs',
         'packages/launcher/src/launchLinks.mjs',
         'packages/launcher/src/launchToken.mjs',
+        'packages/launcher/src/archivedSessionDelete.mjs',
         'packages/launcher/src/modelDiscovery.mjs',
         'packages/launcher/src/integration/browserOpen.mjs',
         'packages/launcher/src/integration/integrate.mjs',
