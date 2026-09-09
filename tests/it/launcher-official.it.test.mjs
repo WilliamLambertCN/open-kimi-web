@@ -118,6 +118,7 @@ describe('concurrent official frontends', () => {
 async function expectPresentationAssets(baseUrl) {
   for (const name of [
     'presentation.css',
+    'foldingDefaults.js',
     'presentation.js',
     'archivedSessionDelete.css',
     'archivedSessionDelete.js',
@@ -146,6 +147,10 @@ async function expectPresentationAssets(baseUrl) {
     if (name === 'presentation.js') {
       expect(body).toContain("document.querySelector('.side .ch-brand .ch-name')");
       expect(body).toContain("label.textContent = 'OPEN-KIMI-WEB'");
+    }
+    if (name === 'foldingDefaults.js') {
+      expect(body).toContain("const activityRunFoldingKey = 'kimi-web.activity-run-folding'");
+      expect(body).toContain("localStorage.setItem(activityRunFoldingKey, '0')");
     }
     if (name === 'themes.css') {
       for (const theme of ['aurora', 'twilight', 'ember', 'mineral', 'nocturne']) {
@@ -177,6 +182,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('<title>open Kimi-Code web</title>');
       expect(indexText).not.toContain('Kimi Code Web');
       expect(indexText).toContain('/__open-kimi-mobile/presentation.css');
+      expect(indexText).toContain('/__open-kimi-mobile/foldingDefaults.js');
       expect(indexText).toContain('/__open-kimi-mobile/presentation.js');
       expect(indexText).toContain('/__open-kimi-mobile/archivedSessionDelete.css');
       expect(indexText).toContain('/__open-kimi-mobile/archivedSessionDelete.js');
@@ -187,6 +193,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.css');
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.js');
       expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
+      expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
