@@ -155,8 +155,10 @@
       const item = menu.querySelector(':scope > [data-okw-workspace-pin-action]') ?? createMenuItem(menu);
       if (!item) return;
       const pinned = pinnedIds.includes(activeWorkspace.id);
-      item.querySelector('.okw-workspace-pin-menu-label').textContent = pinned ? copy().unpin : copy().pin;
-      item.setAttribute('aria-label', pinned ? copy().unpin : copy().pin);
+      const text = pinned ? copy().unpin : copy().pin;
+      const label = item.querySelector('.okw-workspace-pin-menu-label');
+      if (label.textContent !== text) label.textContent = text;
+      if (item.getAttribute('aria-label') !== text) item.setAttribute('aria-label', text);
     });
   };
 

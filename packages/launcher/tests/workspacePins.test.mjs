@@ -7,6 +7,7 @@ const source = readFileSync(resolve('packages/launcher/src/mobile/workspacePins.
 const styles = readFileSync(resolve('packages/launcher/src/mobile/workspacePins.css'), 'utf8');
 const STORAGE_KEY = 'open-kimi-web.pinned-workspaces';
 const frames = [];
+const observers = [];
 
 const group = (id, name = id) => `
   <div class="ws-drop-target" data-ws-id="${id}">
@@ -35,7 +36,7 @@ const menuHtml = `
     <button class="ui-menu-item ui-menu-item--md danger" type="button">移除工作区</button>
   </div>`;
 
-function install({ body, storedPins, workspaces = [] } = {}) {
+function install({ body, storedPins, workspaces = [], useNativeObserver = false } = {}) {
   const frame = document.createElement('iframe');
   document.body.append(frame);
   frames.push(frame);
@@ -48,10 +49,33 @@ function install({ body, storedPins, workspaces = [] } = {}) {
   view.localStorage.clear();
   if (storedPins !== undefined) view.localStorage.setItem(STORAGE_KEY, JSON.stringify(storedPins));
   const mutationCallbacks = [];
-  view.MutationObserver = class MutationObserver {
-    constructor(callback) { mutationCallbacks.push(callback); }
-    observe() {}
-  };
+  const observerState = { callbacks: 0, exceededLimit: false };
+  if (useNativeObserver) {
+    const NativeMutationObserver = view.MutationObserver;
+    view.MutationObserver = function MutationObserver(callback) {
+      let observer;
+      observer = new NativeMutationObserver((records) => {
+        observerState.callbacks += 1;
+        if (observerState.callbacks > 20) {
+          observerState.exceededLimit = true;
+          observer.disconnect();
+          return;
+        }
+        callback(records, observer);
+      });
+      observers.push(observer);
+      return observer;
+    };
+  } else {
+    view.MutationObserver = class MutationObserver {
+      constructor(callback) {
+        mutationCallbacks.push(callback);
+        observers.push(this);
+      }
+      disconnect() {}
+      observe() {}
+    };
+  }
   view.fetch = vi.fn(async () => ({
     ok: true,
     clone: () => ({ json: async () => ({ data: { items: workspaces } }) }),
@@ -59,6 +83,7 @@ function install({ body, storedPins, workspaces = [] } = {}) {
   view.eval(`(() => { ${source}\n})()`);
   return {
     mutate: () => mutationCallbacks.forEach((callback) => callback()),
+    observerState,
     view,
   };
 }
@@ -76,6 +101,7 @@ function openMenu(view, mutate, workspaceSelector) {
 }
 
 afterEach(() => {
+  observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove());
 });
 
@@ -164,5 +190,25 @@ describe('workspace pins', () => {
     expect(stored).not.toContain(firstRoot);
     expect(stored).not.toContain(secondRoot);
     expect(workspaceOrder(view, '.ws-dir')).toEqual(['workspace-two', 'workspace-one']);
+  });
+});
+
+describe('workspace pin observer', () => {
+  it('settles after enhancing an open menu with a real MutationObserver', async () => {
+    const { observerState, view } = install({ useNativeObserver: true });
+    view.document.querySelector('[data-ws-id="workspace-a"] .gh-more').click();
+    view.document.body.insertAdjacentHTML('beforeend', menuHtml);
+
+    await vi.waitFor(() => {
+      expect(view.document.querySelector('[data-okw-workspace-pin-action]')).not.toBeNull();
+    });
+    await new Promise((resolveWait) => setTimeout(resolveWait, 0));
+    const settledCount = observerState.callbacks;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 0));
+
+    expect(settledCount).toBeGreaterThan(0);
+    expect(observerState.exceededLimit).toBe(false);
+    expect(observerState.callbacks).toBeLessThanOrEqual(20);
+    expect(observerState.callbacks).toBe(settledCount);
   });
 });

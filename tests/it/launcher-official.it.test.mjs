@@ -119,6 +119,7 @@ async function expectPresentationAssets(baseUrl) {
   for (const name of [
     'presentation.css',
     'foldingDefaults.js',
+    'notificationPermission.js',
     'presentation.js',
     'archivedSessionDelete.css',
     'archivedSessionDelete.js',
@@ -152,6 +153,10 @@ async function expectPresentationAssets(baseUrl) {
       expect(body).toContain("const activityRunFoldingKey = 'kimi-web.activity-run-folding'");
       expect(body).toContain("localStorage.setItem(activityRunFoldingKey, '0')");
     }
+    if (name === 'notificationPermission.js') {
+      expect(body).toContain('nativeRequestPermission.call(NotificationApi)');
+      expect(body).toContain('currentInput.eventPhase !== 0');
+    }
     if (name === 'themes.css') {
       for (const theme of ['aurora', 'twilight', 'ember', 'mineral', 'nocturne']) {
         expect(body).toContain(`html[data-okw-theme='${theme}']`);
@@ -183,6 +188,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).not.toContain('Kimi Code Web');
       expect(indexText).toContain('/__open-kimi-mobile/presentation.css');
       expect(indexText).toContain('/__open-kimi-mobile/foldingDefaults.js');
+      expect(indexText).toContain('/__open-kimi-mobile/notificationPermission.js');
       expect(indexText).toContain('/__open-kimi-mobile/presentation.js');
       expect(indexText).toContain('/__open-kimi-mobile/archivedSessionDelete.css');
       expect(indexText).toContain('/__open-kimi-mobile/archivedSessionDelete.js');
@@ -194,6 +200,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.js');
       expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText.indexOf('notificationPermission.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
@@ -247,5 +254,27 @@ describe('official mode end-to-end', () => {
     )).rejects.toThrow(
       /official web UI 1\.0\.0 is unavailable:[\s\S]*could not resolve host[\s\S]*curl and tar/,
     );
+  });
+});
+
+describe('custom web directory', () => {
+  it('does not inject presentation assets', async () => {
+    const webDir = join(root, 'custom-web');
+    mkdirSync(webDir, { recursive: true });
+    writeFileSync(join(webDir, 'index.html'), '<html><head></head><body>custom web</body></html>');
+    const { launcher } = await startFrontend(frontendOpts({ webDir }));
+    try {
+      const index = await fetch(`${launcher.url}/`);
+      const indexText = await index.text();
+
+      expect(indexText).toContain('custom web');
+      expect(indexText).not.toContain('/__open-kimi-mobile/');
+      const presentationAsset = await fetch(
+        `${launcher.url}/__open-kimi-mobile/notificationPermission.js`,
+      );
+      expect(await presentationAsset.text()).toContain('custom web');
+    } finally {
+      await launcher.close();
+    }
   });
 });
