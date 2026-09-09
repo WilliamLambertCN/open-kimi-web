@@ -195,7 +195,11 @@ async function install({
       headers: { 'content-type': 'application/json' },
     });
   });
-  const window = { fetch: nativeFetch, confirm: vi.fn(() => confirm) };
+  const window = {
+    fetch: nativeFetch,
+    confirm: vi.fn(() => confirm),
+    location: { reload: vi.fn() },
+  };
   runInNewContext(source, {
     Date,
     Error,
@@ -398,6 +402,7 @@ describe('archived session delete interactions', () => {
     expect(cancelled.window.confirm).toHaveBeenCalledWith(expect.stringContaining('Archived title'));
     expect(cancelled.nativeFetch).toHaveBeenCalledTimes(1);
     expect(cancelled.card.row.removed).toBe(false);
+    expect(cancelled.window.location.reload).not.toHaveBeenCalled();
 
     const confirmed = await install();
     confirmed.remove.dispatch('click');
@@ -405,6 +410,7 @@ describe('archived session delete interactions', () => {
     expect(confirmed.nativeFetch).toHaveBeenCalledTimes(2);
     expect(confirmed.card.row.removed).toBe(true);
     expect(confirmed.sidebarRows[0].removed).toBe(true);
+    expect(confirmed.window.location.reload).toHaveBeenCalledTimes(1);
   });
 
   it('prevents duplicate requests across both direct buttons while deletion is pending', async () => {
@@ -416,8 +422,8 @@ describe('archived session delete interactions', () => {
     ui.sidebarRemove.dispatch('click');
     expect(ui.nativeFetch).toHaveBeenCalledTimes(2);
     resolveDelete(new Response(JSON.stringify({ deleted: true }), { status: 200 }));
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleObservation();
+    expect(ui.window.location.reload).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the row and shows a readable error when deletion fails', async () => {
@@ -429,6 +435,7 @@ describe('archived session delete interactions', () => {
     expect(ui.card.row.removed).toBe(false);
     expect(ui.card.row.querySelector('.okw-archive-delete-error')?.textContent).toBe('Backend unavailable');
     expect(ui.remove.disabled).toBe(false);
+    expect(ui.window.location.reload).not.toHaveBeenCalled();
   });
 
   it('keeps the completed sidebar row and restores its direct button after failure', async () => {
@@ -441,5 +448,6 @@ describe('archived session delete interactions', () => {
     expect(ui.sidebarRows[0].querySelector('.okw-archive-delete-error')?.textContent).toBe('Backend unavailable');
     expect(ui.sidebarRemove.disabled).toBe(false);
     expect(ui.sidebarRemove.textContent).toBe('Delete');
+    expect(ui.window.location.reload).not.toHaveBeenCalled();
   });
 });
