@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
-  ['preferenceDefaults.js', 'text/javascript; charset=utf-8'],
+  ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
@@ -21,7 +21,7 @@ const FILES = new Map([
 ]);
 
 const SCRIPTS = [
-  'preferenceDefaults.js',
+  'foldingDefaults.js',
   'themes.js',
   'providerSorting.js',
   'providerEnhancements.js',
