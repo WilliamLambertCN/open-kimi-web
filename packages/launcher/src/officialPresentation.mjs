@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
+  ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
@@ -19,7 +20,15 @@ const FILES = new Map([
   ['backgrounds/nocturne.png', 'image/png'],
 ]);
 
-const SCRIPTS = ['themes.js', 'providerSorting.js', 'providerEnhancements.js', 'workspacePins.js', 'archivedSessionDelete.js', 'presentation.js'];
+const SCRIPTS = [
+  'foldingDefaults.js',
+  'themes.js',
+  'providerSorting.js',
+  'providerEnhancements.js',
+  'workspacePins.js',
+  'archivedSessionDelete.js',
+  'presentation.js',
+];
 const STYLES = ['presentation.css', 'themes.css', 'workspacePins.css', 'archivedSessionDelete.css'];
 
 // Serve the presentation layer from the installed launcher, so existing
