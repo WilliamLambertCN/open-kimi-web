@@ -341,6 +341,7 @@
       deletedIds.add(session.id);
       archivedSessions.delete(session.id);
       removeSessionRows(session.id);
+      window.location.reload();
     } catch (error) {
       showError(row, error instanceof Error && error.message ? error.message : labels.failed);
       removeButton.disabled = false;
