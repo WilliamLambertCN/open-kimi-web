@@ -4,6 +4,7 @@ const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
+  ['notificationPermission.js', 'text/javascript; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
@@ -22,6 +23,7 @@ const FILES = new Map([
 
 const SCRIPTS = [
   'foldingDefaults.js',
+  'notificationPermission.js',
   'themes.js',
   'providerSorting.js',
   'providerEnhancements.js',
