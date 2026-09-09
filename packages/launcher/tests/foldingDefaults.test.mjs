@@ -5,47 +5,40 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { addMobilePresentation } from '../src/officialPresentation.mjs';
 
-const source = readFileSync(resolve('packages/launcher/src/mobile/preferenceDefaults.js'), 'utf8');
-const FOLDING_KEY = 'kimi-web.activity-run-folding';
-const NOTIFY_KEY = 'kimi-web.notify-enabled';
+const source = readFileSync(resolve('packages/launcher/src/mobile/foldingDefaults.js'), 'utf8');
+const STORAGE_KEY = 'kimi-web.activity-run-folding';
 const frames = [];
 
-function install(storedValues = {}) {
+function install(storedValue) {
   const frame = document.createElement('iframe');
   document.body.append(frame);
   frames.push(frame);
   const view = frame.contentWindow;
   view.localStorage.clear();
-  for (const [key, value] of Object.entries(storedValues)) view.localStorage.setItem(key, value);
+  if (storedValue !== undefined) view.localStorage.setItem(STORAGE_KEY, storedValue);
   view.eval(`(() => { ${source}\n})()`);
-  return view.localStorage;
+  return view.localStorage.getItem(STORAGE_KEY);
 }
 
 afterEach(() => {
   frames.splice(0).forEach((frame) => frame.remove());
 });
 
-describe('official preference defaults', () => {
-  it('loads defaults before the official module reads its preferences', () => {
+describe('official tool-call folding default', () => {
+  it('loads the default before the official module reads its preference', () => {
     const html = '<head><script type="module" src="/assets/index.js"></script></head>';
     const injected = addMobilePresentation(html);
 
-    expect(injected.indexOf('/__open-kimi-mobile/preferenceDefaults.js'))
+    expect(injected.indexOf('/__open-kimi-mobile/foldingDefaults.js'))
       .toBeLessThan(injected.indexOf('<script type="module"'));
   });
 
-  it('keeps tool calls expanded and notifications opt-in for a new origin', () => {
-    const storage = install();
-
-    expect(storage.getItem(FOLDING_KEY)).toBe('0');
-    expect(storage.getItem(NOTIFY_KEY)).toBe('0');
+  it('keeps completed tool calls expanded when no preference exists', () => {
+    expect(install()).toBe('0');
   });
 
-  it.each(['0', '1'])('preserves explicit %s preferences', (storedValue) => {
-    const storage = install({ [FOLDING_KEY]: storedValue, [NOTIFY_KEY]: storedValue });
-
-    expect(storage.getItem(FOLDING_KEY)).toBe(storedValue);
-    expect(storage.getItem(NOTIFY_KEY)).toBe(storedValue);
+  it.each(['0', '1'])('preserves an explicit %s preference', (storedValue) => {
+    expect(install(storedValue)).toBe(storedValue);
   });
 
   it('does not block startup when localStorage is unavailable', () => {
