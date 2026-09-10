@@ -3,21 +3,27 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
-## develop（未发布）
+## [open-kimi-web v0.41.0-r4] - 2026-09-10
+
+继续兼容官方 Kimi Code `0.41.0`。
 
 ### 变更
 
 - 已归档设置页每行直接显示永久删除按钮；开启实验室三栏布局后，首页“已完成”会话也会在恢复按钮旁直接显示删除按钮。同名会话无法唯一映射时隐藏入口，避免误删；删除成功后刷新页面，从后端重建官方会话状态，避免旧缓存重新显示已删除行。
 - 接管模式保留官方 Kimi 后端固定回环端口 `58627`，Open Kimi Web 固定使用配套端口 `48627`。
 - CI 对单元测试和集成测试分别执行覆盖率门禁，行覆盖率与分支覆盖率均不得低于 70%。
+- 工具调用完成后默认保持展开；已有手动折叠偏好继续生效。
 
 ### 修复
 
 - 修复工作区更多菜单打开后，置顶文案重复写入 DOM 导致观察器持续自触发的问题。
 - 合并浏览器通知的并发授权请求；用户关闭授权提示后，后台事件不再立即反复申请，仍可在通知设置中主动重试。
-- 修复官方默认开启“工具调用汇总”后，工具调用一结束便自动折叠为摘要行的问题；首次使用保持展开，已有手动设置继续生效。
 - 修复官方实例登记早于 HTTP listener 就绪时，`kimi web --host` 因首次 healthz 连接失败而直接退出的问题；暂时网络失败会在限定时间内重试，明确的 HTTP 错误仍立即失败。
 - 启动 IPv4 局域网入口前先检查将要打印的 `127.0.0.1` 地址，避免 Windows 在通配监听与回环监听并存时打印出属于其他程序的 HTTPS 链接。
+
+### 已知边界
+
+- 通知修复已覆盖请求去重、关闭后的后台抑制与设置主动重试；Chrome 原生权限提示中的“允许”和关闭按钮未做实机验证。
 
 ## [open-kimi-web v0.41.0-r3] - 2026-09-08
 
@@ -80,5 +86,6 @@
 - 兼容 `corepack pnpm dev -- --lan` 中包管理器传入的参数分隔符。
 
 [open-kimi-web v0.41.0-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r3
+[open-kimi-web v0.41.0-r4]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r4
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
