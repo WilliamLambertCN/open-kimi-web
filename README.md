@@ -10,14 +10,20 @@
 
 ## 更新记录（最新在前）
 
-版本号中的 `rN` 是同一官方 Kimi Code 兼容基线上的 GitHub 修订序号；例如 `v0.41.0-r3` 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本，不要依赖包管理器的自动升级排序。
+版本号中的 `rN` 是同一官方 Kimi Code 兼容基线上的 GitHub 修订序号；例如 `v0.41.0-r4` 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本，不要依赖包管理器的自动升级排序。
 
-### develop（未发布）
+### [open-kimi-web v0.41.0-r4](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r4) — 2026-09-10
 
-- 修复工作区更多菜单打开后，置顶文案重复写入 DOM 导致观察器持续自触发的问题。
-- 合并浏览器通知的并发授权请求；用户关闭授权提示后，后台事件不再立即反复申请，仍可在通知设置中主动重试。
+- 在**设置 → 已归档会话**中直接显示永久删除；启用实验室三栏布局后，首页“已完成”会话也在恢复按钮旁显示删除。
+- 工具调用完成后默认保持展开；已有手动折叠偏好继续生效。
+- 首次需要系统通知时仍按官方流程申请权限；并发事件只发起一次申请，关闭提示后后台事件不会反复弹出，设置中的主动重试保持可用。
+- 修复工作区更多菜单打开后，置顶文案重复写入 DOM 导致页面持续更新的问题。
 - 接管的 `kimi web` 保留官方后端固定端口 `58627`，并将 Open Kimi Web 固定在易记的配套端口 `48627`。
 - 修复 Windows 允许回环地址与 IPv4 通配地址同端口并存时，启动器可能打印出实际属于其他程序的 Local 链接的问题。
+- 启动时会等待已登记的官方后端实际就绪，暂时的网络失败不再让 `kimi web --host` 立即退出。
+- 单元测试和集成测试分别执行行覆盖率、分支覆盖率 70% 门禁。
+
+通知请求层的并发与重复弹出问题已有自动化覆盖；Chrome 原生权限提示中的“允许”和关闭按钮未做实机验证。
 
 ### [open-kimi-web v0.41.0-r3](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r3) — 2026-09-08
 
@@ -120,10 +126,10 @@
 
 前提：已安装官方 [Kimi Code](https://github.com/MoonshotAI/kimi-code)（`kimi web` 可用）和 Node ≥ 22。源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到 npm registry，可从 GitHub Release 的版本化 tgz 或源码安装。
 
-**GitHub Release tgz**（固定为 r3）：
+**GitHub Release tgz**（固定为 r4）：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.41.0-r3/open-kimi-web-0.41.0-r3.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.41.0-r4/open-kimi-web-0.41.0-r4.tgz
 open-kimi-web integrate install
 ```
 

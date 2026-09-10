@@ -6,10 +6,10 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。r3 GitHub Release 提供固定版本的 tgz，可直接安装：
+本项目当前不发布到 npm registry。r4 GitHub Release 提供固定版本的 tgz，可直接安装：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.41.0-r3/open-kimi-web-0.41.0-r3.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.41.0-r4/open-kimi-web-0.41.0-r4.tgz
 open-kimi-web integrate install
 ```
 
