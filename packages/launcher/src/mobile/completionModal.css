@@ -1,0 +1,77 @@
+.okw-completion-modal-open {
+  overflow: hidden;
+}
+
+.okw-completion-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  background: rgb(4 8 18 / 72%);
+  backdrop-filter: blur(8px);
+}
+
+.okw-completion-modal {
+  position: relative;
+  width: min(100%, 360px);
+  padding: 26px 22px 22px;
+  border: 1px solid var(--color-line, color-mix(in srgb, CanvasText 18%, transparent));
+  border-radius: 18px;
+  color: var(--color-text, CanvasText);
+  background: var(--color-surface-raised, Canvas);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 45%);
+  text-align: center;
+}
+
+.okw-completion-modal h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.okw-completion-modal p {
+  margin: 10px 0 22px;
+  color: var(--color-text-muted, color-mix(in srgb, CanvasText 65%, transparent));
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.okw-completion-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.okw-completion-modal-result {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--color-text-on-accent, #fff);
+  background: var(--color-accent, #526ee8);
+  font: inherit;
+  font-weight: 650;
+}
+
+.okw-completion-modal-close:focus-visible,
+.okw-completion-modal-result:focus-visible {
+  outline: 2px solid var(--color-accent, #526ee8);
+  outline-offset: 2px;
+}
+
+@media (min-width: 641px) {
+  .okw-completion-modal-backdrop {
+    display: none;
+  }
+}
