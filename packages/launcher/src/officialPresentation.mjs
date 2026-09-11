@@ -5,6 +5,8 @@ const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['notificationPermission.js', 'text/javascript; charset=utf-8'],
+  ['completionModal.css', 'text/css; charset=utf-8'],
+  ['completionModal.js', 'text/javascript; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
@@ -24,6 +26,7 @@ const FILES = new Map([
 const SCRIPTS = [
   'foldingDefaults.js',
   'notificationPermission.js',
+  'completionModal.js',
   'themes.js',
   'providerSorting.js',
   'providerEnhancements.js',
@@ -31,7 +34,13 @@ const SCRIPTS = [
   'archivedSessionDelete.js',
   'presentation.js',
 ];
-const STYLES = ['presentation.css', 'themes.css', 'workspacePins.css', 'archivedSessionDelete.css'];
+const STYLES = [
+  'presentation.css',
+  'themes.css',
+  'workspacePins.css',
+  'archivedSessionDelete.css',
+  'completionModal.css',
+];
 
 // Serve the presentation layer from the installed launcher, so existing
 // official caches receive updates without rewriting upstream assets.
