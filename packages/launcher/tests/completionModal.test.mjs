@@ -75,12 +75,20 @@ function install({ mobile = true, route = '/sessions/session-a', running = false
 
   return {
     composer,
+    createPending(className, controls = []) {
+      const pending = view.document.createElement('div');
+      pending.className = className;
+      pending.append(...controls);
+      view.document.body.append(pending);
+      return pending;
+    },
     createSocket(id = `hello-${sockets.length + 1}`, code = 0) {
       const socket = new view.WebSocket('ws://localhost/api/v1/ws');
       socket.send(JSON.stringify({ type: 'client_hello', id, payload: { client_id: 'test' } }));
       socket.message({ type: 'ack', id, code, msg: '', payload: {} });
       return socket;
     },
+    dialog() { return view.document.querySelector('[role="dialog"]'); },
     removeRunning() { composer.querySelector('.stop')?.remove(); },
     setMobile,
     startRunning() {
@@ -174,30 +182,144 @@ describe('mobile completion modal trigger', () => {
 });
 
 describe('mobile completion modal pending and reconnect behavior', () => {
+  it.each([
+    ['dock-approval', '需要审批', '当前任务正在等待你的审批，请处理后继续。'],
+    ['dock-question', '需要回答', '当前任务正在等待你的回答，请处理后继续。'],
+  ])('shows the correct %s copy after hello ack', async (pendingClass, title, description) => {
+    const fixture = install();
+    fixture.createPending(pendingClass);
+    expect(fixture.dialog()).toBeNull();
+
+    fixture.createSocket();
+    await settle();
+
+    expect(fixture.dialog().querySelector('h2').textContent).toBe(title);
+    expect(fixture.dialog().querySelector('p').textContent).toBe(description);
+    expect(fixture.view.document.activeElement.textContent).toBe('立即处理');
+  });
+
   it.each(['dock-approval', 'dock-question'])(
-    'waits through %s and only reports completion after running resumes',
+    'waits through a running %s request and requires running to resume before completion',
     async (pendingClass) => {
       const fixture = install();
       fixture.createSocket();
       fixture.startRunning();
       await settle();
-      const pending = fixture.view.document.createElement('div');
-      pending.className = pendingClass;
+      const pending = fixture.createPending(pendingClass);
       fixture.removeRunning();
-      fixture.view.document.body.append(pending);
       await settle();
-      expect(fixture.view.document.querySelector('.okw-completion-modal')).toBeNull();
+      expect(fixture.dialog().querySelector('h2').textContent).toMatch(/^需要/);
 
       pending.remove();
       await settle();
-      expect(fixture.view.document.querySelector('.okw-completion-modal')).toBeNull();
+      expect(fixture.dialog()).toBeNull();
       fixture.startRunning();
       await settle();
       fixture.removeRunning();
       await settle();
-      expect(fixture.view.document.querySelectorAll('.okw-completion-modal')).toHaveLength(1);
+      expect(fixture.dialog().querySelector('h2').textContent).toBe('任务已完成');
     },
   );
+
+  it('replaces a completion modal when a pending request appears', async () => {
+    const fixture = install();
+    fixture.createSocket();
+    fixture.startRunning();
+    await settle();
+    fixture.removeRunning();
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('任务已完成');
+
+    fixture.createPending('dock-approval');
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('需要审批');
+  });
+
+  it('focuses the first enabled pending control from the primary action', async () => {
+    const fixture = install();
+    const disabled = fixture.view.document.createElement('button');
+    disabled.disabled = true;
+    const link = fixture.view.document.createElement('a');
+    link.href = '#answer';
+    fixture.createPending('dock-question', [disabled, link]);
+    fixture.createSocket();
+    await settle();
+
+    fixture.dialog().querySelector('.okw-completion-modal-result').click();
+    expect(fixture.dialog()).toBeNull();
+    expect(fixture.view.document.activeElement).toBe(link);
+  });
+});
+
+describe('mobile completion modal pending lifecycle', () => {
+  it.each(['close button', 'Escape'])(
+    'does not repeat for the same pending node after closing with %s',
+    async (closeMethod) => {
+      const fixture = install();
+      const pending = fixture.createPending('dock-approval');
+      fixture.createSocket();
+      await settle();
+
+      if (closeMethod === 'Escape') {
+        fixture.dialog().dispatchEvent(new fixture.view.KeyboardEvent('keydown', {
+          key: 'Escape',
+          bubbles: true,
+        }));
+      } else {
+        fixture.dialog().querySelector('.okw-completion-modal-close').click();
+      }
+      expect(fixture.dialog()).toBeNull();
+
+      pending.append(fixture.view.document.createElement('span'));
+      await settle();
+      expect(fixture.dialog()).toBeNull();
+    },
+  );
+
+  it('closes when its pending node disappears and alerts for a replacement node', async () => {
+    const fixture = install();
+    const first = fixture.createPending('dock-approval');
+    const socket = fixture.createSocket();
+    await settle();
+    expect(fixture.dialog()).not.toBeNull();
+
+    socket.close();
+    first.remove();
+    await settle();
+    expect(fixture.dialog()).toBeNull();
+
+    fixture.createPending('dock-question');
+    fixture.createSocket();
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('需要回答');
+  });
+});
+
+describe('mobile completion modal pending route and reconnect gates', () => {
+  it('does not consume a pending node before entering a mobile session route', async () => {
+    const fixture = install({ route: '/' });
+    fixture.createPending('dock-question');
+    fixture.createSocket();
+    await settle();
+    expect(fixture.dialog()).toBeNull();
+
+    fixture.view.history.pushState({}, '', '/sessions/session-a');
+    fixture.view.dispatchEvent(new fixture.view.PopStateEvent('popstate'));
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('需要回答');
+  });
+
+  it('does not alert on desktop or consume the node before resizing to mobile', async () => {
+    const fixture = install({ mobile: false });
+    fixture.createPending('dock-approval');
+    fixture.createSocket();
+    await settle();
+    expect(fixture.dialog()).toBeNull();
+
+    fixture.setMobile(true);
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('需要审批');
+  });
 
   it('preserves an armed task across a websocket reconnect', async () => {
     const fixture = install();
@@ -212,6 +334,19 @@ describe('mobile completion modal pending and reconnect behavior', () => {
     fixture.createSocket('hello-two');
     await settle();
     expect(fixture.view.document.querySelectorAll('.okw-completion-modal')).toHaveLength(1);
+  });
+
+  it('alerts when a pending node already exists at reconnect ack', async () => {
+    const fixture = install();
+    const first = fixture.createSocket('hello-one');
+    first.close();
+    fixture.createPending('dock-question');
+    await settle();
+    expect(fixture.dialog()).toBeNull();
+
+    fixture.createSocket('hello-two');
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('需要回答');
   });
 });
 
