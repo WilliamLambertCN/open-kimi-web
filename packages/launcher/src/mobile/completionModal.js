@@ -4,6 +4,23 @@
   const SETTLE_DELAY_MS = 120;
   const runningSelector = '.app .composer .stop, .app.mobile .topbar .st .ui-spinner';
   const pendingSelector = '.dock-approval, .dock-question';
+  const modalCopy = {
+    completion: {
+      title: '任务已完成',
+      description: '当前任务已经完成，可以查看结果。',
+      action: '查看结果',
+    },
+    approval: {
+      title: '需要审批',
+      description: '当前任务正在等待你的审批，请处理后继续。',
+      action: '立即处理',
+    },
+    question: {
+      title: '需要回答',
+      description: '当前任务正在等待你的回答，请处理后继续。',
+      action: '立即处理',
+    },
+  };
   const sessionRoute = () => {
     const match = location.pathname.match(/^\/sessions\/([^/?#]+)/);
     if (!match) return null;
@@ -18,16 +35,21 @@
   let wasRunning = false;
   let waitingForResume = false;
   let modal = null;
+  let modalKind = null;
+  let modalPendingNode = null;
   let previousFocus = null;
   let settleTimer = null;
   let readySocketCount = 0;
+  const notifiedPendingNodes = new WeakSet();
 
-  const closeModal = () => {
+  const closeModal = (restoreFocus = true) => {
     if (!modal) return;
     modal.remove();
     modal = null;
+    modalKind = null;
+    modalPendingNode = null;
     document.documentElement.classList.remove('okw-completion-modal-open');
-    if (previousFocus?.isConnected) previousFocus.focus();
+    if (restoreFocus && previousFocus?.isConnected) previousFocus.focus();
     previousFocus = null;
   };
 
@@ -58,8 +80,23 @@
     next.focus();
   };
 
-  const showModal = () => {
-    if (modal || !mobile.matches || route === null) return;
+  const firstPendingControl = (pendingNode) => pendingNode?.querySelector(
+    'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), ' +
+    'textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+  );
+
+  const focusPending = (pendingNode) => {
+    const control = firstPendingControl(pendingNode);
+    closeModal(false);
+    if (!control?.isConnected) return;
+    control.scrollIntoView?.({ block: 'center', inline: 'nearest' });
+    control.focus({ preventScroll: true });
+  };
+
+  const showModal = (kind, pendingNode = null) => {
+    if (modal || !mobile.matches || route === null) return false;
+    const copy = modalCopy[kind];
+    if (!copy) return false;
     previousFocus = document.activeElement;
 
     const backdrop = document.createElement('div');
@@ -79,17 +116,20 @@
 
     const title = document.createElement('h2');
     title.id = 'okw-completion-modal-title';
-    title.textContent = '任务已完成';
+    title.textContent = copy.title;
     const description = document.createElement('p');
     description.id = 'okw-completion-modal-description';
-    description.textContent = '当前任务已经完成，可以查看结果。';
+    description.textContent = copy.description;
     const viewResult = document.createElement('button');
     viewResult.type = 'button';
     viewResult.className = 'okw-completion-modal-result';
-    viewResult.textContent = '查看结果';
+    viewResult.textContent = copy.action;
 
-    close.addEventListener('click', closeModal);
-    viewResult.addEventListener('click', closeModal);
+    close.addEventListener('click', () => closeModal());
+    viewResult.addEventListener('click', () => {
+      if (pendingNode) focusPending(pendingNode);
+      else closeModal();
+    });
     backdrop.addEventListener('click', (event) => {
       if (event.target === backdrop) closeModal();
     });
@@ -103,7 +143,53 @@
     document.body.append(backdrop);
     document.documentElement.classList.add('okw-completion-modal-open');
     modal = backdrop;
+    modalKind = kind;
+    modalPendingNode = pendingNode;
     viewResult.focus();
+    return true;
+  };
+
+  const pendingKind = (node) => node.classList.contains('dock-approval')
+    ? 'approval'
+    : 'question';
+
+  const currentPending = () => {
+    const nodes = Array.from(document.querySelectorAll(pendingSelector));
+    const node = nodes.find((item) => !notifiedPendingNodes.has(item)) ?? nodes[0] ?? null;
+    return node ? { node, kind: pendingKind(node) } : null;
+  };
+
+  const showPending = (pending) => {
+    if (notifiedPendingNodes.has(pending.node)) return;
+    if (modal) closeModal(false);
+    if (showModal(pending.kind, pending.node)) notifiedPendingNodes.add(pending.node);
+  };
+
+  const handlePending = () => {
+    const pending = currentPending();
+    if (!pending) {
+      if (modalKind === 'approval' || modalKind === 'question') closeModal();
+      return false;
+    }
+    if (observedRunning) waitingForResume = true;
+    wasRunning = false;
+    showPending(pending);
+    return true;
+  };
+
+  const handleCompletion = () => {
+    const running = document.querySelector(runningSelector) !== null;
+    if (running) {
+      observedRunning = true;
+      wasRunning = true;
+      waitingForResume = false;
+      return;
+    }
+    if (waitingForResume) return;
+    if (!observedRunning || !wasRunning) return;
+
+    resetObservation();
+    showModal('completion');
   };
 
   const evaluate = () => {
@@ -114,26 +200,10 @@
       closeModal();
       return;
     }
+    if (modalPendingNode && !modalPendingNode.isConnected) closeModal();
     if (readySocketCount === 0) return;
-
-    const running = document.querySelector(runningSelector) !== null;
-    const pendingInteraction = document.querySelector(pendingSelector) !== null;
-    if (running) {
-      observedRunning = true;
-      wasRunning = true;
-      waitingForResume = false;
-      return;
-    }
-    if (pendingInteraction) {
-      if (observedRunning) waitingForResume = true;
-      wasRunning = false;
-      return;
-    }
-    if (waitingForResume) return;
-    if (!observedRunning || !wasRunning) return;
-
-    resetObservation();
-    showModal();
+    if (handlePending()) return;
+    handleCompletion();
   };
 
   const scheduleEvaluation = () => {
