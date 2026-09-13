@@ -42,7 +42,13 @@ function install({ body, storedPins, workspaces = [], useNativeObserver = false 
   frames.push(frame);
   const view = frame.contentWindow;
   view.document.documentElement.lang = 'zh-CN';
-  view.document.body.innerHTML = body ?? `<div class="sessions">${group('workspace-a')}${group('workspace-b')}${group('workspace-c')}</div>`;
+  view.document.body.innerHTML = body ?? [
+    '<div class="sessions">',
+    group('workspace-a'),
+    group('workspace-b'),
+    group('workspace-c'),
+    '</div>',
+  ].join('');
   const style = view.document.createElement('style');
   style.textContent = styles;
   view.document.head.append(style);

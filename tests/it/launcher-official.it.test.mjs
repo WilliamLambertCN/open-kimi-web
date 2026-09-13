@@ -15,8 +15,8 @@ import { startFrontend } from '../../packages/launcher/src/frontend.mjs';
 
 const tar = promisify(execFile);
 
-// The 0.41.0 runtime title composer, byte-for-byte.
-const TITLE_SNIPPET = 'function uze(e,t){return e!==""?e:t?`${aze(t)} | Kimi Code`:"Kimi Code"}';
+// The 0.42.0 runtime title composer, byte-for-byte.
+const TITLE_SNIPPET = 'function PWe(e,t){return e!==""?e:t?`${OWe(t)} | Kimi Code`:"Kimi Code"}';
 const BOOT_JS = "// upstream boot fixture\nlocalStorage.getItem('kimi-web.color-scheme');\n";
 const INDEX_HTML = [
   '<!doctype html><html><head>',
