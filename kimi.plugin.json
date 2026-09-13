@@ -1,7 +1,7 @@
 {
   "name": "open-kimi-web",
-  "version": "0.41.0-r4",
-  "description": "Management entry for a lightweight enhancement layer around the official Kimi Code web UI and backend, with LAN HTTPS, mobile fixes, and optional reversible `kimi web` integration.",
+  "version": "0.42.0-r1",
+  "description": "Manage mobile and LAN enhancements for the official Kimi Code web UI.",
   "keywords": [
     "kimi",
     "kimi-code",
@@ -18,7 +18,7 @@
   "interface": {
     "displayName": "OpenWeb for Kimi Code",
     "shortDescription": "Manage the Open Kimi Web launcher and its optional reversible `kimi web` integration",
-    "longDescription": "This plugin provides management commands for the separately installed Open Kimi Web launcher, a lightweight enhancement layer around the official Kimi Code web UI and backend. The launcher adds single-origin proxying, authenticated links, LAN HTTPS, and mobile layout fixes. Installing this plugin does not install or start the launcher and does not modify PATH. Removing the plugin does not undo an external `integrate install`; use `open-kimi-web integrate uninstall` separately to remove its wrapper and PATH entry. Not affiliated with Moonshot AI.",
+    "longDescription": "Manage the separate launcher; plugin setup does not install it or undo an existing command integration.",
     "developerName": "open-kimi-web contributors",
     "websiteURL": "https://github.com/WilliamLambertCN/open-kimi-web"
   }

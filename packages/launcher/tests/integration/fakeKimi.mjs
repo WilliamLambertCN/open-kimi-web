@@ -88,7 +88,12 @@ function handle(req, res) {
   }
   if (path === '/api/v1/meta') {
     res.writeHead(200, { 'content-type': 'application/json' }).end(
-      JSON.stringify({ code: 0, msg: 'success', data: { server_id: serverId, server_version: '9.9.9-fake' }, request_id: 'fake' }),
+      JSON.stringify({
+        code: 0,
+        msg: 'success',
+        data: { server_id: serverId, server_version: '9.9.9-fake' },
+        request_id: 'fake',
+      }),
     );
     return;
   }

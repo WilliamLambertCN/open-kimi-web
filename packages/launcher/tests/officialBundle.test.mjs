@@ -26,8 +26,8 @@ import {
 
 const tar = promisify(execFile);
 
-// Matches the 0.41.0 minified title composer (see patchRuntimeTitle).
-const BUNDLE_TITLE_SNIPPET = 'function uze(e,t){return e!==""?e:t?`${aze(t)} | Kimi Code`:"Kimi Code"}';
+// Matches the 0.42.0 minified title composer (see patchRuntimeTitle).
+const BUNDLE_TITLE_SNIPPET = 'function PWe(e,t){return e!==""?e:t?`${OWe(t)} | Kimi Code`:"Kimi Code"}';
 const INDEX_HTML = [
   '<!doctype html><html><head>',
   '<script src="/boot.js"></script>',
@@ -65,7 +65,7 @@ describe('resolveOfficialVersion', () => {
   });
 
   it('sends the bearer token when one is available', async () => {
-    const fetchImpl = metaFetch('0.41.0');
+    const fetchImpl = metaFetch('0.42.0');
     await resolveOfficialVersion('http://127.0.0.1:58627', 'tok', fetchImpl);
     expect(fetchImpl).toHaveBeenCalledWith('http://127.0.0.1:58627/api/v1/meta', {
       headers: { authorization: 'Bearer tok' },
@@ -74,7 +74,7 @@ describe('resolveOfficialVersion', () => {
   });
 
   it.each([
-    ['http error', metaFetch('0.41.0', { status: 404 })],
+    ['http error', metaFetch('0.42.0', { status: 404 })],
     ['network failure', async () => { throw new Error('ECONNREFUSED'); }],
     ['missing version', metaFetch(undefined)],
     ['path-like version', metaFetch('../../etc')],
@@ -86,20 +86,23 @@ describe('resolveOfficialVersion', () => {
 });
 
 describe('isBundleVersion', () => {
-  it.each(['0.41.0', '1.2.3-beta.1', '1.2.3+build.7'])('accepts exact package version %s', (version) => {
+  it.each(['0.42.0', '1.2.3-beta.1', '1.2.3+build.7'])('accepts exact package version %s', (version) => {
     expect(isBundleVersion(version)).toBe(true);
   });
 
-  it.each(['.', '..', 'latest', '1', '1.2', '../1.2.3', '1.2.3/other', '1.2.3-'])('rejects unsafe or non-exact version %s', (version) => {
-    expect(isBundleVersion(version)).toBe(false);
-  });
+  it.each(['.', '..', 'latest', '1', '1.2', '../1.2.3', '1.2.3/other', '1.2.3-'])(
+    'rejects unsafe or non-exact version %s',
+    (version) => {
+      expect(isBundleVersion(version)).toBe(false);
+    },
+  );
 });
 
 describe('tarballUrls', () => {
   it('tries npmjs first and npmmirror as the mirror fallback', () => {
-    expect(tarballUrls('0.41.0')).toEqual([
-      'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-0.41.0.tgz',
-      'https://registry.npmmirror.com/@moonshot-ai/kimi-code/-/kimi-code-0.41.0.tgz',
+    expect(tarballUrls('0.42.0')).toEqual([
+      'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-0.42.0.tgz',
+      'https://registry.npmmirror.com/@moonshot-ai/kimi-code/-/kimi-code-0.42.0.tgz',
     ]);
   });
 });
@@ -121,7 +124,9 @@ describe('patchRuntimeTitle', () => {
   it('rewrites the runtime title template and its fallback', () => {
     const { count, text } = patchRuntimeTitle(BUNDLE_TITLE_SNIPPET);
     expect(count).toBe(1);
-    expect(text).toBe('function uze(e,t){return e!==""?e:t?`${aze(t)} | open Kimi-Code`:"open Kimi-Code"}');
+    expect(text).toBe(
+      'function PWe(e,t){return e!==""?e:t?`${OWe(t)} | open Kimi-Code`:"open Kimi-Code"}',
+    );
     expect(text).not.toContain('Kimi Code');
   });
 
@@ -138,8 +143,8 @@ describe('patchRuntimeTitle', () => {
 
 describe('officialCacheDir', () => {
   it('nests the version under the cache root', () => {
-    expect(officialCacheDir('0.41.0', '/home/u/.open-kimi-web/official-web')).toBe(
-      join('/home/u/.open-kimi-web/official-web', '0.41.0'),
+    expect(officialCacheDir('0.42.0', '/home/u/.open-kimi-web/official-web')).toBe(
+      join('/home/u/.open-kimi-web/official-web', '0.42.0'),
     );
     expect(officialCacheRoot('/home/u')).toBe(join('/home/u', '.open-kimi-web', 'official-web'));
   });

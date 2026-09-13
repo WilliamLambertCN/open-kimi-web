@@ -1,6 +1,7 @@
 import tseslint from 'typescript-eslint';
 
 const complexityRules = {
+  'max-len': ['error', { code: 130, tabWidth: 2 }],
   'max-lines-per-function': [
     'error',
     { max: 80, skipBlankLines: true, skipComments: true },
