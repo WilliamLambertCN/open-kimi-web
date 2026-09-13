@@ -1,5 +1,5 @@
 {
-  const DELETE_PATH = '/__open-kimi-mobile/sessions:delete';
+  const OFFICIAL_LOCALE_KEY = 'kimi-locale';
   const archivedSessions = new Map();
   const archivedRequestIds = new Map();
   const archivedRequestGenerations = new Map();
@@ -10,10 +10,22 @@
   let pageAuthorization = '';
   let pendingArchivedRequests = 0;
 
-  const isChinese = () => {
-    const language = document.documentElement.lang || navigator.language || '';
-    return language.toLocaleLowerCase().startsWith('zh');
+  const currentLocale = () => {
+    let persisted = null;
+    try {
+      persisted = window.localStorage?.getItem(OFFICIAL_LOCALE_KEY) ?? null;
+    } catch {
+      // Match the official locale fallback when browser storage is unavailable.
+    }
+    if (persisted === 'en' || persisted === 'zh') return persisted;
+    return navigator.language?.toLowerCase().startsWith('zh') ? 'zh' : 'en';
   };
+
+  const isChinese = () => currentLocale() === 'zh';
+
+  const deletePath = (sessionId) => (
+    `/api/v1/sessions/${encodeURIComponent(sessionId)}:delete`
+  );
 
   const copy = () => isChinese() ? {
     remove: '永久删除',
@@ -26,7 +38,10 @@
     remove: 'Delete permanently',
     removeShort: 'Delete',
     removing: 'Deleting…',
-    confirm: (title) => `Permanently delete “${title}”?\n\nThis cannot be undone. Its messages, attachments, and history will be deleted.`,
+    confirm: (title) => (
+      `Permanently delete “${title}”?\n\n` +
+      'This cannot be undone. Its messages, attachments, and history will be deleted.'
+    ),
     auth: 'Page authorization is not ready. Refresh and try again.',
     failed: 'Deletion failed. Refresh and try again.',
   };
@@ -50,7 +65,8 @@
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return String(value ?? '');
     const two = (part) => String(part).padStart(2, '0');
-    return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())} ${two(date.getHours())}:${two(date.getMinutes())}`;
+    const day = `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
+    return `${day} ${two(date.getHours())}:${two(date.getMinutes())}`;
   };
 
   // Wire normalization deliberately rejects every malformed field independently.
@@ -306,9 +322,19 @@
     }
   };
 
+  const responseError = (response, body, labels) => {
+    if (response.status === 204 || (response.ok && body?.code === 0)) return null;
+    if (response.status === 401 || response.status === 403) return labels.auth;
+    const message = typeof body?.msg === 'string' ? body.msg.trim() : '';
+    return message || labels.failed;
+  };
+
+  const idleButtonText = (button, labels) => (
+    button.className.includes('okw-sidebar-archive-delete') ? labels.removeShort : labels.remove
+  );
+
   // This keeps the destructive request and all of its UI rollback in one place.
-  // eslint-disable-next-line complexity
-  const deleteSession = async (row, session, removeButton, idleText) => {
+  const deleteSession = async (row, session, removeButton) => {
     if (pendingIds.has(session.id)) return;
     const labels = copy();
     if (!window.confirm(labels.confirm(session.title))) return;
@@ -322,14 +348,14 @@
     removeButton.textContent = labels.removing;
     row.classList.add('okw-archive-deleting');
     try {
-      const response = await nativeFetch.call(window, DELETE_PATH, {
+      const response = await nativeFetch.call(window, deletePath(session.id), {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
           authorization: pageAuthorization,
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ sessionId: session.id }),
+        body: JSON.stringify({}),
       });
       let body = null;
       try {
@@ -337,7 +363,8 @@
       } catch {
         // A readable fallback is shown below.
       }
-      if (!response.ok || body?.deleted !== true) throw new Error(body?.error || labels.failed);
+      const message = responseError(response, body, labels);
+      if (message) throw new Error(message);
       deletedIds.add(session.id);
       archivedSessions.delete(session.id);
       removeSessionRows(session.id);
@@ -345,7 +372,7 @@
     } catch (error) {
       showError(row, error instanceof Error && error.message ? error.message : labels.failed);
       removeButton.disabled = false;
-      removeButton.textContent = idleText;
+      removeButton.textContent = idleButtonText(removeButton, copy());
       row.classList.remove('okw-archive-deleting');
     } finally {
       pendingIds.delete(session.id);
@@ -357,12 +384,11 @@
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
     removeButton.className = className;
-    const idleText = text ?? labels.remove;
-    removeButton.textContent = idleText;
+    removeButton.textContent = text ?? labels.remove;
     removeButton.setAttribute('aria-label', labels.remove);
     removeButton.addEventListener('click', (event) => {
       event.stopPropagation();
-      void deleteSession(row, session, removeButton, idleText);
+      void deleteSession(row, session, removeButton);
     });
     return removeButton;
   };
@@ -370,7 +396,12 @@
   const enhanceArchiveRow = (row) => {
     const session = rowSessions.get(row);
     if (!session || deletedIds.has(session.id)) return;
-    if (row.querySelector('.okw-archive-actions')) return;
+    const existing = row.querySelector('.okw-archive-delete');
+    if (existing) {
+      if (!existing.disabled) existing.textContent = copy().remove;
+      existing.setAttribute('aria-label', copy().remove);
+      return;
+    }
     const actions = document.createElement('div');
     actions.className = 'okw-archive-actions';
     actions.addEventListener('click', (event) => event.stopPropagation());
@@ -381,7 +412,12 @@
   const enhanceSidebarRow = (row) => {
     const session = rowSessions.get(row);
     if (!session || deletedIds.has(session.id)) return;
-    if (row.querySelector('.okw-sidebar-archive-delete')) return;
+    const existing = row.querySelector('.okw-sidebar-archive-delete');
+    if (existing) {
+      if (!existing.disabled) existing.textContent = copy().removeShort;
+      existing.setAttribute('aria-label', copy().remove);
+      return;
+    }
     const reopenButton = row.querySelector('.reopen-btn');
     if (!reopenButton?.parentElement) return;
     reopenButton.parentElement.classList.add('okw-sidebar-archive-actions');

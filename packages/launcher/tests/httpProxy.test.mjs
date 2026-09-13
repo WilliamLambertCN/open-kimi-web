@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildProxyHeaders, filterHeaders, proxyRequest } from '../src/httpProxy.mjs';
+import { createLauncher } from '../src/serve.mjs';
 
 const servers = [];
 
@@ -110,5 +111,27 @@ describe('proxyRequest upstream failures', () => {
 
     await expect(fetch(`${url}/api/v1/stream`).then((response) => response.text()))
       .rejects.toThrow();
+  });
+});
+
+describe('launcher debug route boundary', () => {
+  it('does not forward debug endpoints to an external target', async () => {
+    let upstreamCalled = false;
+    const target = await listen((_req, res) => {
+      upstreamCalled = true;
+      res.writeHead(200).end();
+    });
+    const launcher = await createLauncher({
+      target,
+      publicDir: '.',
+      host: '127.0.0.1',
+      port: 0,
+      interfaces: {},
+    });
+    servers.push(launcher.server);
+
+    const response = await fetch(`${launcher.url}/api/v1/debug/channels`);
+    expect(response.status).toBe(404);
+    expect(upstreamCalled).toBe(false);
   });
 });

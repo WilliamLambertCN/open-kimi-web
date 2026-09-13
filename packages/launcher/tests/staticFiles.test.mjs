@@ -24,6 +24,7 @@ describe('contentTypeFor', () => {
     ['icon.png', 'image/png'],
     ['font.woff2', 'font/woff2'],
     ['data.json', 'application/json; charset=utf-8'],
+    ['animation.wasm', 'application/wasm'],
     ['favicon.ico', 'image/x-icon'],
     ['weird.xyz', 'application/octet-stream'],
     ['noext', 'application/octet-stream'],
