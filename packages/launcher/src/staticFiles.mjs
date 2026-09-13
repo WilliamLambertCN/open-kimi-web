@@ -22,6 +22,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
   '.webmanifest': 'application/manifest+json',
+  '.wasm': 'application/wasm',
 };
 
 const BLOCKED_EXTENSIONS = new Set(['.map', '.pem', '.key', '.p12', '.pfx', '.token']);

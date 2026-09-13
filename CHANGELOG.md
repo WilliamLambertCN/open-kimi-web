@@ -3,6 +3,35 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v0.42.0-r1] - 2026-09-13
+
+兼容基线升级到官方 Kimi Code `0.42.0`。
+
+### 新增
+
+- 手机会话页在任务完成、等待审批或等待回答时显示醒目弹窗，并可定位到原待处理控件。
+- 提醒状态会区分初始空闲、会话切换、历史回放和断线重连，避免把旧状态当成新事件。
+
+### 变更
+
+- 自定义归档删除按钮改用官方 `POST /api/v1/sessions/{id}:delete`，受管后端不再常态开启
+  `--debug-endpoints`，launcher 也不再提供旧的自定义删除转发。
+- 删除按钮复用官方 `kimi-locale` 持久语言设置，并随页面内语言切换更新文案和无障碍标签。
+- 静态文件服务为官方 Rive 动画的 `.wasm` 资源返回 `application/wasm`。
+- 官方 bundle 下载回退版本升级到 `0.42.0`；版本和契约记录区分当前兼容基线与 0.41.0
+  历史协议快照。
+
+### 事件：0.42 中文归档页显示英文删除按钮
+
+- 影响：中文界面的已归档会话和首页“已完成”列表显示英文删除文案。
+- 触发条件：Kimi Code 0.42.0、官方语言选为简体中文、页面根元素仍保留 `lang="en"`。
+- 根因：注入脚本从 HTML `lang` 和浏览器语言判断文案，没有读取官方 `kimi-locale` 状态。
+- 证据：0.42.0 bundle 使用 `kimi-locale` 保存 `en` / `zh`，发布页 HTML 默认仍是 `lang="en"`。
+- 修复：删除按钮读取同一持久语言状态，并在 DOM 更新时刷新既有按钮文案和 `aria-label`。
+- 回归验证：定向 UT 覆盖中英持久值、浏览器语言回退、页面内切换、删除成功与失败路径。
+- 运维动作：更新后重启 launcher 并刷新页面，旧进程不会热加载新的注入脚本。
+- 剩余边界：完整 0.42.0 OpenAPI / AsyncAPI 尚未重新捕获，仓库快照仍明确保留为 0.41.0。
+
 ## [open-kimi-web v0.41.0-r4] - 2026-09-10
 
 继续兼容官方 Kimi Code `0.41.0`。
@@ -89,3 +118,4 @@
 [open-kimi-web v0.41.0-r4]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r4
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
+[open-kimi-web v0.42.0-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.42.0-r1

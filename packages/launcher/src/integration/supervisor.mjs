@@ -28,7 +28,7 @@ export const MANAGED_FRONTEND_DEFAULT_PORT = 48_627;
 
 export const managedBackendWebArgs = [
   'web', '--no-open', '--host', '127.0.0.1',
-  '--port', String(MANAGED_BACKEND_DEFAULT_PORT), '--debug-endpoints',
+  '--port', String(MANAGED_BACKEND_DEFAULT_PORT),
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

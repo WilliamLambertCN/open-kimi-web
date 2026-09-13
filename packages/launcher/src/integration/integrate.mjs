@@ -75,7 +75,8 @@ async function detectExistingTrace(ctx) {
     const current = await ctx.readUserPath();
     if (windowsPathHasEntry(current, ctx.paths.bin)) {
       throw new IntegrateError(
-        'the wrapper directory is already on the user PATH but no state file exists; run `open-kimi-web integrate repair` or `uninstall`',
+        'the wrapper directory is already on the user PATH but no state file exists; ' +
+          'run `open-kimi-web integrate repair` or `uninstall`',
       );
     }
     return;

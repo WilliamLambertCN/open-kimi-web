@@ -79,7 +79,8 @@ async function checkRealKimi(ctx, state, report) {
     report.lines.push(`real kimi: ${real.path} (${real.version})`);
     if (real.version !== state.realKimiVersion) {
       report.notes.push(
-        `official kimi was updated since install (${state.realKimiVersion} → ${real.version}); \`integrate repair\` refreshes the record`,
+        `official kimi was updated since install (${state.realKimiVersion} → ${real.version}); ` +
+          '`integrate repair` refreshes the record',
       );
     }
     if (await isInsideWrapperDir(state.realKimi, ctx.paths.bin)) {

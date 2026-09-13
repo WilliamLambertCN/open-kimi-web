@@ -1,4 +1,6 @@
 {
+  "snapshot_status": "historical-reference",
+  "recaptured_for_0_42_0": false,
   "captured_at": "2026-09-04T18:48:39.710Z",
   "upstream_repo": "MoonshotAI/kimi-code (local sibling checkout)",
   "upstream_commit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",

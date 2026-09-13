@@ -1,7 +1,7 @@
-// Proves the five quality gates in eslint.config.mjs actually bite:
+// Proves the six quality gates in eslint.config.mjs actually bite:
 // an 81-line function, cyclomatic complexity 11, nesting depth 5, a
-// 6-parameter function, and a 501-line file must each fail lint, while the
-// boundary-valid shapes (80 lines / 10 / 4 / 5 params / 500 lines) must not.
+// 6-parameter function, a 501-line file, and a 131-character line must each
+// fail lint, while the boundary-valid shapes must not.
 import { ESLint } from 'eslint';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -61,6 +61,12 @@ function longFile(totalLines: number, header = ''): string {
   return lines.slice(0, totalLines).join('\n');
 }
 
+function lineWithLength(length: number): string {
+  const prefix = 'export const line = "';
+  const suffix = '";';
+  return `${prefix}${'x'.repeat(length - prefix.length - suffix.length)}${suffix}`;
+}
+
 // Loading ESLint and its plugins can take longer on a cold Windows filesystem.
 describe('complexity lint gates', { timeout: 30_000 }, () => {
   it('rejects a function over 80 lines, accepts 80', async () => {
@@ -89,4 +95,8 @@ describe('complexity lint gates', { timeout: 30_000 }, () => {
     expect(await lintedRuleIds(longFile(500))).not.toContain('max-lines');
   });
 
+  it('rejects a 131-character line, accepts 130', async () => {
+    expect(await lintedRuleIds(lineWithLength(131))).toContain('max-len');
+    expect(await lintedRuleIds(lineWithLength(130))).not.toContain('max-len');
+  });
 });
