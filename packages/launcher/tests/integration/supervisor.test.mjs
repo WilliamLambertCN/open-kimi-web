@@ -61,8 +61,8 @@ describe('supervisor process termination', () => {
 });
 
 describe('supervisor web options', () => {
-  it('enables the private official service dispatcher for managed deletion', () => {
-    expect(managedBackendWebArgs).toContain('--debug-endpoints');
+  it('starts the managed backend without exposing debug endpoints', () => {
+    expect(managedBackendWebArgs).not.toContain('--debug-endpoints');
     expect(managedBackendWebArgs).toContain(String(MANAGED_BACKEND_DEFAULT_PORT));
   });
 

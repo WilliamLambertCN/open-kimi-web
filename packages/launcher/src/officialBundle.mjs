@@ -10,13 +10,13 @@ import { cp, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } fr
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-export const OFFICIAL_FALLBACK_VERSION = '0.41.0';
+export const OFFICIAL_FALLBACK_VERSION = '0.42.0';
 export const OFFICIAL_PAGE_TITLE = 'open Kimi-Code web';
 export const OPEN_WEB_BRAND = 'open Kimi-Code';
 
 const INDEX_TITLE_NEEDLE = '<title>Kimi Code Web</title>';
 // The bundle composes document titles as `${name} | Kimi Code` with a bare
-// "Kimi Code" fallback (verified against 0.41.0). The combined needle keeps
+// "Kimi Code" fallback (verified against 0.42.0). The combined needle keeps
 // the rewrite inside the shared page/sidebar title composer rather than
 // replacing unrelated visible brand strings throughout the bundle.
 const RUNTIME_TITLE_RE = /\| Kimi Code(`\s*:\s*)"Kimi Code"/g;
