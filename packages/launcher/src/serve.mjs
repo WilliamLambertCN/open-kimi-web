@@ -4,7 +4,6 @@ import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 
 import { createAccessUrls } from './accessUrls.mjs';
-import { serveArchivedSessionDelete } from './archivedSessionDelete.mjs';
 import { proxyRequest } from './httpProxy.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
@@ -16,8 +15,7 @@ const DEFAULT_CLOSE_GRACE_MS = 1_000;
 
 async function serveOfficialExtension(req, res, target, enabled) {
   if (!enabled) return false;
-  if (await serveModelDiscovery(req, res, target)) return true;
-  return serveArchivedSessionDelete(req, res, target);
+  return serveModelDiscovery(req, res, target);
 }
 
 async function route(req, res, target, publicDir, officialPresentation) {

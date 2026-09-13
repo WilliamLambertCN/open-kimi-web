@@ -179,7 +179,8 @@ const mobile = window.matchMedia('(max-width: 640px)');
     const language = document.documentElement.lang || navigator.language || '';
     const guidance = language.toLocaleLowerCase().startsWith('zh')
       ? '工作区目录不存在。请恢复原目录，或返回工作区列表选择现有目录后重试。旧会话和配置仍保留。'
-      : 'The workspace directory no longer exists. Restore it, or return to the workspace list and choose an existing directory before retrying. Existing sessions and configuration are preserved.';
+      : 'The workspace directory no longer exists. Restore it, or return to the workspace list and choose an ' +
+        'existing directory before retrying. Existing sessions and configuration are preserved.';
     const message = typeof body.msg === 'string' && body.msg !== '' ? `${guidance} ${body.msg}` : guidance;
     const headers = new Headers(response.headers);
     headers.delete('content-length');
@@ -391,7 +392,9 @@ const mobile = window.matchMedia('(max-width: 640px)');
   };
 
   const restoreDesktop = () => {
-    document.querySelectorAll('.okw-workspace-badge, .okw-workspace-status, .okw-cache-note-inline').forEach((node) => node.remove());
+    document.querySelectorAll(
+      '.okw-workspace-badge, .okw-workspace-status, .okw-cache-note-inline',
+    ).forEach((node) => node.remove());
     document.querySelectorAll('.sheet-root.okw-settings').forEach((root) => {
       root.classList.remove('okw-settings');
       const sheetTitle = root.querySelector('.sheet-title');

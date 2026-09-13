@@ -7,9 +7,16 @@ or a vendored transcript implementation.
 ## Current baseline
 
 - Upstream: [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code).
-- Inspected official frontend and server version: `0.41.0`.
-- Recorded server commit: `f9ca33376604ae91ea35a4ac1d6f1d4425a5aead`.
+- Inspected published package version: `0.42.0`.
+- Provenance release commit: `6954d2c8bf94a5c7fc29cc6ae35b15d042cc4dcb`.
+- Server API compatibility target: `0.42.0`; no complete live protocol recapture was performed.
+- Open Kimi Web release target: `0.42.0-r1`.
 - Machine-readable version and historical contract records: `upstream.json`.
+
+The provenance commit comes from the npm provenance attestation for
+`@moonshot-ai/kimi-code@0.42.0`. The published bundle was also inspected for
+the archive selectors, official locale storage, permanent deletion request,
+and Rive WebAssembly assets used by this compatibility update.
 
 By default the launcher resolves the web bundle version from the target
 server, with its configured fallback when metadata is unavailable.
@@ -39,7 +46,8 @@ The historical 0.32 source snapshot is not the active implementation.
 ## Historical protocol snapshots
 
 `contracts/upstream/openapi.json` and `asyncapi.json` were captured from a real
-upstream server at the recorded 0.41.0 baseline. `metadata.json` records their
-origin and original checksums. They are retained as reference material;
+upstream server at the older 0.41.0 baseline. `metadata.json` records their
+origin and original checksums. They remain historical reference material;
 the retired standalone-client contract tests and capture workflow no longer
-run. These records do not establish compatibility with later versions.
+run. The 0.42.0 deletion route was checked separately, but the full artifacts
+were not recaptured, so these snapshots do not claim 0.42.0 coverage.

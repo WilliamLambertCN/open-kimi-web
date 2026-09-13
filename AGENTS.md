@@ -1,49 +1,75 @@
 # open-kimi-web 维护约定
 
-本文件适用于整个仓库。开始修改前先阅读本文件、`README.md`、`UPSTREAM.md`，以及任务涉及目录中的现有实现和测试。当前工作树中的未提交内容可能来自并行任务；先看 `git status` 和相关 diff，只追加自己的改动，不覆盖或回退他人的工作。
+本文件适用于整个仓库。开始修改前先阅读本文件、`README.md`、`UPSTREAM.md`，以及任务涉及目录中的现有实现和测试。
+当前工作树中的未提交内容可能来自并行任务；先看 `git status` 和相关 diff，只追加自己的改动，不覆盖或回退他人的工作。
+
+当前 Kimi Code `0.42.0` 适配以
+[`docs/plans/kimi-code-0.42.0-compatibility-v1-plan.md`](docs/plans/kimi-code-0.42.0-compatibility-v1-plan.md)
+为实施、审查和验收基线。
 
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
-- 官方后端负责会话、工作区、供应商、模型配置和文件历史。launcher 负责进程编排、HTTPS、访问链接、同源静态资源、REST/WS 代理及少量受限的私有转发端点。`packages/launcher/src/mobile/` 只负责官方页面上的展示和交互增强。
+- 官方后端负责会话、工作区、供应商、模型配置和文件历史。launcher 负责进程编排、HTTPS、访问链接、
+  同源静态资源、REST/WS 代理及少量受限的私有转发端点。`packages/launcher/src/mobile/` 只负责
+  官方页面上的展示和交互增强。
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 0.41.0 适配事实
+## 官方 0.42.0 适配事实
 
-- 当前兼容基线是 Kimi Code `0.41.0`；`UPSTREAM.md` 和 `upstream.json` 记录了已核对版本。升级官方版本前，必须重新检查受影响的 API、DOM、交互和失败行为，不能把历史快照当成新版本保证。
-- 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和官方请求结果。0.41.0 归档设置页使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、`.archive-time` 与 `.archive-workspace .path`；上游变更时重新核对。
-- 归档列表在实际运行中可使用 v2 `GET /api/v2/sessions?meta.archived=true`，条目结构为 `{ id, workspace: { id, cwd }, meta: { title, last_prompt, updated_at, archived, archived_at } }`。保留 v1 `GET /api/v1/sessions?archived_only=true` 兼容，不能只监听其中一个版本。
-- 官方生产 REST 没有稳定的永久删除 action。托管模式通过官方 `--debug-endpoints` 启动同进程服务，再由 launcher 的受限端点调用 `POST /api/v1/debug/sessionManager/delete`；请求体是 JSON 字符串 session ID。该官方服务负责关闭活动句柄、删除会话目录和索引、清理文件历史并更新自身的删除 journal。
-- 浏览器不得直接访问通用 debug dispatcher。`/api/v1/debug` 及其子路径必须在代理层返回 404；浏览器只调用 `POST /__open-kimi-mobile/sessions:delete`。该端点必须校验同源、当前页面 Bearer token、严格 session ID/body、短超时，并先确认会话仍存在且已归档。
-- 外部 `--target` 未启用官方 debug endpoint 时，永久删除必须返回清楚的不可用错误，不能只从页面隐藏条目或误报成功。
+- 当前兼容基线是 Kimi Code `0.42.0`；`UPSTREAM.md` 和 `upstream.json` 记录已核对版本。升级官方版本前，
+  必须重新检查受影响的 API、DOM、交互和失败行为，不能把历史快照当成新版本保证。
+- 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
+  官方请求结果。`0.42.0` 归档设置页使用 `.archive-list`、`.archive-card`、`.archive-row`、
+  `.archive-name`、`.archive-time` 与 `.archive-workspace .path`；上游变更时重新核对。
+- 归档列表可使用 v2 `GET /api/v2/sessions?meta.archived=true`，条目包含 `id`、`workspace` 和 `meta`。
+  保留 v1 `GET /api/v1/sessions?archived_only=true` 兼容，不能只监听其中一个版本。
+- 官方 `0.42.0` 提供 `POST /api/v1/sessions/{session_id}:delete`。永久删除必须调用该正式接口，
+  继续让官方服务负责关闭会话并清理会话数据。
+- 浏览器不得访问通用 debug dispatcher。`/api/v1/debug` 及其子路径必须在代理层返回 404；
+  launcher 不得为永久删除常态开启 `--debug-endpoints` 或维护另一个删除协议。
+- 外部 `--target` 不支持官方正式删除接口时，必须显示清楚的错误，不能只从页面隐藏条目或误报成功。
 
 ## 注入层和功能归属
 
-- `packages/launcher/src/officialPresentation.mjs` 是注入资源清单。新增独立 JS/CSS 时同时登记 `FILES` 与 `SCRIPTS`/`STYLES`，并更新 `tests/it/launcher-official.it.test.mjs`。需要拦截官方启动请求的脚本必须排在官方 module script 之前。
+- `packages/launcher/src/officialPresentation.mjs` 是注入资源清单。新增独立 JS/CSS 时同时登记 `FILES` 与
+  `SCRIPTS`/`STYLES`，并更新 `tests/it/launcher-official.it.test.mjs`。需要拦截官方启动请求的脚本
+  必须排在官方 module script 之前。
 - 优先把一个功能放在独立 JS/CSS 中。不要把无关逻辑继续堆进 `presentation.js`、`presentation.css` 或 `providerEnhancements.js`。
 - `providerSorting.js` 只维护供应商表单中的视觉顺序，并把顺序交回官方表单保存；不能另建模型配置存储。鼠标和触摸都必须可用，拖拽不能打乱每行模型能力配置。
 - `workspacePins.js` 只在当前浏览器保存经过校验的工作区 ID。不得把工作区名称、路径或会话内容写入 `localStorage`；置顶排序只影响展示。
-- `archivedSessionDelete.js` 只增强已归档页中能与官方响应唯一对应的会话行。确认对话框必须包含会话标题并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。不得记录标题、ID、路径或把它们写入浏览器存储。
+- `archivedSessionDelete.js` 只增强已归档页中能与官方响应唯一对应的会话行。确认对话框必须包含会话标题
+  并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。
+  不得记录标题、ID、路径或把它们写入浏览器存储。
 - 页面 Bearer token 只在当前运行内存中沿用，不写日志、不回显、不另行持久化。模型发现 endpoint 的 API Key 也遵守同一规则。
 
 ## 进程和运行时检查
 
-- 拉取代码、切换提交或更新远端 `main` 不会热替换已经运行的 launcher 或 Kimi 后端。用户可见功能缺失时，先核对 `HEAD`/`origin/main`、进程启动时间、监听端口、首页是否注入目标资产、资产是否返回 200，再判断代码失效。
+- 拉取代码、切换提交或更新远端 `main` 不会热替换已经运行的 launcher 或 Kimi 后端。用户可见功能缺失时，
+  先核对 `HEAD`/`origin/main`、进程启动时间、监听端口、首页是否注入目标资产、资产是否返回 200，
+  再判断代码失效。
 - 验证官方行为时使用仓库内明确命名的临时 `KIMI_CODE_HOME` 和虚构数据。不得读取、打印或截图用户真实会话、工作区路径、token 或账号信息。验证结束后停止自己启动的服务并删除自己的临时目录。
 - 不随意终止无法确认归属的进程。只清理由当前任务启动，或已明确属于测试的 PID/端口。
 
 ## 开发流程
 
+### Clean Code
+
+- 新增或修改的手写源码、测试、配置与文档，每行不得超过 130 个字符。
+- 上游生成的契约快照、锁文件和第三方资源保持其生成格式；不得为满足行长限制手工改写生成内容。
+- 优先通过拆分表达式、参数和段落控制行长，不使用禁用规则或压缩可读代码绕过限制。
+
 1. 明确用户可见触发条件、期望结果、失败行为和版本边界。
-2. 检查工作树、相关注入清单、官方 0.41.0 bundle/源码、当前运行进程及已有测试；先取得事实再改代码。
+2. 检查工作树、相关注入清单、官方 `0.42.0` bundle/源码、当前运行进程及已有测试；先取得事实再改代码。
 3. 选择最小职责层：视觉问题放独立 mobile 资源；同源安全边界放 launcher；持久数据变更调用官方后端。
 4. 保留并行修改。共享清单只追加自己的资源，修改前重新读取最新文件。
 5. 更新或新增能复现真实触发条件的定向测试。修复 API 版本问题时，测试必须使用真实 wire shape，而不是只验证自创 fixture。
 6. 运行最少必要校验并记录结果。完成后检查 `git diff --check` 和 `git status --short`，清理临时进程与数据。
 7. 除非任务明确要求，不提交、不推送、不发布。
 
-README 的更新记录保持最新在前。日常未发布内容在 `develop` 写入 `develop（未发布）`；合入 `main` 准备发布时整理成对应版本条目并链接 Release/CHANGELOG。
+README 只维护相对官方 Web 的完整增强能力和当前版本变化；逐版历史统一放在 CHANGELOG。
+`develop` 的未发布内容仅在确有必要时维护于 CHANGELOG 顶部，准备发布时整理成对应版本条目。
 
 ### KISS 分支模型
 

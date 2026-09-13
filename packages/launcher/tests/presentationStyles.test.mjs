@@ -31,7 +31,11 @@ describe('presentation theme layout boundaries', () => {
       /\.composer-card\s+\.okw-steer-button\s*\{[^}]*height:\s*var\(--composer-control-size\)/s,
     );
     expect(presentationCss).toMatch(
-      /@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.composer-card\s+\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s,
+      new RegExp(
+        String.raw`@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.composer-card\s+` +
+          String.raw`\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px`,
+        's',
+      ),
     );
   });
 
