@@ -60,7 +60,12 @@ function makeComposer(view, running) {
   return composer;
 }
 
-function install({ mobile = true, route = '/sessions/session-a', running = false } = {}) {
+function install({
+  executions = 1,
+  mobile = true,
+  route = '/sessions/session-a',
+  running = false,
+} = {}) {
   const frame = document.createElement('iframe');
   frame.src = route;
   document.body.append(frame);
@@ -71,7 +76,9 @@ function install({ mobile = true, route = '/sessions/session-a', running = false
   installWebSocket(view, sockets);
   const composer = makeComposer(view, running);
 
-  view.eval(`(() => { ${source}\n})()`);
+  for (let index = 0; index < executions; index += 1) {
+    view.eval(`(() => { ${source}\n})()`);
+  }
 
   return {
     composer,
@@ -106,6 +113,18 @@ afterEach(() => {
 });
 
 describe('mobile completion modal trigger', () => {
+  it('installs only once when the injected script executes twice', async () => {
+    const fixture = install({ executions: 2 });
+    fixture.createSocket();
+    fixture.startRunning();
+    await settle();
+    fixture.removeRunning();
+    await settle();
+    await settle();
+
+    expect(fixture.view.document.querySelectorAll('.okw-completion-modal')).toHaveLength(1);
+  });
+
   it('shows once after the current route is observed running and then becomes idle', async () => {
     const fixture = install();
     const socket = fixture.createSocket();
