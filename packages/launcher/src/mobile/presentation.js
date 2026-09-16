@@ -365,13 +365,15 @@ const mobile = window.matchMedia('(max-width: 640px)');
     button.title = title;
     button.setAttribute('aria-label', title);
     button.addEventListener('click', () => {
-      editor.dispatchEvent(new KeyboardEvent('keydown', {
-        key: 's',
-        code: 'KeyS',
-        ctrlKey: true,
-        bubbles: true,
-        cancelable: true,
-      }));
+      window.setTimeout(() => {
+        editor.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 's',
+          code: 'KeyS',
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        }));
+      }, 0);
     });
     toolbar.insertBefore(button, directChild(toolbar, stop));
   };
