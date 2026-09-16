@@ -51,6 +51,8 @@ const event = (type, values = {}) => ({
   ...values,
 });
 
+const runNextTimer = (timers) => timers.shift()?.();
+
 class FakeChip extends FakeTarget {
   constructor(document, active = false) {
     super();
@@ -254,7 +256,7 @@ describe('model provider navigation', () => {
 
 describe('priority-send control', () => {
   it('appears only when official controls allow steering and dispatches one Ctrl+S', () => {
-    const { composer, editor, observer } = install({ isMobile: true, withComposer: true });
+    const { composer, editor, observer, timers } = install({ isMobile: true, withComposer: true });
     const received = [];
     editor.addEventListener('keydown', (keydown) => {
       received.push(keydown);
@@ -266,12 +268,32 @@ describe('priority-send control', () => {
     expect(button.textContent).toBe('插队');
     expect(button.attributes.get('aria-label')).toContain('优先发送');
     button.dispatchEvent(event('click'));
+    runNextTimer(timers);
     expect(received).toHaveLength(1);
     expect(received[0]).toMatchObject({ key: 's', code: 'KeyS', ctrlKey: true, defaultPrevented: true });
 
     composer.send.disabled = true;
     observer.callback();
     expect(composer.querySelector('.okw-steer-button')).toBeNull();
+  });
+
+  it('waits for the 0.42 editor compositionend task before dispatching Ctrl+S', () => {
+    const { composer, editor, timers } = install({ isMobile: true, withComposer: true });
+    let composing = true;
+    const steers = [];
+    editor.addEventListener('keydown', (keydown) => {
+      if (composing) return;
+      steers.push(keydown);
+      keydown.preventDefault();
+    });
+    timers.push(() => { composing = false; });
+
+    composer.querySelector('.okw-steer-button').dispatchEvent(event('click'));
+    expect(steers).toHaveLength(0);
+    timers.splice(0).forEach((callback) => callback());
+
+    expect(steers).toHaveLength(1);
+    expect(steers[0]).toMatchObject({ key: 's', code: 'KeyS', ctrlKey: true, defaultPrevented: true });
   });
 
   it('works on desktop and remains available across viewport changes', () => {
@@ -282,6 +304,7 @@ describe('priority-send control', () => {
     expect(desktopButton).not.toBeNull();
     desktop.editor.dispatchEvent(event('keydown', { key: 's', ctrlKey: true }));
     desktopButton.dispatchEvent(event('click'));
+    runNextTimer(desktop.timers);
     expect(desktopEvents).toHaveLength(2);
 
     const mobile = install({ isMobile: true, withComposer: true });

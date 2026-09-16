@@ -1,4 +1,8 @@
-{
+(() => {
+  const installKey = Symbol.for('open-kimi-web.completion-modal');
+  if (window[installKey]) return;
+  window[installKey] = true;
+
   const mobile = window.matchMedia('(max-width: 640px)');
   const NativeWebSocket = window.WebSocket;
   const SETTLE_DELAY_MS = 120;
@@ -264,4 +268,4 @@
   window.addEventListener('hashchange', scheduleEvaluation);
   mobile.addEventListener('change', scheduleEvaluation);
   scheduleEvaluation();
-}
+})();
