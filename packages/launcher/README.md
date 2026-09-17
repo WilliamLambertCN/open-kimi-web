@@ -6,12 +6,17 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v0.42.0-r1` GitHub Release 提供固定版本的 tgz：
+本项目当前不发布到 npm registry。`v0.43.1-r1` GitHub Release 提供固定版本的 tgz：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.42.0-r1/open-kimi-web-0.42.0-r1.tgz
+npm install -g \
+  https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.43.1-r1/open-kimi-web-0.43.1-r1.tgz
 open-kimi-web integrate install
 ```
+
+`0.43.1-r1` 对齐 Kimi Code `0.43.1`，并修复提醒脚本重复执行时同一次完成显示两个弹窗的问题。
+“插队”按钮先通过官方 `.send` 创建当前 queued prompt，再按返回的 `prompt_id` 精确 steer；
+官方 `Ctrl+S` 继续使用上游的“提升现有队首”行为。
 
 也可从源码安装：
 
@@ -61,8 +66,10 @@ open-kimi-web serve --no-token-link
 供应商表单还可用当前 Base URL 和可选 API Key 拉取 `/models`，从下拉框选中并添加，也可
 通过专用手柄用鼠标或触摸调整模型顺序；请求由当前页面 token 保护的 launcher 同源端点
 转发，不记录或回显 API Key，不跟随重定向。工作区更多菜单支持置顶与取消置顶，本地存储
-只保留工作区 ID。已归档会话可在二次确认后通过 Kimi Code 0.42.0 官方接口永久删除。
-会话运行中有可发送草稿时，桌面和手机均提供“插队”按钮，桌面 `Ctrl+S` 快捷键保持可用。
+只保留工作区 ID。已归档会话可在二次确认后通过 Kimi Code 0.43.1 官方接口永久删除。
+会话运行中有可发送草稿时，桌面和手机均提供“插队”按钮。按钮通过官方 `.send` 创建
+当前 queued prompt，再按返回的 `prompt_id` 调用 `prompts:steer`。桌面官方 `Ctrl+S`
+继续使用上游的“提升现有队首”行为。
 首次访问默认使用夜幕主题；桌面可在左下角账号菜单的**氛围主题**中切换，手机可在
 **设置 → 氛围主题**中选择极光、暮色、余烬、矿物青绿、夜幕五套主题，或恢复原始外观。
 主题使用随包附带的独立星云背景、半透明面板和组件样式，只加载当前主题的背景。所有选择
@@ -70,7 +77,7 @@ open-kimi-web serve --no-token-link
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后必须结束旧进程并重新启动，
 再刷新或重新打开页面。`--web-dir` 不注入展示层及主题功能。已检查的官方组件版本为
-`0.42.0`。
+`0.43.1`。
 
 ## 接管（可选）
 
@@ -109,7 +116,7 @@ Kimi 插件是否安装无关。
 - 回环 target 下 launcher 尽力读取 `${KIMI_CODE_HOME:-~/.kimi-code}/server.token`
   并打印带 `#token=...` 的直达链接。fragment 不会发给服务器，在应用挂载前
   即被移除。链接本身就是完整凭据：别分享。
-- 官方 UI（0.42.0）把 token 存入 `localStorage`，有效期 7 天；关闭标签页
+- 官方 UI（0.43.1）把 token 存入 `localStorage`，有效期 7 天；关闭标签页
   不会清除。
 - 回环默认 HTTP；`--lan` 与非回环 `--host` 自动 HTTPS；`--https` 在回环强制
   HTTPS；`--insecure-http` 是明文降级并打印警告。

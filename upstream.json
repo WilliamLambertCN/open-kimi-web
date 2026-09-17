@@ -4,20 +4,23 @@
     "cliVersion": "0.41.0"
   },
   "compatibilityBaseline": {
-    "commit": "6954d2c8bf94a5c7fc29cc6ae35b15d042cc4dcb",
-    "cliVersion": "0.42.0",
+    "commit": "75ac010bcb2050338444455de8328492d152c919",
+    "cliVersion": "0.43.1",
     "commitEvidence": "npm provenance attestation"
   },
-  "minimumServerVersion": "0.42.0",
-  "inspectedPackageVersions": ["0.42.0"],
-  "provenanceReleaseCommits": ["6954d2c8bf94a5c7fc29cc6ae35b15d042cc4dcb"],
+  "minimumServerVersion": "0.43.1",
+  "inspectedPackageVersions": ["0.43.1"],
+  "inspectedPackageIntegrity": {
+    "0.43.1": "sha512-jq60K07tJV+uZB/mTN7rgb99WU5z6PtUeLybywGhXpF5QybaehIWsWudZ9HR8hEEmc7pppB+GAA92RDqOOKnRg=="
+  },
+  "provenanceReleaseCommits": ["75ac010bcb2050338444455de8328492d152c919"],
   "liveTestedServerCommits": [],
   "liveTestedServerVersions": [],
   "contracts": {
     "capturedFrom": "live kap-server booted from the sibling kimi-code checkout",
     "snapshotCommit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",
     "snapshotVersion": "0.41.0",
-    "snapshotStatus": "historical-reference; not recaptured for 0.42.0",
+    "snapshotStatus": "historical-reference; not recaptured for 0.43.1",
     "metadata": "contracts/upstream/metadata.json",
     "openapi": "contracts/upstream/openapi.json",
     "asyncapi": "contracts/upstream/asyncapi.json"
