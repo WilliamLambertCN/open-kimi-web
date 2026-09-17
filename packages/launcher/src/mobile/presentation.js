@@ -8,6 +8,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const gitBySession = new Map();
   let workspaces = [];
   let sessionListing = null;
+  let prioritySubmit = null;
 
   const currentSessionId = () => {
     const match = location.pathname.match(/^\/sessions\/([^/?#]+)/);
@@ -162,6 +163,38 @@ const mobile = window.matchMedia('(max-width: 640px)');
     return method.toUpperCase();
   };
 
+  const requestHeaders = (input, init) => {
+    const headers = new Headers(input instanceof Request ? input.headers : undefined);
+    if (init?.headers) new Headers(init.headers).forEach((value, name) => headers.set(name, value));
+    return headers;
+  };
+
+  const promptSessionId = (input, init) => {
+    if (requestMethod(input, init) !== 'POST') return null;
+    const url = requestUrl(input);
+    if (url.origin !== location.origin) return null;
+    const match = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/prompts$/);
+    return match ? decodeURIComponent(match[1]) : null;
+  };
+
+  const finishPrioritySubmit = (intent) => {
+    if (prioritySubmit !== intent) return;
+    prioritySubmit = null;
+    intent.button.disabled = false;
+  };
+
+  const takePrioritySubmit = (input, init) => {
+    if (!prioritySubmit || prioritySubmit.captured) return null;
+    try {
+      if (promptSessionId(input, init) !== prioritySubmit.sessionId) return null;
+    } catch {
+      return null;
+    }
+    const intent = prioritySubmit;
+    intent.captured = true;
+    return intent;
+  };
+
   const isSessionCreate = (input, init) => {
     const url = requestUrl(input);
     return url.origin === location.origin && url.pathname === '/api/v1/sessions' && requestMethod(input, init) === 'POST';
@@ -213,7 +246,36 @@ const mobile = window.matchMedia('(max-width: 640px)');
 
   const nativeFetch = window.fetch;
   window.fetch = async function observedFetch(input, init) {
-    const response = await nativeFetch.apply(this, arguments);
+    const priorityIntent = takePrioritySubmit(input, init);
+    let response;
+    try {
+      response = await nativeFetch.apply(this, arguments);
+    } catch (error) {
+      if (priorityIntent) finishPrioritySubmit(priorityIntent);
+      throw error;
+    }
+    if (priorityIntent) {
+      void (async () => {
+        try {
+          if (!response.ok) return;
+          const body = await response.clone().json();
+          const prompt = body?.data ?? body;
+          if (prompt?.status !== 'queued' || typeof prompt.prompt_id !== 'string') return;
+          const url = requestUrl(input);
+          const headers = requestHeaders(input, init);
+          headers.set('content-type', 'application/json');
+          await nativeFetch.call(window, `${url.pathname}:steer`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ prompt_ids: [prompt.prompt_id] }),
+          });
+        } catch {
+          // The exact submitted prompt remains queued if priority steering fails.
+        } finally {
+          finishPrioritySubmit(priorityIntent);
+        }
+      })();
+    }
     const explained = await explainMissingWorkspace(input, init, response);
     void observeResponse(input, init, explained);
     return explained;
@@ -366,13 +428,19 @@ const mobile = window.matchMedia('(max-width: 640px)');
     button.setAttribute('aria-label', title);
     button.addEventListener('click', () => {
       window.setTimeout(() => {
-        editor.dispatchEvent(new KeyboardEvent('keydown', {
-          key: 's',
-          code: 'KeyS',
-          ctrlKey: true,
-          bubbles: true,
-          cancelable: true,
-        }));
+        const sessionId = currentSessionId();
+        const currentSend = composer.querySelector('.send:not(:disabled)');
+        if (!sessionId || !currentSend || prioritySubmit) return;
+        const intent = { button, sessionId };
+        prioritySubmit = intent;
+        button.disabled = true;
+        window.setTimeout(() => finishPrioritySubmit(intent), 30_000);
+        try {
+          currentSend.click();
+        } catch (error) {
+          finishPrioritySubmit(intent);
+          throw error;
+        }
       }, 0);
     });
     toolbar.insertBefore(button, directChild(toolbar, stop));
