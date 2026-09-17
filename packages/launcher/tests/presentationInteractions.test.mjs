@@ -84,9 +84,13 @@ class FakeButton extends FakeTarget {
   constructor() {
     super();
     this.attributes = new Map();
+    this.disabled = false;
     this.parent = null;
   }
 
+  click() {
+    if (!this.disabled) this.dispatchEvent(event('click'));
+  }
   setAttribute(name, value) { this.attributes.set(name, value); }
   remove() {
     if (!this.parent) return;
@@ -116,7 +120,7 @@ class FakeComposer {
   constructor(editor) {
     this.editor = editor;
     this.stop = {};
-    this.send = { disabled: false };
+    this.send = new FakeButton();
     this.toolbar = new FakeToolbar(this.stop);
   }
 
@@ -132,7 +136,13 @@ class FakeComposer {
   }
 }
 
-function install({ isMobile = false, withComposer = false, withStrip = false } = {}) {
+function install({
+  isMobile = false,
+  nativeFetch = vi.fn(),
+  pathname = '/sessions/session-a',
+  withComposer = false,
+  withStrip = false,
+} = {}) {
   const mediaListeners = [];
   const media = {
     matches: isMobile,
@@ -169,7 +179,7 @@ function install({ isMobile = false, withComposer = false, withStrip = false } =
     constructor(type, values) { Object.assign(this, event(type), values); }
   }
   const window = new FakeTarget();
-  window.fetch = vi.fn();
+  window.fetch = nativeFetch;
   window.matchMedia = () => media;
   window.setTimeout = (callback) => { timers.push(callback); };
 
@@ -186,7 +196,7 @@ function install({ isMobile = false, withComposer = false, withStrip = false } =
     WeakSet,
     decodeURIComponent,
     document,
-    location: { href: 'http://localhost/', origin: 'http://localhost', pathname: '/' },
+    location: { href: `http://localhost${pathname}`, origin: 'http://localhost', pathname },
     navigator: { language: 'zh-CN' },
     window,
   });
@@ -197,9 +207,11 @@ function install({ isMobile = false, withComposer = false, withStrip = false } =
     editor,
     media,
     mediaListeners,
+    nativeFetch,
     observer: { callback: observerCallback, options: observerOptions },
     strip,
     timers,
+    window,
   };
 }
 
@@ -255,62 +267,143 @@ describe('model provider navigation', () => {
 });
 
 describe('priority-send control', () => {
-  it('appears only when official controls allow steering and dispatches one Ctrl+S', () => {
-    const { composer, editor, observer, timers } = install({ isMobile: true, withComposer: true });
-    const received = [];
-    editor.addEventListener('keydown', (keydown) => {
-      received.push(keydown);
-      keydown.preventDefault();
+  it('submits and steers the exact current draft without promoting an older queued prompt', async () => {
+    const nativeFetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        code: 0,
+        data: { prompt_id: 'current-draft', status: 'queued' },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        code: 0,
+        data: { prompt_ids: ['current-draft'], steered: true },
+      }), { status: 200 }));
+    const fixture = install({ isMobile: true, nativeFetch, withComposer: true });
+    const keydowns = [];
+    fixture.editor.addEventListener('keydown', (keydown) => keydowns.push(keydown));
+    fixture.composer.send.addEventListener('click', () => {
+      void fixture.window.fetch('/api/v1/sessions/session-a/prompts', {
+        method: 'POST',
+        headers: { authorization: 'Bearer page-token', 'content-type': 'application/json' },
+        body: JSON.stringify({ content: 'current draft' }),
+      });
     });
-    const button = composer.querySelector('.okw-steer-button');
+    const button = fixture.composer.querySelector('.okw-steer-button');
 
     expect(button).not.toBeNull();
     expect(button.textContent).toBe('插队');
     expect(button.attributes.get('aria-label')).toContain('优先发送');
     button.dispatchEvent(event('click'));
-    runNextTimer(timers);
-    expect(received).toHaveLength(1);
-    expect(received[0]).toMatchObject({ key: 's', code: 'KeyS', ctrlKey: true, defaultPrevented: true });
+    runNextTimer(fixture.timers);
+    await vi.waitFor(() => expect(nativeFetch).toHaveBeenCalledTimes(2));
 
-    composer.send.disabled = true;
-    observer.callback();
-    expect(composer.querySelector('.okw-steer-button')).toBeNull();
+    expect(keydowns).toHaveLength(0);
+    expect(nativeFetch.mock.calls[1][0]).toBe('/api/v1/sessions/session-a/prompts:steer');
+    expect(nativeFetch.mock.calls[1][1].headers.get('authorization')).toBe('Bearer page-token');
+    expect(JSON.parse(nativeFetch.mock.calls[1][1].body)).toEqual({ prompt_ids: ['current-draft'] });
+    expect(button.disabled).toBe(false);
+
+    fixture.composer.send.disabled = true;
+    fixture.observer.callback();
+    expect(fixture.composer.querySelector('.okw-steer-button')).toBeNull();
   });
 
-  it('waits for the 0.42 editor compositionend task before dispatching Ctrl+S', () => {
-    const { composer, editor, timers } = install({ isMobile: true, withComposer: true });
+  it('waits for the official compositionend task before submitting the current draft', () => {
+    const { composer, timers } = install({ isMobile: true, withComposer: true });
     let composing = true;
-    const steers = [];
-    editor.addEventListener('keydown', (keydown) => {
-      if (composing) return;
-      steers.push(keydown);
-      keydown.preventDefault();
-    });
+    const composingAtSubmit = [];
+    composer.send.addEventListener('click', () => composingAtSubmit.push(composing));
     timers.push(() => { composing = false; });
 
     composer.querySelector('.okw-steer-button').dispatchEvent(event('click'));
-    expect(steers).toHaveLength(0);
-    timers.splice(0).forEach((callback) => callback());
+    expect(composingAtSubmit).toHaveLength(0);
+    runNextTimer(timers);
+    expect(composingAtSubmit).toHaveLength(0);
+    runNextTimer(timers);
 
-    expect(steers).toHaveLength(1);
-    expect(steers[0]).toMatchObject({ key: 's', code: 'KeyS', ctrlKey: true, defaultPrevented: true });
+    expect(composingAtSubmit).toEqual([false]);
   });
 
   it('works on desktop and remains available across viewport changes', () => {
     const desktop = install({ withComposer: true });
     const desktopEvents = [];
+    const desktopSubmits = [];
     desktop.editor.addEventListener('keydown', (keydown) => desktopEvents.push(keydown));
+    desktop.composer.send.addEventListener('click', () => desktopSubmits.push(true));
     const desktopButton = desktop.composer.querySelector('.okw-steer-button');
     expect(desktopButton).not.toBeNull();
     desktop.editor.dispatchEvent(event('keydown', { key: 's', ctrlKey: true }));
     desktopButton.dispatchEvent(event('click'));
     runNextTimer(desktop.timers);
-    expect(desktopEvents).toHaveLength(2);
+    expect(desktopEvents).toHaveLength(1);
+    expect(desktopSubmits).toHaveLength(1);
 
     const mobile = install({ isMobile: true, withComposer: true });
     expect(mobile.composer.querySelector('.okw-steer-button')).not.toBeNull();
     mobile.media.matches = false;
     mobile.mediaListeners[0]();
     expect(mobile.composer.querySelector('.okw-steer-button')).not.toBeNull();
+  });
+});
+
+describe('priority-send isolation', () => {
+  it('uses the current official send after a rerender and leaves an already-running prompt alone', async () => {
+    const nativeFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      code: 0,
+      data: { prompt_id: 'current-draft', status: 'running' },
+    }), { status: 200 }));
+    const fixture = install({ nativeFetch, withComposer: true });
+    const staleSend = fixture.composer.send;
+    const currentSend = new FakeButton();
+    const staleClicks = vi.fn();
+    const currentClicks = vi.fn();
+    staleSend.addEventListener('click', staleClicks);
+    currentSend.addEventListener('click', () => {
+      currentClicks();
+      void fixture.window.fetch('/api/v1/sessions/session-a/prompts', { method: 'POST' });
+    });
+    fixture.composer.send = currentSend;
+    const button = fixture.composer.querySelector('.okw-steer-button');
+
+    button.dispatchEvent(event('click'));
+    runNextTimer(fixture.timers);
+    await vi.waitFor(() => expect(button.disabled).toBe(false));
+
+    expect(staleClicks).not.toHaveBeenCalled();
+    expect(currentClicks).toHaveBeenCalledOnce();
+    expect(nativeFetch).toHaveBeenCalledOnce();
+  });
+
+  it('does not retain an intent when the official send becomes unavailable', async () => {
+    const nativeFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      code: 0,
+      data: { prompt_id: 'ordinary-draft', status: 'queued' },
+    }), { status: 200 }));
+    const fixture = install({ nativeFetch, withComposer: true });
+    const button = fixture.composer.querySelector('.okw-steer-button');
+
+    button.dispatchEvent(event('click'));
+    fixture.composer.send.disabled = true;
+    runNextTimer(fixture.timers);
+    expect(button.disabled).toBe(false);
+
+    await fixture.window.fetch('/api/v1/sessions/session-a/prompts', { method: 'POST' });
+    expect(nativeFetch).toHaveBeenCalledOnce();
+  });
+
+  it('does not steer an ordinary prompt submission without a priority-send intent', async () => {
+    const nativeFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      code: 0,
+      data: { prompt_id: 'ordinary-draft', status: 'queued' },
+    }), { status: 200 }));
+    const fixture = install({ nativeFetch, withComposer: true });
+
+    await fixture.window.fetch('/api/v1/sessions/session-a/prompts', {
+      method: 'POST',
+      headers: { authorization: 'Bearer page-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ content: 'ordinary draft' }),
+    });
+
+    expect(nativeFetch).toHaveBeenCalledOnce();
+    expect(nativeFetch.mock.calls[0][0]).toBe('/api/v1/sessions/session-a/prompts');
   });
 });
