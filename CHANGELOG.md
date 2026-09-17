@@ -3,6 +3,50 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v0.43.1-r1] - 2026-09-17
+
+兼容基线升级到官方 Kimi Code `0.43.1`。
+
+### 变更
+
+- 官方 bundle 下载回退版本、launcher 版本、插件版本和 Release 安装链接升级到 `0.43.1-r1`。
+- 桌面和手机的“插队”按钮通过官方 `.send` 创建当前 queued prompt，再按返回的 `prompt_id` 精确 steer。
+- 修复提醒脚本重复执行时，同一次任务完成会显示两个完成弹窗的问题。
+- 标题补丁 fixture 按 `0.43.1` 发布 bundle 更新，并继续只改写共用标题组合器与静态页面标题。
+
+### 兼容性审计
+
+- npm provenance 指向 `75ac010bcb2050338444455de8328492d152c919`，发布包 integrity 记录在
+  `upstream.json` 和 `UPSTREAM.md`。
+- 归档选择器、`kimi-locale`、v2 已归档列表 wire shape、v1 fallback 和官方永久删除接口保持可用。
+- 官方设置的归档页仍只提供恢复操作，本项目的永久删除入口没有与官方按钮重复。
+- Rive 资源已改为 JavaScript chunks，通用静态服务无需为本次升级增加专用兼容分支。
+- 本轮完成发布包静态审计，未执行真实浏览器 click-through 或完整 live protocol recapture；
+  `0.41.0` 协议快照继续作为历史参考。
+
+### 事件：重复执行提醒脚本出现两个完成弹窗
+
+- 影响：手机会话一次任务完成后可能连续出现两个相同弹窗，需要关闭两次。
+- 触发条件：同一页面上下文重复执行 `completionModal.js`，随后当前会话从 running 进入 idle。
+- 根因：每次执行都会包装 WebSocket 并安装独立观察器，两套状态机分别判断任务完成并创建弹窗。
+- 证据：双执行 fixture 在一次 running → idle 后可复现重复安装；源码没有安装标记。
+- 修复：使用 `Symbol.for` 保存全局安装状态，第二次执行在注册监听器前直接返回。
+- 回归验证：completion modal 定向 UT 连续执行脚本两次，并断言最终只有一个 modal。
+- 运维动作：升级后重启 launcher 并刷新或重新打开页面，旧页面不会热加载新脚本。
+- 剩余边界：当前回归使用真实 MutationObserver fixture，本轮未做 `0.43.1` 手机浏览器 click-through。
+
+### 事件：0.43.1 “插队”不能精确发送当前草稿
+
+- 影响：运行中点击自定义“插队”可能只把当前草稿排队，或提升更早的队首，未发送预期草稿。
+- 触发条件：Kimi Code `0.43.1` 正在执行回合，输入新草稿后点击桌面或手机的自定义按钮。
+- 根因：旧增强合成 `Ctrl+S`；官方快捷键提升现有队首，当前草稿必须先提交并按返回 ID steer。
+- 证据：`0.43.1` bundle 把 `Ctrl+S` 映射到 `steerQueued(0)`；server 的 `POST /prompts`
+  返回 queued `prompt_id`，并提供接收 `prompt_ids` 的 `prompts:steer`。
+- 修复：按钮点击当前官方 `.send`，只捕获本次同会话 queued `prompt_id`，再发起精确 steer。
+- 回归验证：定向 UT 覆盖旧队列隔离、精确 ID、重新渲染、不可用 `.send` 和普通提交隔离。
+- 运维动作：升级后重启 launcher 并刷新页面；无需迁移会话或清理官方队列。
+- 剩余边界：官方 `Ctrl+S` 继续由上游实现；本轮没有真实浏览器 click-through 或 live 协议重捕获。
+
 ## [open-kimi-web v0.42.0-r1] - 2026-09-13
 
 兼容基线升级到官方 Kimi Code `0.42.0`。
@@ -119,3 +163,4 @@
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
 [open-kimi-web v0.42.0-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.42.0-r1
+[open-kimi-web v0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1
