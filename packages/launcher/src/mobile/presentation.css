@@ -445,17 +445,27 @@
 
   .sheet-root.okw-settings .sheet-panel,
   .sheet-root.okw-workspaces .sheet-panel {
-    top: 4px;
-    bottom: 0;
-    height: calc(100dvh - 4px);
     width: 100%;
     max-width: none;
-    max-height: calc(100dvh - 4px);
     background: var(--color-surface-raised, var(--okw-sheet));
     border: 1px solid rgba(255, 255, 255, .07);
     border-bottom: 0;
     border-radius: 18px 18px 0 0;
     box-shadow: none;
+  }
+
+  /* The settings sheet sizes to its content with a capped height so the scrim
+     above stays reachable — a forced full-height panel leaves nothing to tap
+     to dismiss. .sheet-body already scrolls inside the cap (upstream flex). */
+  .sheet-root.okw-settings .sheet-panel {
+    max-height: 85dvh;
+  }
+
+  .sheet-root.okw-workspaces .sheet-panel {
+    top: 4px;
+    bottom: 0;
+    height: calc(100dvh - 4px);
+    max-height: calc(100dvh - 4px);
   }
 
   .sheet-root.okw-settings .sheet-grab,
