@@ -106,12 +106,16 @@ const triedRange = (opts) =>
   `could not bind ${opts.host} on ports ${opts.port}-${Math.min(opts.port + PORT_RETRY_ATTEMPTS - 1, 65535)}`;
 
 function rangeExhaustedError(opts, err) {
+  // Only Windows reserves whole port ranges (Hyper-V/WSL exclusions); on
+  // other platforms the ports are simply taken or restricted.
+  const hint = process.platform === 'win32'
+    ? 'On Windows the range may be reserved by Hyper-V/WSL; check with ' +
+      '"netsh interface ipv4 show excludedportrange protocol=tcp" '
+    : 'The port range is occupied or restricted by the system. ';
   return new Error(
     `${triedRange(opts)} and no ephemeral port was available ` +
     `(last error: ${err?.code}: ${err?.message}). ` +
-    'On Windows the range may be reserved by Hyper-V/WSL; check with ' +
-    '"netsh interface ipv4 show excludedportrange protocol=tcp" ' +
-    'or pick a free port with --port.',
+    `${hint}Pick a free port with --port.`,
   );
 }
 
