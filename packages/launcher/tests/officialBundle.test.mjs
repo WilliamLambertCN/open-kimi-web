@@ -3,8 +3,9 @@
 // one real process spawn is `tar`, because the staging path genuinely
 // extracts a tarball (created here with the same system tar).
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -293,5 +294,74 @@ describe('ensureOfficialBundle fallback and concurrency', () => {
     expect(await isBundleComplete(cacheDir)).toBe(false);
     expect(await import('node:fs/promises').then((fs) => fs.readFile(join(cacheDir, 'sentinel'), 'utf8')))
       .toBe('keep damaged cache until replacement is ready');
+  });
+});
+
+// Real packument wire shape: registry metadata carries per-version
+// `dist.integrity` SRI strings (verified against npmjs + npmmirror 0.43.1).
+function integrityFetch(version, tarball) {
+  const integrity = `sha512-${createHash('sha512').update(readFileSync(tarball)).digest('base64')}`;
+  return vi.fn(async () => ({
+    ok: true,
+    json: async () => ({ versions: { [version]: { dist: { integrity } } } }),
+  }));
+}
+
+describe('ensureOfficialBundle tarball integrity', () => {
+  it('verifies the downloaded tarball against the registry sha512', async () => {
+    const tarball = await makeFixtureTarball('2.3.4');
+    const cacheDir = join(root, 'official-web', '2.3.4');
+    const downloadImpl = vi.fn(async (_url, dest) => copyFileSync(tarball, dest));
+    const fetchImpl = integrityFetch('2.3.4', tarball);
+    const result = await ensureOfficialBundle({ version: '2.3.4', cacheDir, downloadImpl, fetchImpl });
+    expect(result).toEqual({ dir: cacheDir, cached: false });
+    expect(downloadImpl).toHaveBeenCalledOnce();
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://registry.npmjs.org/@moonshot-ai/kimi-code',
+      { signal: expect.any(AbortSignal) },
+    );
+    expect(await isBundleComplete(cacheDir)).toBe(true);
+  });
+
+  it('falls back to the mirror when the first tarball fails the integrity check', async () => {
+    const tarball = await makeFixtureTarball('2.3.5');
+    const cacheDir = join(root, 'official-web', '2.3.5');
+    // Both registries publish the same upstream integrity, so the metadata
+    // expectation stays identical while the first source serves bad bytes.
+    const fetchImpl = integrityFetch('2.3.5', tarball);
+    const downloadImpl = vi.fn(async (url, dest) => {
+      if (url.includes('registry.npmjs.org')) writeFileSync(dest, 'tampered bytes');
+      else copyFileSync(tarball, dest);
+    });
+    const result = await ensureOfficialBundle({ version: '2.3.5', cacheDir, downloadImpl, fetchImpl });
+    expect(result).toEqual({ dir: cacheDir, cached: false });
+    expect(downloadImpl.mock.calls.map(([url]) => url)).toEqual(tarballUrls('2.3.5'));
+    expect(await isBundleComplete(cacheDir)).toBe(true);
+  });
+
+  it('rejects with both sources reported when every tarball fails verification', async () => {
+    const tarball = await makeFixtureTarball('2.3.6');
+    const cacheDir = join(root, 'official-web', '2.3.6');
+    const fetchImpl = integrityFetch('2.3.6', tarball);
+    const downloadImpl = vi.fn(async (_url, dest) => writeFileSync(dest, 'tampered bytes'));
+    await expect(
+      ensureOfficialBundle({ version: '2.3.6', cacheDir, downloadImpl, fetchImpl }),
+    ).rejects.toThrow(/registry\.npmjs\.org[\s\S]*sha512 integrity[\s\S]*registry\.npmmirror\.com/);
+    expect(downloadImpl).toHaveBeenCalledTimes(2);
+    expect(await isBundleComplete(cacheDir)).toBe(false);
+  });
+
+  it('warns and continues unverified when registry metadata is unreachable', async () => {
+    const tarball = await makeFixtureTarball('2.3.7');
+    const cacheDir = join(root, 'official-web', '2.3.7');
+    const fetchImpl = vi.fn(async () => { throw new Error('fetch failed'); });
+    const downloadImpl = vi.fn(async (_url, dest) => copyFileSync(tarball, dest));
+    const warn = vi.fn();
+    const result = await ensureOfficialBundle({
+      version: '2.3.7', cacheDir, downloadImpl, fetchImpl, warn,
+    });
+    expect(result).toEqual({ dir: cacheDir, cached: false });
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('unverified'));
+    expect(await isBundleComplete(cacheDir)).toBe(true);
   });
 });

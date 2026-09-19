@@ -48,6 +48,7 @@ async function resolveOfficialPublicDir(opts, token) {
       version,
       cacheDir: officialCacheDir(version, opts.officialCacheRoot),
       downloadImpl: opts.officialDownload,
+      fetchImpl: opts.officialMetadataFetch,
       log,
       warn,
     });
