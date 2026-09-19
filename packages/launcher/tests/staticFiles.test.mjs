@@ -151,7 +151,9 @@ describe('serveStatic sensitive-file boundary', () => {
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       for (const path of ['/assets/app.js', '/assets/app.css', '/assets/data.json']) {
-        expect((await fetch(base + path)).status, path).toBe(200);
+        const response = await fetch(base + path);
+        expect(response.status, path).toBe(200);
+        expect(response.headers.get('x-content-type-options'), path).toBe('nosniff');
       }
     } finally {
       await new Promise((resolveClose) => server.close(resolveClose));
