@@ -6,6 +6,7 @@
 // honors HTTPS_PROXY/HTTP_PROXY) and extract with the system `tar`, keeping
 // this package dependency-free.
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -145,15 +146,45 @@ export async function patchBundleDir(webDir) {
   return { indexTitle: index.count, runtime };
 }
 
-async function downloadAndExtract({ urls, staging, downloadImpl, log }) {
+// Each tarball is verified against the sha512 integrity published by its own
+// registry (packument `versions[<ver>].dist.integrity`, an SRI string). A
+// mismatch fails that source like any download error so the mirror fallback
+// still runs; unreachable metadata only warns and the launch proceeds
+// unverified, since availability beats a hard failure on locked-down networks.
+// The metadata fetch uses global fetch (no proxy-env support): proxy users
+// simply get the unverified warning, matching resolveOfficialVersion.
+async function expectedIntegrity(metadataUrl, version, fetchImpl) {
+  try {
+    const res = await fetchImpl(metadataUrl, { signal: AbortSignal.timeout(META_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`registry metadata returned ${res.status}`);
+    const packument = await res.json();
+    const integrity = packument?.versions?.[version]?.dist?.integrity;
+    return typeof integrity === 'string' && integrity.startsWith('sha512-') ? integrity : null;
+  } catch {
+    return null;
+  }
+}
+
+async function sha512Integrity(file) {
+  return `sha512-${createHash('sha512').update(await readFile(file)).digest('base64')}`;
+}
+
+async function downloadAndExtract({ version, urls, staging, downloadImpl, fetchImpl, log, warn }) {
   const failures = [];
   for (const url of urls) {
     const tarball = join(staging, 'bundle.tgz');
     try {
       await rm(join(staging, 'package'), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       await rm(tarball, { force: true, maxRetries: 5, retryDelay: 100 });
+      const integrity = await expectedIntegrity(url.replace(/\/-\/[^/]+$/, ''), version, fetchImpl);
+      if (integrity === null) {
+        warn(`official web UI: tarball integrity metadata unavailable for ${url} — downloading unverified`);
+      }
       log(`official web UI: downloading ${url}`);
       await downloadImpl(url, tarball);
+      if (integrity !== null && (await sha512Integrity(tarball)) !== integrity) {
+        throw new Error('downloaded tarball does not match the registry sha512 integrity');
+      }
       await extractTarball(staging);
       const extracted = join(staging, 'package', 'dist-web');
       await cp(join(staging, 'package', 'LICENSE'), join(extracted, 'LICENSE'));
@@ -168,14 +199,17 @@ async function downloadAndExtract({ urls, staging, downloadImpl, log }) {
   throw new Error(`no official web UI source succeeded:\n${failures.join('\n')}`);
 }
 
-async function stageOfficialBundle({ version, cacheDir, downloadImpl, log, warn }) {
+async function stageOfficialBundle({ version, cacheDir, downloadImpl, fetchImpl, log, warn }) {
   const staging = await mkdtemp(join(dirname(cacheDir), '.tmp-'));
   try {
     const extracted = await downloadAndExtract({
+      version,
       urls: tarballUrls(version),
       staging,
       downloadImpl,
+      fetchImpl,
       log,
+      warn,
     });
     let patches;
     try {
@@ -281,7 +315,8 @@ async function replaceCacheDir(stagedDir, cacheDir, warn) {
 }
 
 export async function ensureOfficialBundle(options) {
-  const { version, cacheDir, downloadImpl = curlDownload, log = () => {}, warn = () => {} } = options;
+  const { version, cacheDir, downloadImpl = curlDownload, fetchImpl = fetch } = options;
+  const { log = () => {}, warn = () => {} } = options;
   if (!isBundleVersion(version)) throw new Error(`invalid official web UI version: ${version}`);
   if (await isBundleComplete(cacheDir)) {
     log(`official web UI: using cached bundle ${version}`);
@@ -295,7 +330,7 @@ export async function ensureOfficialBundle(options) {
       log(`official web UI: using cached bundle ${version}`);
       return { dir: cacheDir, cached: true };
     }
-    await stageOfficialBundle({ version, cacheDir, downloadImpl, log, warn });
+    await stageOfficialBundle({ version, cacheDir, downloadImpl, fetchImpl, log, warn });
     return { dir: cacheDir, cached: false };
   } finally {
     await rm(lockDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
