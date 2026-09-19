@@ -112,6 +112,16 @@ describe('proxyRequest upstream failures', () => {
     await expect(fetch(`${url}/api/v1/stream`).then((response) => response.text()))
       .rejects.toThrow();
   });
+
+  it('answers 504 and cleans up when the upstream stays idle past the timeout', async () => {
+    // Wedged upstream: accepts the request but never responds.
+    const upstream = await listen(() => {});
+    const url = await listen((req, res) => proxyRequest(req, res, upstream, 50));
+
+    const response = await fetch(`${url}/api/v1/healthz`);
+    expect(response.status).toBe(504);
+    await expect(response.text()).resolves.toBe('Gateway Timeout');
+  });
 });
 
 describe('launcher debug route boundary', () => {
