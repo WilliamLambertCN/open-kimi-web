@@ -31,7 +31,8 @@ async function route(req, res, target, publicDir, officialPresentation) {
     return;
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.writeHead(405, { allow: 'GET, HEAD' }).end('Method Not Allowed');
+    res.writeHead(405, { allow: 'GET, HEAD', 'content-type': 'text/plain; charset=utf-8' })
+      .end('Method Not Allowed');
     return;
   }
   const served = await serveFrontendFiles(req, res, publicDir, officialPresentation);
