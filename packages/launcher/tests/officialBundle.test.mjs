@@ -5,7 +5,7 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -362,6 +362,34 @@ describe('ensureOfficialBundle tarball integrity', () => {
     });
     expect(result).toEqual({ dir: cacheDir, cached: false });
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('unverified'));
+    expect(await isBundleComplete(cacheDir)).toBe(true);
+  });
+});
+
+describe('ensureOfficialBundle staging sweep', () => {
+  it('removes stale .tmp-* staging dirs but keeps fresh ones and the cache', async () => {
+    const cacheRoot = join(root, 'sweep');
+    const cacheDir = join(cacheRoot, '3.0.0');
+    mkdirSync(join(cacheDir, 'assets'), { recursive: true });
+    writeFileSync(join(cacheDir, 'index.html'), `<title>${OFFICIAL_PAGE_TITLE}</title>`);
+    writeFileSync(join(cacheDir, 'boot.js'), 'x');
+    writeFileSync(join(cacheDir, 'LICENSE'), 'MIT');
+    writeFileSync(join(cacheDir, 'assets', 'index.js'), 'x');
+    const stale = join(cacheRoot, '.tmp-killed-1');
+    const fresh = join(cacheRoot, '.tmp-active-2');
+    const unrelated = join(cacheRoot, 'keep-me');
+    mkdirSync(stale);
+    mkdirSync(fresh);
+    mkdirSync(unrelated);
+    writeFileSync(join(stale, 'bundle.tgz'), 'leftover');
+    const old = new Date(Date.now() - 2 * 3_600_000);
+    utimesSync(stale, old, old);
+
+    const result = await ensureOfficialBundle({ version: '3.0.0', cacheDir, downloadImpl: vi.fn() });
+    expect(result).toEqual({ dir: cacheDir, cached: true });
+    expect(existsSync(stale)).toBe(false);
+    expect(existsSync(fresh)).toBe(true);
+    expect(existsSync(unrelated)).toBe(true);
     expect(await isBundleComplete(cacheDir)).toBe(true);
   });
 });
