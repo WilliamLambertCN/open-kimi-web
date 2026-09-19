@@ -28,6 +28,7 @@ const META_TIMEOUT_MS = 3_000;
 const LOCK_POLL_MS = 100;
 const LOCK_TIMEOUT_MS = 300_000;
 const LOCK_STALE_MS = 600_000;
+const STAGING_SWEEP_MS = 3_600_000;
 
 export function isBundleVersion(raw) {
   return typeof raw === 'string' && raw.length <= 32 && VERSION_RE.test(raw);
@@ -314,10 +315,25 @@ async function replaceCacheDir(stagedDir, cacheDir, warn) {
   }
 }
 
+// mkdtemp staging dirs normally clean up in `finally`; a hard-killed launcher
+// can leave one behind, so sweep siblings older than an hour (far beyond the
+// 5-minute cache-lock timeout, so an in-flight staging is never removed).
+async function sweepStaleStagingDirs(root, warn) {
+  for (const entry of await readdir(root, { withFileTypes: true }).catch(() => [])) {
+    if (!entry.isDirectory() || !entry.name.startsWith('.tmp-')) continue;
+    const dir = join(root, entry.name);
+    const info = await stat(dir).catch(() => null);
+    if (info === null || Date.now() - info.mtimeMs <= STAGING_SWEEP_MS) continue;
+    await rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+      .catch((err) => warn(`official web UI: could not remove stale staging ${dir}: ${err.message}`));
+  }
+}
+
 export async function ensureOfficialBundle(options) {
   const { version, cacheDir, downloadImpl = curlDownload, fetchImpl = fetch } = options;
   const { log = () => {}, warn = () => {} } = options;
   if (!isBundleVersion(version)) throw new Error(`invalid official web UI version: ${version}`);
+  await sweepStaleStagingDirs(dirname(cacheDir), warn);
   if (await isBundleComplete(cacheDir)) {
     log(`official web UI: using cached bundle ${version}`);
     return { dir: cacheDir, cached: true };
