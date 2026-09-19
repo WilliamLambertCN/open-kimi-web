@@ -5,6 +5,13 @@
 import { STATUS_CODES } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 
+// Per-message cap on both WS legs. Prompts may inline base64 image
+// attachments inside the WS message itself (asyncapi.json image source
+// `{kind:"base64", media_type, data}`), so legitimate frames reach tens of
+// MiB when several phone photos go in one message. 64 MiB covers that while
+// still bounding the memory a hostile or buggy peer can force per frame.
+export const MAX_WS_PAYLOAD_BYTES = 64 * 1024 * 1024;
+
 // Headers the ws client library manages itself — forwarding the client's
 // values would corrupt the upstream handshake.
 const WS_MANAGED_HEADERS = new Set([
@@ -69,6 +76,7 @@ export function createWsProxy() {
   const active = new Set();
   const wss = new WebSocketServer({
     noServer: true,
+    maxPayload: MAX_WS_PAYLOAD_BYTES,
     // proxyUpgrade stashes the upstream's negotiated subprotocol on the
     // request before handleUpgrade runs; echo it to preserve the
     // kimi-code.bearer.<token> handshake semantics.
@@ -87,7 +95,9 @@ export function createWsProxy() {
     if (req.headers.origin !== undefined) headers.origin = targetOrigin;
     let upstream;
     try {
-      upstream = new WebSocket(new URL(req.url, target), protocols, { headers });
+      upstream = new WebSocket(new URL(req.url, target), protocols, {
+        headers, maxPayload: MAX_WS_PAYLOAD_BYTES,
+      });
     } catch {
       rejectHandshake(socket);
       return;
