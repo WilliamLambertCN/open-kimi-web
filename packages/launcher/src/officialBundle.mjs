@@ -95,7 +95,9 @@ function runCommand(command, args, cwd) {
 }
 
 // System curl: honors HTTPS_PROXY/HTTP_PROXY/NO_PROXY natively. -f turns
-// HTTP errors into exit codes so the mirror fallback actually triggers.
+// HTTP errors into exit codes so the mirror fallback actually triggers. The
+// size cap (256 MiB, ~12x the real ~20 MiB tarball) refuses runaway writes
+// from a broken or hostile source before it can fill the disk.
 export function curlDownload(url, destFile) {
   return runCommand('curl', [
     '-fsSL',
@@ -107,6 +109,8 @@ export function curlDownload(url, destFile) {
     '90',
     '--retry-max-time',
     '120',
+    '--max-filesize',
+    '268435456',
     '-o',
     destFile,
     url,
