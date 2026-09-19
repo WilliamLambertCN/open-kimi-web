@@ -77,13 +77,19 @@ describe('createLauncherWithRetry', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('ephemeral port 5555'));
   });
 
-  it('gives up with a netsh hint when even the ephemeral fallback fails', async () => {
+  it('gives up with a platform-appropriate hint when even the ephemeral fallback fails', async () => {
     const create = vi.fn(() => {
       throw listenError('EACCES');
     });
-    await expect(createLauncherWithRetry(baseOpts({ port: 5000 }), create)).rejects.toThrow(
-      /ports 5000-5009[\s\S]*netsh interface ipv4 show excludedportrange protocol=tcp[\s\S]*--port/,
-    );
+    const error = await createLauncherWithRetry(baseOpts({ port: 5000 }), create)
+      .then(() => { throw new Error('expected a listen failure'); }, (err) => err);
+    expect(error.message).toMatch(/ports 5000-5009[\s\S]*--port/);
+    if (process.platform === 'win32') {
+      expect(error.message).toContain('netsh interface ipv4 show excludedportrange protocol=tcp');
+    } else {
+      expect(error.message).not.toContain('netsh');
+      expect(error.message).toContain('occupied or restricted');
+    }
     expect(create).toHaveBeenCalledTimes(PORT_RETRY_ATTEMPTS + 1);
     expect(create.mock.calls.map(([o]) => o.port)).toEqual([5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 0]);
   });
