@@ -51,4 +51,14 @@ describe('presentation theme layout boundaries', () => {
       /\.pf-model-grid\.okw-model-drop-after\s*\{[^}]*var\(--color-accent/s,
     );
   });
+
+  it('caps the mobile settings sheet below full height so the scrim stays tappable', () => {
+    expect(presentationCss).toMatch(
+      /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*max-height:\s*85dvh/s,
+    );
+    // A forced viewport-height panel leaves no scrim to tap to dismiss.
+    expect(presentationCss).not.toMatch(
+      /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*[^-\w]height:\s*calc\(100dvh/s,
+    );
+  });
 });
