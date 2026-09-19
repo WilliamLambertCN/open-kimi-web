@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { generateSelfSignedCertificate } from '../src/tlsCertificate.mjs';
+import { generateSelfSignedCertificate, requiredSanNames } from '../src/tlsCertificate.mjs';
 import { defaultHome, ensureManagedTls, loadCustomTls, tlsPaths } from '../src/tlsStore.mjs';
 
 const homes = [];
@@ -127,6 +127,27 @@ describe('managed TLS generation lock', () => {
         staleLockMs: 60_000,
       }),
     ).rejects.toThrow(/timed out waiting for TLS certificate lock/);
+  });
+
+  it('adopts a certificate that appeared while waiting on the lock', async () => {
+    const home = await tempHome();
+    const paths = tlsPaths(home);
+    await mkdir(paths.dir, { recursive: true });
+    await writeFile(paths.lock, 'held by another launcher');
+    // Simulates the peer finishing under the lock before this process's
+    // lock wait expires: a valid pair covering the same SANs.
+    const options = { home, interfaces, hostname: 'devbox' };
+    const pair = await generateSelfSignedCertificate(requiredSanNames(options));
+    await writeFile(paths.key, pair.key);
+    await writeFile(paths.cert, pair.cert);
+    const result = await ensureManagedTls({
+      ...options,
+      lockTimeoutMs: 30,
+      lockPollMs: 5,
+      staleLockMs: 60_000,
+    });
+    expect(result.created).toBe(false);
+    expect(result.cert).toBe(pair.cert);
   });
 });
 

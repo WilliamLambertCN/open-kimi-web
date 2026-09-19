@@ -103,7 +103,11 @@ async function acquireLock(path, options) {
     } catch (error) {
       if (error?.code !== 'EEXIST') throw error;
       if (await removeStaleLock(path, options.staleMs)) continue;
-      if (Date.now() >= deadline) throw new Error('timed out waiting for TLS certificate lock');
+      if (Date.now() >= deadline) {
+        throw Object.assign(new Error('timed out waiting for TLS certificate lock'), {
+          code: 'ETLSLOCKTIMEOUT',
+        });
+      }
       await new Promise((resolve) => setTimeout(resolve, options.pollMs));
     }
   }
@@ -132,23 +136,36 @@ export async function ensureManagedTls(options = {}) {
   const renewBeforeMs = options.renewBeforeMs ?? DEFAULT_RENEW_BEFORE_MS;
   const initial = await currentState(paths, names, now, renewBeforeMs);
   if (initial.validation.valid) return managedResult(initial.pair, initial.validation, false, null);
-  return withLock(paths, options, async () => {
-    const lockedNow = options.now ?? new Date();
-    const locked = await currentState(paths, names, lockedNow, renewBeforeMs);
-    if (locked.validation.valid) return managedResult(locked.pair, locked.validation, false, null);
-    const generate = options.generate ?? generateSelfSignedCertificate;
-    const pair = await generate(names);
-    const validationNow = options.now ?? new Date();
-    const validation = validateManagedCertificate(pair, names, validationNow, renewBeforeMs);
-    if (!validation.valid) throw new Error(`generated TLS certificate failed validation: ${validation.reason}`);
-    await persist(paths, pair, {
-      fingerprint: validation.fingerprint,
-      expiresAt: validation.expiresAt,
-      sans: names,
+  try {
+    return await withLock(paths, options, async () => {
+      const lockedNow = options.now ?? new Date();
+      const locked = await currentState(paths, names, lockedNow, renewBeforeMs);
+      if (locked.validation.valid) return managedResult(locked.pair, locked.validation, false, null);
+      const generate = options.generate ?? generateSelfSignedCertificate;
+      const pair = await generate(names);
+      const validationNow = options.now ?? new Date();
+      const validation = validateManagedCertificate(pair, names, validationNow, renewBeforeMs);
+      if (!validation.valid) {
+        throw new Error(`generated TLS certificate failed validation: ${validation.reason}`);
+      }
+      await persist(paths, pair, {
+        fingerprint: validation.fingerprint,
+        expiresAt: validation.expiresAt,
+        sans: names,
+      });
+      const rotated = Boolean(locked.pair);
+      return managedResult(pair, validation, true, rotated ? locked.validation.reason : null);
     });
-    const rotated = Boolean(locked.pair);
-    return managedResult(pair, validation, true, rotated ? locked.validation.reason : null);
-  });
+  } catch (error) {
+    // Another launcher may have held the lock while minting the certificate
+    // this process was waiting on: adopt a valid result instead of failing.
+    if (error?.code !== 'ETLSLOCKTIMEOUT') throw error;
+    const afterWait = await currentState(paths, names, new Date(), renewBeforeMs);
+    if (afterWait.validation.valid) {
+      return managedResult(afterWait.pair, afterWait.validation, false, null);
+    }
+    throw error;
+  }
 }
 
 function managedResult(pair, validation, created, reason) {
