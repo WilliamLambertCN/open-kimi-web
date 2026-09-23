@@ -3,7 +3,8 @@
 // running launcher serves the staged bundle, fails closed when it is
 // unavailable. No real network access anywhere.
 import { execFile } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -31,12 +32,14 @@ let upstream;
 let upstreamUrl;
 let tokenFile;
 let fixtureTarball;
+let fixtureIntegrity;
 let lastMetaAuth = null;
 
 function startFakeUpstream() {
   return new Promise((resolveListen) => {
     const server = createServer((req, res) => {
-      if (req.url === '/api/v1/meta') {
+      const path = req.url.split('?')[0];
+      if (path === '/api/v1/meta') {
         lastMetaAuth = req.headers.authorization ?? null;
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify({
@@ -45,10 +48,29 @@ function startFakeUpstream() {
         }));
         return;
       }
+      // Registry packument stand-in so tarball integrity verification stays
+      // inside the fake network: the published sha512 matches the fixture.
+      if (path === '/@moonshot-ai/kimi-code' || path === '/%40moonshot-ai%2Fkimi-code') {
+        const version = new URL(req.url, 'http://fake').searchParams.get('version');
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ versions: { [version]: { dist: { integrity: fixtureIntegrity } } } }));
+        return;
+      }
       res.writeHead(404).end();
     });
     server.listen(0, '127.0.0.1', () => resolveListen(server));
   });
+}
+
+// fetchImpl stand-in: registry metadata URLs are answered by the fake
+// upstream with a ?version= hint; every other URL behaves like fetch.
+function fakeRegistryFetch(version) {
+  return (url, init) => {
+    const target = new URL(upstreamUrl);
+    target.pathname = '/@moonshot-ai/kimi-code';
+    target.searchParams.set('version', version);
+    return fetch(target, init);
+  };
 }
 
 async function makeFixtureTarball(version) {
@@ -72,6 +94,7 @@ beforeAll(async () => {
   upstreamUrl = `http://127.0.0.1:${upstream.address().port}`;
   await makeFixtureTarball('9.9.9');
   fixtureTarball = join(root, 'fixture-9.9.9.tgz');
+  fixtureIntegrity = `sha512-${createHash('sha512').update(readFileSync(fixtureTarball)).digest('base64')}`;
 });
 
 afterAll(async () => {
@@ -99,7 +122,11 @@ describe('concurrent official frontends', () => {
       await delay(100);
       copyFileSync(fixtureTarball, dest);
     });
-    const opts = frontendOpts({ officialDownload, webVersion: '2.0.0' });
+    const opts = frontendOpts({
+      officialDownload,
+      officialMetadataFetch: fakeRegistryFetch('2.0.0'),
+      webVersion: '2.0.0',
+    });
     const frontends = await Promise.all([startFrontend(opts), startFrontend(opts)]);
     try {
       expect(officialDownload).toHaveBeenCalledTimes(1);
@@ -182,7 +209,9 @@ describe('official mode end-to-end', () => {
     const log = vi.fn();
     const warn = vi.fn();
     const officialDownload = async (_url, dest) => copyFileSync(fixtureTarball, dest);
-    const { launcher, publicDir } = await startFrontend(frontendOpts({ log, warn, officialDownload }));
+    const { launcher, publicDir } = await startFrontend(
+      frontendOpts({ log, warn, officialDownload, officialMetadataFetch: fakeRegistryFetch('9.9.9') }),
+    );
     try {
       expect(publicDir).toBe(join(root, 'official-web', '9.9.9'));
       expect(lastMetaAuth).toBe('Bearer it-official-token');
@@ -261,7 +290,12 @@ describe('official mode caching and failure behavior', () => {
     };
     // A version no earlier test has cached, so the download really runs.
     await expect(startFrontend(
-      frontendOpts({ warn, officialDownload, webVersion: '1.0.0' }),
+      frontendOpts({
+        warn,
+        officialDownload,
+        officialMetadataFetch: fakeRegistryFetch('1.0.0'),
+        webVersion: '1.0.0',
+      }),
     )).rejects.toThrow(
       /official web UI 1\.0\.0 is unavailable:[\s\S]*could not resolve host[\s\S]*curl and tar/,
     );

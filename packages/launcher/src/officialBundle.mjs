@@ -6,17 +6,18 @@
 // honors HTTPS_PROXY/HTTP_PROXY) and extract with the system `tar`, keeping
 // this package dependency-free.
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-export const OFFICIAL_FALLBACK_VERSION = '0.43.1';
+export const OFFICIAL_FALLBACK_VERSION = '2.0.2';
 export const OFFICIAL_PAGE_TITLE = 'open Kimi-Code web';
 export const OPEN_WEB_BRAND = 'open Kimi-Code';
 
 const INDEX_TITLE_NEEDLE = '<title>Kimi Code Web</title>';
 // The bundle composes document titles as `${name} | Kimi Code` with a bare
-// "Kimi Code" fallback (verified against 0.43.1). The combined needle keeps
+// "Kimi Code" fallback (verified against 2.0.2). The combined needle keeps
 // the rewrite inside the shared page/sidebar title composer rather than
 // replacing unrelated visible brand strings throughout the bundle.
 const RUNTIME_TITLE_RE = /\| Kimi Code(`\s*:\s*)"Kimi Code"/g;
@@ -27,6 +28,7 @@ const META_TIMEOUT_MS = 3_000;
 const LOCK_POLL_MS = 100;
 const LOCK_TIMEOUT_MS = 300_000;
 const LOCK_STALE_MS = 600_000;
+const STAGING_SWEEP_MS = 3_600_000;
 
 export function isBundleVersion(raw) {
   return typeof raw === 'string' && raw.length <= 32 && VERSION_RE.test(raw);
@@ -93,7 +95,9 @@ function runCommand(command, args, cwd) {
 }
 
 // System curl: honors HTTPS_PROXY/HTTP_PROXY/NO_PROXY natively. -f turns
-// HTTP errors into exit codes so the mirror fallback actually triggers.
+// HTTP errors into exit codes so the mirror fallback actually triggers. The
+// size cap (256 MiB, ~12x the real ~20 MiB tarball) refuses runaway writes
+// from a broken or hostile source before it can fill the disk.
 export function curlDownload(url, destFile) {
   return runCommand('curl', [
     '-fsSL',
@@ -105,6 +109,8 @@ export function curlDownload(url, destFile) {
     '90',
     '--retry-max-time',
     '120',
+    '--max-filesize',
+    '268435456',
     '-o',
     destFile,
     url,
@@ -145,15 +151,45 @@ export async function patchBundleDir(webDir) {
   return { indexTitle: index.count, runtime };
 }
 
-async function downloadAndExtract({ urls, staging, downloadImpl, log }) {
+// Each tarball is verified against the sha512 integrity published by its own
+// registry (packument `versions[<ver>].dist.integrity`, an SRI string). A
+// mismatch fails that source like any download error so the mirror fallback
+// still runs; unreachable metadata only warns and the launch proceeds
+// unverified, since availability beats a hard failure on locked-down networks.
+// The metadata fetch uses global fetch (no proxy-env support): proxy users
+// simply get the unverified warning, matching resolveOfficialVersion.
+async function expectedIntegrity(metadataUrl, version, fetchImpl) {
+  try {
+    const res = await fetchImpl(metadataUrl, { signal: AbortSignal.timeout(META_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`registry metadata returned ${res.status}`);
+    const packument = await res.json();
+    const integrity = packument?.versions?.[version]?.dist?.integrity;
+    return typeof integrity === 'string' && integrity.startsWith('sha512-') ? integrity : null;
+  } catch {
+    return null;
+  }
+}
+
+async function sha512Integrity(file) {
+  return `sha512-${createHash('sha512').update(await readFile(file)).digest('base64')}`;
+}
+
+async function downloadAndExtract({ version, urls, staging, downloadImpl, fetchImpl, log, warn }) {
   const failures = [];
   for (const url of urls) {
     const tarball = join(staging, 'bundle.tgz');
     try {
       await rm(join(staging, 'package'), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       await rm(tarball, { force: true, maxRetries: 5, retryDelay: 100 });
+      const integrity = await expectedIntegrity(url.replace(/\/-\/[^/]+$/, ''), version, fetchImpl);
+      if (integrity === null) {
+        warn(`official web UI: tarball integrity metadata unavailable for ${url} — downloading unverified`);
+      }
       log(`official web UI: downloading ${url}`);
       await downloadImpl(url, tarball);
+      if (integrity !== null && (await sha512Integrity(tarball)) !== integrity) {
+        throw new Error('downloaded tarball does not match the registry sha512 integrity');
+      }
       await extractTarball(staging);
       const extracted = join(staging, 'package', 'dist-web');
       await cp(join(staging, 'package', 'LICENSE'), join(extracted, 'LICENSE'));
@@ -168,14 +204,17 @@ async function downloadAndExtract({ urls, staging, downloadImpl, log }) {
   throw new Error(`no official web UI source succeeded:\n${failures.join('\n')}`);
 }
 
-async function stageOfficialBundle({ version, cacheDir, downloadImpl, log, warn }) {
+async function stageOfficialBundle({ version, cacheDir, downloadImpl, fetchImpl, log, warn }) {
   const staging = await mkdtemp(join(dirname(cacheDir), '.tmp-'));
   try {
     const extracted = await downloadAndExtract({
+      version,
       urls: tarballUrls(version),
       staging,
       downloadImpl,
+      fetchImpl,
       log,
+      warn,
     });
     let patches;
     try {
@@ -280,9 +319,25 @@ async function replaceCacheDir(stagedDir, cacheDir, warn) {
   }
 }
 
+// mkdtemp staging dirs normally clean up in `finally`; a hard-killed launcher
+// can leave one behind, so sweep siblings older than an hour (far beyond the
+// 5-minute cache-lock timeout, so an in-flight staging is never removed).
+async function sweepStaleStagingDirs(root, warn) {
+  for (const entry of await readdir(root, { withFileTypes: true }).catch(() => [])) {
+    if (!entry.isDirectory() || !entry.name.startsWith('.tmp-')) continue;
+    const dir = join(root, entry.name);
+    const info = await stat(dir).catch(() => null);
+    if (info === null || Date.now() - info.mtimeMs <= STAGING_SWEEP_MS) continue;
+    await rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+      .catch((err) => warn(`official web UI: could not remove stale staging ${dir}: ${err.message}`));
+  }
+}
+
 export async function ensureOfficialBundle(options) {
-  const { version, cacheDir, downloadImpl = curlDownload, log = () => {}, warn = () => {} } = options;
+  const { version, cacheDir, downloadImpl = curlDownload, fetchImpl = fetch } = options;
+  const { log = () => {}, warn = () => {} } = options;
   if (!isBundleVersion(version)) throw new Error(`invalid official web UI version: ${version}`);
+  await sweepStaleStagingDirs(dirname(cacheDir), warn);
   if (await isBundleComplete(cacheDir)) {
     log(`official web UI: using cached bundle ${version}`);
     return { dir: cacheDir, cached: true };
@@ -295,7 +350,7 @@ export async function ensureOfficialBundle(options) {
       log(`official web UI: using cached bundle ${version}`);
       return { dir: cacheDir, cached: true };
     }
-    await stageOfficialBundle({ version, cacheDir, downloadImpl, log, warn });
+    await stageOfficialBundle({ version, cacheDir, downloadImpl, fetchImpl, log, warn });
     return { dir: cacheDir, cached: false };
   } finally {
     await rm(lockDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })

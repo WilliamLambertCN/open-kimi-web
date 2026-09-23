@@ -5,6 +5,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 const enhancementSource = readFileSync(new URL('../src/mobile/providerEnhancements.js', import.meta.url), 'utf8');
 const sortingSource = readFileSync(new URL('../src/mobile/providerSorting.js', import.meta.url), 'utf8');
+const LEGACY_ROWS = '.pf-models > .pf-model-grid:not(.pf-model-head)';
+const CURRENT_ROWS = '.pmt > .pmt-grid:not(.pmt-head)';
+const ALL_ROWS = `${LEGACY_ROWS}, ${CURRENT_ROWS}`;
 
 class FakeClassList {
   constructor(owner) { this.owner = owner; }
@@ -117,9 +120,9 @@ class FakeInput extends FakeElement {
 }
 
 class FakeRow extends FakeElement {
-  constructor(model) {
+  constructor(model, current = false) {
     super();
-    this.className = 'pf-model-grid';
+    this.className = current ? 'pmt-grid' : 'pf-model-grid';
     this.inputs = [new FakeInput(model), new FakeInput('131072'), new FakeInput('')];
     this.append(...this.inputs);
   }
@@ -144,11 +147,19 @@ class FakeRow extends FakeElement {
 }
 
 class FakeField extends FakeElement {
-  constructor(label, control = null) {
+  constructor(label, control = null, hint = '') {
     super();
     this.className = 'pf-field';
     this.label = new FakeElement('label');
+    this.label.className = 'pf-label';
     this.label.textContent = label;
+    if (hint) {
+      const hintNode = new FakeElement('span');
+      hintNode.className = 'pf-hint-inline';
+      hintNode.textContent = hint;
+      this.label.append(hintNode);
+      this.label.textContent += ` ${hint}`;
+    }
     this.control = control;
     this.append(this.label);
     if (control) this.append(control);
@@ -164,9 +175,10 @@ class FakeField extends FakeElement {
 }
 
 class FakeForm extends FakeElement {
-  constructor(rows) {
+  constructor(rows, current = false) {
     super();
-    this.className = 'pf-form';
+    this.className = current ? 'pf' : 'pf-form';
+    this.current = current;
     this.rows = rows;
     const protocol = new FakeElement('button');
     protocol.textContent = 'OpenAI';
@@ -175,17 +187,22 @@ class FakeForm extends FakeElement {
       new FakeField('API Protocol *', protocol),
       new FakeField('API Key *', new FakeInput('provider-key')),
       new FakeField('Base URL *', new FakeInput('https://example.invalid/v1')),
-      new FakeField('Models *'),
+      new FakeField('Models *', null, current ? '2 models' : ''),
     ];
     this.models = new FakeElement();
-    this.models.className = 'pf-models';
+    this.models.className = current ? 'pmt' : 'pf-models';
     this.modelHead = new FakeElement();
-    this.modelHead.className = 'pf-model-grid pf-model-head';
+    this.modelHead.className = current ? 'pmt-grid pmt-head' : 'pf-model-grid pf-model-head';
     this.modelFoot = new FakeElement();
     this.officialAdd = new FakeElement('button');
     this.officialAdd.textContent = 'Add model';
     this.models.append(this.modelHead, ...rows, this.modelFoot);
-    this.append(...this.fields, this.models, this.officialAdd);
+    if (current) {
+      this.fields.at(-1).append(this.models);
+      this.append(...this.fields, this.officialAdd);
+    } else {
+      this.append(...this.fields, this.models, this.officialAdd);
+    }
   }
 
   querySelector(selector) {
@@ -197,7 +214,7 @@ class FakeForm extends FakeElement {
 
   querySelectorAll(selector) {
     if (selector === '.pf-field') return this.fields;
-    if (selector === '.pf-models > .pf-model-grid:not(.pf-model-head)') {
+    if (selector === ALL_ROWS || selector === LEGACY_ROWS && !this.current || selector === CURRENT_ROWS && this.current) {
       return this.models.children.filter((child) => child instanceof FakeRow);
     }
     if (selector === 'button') return [this.officialAdd];
@@ -215,7 +232,12 @@ function createDocument(form) {
       if (tag === 'input') return new FakeInput();
       return new FakeElement(tag);
     },
-    querySelectorAll(selector) { return selector === '.pf-form' ? [form] : []; },
+    querySelectorAll(selector) {
+      if (selector === '.pf-form, .pf') return [form];
+      if (selector === '.pf-form' && !form.current) return [form];
+      if (selector === '.pf' && form.current) return [form];
+      return [];
+    },
     addEventListener(type, listener) {
       const listeners = documentListeners.get(type) ?? [];
       listeners.push(listener);
@@ -268,10 +290,10 @@ const modelsResponse = () => Response.json({
   },
 });
 
-function install() {
-  const existing = new FakeRow('existing-model');
-  const added = new FakeRow('');
-  const form = new FakeForm([existing, added]);
+function install({ current = false } = {}) {
+  const existing = new FakeRow('existing-model', current);
+  const added = new FakeRow('', current);
+  const form = new FakeForm([existing, added], current);
   let observerCallback;
   class MutationObserver {
     constructor(callback) { observerCallback = callback; }
@@ -358,13 +380,17 @@ describe('provider model enhancements', () => {
     }
   });
 
-  it('fetches model ids and fills the selected id into an empty row', async () => {
-    const app = install();
+  it.each([
+    ['0.43.1 provider DOM', false],
+    ['2.0.2 provider DOM', true],
+  ])('fetches model ids in the %s and fills an empty row', async (_label, current) => {
+    const app = install({ current });
     await app.window.fetch('/api/v1/config', { headers: { authorization: 'Bearer page-token' } });
     await tick();
     app.observerCallback();
     const panel = app.form.querySelector('.okw-model-discovery');
     const [fetchButton, select, addButton] = panel.children;
+    expect(panel.nextSibling).toBe(app.form.fields.at(-1));
 
     fetchButton.click();
     await tick();
@@ -378,10 +404,15 @@ describe('provider model enhancements', () => {
 });
 
 describe('provider model sorting', () => {
-  it.each(['mouse', 'touch'])(
-    'moves the first row to the end with a %s handle drag and saves that exact order',
-    async (pointerType) => {
-      const app = install();
+  it.each([
+    ['mouse', false],
+    ['touch', false],
+    ['mouse', true],
+    ['touch', true],
+  ])(
+    'moves a row with a %s handle in current=%s and saves that exact order',
+    async (pointerType, current) => {
+      const app = install({ current });
       await app.window.fetch('/api/v1/config', { headers: { authorization: 'Bearer page-token' } });
       await tick();
       app.observerCallback();
@@ -394,7 +425,7 @@ describe('provider model sorting', () => {
       });
       app.existing.inputs[0].dispatchEvent(untouched);
       expect(untouched.defaultPrevented).toBe(false);
-      expect(app.form.querySelectorAll('.pf-models > .pf-model-grid:not(.pf-model-head)')).toEqual([
+      expect(app.form.querySelectorAll(ALL_ROWS)).toEqual([
         app.existing,
         app.added,
       ]);
@@ -415,13 +446,13 @@ describe('provider model sorting', () => {
       expect(down.defaultPrevented).toBe(true);
       expect(app.existing.classList.contains('okw-model-dragging')).toBe(false);
       expect(app.added.classList.contains('okw-model-drop-after')).toBe(false);
-      expect(app.form.querySelectorAll('.pf-models > .pf-model-grid:not(.pf-model-head)')).toEqual([
+      expect(app.form.querySelectorAll(ALL_ROWS)).toEqual([
         app.added,
         app.existing,
       ]);
       app.form.models.insertBefore(app.existing, app.added);
       app.observerCallback();
-      expect(app.form.querySelectorAll('.pf-models > .pf-model-grid:not(.pf-model-head)')).toEqual([
+      expect(app.form.querySelectorAll(ALL_ROWS)).toEqual([
         app.added,
         app.existing,
       ]);

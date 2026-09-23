@@ -43,12 +43,24 @@ describe('presentation theme layout boundaries', () => {
     expect(presentationCss).toMatch(
       /\.okw-model-drag-handle\s*\{[^}]*cursor:\s*grab[^}]*touch-action:\s*none/s,
     );
-    expect(presentationCss).toMatch(/\.pf-model-grid\.okw-model-dragging\s*\{/);
+    for (const rowClass of ['pf-model-grid', 'pmt-grid']) {
+      expect(presentationCss).toMatch(new RegExp(`\\.${rowClass}\\.okw-model-dragging[^{}]*\\{`));
+      expect(presentationCss).toMatch(
+        new RegExp(`\\.${rowClass}\\.okw-model-drop-before[^{}]*\\{[^}]*var\\(--color-accent`, 's'),
+      );
+      expect(presentationCss).toMatch(
+        new RegExp(`\\.${rowClass}\\.okw-model-drop-after[^{}]*\\{[^}]*var\\(--color-accent`, 's'),
+      );
+    }
+  });
+
+  it('caps the mobile settings sheet below full height so the scrim stays tappable', () => {
     expect(presentationCss).toMatch(
-      /\.pf-model-grid\.okw-model-drop-before\s*\{[^}]*var\(--color-accent/s,
+      /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*max-height:\s*85dvh/s,
     );
-    expect(presentationCss).toMatch(
-      /\.pf-model-grid\.okw-model-drop-after\s*\{[^}]*var\(--color-accent/s,
+    // A forced viewport-height panel leaves no scrim to tap to dismiss.
+    expect(presentationCss).not.toMatch(
+      /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*[^-\w]height:\s*calc\(100dvh/s,
     );
   });
 });

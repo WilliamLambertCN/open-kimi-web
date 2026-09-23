@@ -148,6 +148,8 @@ async function sendStaticFile({ filePath, info, urlPath }, req, res, transformHt
     'content-type': contentTypeFor(filePath),
     'content-length': html?.length ?? info.size,
     'cache-control': cacheControlFor(urlPath),
+    // MIME is authoritative: don't let browsers re-sniff served assets.
+    'x-content-type-options': 'nosniff',
   });
   if (req.method === 'HEAD') {
     res.end();
