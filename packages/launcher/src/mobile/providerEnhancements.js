@@ -18,6 +18,11 @@
   ];
   const ALL_CAPABILITIES = CAPABILITIES.map(([value]) => value);
   const ALL_EFFORTS = EFFORTS.map(([value]) => value);
+  const FORM_SELECTOR = '.pf-form, .pf';
+  const MODEL_ROWS_SELECTOR = [
+    '.pf-models > .pf-model-grid:not(.pf-model-head)',
+    '.pmt > .pmt-grid:not(.pmt-head)',
+  ].join(', ');
   const modelConfigs = new Map();
   const rowStates = new WeakMap();
   const enhancedForms = new WeakSet();
@@ -131,7 +136,7 @@
     if (authorization) pageAuthorization = authorization;
   };
 
-  const modelRows = (form) => Array.from(form.querySelectorAll('.pf-models > .pf-model-grid:not(.pf-model-head)'));
+  const modelRows = (form) => Array.from(form.querySelectorAll(MODEL_ROWS_SELECTOR));
   const textInputs = (row) => Array.from(row.querySelectorAll('input:not([type="checkbox"])'));
   const sorting = window.OpenKimiProviderSorting;
 
@@ -242,8 +247,8 @@
   };
 
   const fieldByLabel = (form, expected) => Array.from(form.querySelectorAll('.pf-field')).find((field) => {
-    const text = field.querySelector('label')?.textContent?.replace('*', '').trim();
-    return expected.includes(text);
+    const text = field.querySelector('label')?.textContent?.replaceAll('*', '').trim() ?? '';
+    return expected.some((label) => text === label || text.startsWith(`${label} `));
   });
 
   const protocolValue = (form) => {
@@ -396,7 +401,7 @@
   };
 
   function resetUntouchedRows() {
-    document.querySelectorAll('.pf-form').forEach((form) => {
+    document.querySelectorAll(FORM_SELECTOR).forEach((form) => {
       modelRows(form).forEach((row) => {
         const state = rowStates.get(row);
         if (!state || state.dirty) return;
@@ -407,7 +412,7 @@
   }
 
   function enhance() {
-    document.querySelectorAll('.pf-form').forEach((form) => {
+    document.querySelectorAll(FORM_SELECTOR).forEach((form) => {
       sorting.reconcile(form);
       const provider = inputValue(form, ['名称', 'Name']);
       modelRows(form).forEach((row) => enhanceModelRow(row, form, provider));
@@ -449,7 +454,8 @@
 
   const mergeProviderFields = async (input, init, url, method) => {
     if (!isProviderSave(url, method)) return [input, init];
-    const form = Array.from(document.querySelectorAll('.pf-form')).find((candidate) => enhancedForms.has(candidate));
+    const form = Array.from(document.querySelectorAll(FORM_SELECTOR))
+      .find((candidate) => enhancedForms.has(candidate));
     if (!form) return [input, init];
     enhance();
     const originalBody = init?.body ?? (input instanceof Request ? await input.clone().text() : null);

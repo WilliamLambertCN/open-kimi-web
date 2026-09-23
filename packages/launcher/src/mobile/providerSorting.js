@@ -1,6 +1,10 @@
 {
   const states = new WeakMap();
-  const rowsOf = (form) => Array.from(form.querySelectorAll('.pf-models > .pf-model-grid:not(.pf-model-head)'));
+  const MODEL_ROWS_SELECTOR = [
+    '.pf-models > .pf-model-grid:not(.pf-model-head)',
+    '.pmt > .pmt-grid:not(.pmt-head)',
+  ].join(', ');
+  const rowsOf = (form) => Array.from(form.querySelectorAll(MODEL_ROWS_SELECTOR));
   const sameRows = (left, right) => left.length === right.length && left.every((row, index) => row === right[index]);
 
   const stateFor = (form) => {

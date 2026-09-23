@@ -1,6 +1,18 @@
 import { isIP } from 'node:net';
 import { networkInterfaces } from 'node:os';
 
+// Interface names that belong to hypervisors, containers, tunnels, or other
+// virtual adapters: advertising their addresses as Network links/TLS SANs
+// mostly produces unreachable clutter (WSL, Hyper-V, VMware, Docker, VPNs).
+const VIRTUAL_INTERFACE_RE =
+  /vethernet|vmware|hyper-v|virtualbox|vbox|tap-|tun2?|wsl|docker|loopback|pseudo|isatap/i;
+const VIRTUAL_POSIX_PREFIX_RE = /^(veth|docker|br-|virbr|vmnet|tailscale|utun|tun|tap)/i;
+
+export function isVirtualInterfaceName(name) {
+  if (typeof name !== 'string' || name === '') return false;
+  return VIRTUAL_INTERFACE_RE.test(name) || VIRTUAL_POSIX_PREFIX_RE.test(name);
+}
+
 function isIpv6LinkLocal(address) {
   return /^fe[89ab][0-9a-f]:/i.test(address);
 }
@@ -31,15 +43,23 @@ function compareAddresses(left, right) {
   return left.localeCompare(right);
 }
 
+function listableAddress(entry) {
+  const family = addressFamily(entry);
+  const address = entry.address.toLowerCase();
+  if (entry.internal || !family || isLoopback(address)) return null;
+  if (family === 6 && isIpv6LinkLocal(address)) return null;
+  return address;
+}
+
+// Virtual adapters are filtered by interface name when one is available;
+// nameless entries (non-standard fixtures) are conservatively kept.
 export function listNetworkAddresses(interfaces = networkInterfaces()) {
   const addresses = new Map();
-  for (const entries of Object.values(interfaces)) {
+  for (const [name, entries] of Object.entries(interfaces)) {
+    if (isVirtualInterfaceName(name)) continue;
     for (const entry of entries ?? []) {
-      const family = addressFamily(entry);
-      const address = entry.address.toLowerCase();
-      if (entry.internal || !family || isLoopback(address)) continue;
-      if (family === 6 && isIpv6LinkLocal(address)) continue;
-      addresses.set(address, address);
+      const address = listableAddress(entry);
+      if (address !== null) addresses.set(address, address);
     }
   }
   return [...addresses.values()].sort(compareAddresses);

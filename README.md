@@ -9,15 +9,16 @@
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-## [open-kimi-web v0.43.1-r1][release-0.43.1-r1] 最新变化
+## [open-kimi-web v2.0.2-r1][release-2.0.2-r1] 最新变化
 
 版本号跟随已验证的 Kimi Code 兼容基线；`rN` 表示同一基线上的项目修订号。
 本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本。
 
-- 兼容基线升级到 Kimi Code `0.43.1`，官方界面下载回退版本同步更新。
-- 修复提醒脚本重复执行时，同一次任务完成会连续显示两个完成弹窗的问题。
-- 桌面和手机的“插队”按钮先通过官方 `.send` 创建当前 queued prompt，再按返回的 `prompt_id`
-  调用 `prompts:steer`；官方 `Ctrl+S` 继续使用上游的“提升现有队首”行为。
+- 对照 Kimi Code `2.0.2` 官方 Web 包更新兼容基线及下载回退版本。
+- 修复新版供应商页面不显示“拉取模型 / Fetch models”的问题，保留旧版表单支持。
+- 调整手机空状态样式以适配新版页面，并补齐官方包下载校验与代理超时保护。
+
+本版完成静态审计和自动化回归；实际浏览器与后端的关键交互仍需运行验收。
 
 完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。从旧版本升级后需要重启 `kimi web` / launcher，
 再刷新或重新打开页面；已经运行的服务不会热加载新资源。
@@ -42,10 +43,10 @@
   工具、思考能力与思考档位，可从 `/models` 发现并添加模型，也可用鼠标或触摸排序。
 - **工作区置顶**：支持置顶和取消置顶，多个置顶项按操作顺序排列；本地只保存工作区 ID。
 - **归档会话删除**：已归档设置页和首页“已完成”列表提供永久删除；仅为唯一匹配项显示入口，
-  二次确认后调用 Kimi Code `0.43.1` 官方删除接口。
+  二次确认后调用 Kimi Code 官方正式删除接口。
 - **发送与阅读体验**：会话运行中可在桌面和手机使用“插队”按钮；按钮通过官方 `.send`
-  创建当前 queued prompt，再按精确 `prompt_id` 调用 `prompts:steer`。桌面官方 `Ctrl+S` 保留
-  上游的“提升现有队首”行为。工具调用完成后默认保持展开，已有手动偏好继续生效。
+  创建当前 queued prompt，再按精确 `prompt_id` 调用 `prompts:steer`。官方快捷键仍由上游处理。
+  工具调用完成后默认保持展开，已有手动偏好继续生效。
 - **通知权限整流**：保留官方首次自动申请行为，合并并发请求；关闭提示后后台事件不会反复
   申请，设置中的主动重试仍可用。
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
@@ -74,7 +75,7 @@
 ![桌面端：模型选择中的供应商横向导航](docs/images/feature-provider-navigation-desktop.png)
 
 会话运行中输入新内容后，桌面端和手机端可点“插队”发送当前草稿。按钮会先复用官方 `.send`
-创建 queued prompt，再按返回的 `prompt_id` 精确 steer；桌面官方 `Ctrl+S` 仍提升现有队首。
+创建 queued prompt，再按返回的 `prompt_id` 精确 steer；官方 `Ctrl+S` 的行为由上游自身处理。
 
 <p>
   <img src="docs/images/feature-priority-send-desktop.png" alt="桌面端：运行中草稿的插队按钮" width="68%" />
@@ -118,10 +119,10 @@
 源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到
 npm registry，可从 GitHub Release 的版本化 tgz 或源码安装。
 
-**GitHub Release tgz**（固定为 `v0.43.1-r1`）：
+**GitHub Release tgz**（固定为 `v2.0.2-r1`）：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v0.43.1-r1/open-kimi-web-0.43.1-r1.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.0.2-r1/open-kimi-web-2.0.2-r1.tgz
 open-kimi-web integrate install
 ```
 
@@ -234,9 +235,10 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
 "open Kimi-Code web"。手机端另加独立展示层，对齐首页、会话设置、模型菜单和工作区列表。
 
 - **首次启动需联网**：launcher 会从 npm registry 下载对应版本的包（约 20 MB，仅一次），
-  自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到已审计版本 `0.43.1`）；先试
+  自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到已审计版本 `2.0.2`）；先试
   npmjs，再试 npmmirror 镜像，尊重 `HTTPS_PROXY`/`HTTP_PROXY`。
-- **下载校验范围**：当前检查下载、解包和必需文件是否完整；未实施独立来源的 SRI 校验，也不会在每次启动时对缓存逐文件计算哈希。
+- **下载校验范围**：有 registry 的 sha512 integrity 元数据时校验下载包；元数据缺失时警告。
+  仍会检查解包和必需文件是否完整；不会在每次启动时对缓存逐文件计算哈希。
 - **缓存**：解包后缓存在 `~/.open-kimi-web/official-web/<版本>/`，之后离线可用；title 补丁只在缓存时打一次，`boot.js`（官方原样）与上游 `LICENSE` 一并落盘。
 - **展示层与主题**：由 launcher 在官方页面响应中加载 `src/mobile/` 的独立样式与脚本；
   既有缓存也会生效，无需重下载或修改上游缓存。资源使用 `no-cache`；布局调整仅在手机
@@ -244,7 +246,7 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
   能力通过官方 `POST/PUT /api/v1/providers` 字段保存；模型发现请求由受当前页面 bearer
   token 保护的 launcher 同源端点转发，限制为 http(s)、短超时、1 MiB 响应且不跟随
   重定向，API Key 不写日志、不回显。`--web-dir` 不注入该展示层及主题功能。已对照的
-  上游构建为 `0.43.1`，未来版本若改变组件结构，需要重新检查这些选择器。
+  上游构建为 `2.0.2`，未来版本若改变组件结构，需要重新检查这些选择器。
 - **失败行为（兼容性变更）**：官方 bundle 不可用时 launcher 现在会明确中止启动，不再静默改用不同的界面。恢复 npm 网络与 `curl` / `tar` 后重试，或用 `--web-dir` 指向隔离且已准备好的官方前端构建目录。
 - **显式指定**：`open-kimi-web serve --web-dir <path>` 直接公开并服务现成构建目录。
   不要在目录中放日志、备份、配置或凭证；静态服务会拒绝通过符号链接越过该目录。
@@ -265,9 +267,10 @@ skill/命令，不会安装 npm launcher、启动服务或修改 PATH。** 使�
 ## 安全说明
 
 - token 直达链接 = 完整编程代理权限，**别分享**。
-- 官方 UI（已核对 0.43.1）将 token 存入 `localStorage`，有效期 7 天，关闭标签页不会清除。
+- 官方 UI 的 token 存储行为由上游负责；带 token 的直达链接仍等同完整编程代理权限。
 - 回环默认 HTTP；`--lan` / 非回环 `--host` 自动 HTTPS；`--insecure-http` 是显式降级（会打印警告）。
-- 自签名证书存于 `~/.open-kimi-web/tls/`，启动时若临近过期或 SAN 缺失会自动轮换。监听所有网卡时，证书包含启动时探测到的局域网地址（含虚拟网卡）；运行期间 IP 变化后需重启 launcher，以更新证书和访问链接。
+- 自签名证书存于 `~/.open-kimi-web/tls/`，启动时若临近过期或 SAN 缺失会自动轮换。
+  监听所有网卡时，证书包含启动时探测到的非虚拟网卡地址；IP 变化后需重启 launcher。
 - 只代理 `/api/*`；`Authorization` 原样转发、绝不落日志；`index.html` no-cache，带 hash 的 `/assets/*` immutable。
 
 ## 开发
@@ -292,9 +295,9 @@ wrapper，应调用它所记录的真实二进制，再运行 `pnpm dev`。
 
 结构：`packages/launcher` 包含 HTTPS、REST/WS 代理、官方资源加载和手机展示层；`contracts/upstream` 保留历史协议快照作为参考。上游版本与维护边界见 [`UPSTREAM.md`](UPSTREAM.md)。
 
-兼容性基线：CLI `0.43.1`（kimi-code `main` @
-[`75ac010b`](https://github.com/MoonshotAI/kimi-code/commit/75ac010bcb2050338444455de8328492d152c919)）；
-后续官方版本仍需检查受影响的增强代码。
+兼容性基线：CLI `2.0.2`（npm provenance 指向
+[`9d07f634`](https://github.com/MoonshotAI/kimi-code/commit/9d07f634be94ebeb1deba2f55d247807cf729315)）；
+已审计受影响的页面结构和请求路径，尚未完成真实浏览器与后端的逐项验收。
 
 ## License
 
@@ -304,4 +307,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[release-0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1
+[release-2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1

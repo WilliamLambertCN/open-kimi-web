@@ -3,6 +3,29 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.0.2-r1] - 2026-09-23
+
+对照官方 Kimi Code `2.0.2` 的 Web 包更新供应商页面适配。静态审计和自动化回归已完成；
+真实浏览器交互与完整 live protocol recapture 尚未执行。
+
+### 变更
+
+- 供应商增强同时识别旧版和 `2.0.2` 的表单、模型表格及带模型数量的标签。
+- 手机空状态样式适配新版元素；官方界面下载的元数据失败回退版本更新为 `2.0.2`。
+- 先前未发布的 launcher 加固包括下载包 sha512 integrity 校验、下载大小限制、代理超时、
+  WebSocket 帧大小限制、TLS 状态复核和网络地址筛选。
+
+### 事件：2.0.2 供应商页面缺少“拉取模型”入口
+
+- 影响：进入新版供应商页面后无法看到 Fetch models，也无法从该入口发现和添加模型。
+- 触发条件：官方 `2.0.2` 页面把表单改为 `.pf`、模型行改为 `.pmt-grid`，Models 标签加入数量提示。
+- 根因：增强脚本只查找旧版 `.pf-form/.pf-model-grid`，并要求 Models 标签全文精确相等。
+- 证据：官方发布 bundle 的新旧类名对照，以及引入新版 DOM fixture 后先失败再通过的定向测试。
+- 修复：兼容新旧选择器和标签提示，并同步调整模型排序与能力区样式。
+- 回归验证：供应商与样式定向测试、launcher 注入集成测试通过；发布门禁结果以本版 CI 为准。
+- 运维动作：升级后重启 launcher，再刷新或重新打开供应商页面；无需迁移供应商配置。
+- 剩余边界：未在真实账号或模型服务上点击 Fetch models，也未完成 `2.0.2` 的完整浏览器验收。
+
 ## [open-kimi-web v0.43.1-r1] - 2026-09-17
 
 兼容基线升级到官方 Kimi Code `0.43.1`。
@@ -163,4 +186,5 @@
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
 [open-kimi-web v0.42.0-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.42.0-r1
+[open-kimi-web v2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1
 [open-kimi-web v0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1
