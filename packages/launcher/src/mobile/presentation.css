@@ -66,7 +66,8 @@
   color: var(--color-success, #238636);
 }
 
-.pf-model-grid.okw-sortable-model {
+.pf-model-grid.okw-sortable-model,
+.pmt-grid.okw-sortable-model {
   position: relative;
   padding-left: 32px;
   transition: opacity var(--duration-fast, 120ms) var(--ease-out, ease),
@@ -109,21 +110,25 @@
   opacity: .35;
 }
 
-.pf-model-grid.okw-model-dragging {
+.pf-model-grid.okw-model-dragging,
+.pmt-grid.okw-model-dragging {
   z-index: 1;
   opacity: .66;
   background: var(--color-hover, color-mix(in srgb, currentColor 8%, transparent));
 }
 
-.pf-model-grid.okw-model-drop-before {
+.pf-model-grid.okw-model-drop-before,
+.pmt-grid.okw-model-drop-before {
   box-shadow: inset 0 2px 0 var(--color-accent, #60a5fa);
 }
 
-.pf-model-grid.okw-model-drop-after {
+.pf-model-grid.okw-model-drop-after,
+.pmt-grid.okw-model-drop-after {
   box-shadow: inset 0 -2px 0 var(--color-accent, #60a5fa);
 }
 
-.pf-model-grid > .okw-model-options {
+.pf-model-grid > .okw-model-options,
+.pmt-grid > .okw-model-options {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -176,7 +181,8 @@
 
 @media (max-width: 640px) {
   .okw-model-discovery,
-  .pf-model-grid > .okw-model-options {
+  .pf-model-grid > .okw-model-options,
+  .pmt-grid > .okw-model-options {
     grid-template-columns: 1fr;
   }
 
@@ -334,14 +340,6 @@
     color: rgba(255, 255, 255, .67);
   }
 
-  .app.mobile .empty-doodle .doodle-canvas {
-    display: none;
-  }
-
-  .app.mobile .empty-doodle .doodle-fallback {
-    display: block !important;
-  }
-
   .app.mobile .empty-hint-title {
     color: rgba(255, 255, 255, .84);
     font-size: 31px;
@@ -351,12 +349,6 @@
 
   .app.mobile .content-wrap > .empty-spacer:not(.empty-tail) {
     flex-grow: 1.75;
-  }
-
-  .app.mobile .empty-hint-text {
-    color: rgba(255, 255, 255, .54);
-    font-size: 14px;
-    font-weight: 400;
   }
 
   .app.mobile .empty-composer {
@@ -445,17 +437,27 @@
 
   .sheet-root.okw-settings .sheet-panel,
   .sheet-root.okw-workspaces .sheet-panel {
-    top: 4px;
-    bottom: 0;
-    height: calc(100dvh - 4px);
     width: 100%;
     max-width: none;
-    max-height: calc(100dvh - 4px);
     background: var(--color-surface-raised, var(--okw-sheet));
     border: 1px solid rgba(255, 255, 255, .07);
     border-bottom: 0;
     border-radius: 18px 18px 0 0;
     box-shadow: none;
+  }
+
+  /* The settings sheet sizes to its content with a capped height so the scrim
+     above stays reachable — a forced full-height panel leaves nothing to tap
+     to dismiss. .sheet-body already scrolls inside the cap (upstream flex). */
+  .sheet-root.okw-settings .sheet-panel {
+    max-height: 85dvh;
+  }
+
+  .sheet-root.okw-workspaces .sheet-panel {
+    top: 4px;
+    bottom: 0;
+    height: calc(100dvh - 4px);
+    max-height: calc(100dvh - 4px);
   }
 
   .sheet-root.okw-settings .sheet-grab,

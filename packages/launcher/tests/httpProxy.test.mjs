@@ -112,9 +112,36 @@ describe('proxyRequest upstream failures', () => {
     await expect(fetch(`${url}/api/v1/stream`).then((response) => response.text()))
       .rejects.toThrow();
   });
+
+  it('answers 504 and cleans up when the upstream stays idle past the timeout', async () => {
+    // Wedged upstream: accepts the request but never responds.
+    const upstream = await listen(() => {});
+    const url = await listen((req, res) => proxyRequest(req, res, upstream, 50));
+
+    const response = await fetch(`${url}/api/v1/healthz`);
+    expect(response.status).toBe(504);
+    await expect(response.text()).resolves.toBe('Gateway Timeout');
+  });
 });
 
 describe('launcher debug route boundary', () => {
+  it('answers non-GET/HEAD static requests with a plain-text 405', async () => {
+    const launcher = await createLauncher({
+      target: 'http://127.0.0.1:1',
+      publicDir: '.',
+      host: '127.0.0.1',
+      port: 0,
+      interfaces: {},
+    });
+    servers.push(launcher.server);
+
+    const response = await fetch(launcher.url, { method: 'POST' });
+    expect(response.status).toBe(405);
+    expect(response.headers.get('content-type')).toBe('text/plain; charset=utf-8');
+    expect(response.headers.get('allow')).toBe('GET, HEAD');
+    await expect(response.text()).resolves.toBe('Method Not Allowed');
+  });
+
   it('does not forward debug endpoints to an external target', async () => {
     let upstreamCalled = false;
     const target = await listen((_req, res) => {

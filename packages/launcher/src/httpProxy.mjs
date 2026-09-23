@@ -41,7 +41,15 @@ export function buildProxyHeaders(headers, target) {
   return out;
 }
 
-export function proxyRequest(req, res, targetBase) {
+// Socket inactivity limit for proxied REST calls. The upstream API (0.43.1
+// contracts, also true for the 0.41.0 snapshot) is pure request/response —
+// realtime traffic rides /api/v1/ws, not this path — and even the OAuth
+// device-code poll replies immediately. Two idle minutes therefore only
+// indicate a wedged upstream; a long upload or large response is unaffected
+// because activity keeps resetting the socket timer.
+const UPSTREAM_TIMEOUT_MS = 120_000;
+
+export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_MS) {
   const target = new URL(targetBase);
   const isHttps = target.protocol === 'https:';
   const upstream = (isHttps ? httpsRequest : httpRequest)(
@@ -59,9 +67,19 @@ export function proxyRequest(req, res, targetBase) {
       upRes.pipe(res);
     },
   );
+  let timedOut = false;
+  upstream.setTimeout(timeoutMs, () => {
+    timedOut = true;
+    upstream.destroy();
+  });
   upstream.on('error', () => {
     if (res.headersSent) {
       res.destroy();
+      return;
+    }
+    if (timedOut) {
+      res.writeHead(504, { 'content-type': 'text/plain; charset=utf-8' });
+      res.end('Gateway Timeout');
       return;
     }
     res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
