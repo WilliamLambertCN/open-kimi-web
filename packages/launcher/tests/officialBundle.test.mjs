@@ -27,8 +27,8 @@ import {
 
 const tar = promisify(execFile);
 
-// Matches the 0.43.1 minified title composer (see patchRuntimeTitle).
-const BUNDLE_TITLE_SNIPPET = 'function qGe(e,t){return e!==""?e:t?`${GGe(t)} | Kimi Code`:"Kimi Code"}';
+// Matches the 2.0.2 minified title composer (see patchRuntimeTitle).
+const BUNDLE_TITLE_SNIPPET = 'function _Je(e,t){return e!==""?e:t?`${xJe(t)} | Kimi Code`:"Kimi Code"}';
 const INDEX_HTML = [
   '<!doctype html><html><head>',
   '<script src="/boot.js"></script>',
@@ -66,7 +66,7 @@ describe('resolveOfficialVersion', () => {
   });
 
   it('sends the bearer token when one is available', async () => {
-    const fetchImpl = metaFetch('0.43.1');
+    const fetchImpl = metaFetch('2.0.2');
     await resolveOfficialVersion('http://127.0.0.1:58627', 'tok', fetchImpl);
     expect(fetchImpl).toHaveBeenCalledWith('http://127.0.0.1:58627/api/v1/meta', {
       headers: { authorization: 'Bearer tok' },
@@ -75,12 +75,12 @@ describe('resolveOfficialVersion', () => {
   });
 
   it.each([
-    ['http error', metaFetch('0.43.1', { status: 404 })],
+    ['http error', metaFetch('2.0.2', { status: 404 })],
     ['network failure', async () => { throw new Error('ECONNREFUSED'); }],
     ['missing version', metaFetch(undefined)],
     ['path-like version', metaFetch('../../etc')],
   ])('falls back to the pinned version on %s', async (_name, fetchImpl) => {
-    expect(OFFICIAL_FALLBACK_VERSION).toBe('0.43.1');
+    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.0.2');
     await expect(resolveOfficialVersion('http://127.0.0.1:58627', null, fetchImpl)).resolves.toBe(
       OFFICIAL_FALLBACK_VERSION,
     );
@@ -127,7 +127,7 @@ describe('patchRuntimeTitle', () => {
     const { count, text } = patchRuntimeTitle(BUNDLE_TITLE_SNIPPET);
     expect(count).toBe(1);
     expect(text).toBe(
-      'function qGe(e,t){return e!==""?e:t?`${GGe(t)} | open Kimi-Code`:"open Kimi-Code"}',
+      'function _Je(e,t){return e!==""?e:t?`${xJe(t)} | open Kimi-Code`:"open Kimi-Code"}',
     );
     expect(text).not.toContain('Kimi Code');
   });
