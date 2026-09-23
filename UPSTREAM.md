@@ -7,31 +7,29 @@ or a vendored transcript implementation.
 ## Current baseline
 
 - Upstream: [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code).
-- Inspected published package version: `0.43.1`.
-- Provenance release commit: `75ac010bcb2050338444455de8328492d152c919`.
+- Inspected published package version: `2.0.2`.
+- Provenance release commit: `9d07f634be94ebeb1deba2f55d247807cf729315`.
 - Published package integrity:
-  `sha512-jq60K07tJV+uZB/mTN7rgb99WU5z6PtUeLybywGhXpF5QybaehIWsWudZ9HR8hEEmc7pppB+GAA92RDqOOKnRg==`.
-- Server API compatibility target: `0.43.1`; no complete live protocol recapture was performed.
-- Open Kimi Web release target: `0.43.1-r1`.
+  `sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==`.
+- Server API compatibility target: `2.0.2`; no complete live protocol recapture was performed.
+- Open Kimi Web release target: `2.0.2-r1`.
 - Machine-readable version and historical contract records: `upstream.json`.
 
-The provenance commit comes from the npm provenance attestation for
-`@moonshot-ai/kimi-code@0.43.1`. Static inspection of the published bundle
-confirmed the title composer, archive and dock selectors, `kimi-locale`, the
-archived-session wire shape, and the official permanent-deletion request.
-The settings archive page still exposes Restore only, so the local permanent
-delete enhancement does not duplicate an official button. Rive now ships as
-JavaScript chunks instead of a separate WebAssembly asset; the launcher's
-general static-file behavior needs no compatibility change for that update.
+The commit comes from the resolved Git dependency in the npm provenance
+attestation for `@moonshot-ai/kimi-code@2.0.2`; the integrity comes from npm
+package metadata. Static inspection of that published `dist-web` confirmed
+the title composer, archive selectors, provider model rows (`.pmt-grid`),
+the `prompts:steer` path, and the new empty-state logo (`.empty-logo`).
+The old `.empty-doodle` and `.empty-hint-text` elements are absent, so their
+mobile overrides were removed. These are bundle observations, not live server
+or browser interaction results.
 
-During a running turn, the regular `.send` control in official `0.43.1` only
-creates a queued prompt. Injecting a specified prompt requires a separate
-`POST /api/v1/sessions/{session_id}/prompts:steer` request with its `prompt_id`.
-The bundle maps `Ctrl+S` to `steerQueued(0)`, which promotes the existing queue
-head. A custom "Send now" control therefore cannot synthesize `Ctrl+S` when it
-must steer the newly submitted draft.
-This was a static compatibility audit, not a real-browser click-through or live
-server protocol validation.
+The `0.43.1` compatibility audit established that, during a running turn,
+the regular `.send` control creates a queued prompt. Steering a specific new
+prompt requires `POST /api/v1/sessions/{session_id}/prompts:steer` with its
+`prompt_id`; `Ctrl+S` promotes the existing queue head. The `2.0.2` bundle
+still contains the steer path, but this release has not been checked through
+a real-browser click-through or live server protocol validation.
 
 By default the launcher resolves the web bundle version from the target
 server, with its configured fallback when metadata is unavailable.
@@ -66,4 +64,4 @@ origin and original checksums. They remain historical reference material;
 the retired standalone-client contract tests and capture workflow no longer
 run. The `0.43.1` archive, deletion, and steer behavior was checked separately,
 but the full artifacts were not recaptured, so these snapshots do not claim
-`0.43.1` coverage.
+`0.43.1` or `2.0.2` coverage.
