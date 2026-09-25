@@ -24,6 +24,11 @@ The old `.empty-doodle` and `.empty-hint-text` elements are absent, so their
 mobile overrides were removed. These are bundle observations, not live server
 or browser interaction results.
 
+The `2.0.2` workspace store reads `kimi-web.workspace-sort` as `manual` or
+`recent`. Its recent order uses session update times and workspace
+`last_opened_at`; the default script selects `recent` only when this preference
+has not been set, leaving an explicit manual choice intact.
+
 The `0.43.1` compatibility audit established that, during a running turn,
 the regular `.send` control creates a queued prompt. Steering a specific new
 prompt requires `POST /api/v1/sessions/{session_id}/prompts:steer` with its
