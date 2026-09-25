@@ -5,6 +5,7 @@ const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['workspaceSortDefault.js', 'text/javascript; charset=utf-8'],
+  ['forkTitleGuard.js', 'text/javascript; charset=utf-8'],
   ['notificationPermission.js', 'text/javascript; charset=utf-8'],
   ['completionModal.css', 'text/css; charset=utf-8'],
   ['completionModal.js', 'text/javascript; charset=utf-8'],
@@ -27,6 +28,7 @@ const FILES = new Map([
 const SCRIPTS = [
   'foldingDefaults.js',
   'workspaceSortDefault.js',
+  'forkTitleGuard.js',
   'notificationPermission.js',
   'completionModal.js',
   'themes.js',

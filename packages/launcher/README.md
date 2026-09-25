@@ -6,16 +6,17 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.0.2-r1` GitHub Release 提供固定版本的 tgz：
+本项目当前不发布到 npm registry。`v2.0.2-r2` GitHub Release 提供固定版本的 tgz：
 
 ```sh
 npm install -g \
-  https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.0.2-r1/open-kimi-web-2.0.2-r1.tgz
+  https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.0.2-r2/open-kimi-web-2.0.2-r2.tgz
 open-kimi-web integrate install
 ```
 
-`2.0.2-r1` 对照 Kimi Code `2.0.2` 的供应商页面结构，恢复“拉取模型 / Fetch models”入口，
-并更新手机空状态样式与官方包下载回退版本。静态审计和自动化回归已完成，真实浏览器交互待验收。
+`2.0.2-r2` 首次使用默认按官方“最近活动”模式排列工作区，保留明确选择的手动顺序和置顶；
+在官方 Web 中，fork 会话完成消息后的自动标题生成也会保留 `Fork: ` 标记。
+已对照 Kimi Code `2.0.2` 发布包完成静态审计和自动化回归；真实浏览器交互待验收。
 
 也可从源码安装：
 
@@ -67,6 +68,8 @@ open-kimi-web serve --no-token-link
 转发，不记录或回显 API Key，不跟随重定向。工作区首次使用默认按最近活动排序，
 也可切回官方手动顺序；更多菜单支持置顶与取消置顶，置顶仅在本地保存工作区 ID。
 已归档会话可在二次确认后通过 Kimi Code 官方接口永久删除。
+fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍存在的 `Fork: ` 标记；
+手动重新生成标题仍走官方接口。直接使用官方 CLI 的请求不经过这一页面增强。
 会话运行中有可发送草稿时，桌面和手机均提供“插队”按钮。按钮通过官方 `.send` 创建
 当前 queued prompt，再按返回的 `prompt_id` 调用 `prompts:steer`。官方 `Ctrl+S` 的行为由上游自身处理。
 首次访问默认使用夜幕主题；桌面可在左下角账号菜单的**氛围主题**中切换，手机可在
