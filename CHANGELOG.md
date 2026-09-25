@@ -3,6 +3,27 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.0.2-r2] - 2026-09-25
+
+工作区首次使用默认按最近活动排序，并在官方 Web 中保护 fork 会话的标题标记。
+
+- 复用 Kimi Code `2.0.2` 官方的 `recent` 模式；它按会话更新时间和工作区最近打开时间排序。
+- 仅在浏览器尚无排序偏好时设置默认值；明确选择的手动顺序保持不变。
+- 已置顶的工作区仍优先显示，多个置顶项保持原有顺序；不保存新的工作区或会话内容。
+- 非强制自动生成标题前查询当前会话；标题仍以 `Fork: ` 开头时返回原题，主动强制生成原样交给官方。
+- 定向单元测试、注入集成测试与静态审计已通过；真实浏览器点击与排序观察待验收。
+
+### 事件：fork 会话首条消息后失去标记
+
+- 影响：fork 会话可能与源会话显示相同标题，列表中难以区分。
+- 触发条件：Kimi Code `2.0.2` 的 fork 会话在官方 Web 中完成一次消息回合，触发非强制自动标题生成。
+- 根因：后端把默认 `Fork: ` 标题标为可替换；非强制生成没有检查 `forkedFrom`，直接覆盖标题。
+- 证据：官方 `2.0.2` Web 包的回合结束请求路径、服务端 fork 标题逻辑，以及 issue #3918 的复现描述。
+- 修复：在官方页面加载前拦截该自动请求，读取当前会话标题；仍有 fork 前缀时保留原题。
+- 回归验证：覆盖刷新、普通会话、手动重命名、强制生成、查询失败与重复注入的定向测试通过。
+- 运维动作：升级并重启 launcher 后刷新页面；无需迁移会话数据。
+- 剩余边界：绕过 Open Kimi Web 的 CLI 请求仍由官方后端处理；真实浏览器点击待验收。
+
 ## [open-kimi-web v2.0.2-r1] - 2026-09-23
 
 对照官方 Kimi Code `2.0.2` 的 Web 包更新供应商页面适配。静态审计和自动化回归已完成；
@@ -186,5 +207,6 @@
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
 [open-kimi-web v0.42.0-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.42.0-r1
+[open-kimi-web v2.0.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r2
 [open-kimi-web v2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1
 [open-kimi-web v0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1
