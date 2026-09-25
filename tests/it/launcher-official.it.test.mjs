@@ -146,6 +146,7 @@ async function expectPresentationAssets(baseUrl) {
   for (const name of [
     'presentation.css',
     'foldingDefaults.js',
+    'workspaceSortDefault.js',
     'notificationPermission.js',
     'completionModal.css',
     'completionModal.js',
@@ -223,7 +224,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('<title>open Kimi-Code web</title>');
       expect(indexText).not.toContain('Kimi Code Web');
       for (const name of [
-        'presentation.css', 'foldingDefaults.js', 'notificationPermission.js',
+        'presentation.css', 'foldingDefaults.js', 'workspaceSortDefault.js', 'notificationPermission.js',
         'completionModal.css', 'completionModal.js',
       ]) expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
       expect(indexText).toContain('/__open-kimi-mobile/presentation.js');
@@ -237,6 +238,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.js');
       expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText.indexOf('workspaceSortDefault.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('notificationPermission.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('completionModal.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
