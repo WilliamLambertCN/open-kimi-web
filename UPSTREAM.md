@@ -12,7 +12,7 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==`.
 - Server API compatibility target: `2.0.2`; no complete live protocol recapture was performed.
-- Open Kimi Web release target: `2.0.2-r1`.
+- Open Kimi Web release target: `2.0.2-r2`.
 - Machine-readable version and historical contract records: `upstream.json`.
 
 The commit comes from the resolved Git dependency in the npm provenance
@@ -28,6 +28,14 @@ The `2.0.2` workspace store reads `kimi-web.workspace-sort` as `manual` or
 `recent`. Its recent order uses session update times and workspace
 `last_opened_at`; the default script selects `recent` only when this preference
 has not been set, leaving an explicit manual choice intact.
+
+The `2.0.2` Web bundle requests non-forced title generation after a turn and
+uses `force: true` for manual regeneration. Default fork titles begin with
+`Fork: `, but neither v1 session details nor the v2 session list exposes
+`forkedFrom`. The presentation guard checks the current v1 title before the
+automatic request and preserves it while that prefix remains. Manual title
+changes and forced regeneration still use the official API. Requests made
+outside Open Kimi Web, including direct CLI traffic, remain upstream behavior.
 
 The `0.43.1` compatibility audit established that, during a running turn,
 the regular `.send` control creates a queued prompt. Steering a specific new
