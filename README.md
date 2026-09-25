@@ -9,16 +9,16 @@
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-## [open-kimi-web v2.0.2-r1][release-2.0.2-r1] 最新变化
+## [open-kimi-web v2.0.2-r2][release-2.0.2-r2] 最新变化
 
 版本号跟随已验证的 Kimi Code 兼容基线；`rN` 表示同一基线上的项目修订号。
 本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本。
 
-- 对照 Kimi Code `2.0.2` 官方 Web 包更新兼容基线及下载回退版本。
-- 修复新版供应商页面不显示“拉取模型 / Fetch models”的问题，保留旧版表单支持。
-- 调整手机空状态样式以适配新版页面，并补齐官方包下载校验与代理超时保护。
+- 首次打开工作区列表时默认使用 Kimi Code `2.0.2` 官方的“最近活动”排序。
+- 已明确选择手动顺序的浏览器保留该偏好；置顶工作区继续排在前面。
+- 在官方 Web 中向 fork 会话发送消息时，阻止自动标题生成抹掉 `Fork: ` 标记；手动重新生成仍可用。
 
-本版完成静态审计和自动化回归；实际浏览器与后端的关键交互仍需运行验收。
+本版完成官方包静态审计和自动化回归；真实浏览器中的工作区排序与 fork 标题仍待运行验收。
 
 完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。从旧版本升级后需要重启 `kimi web` / launcher，
 再刷新或重新打开页面；已经运行的服务不会热加载新资源。
@@ -41,7 +41,10 @@
   可恢复官方外观，选择只保存在当前浏览器和站点。
 - **供应商编辑增强**：供应商标签支持触摸、拖动、滚轮和键盘导航；模型可配置多模态、
   工具、思考能力与思考档位，可从 `/models` 发现并添加模型，也可用鼠标或触摸排序。
-- **工作区置顶**：支持置顶和取消置顶，多个置顶项按操作顺序排列；本地只保存工作区 ID。
+- **工作区最近活动排序与置顶**：首次使用默认按最近活动排列，也可切回官方手动顺序；
+  置顶项始终在前，多个置顶项按操作顺序排列。本地仅为置顶保存工作区 ID。
+- **fork 标题保护**：官方 Web 在回合结束后自动生成标题时，若当前会话仍显示 `Fork: ` 前缀，
+  保留该标题；手动重命名与主动重新生成标题继续使用官方接口。
 - **归档会话删除**：已归档设置页和首页“已完成”列表提供永久删除；仅为唯一匹配项显示入口，
   二次确认后调用 Kimi Code 官方正式删除接口。
 - **发送与阅读体验**：会话运行中可在桌面和手机使用“插队”按钮；按钮通过官方 `.send`
@@ -119,10 +122,10 @@
 源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到
 npm registry，可从 GitHub Release 的版本化 tgz 或源码安装。
 
-**GitHub Release tgz**（固定为 `v2.0.2-r1`）：
+**GitHub Release tgz**（固定为 `v2.0.2-r2`）：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.0.2-r1/open-kimi-web-2.0.2-r1.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.0.2-r2/open-kimi-web-2.0.2-r2.tgz
 open-kimi-web integrate install
 ```
 
@@ -307,4 +310,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[release-2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1
+[release-2.0.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r2
