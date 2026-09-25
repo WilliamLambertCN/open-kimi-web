@@ -199,6 +199,17 @@ describe('workspace pins', () => {
   });
 });
 
+describe('workspace pin ordering', () => {
+  it('keeps pins first when the official recent order changes', () => {
+    const { mutate, view } = install({ storedPins: ['workspace-b'] });
+    const list = view.document.querySelector('.sessions');
+    list.prepend(view.document.querySelector('[data-ws-id="workspace-c"]'));
+    mutate();
+
+    expect(workspaceOrder(view)).toEqual(['workspace-b', 'workspace-c', 'workspace-a']);
+  });
+});
+
 describe('workspace pin observer', () => {
   it('settles after enhancing an open menu with a real MutationObserver', async () => {
     const { observerState, view } = install({ useNativeObserver: true });
