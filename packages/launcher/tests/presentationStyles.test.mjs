@@ -63,4 +63,47 @@ describe('presentation theme layout boundaries', () => {
       /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*[^-\w]height:\s*calc\(100dvh/s,
     );
   });
+
+  it('caps the mobile question card so the content behind stays visible', () => {
+    expect(presentationCss).toMatch(
+      /\.app\.mobile\s+\.qcard:not\(\.minimized\)\s*\{[^}]*max-height:\s*calc\(var\(--app-height[^)]*\)\s*\*\s*0\.5\)/s,
+    );
+  });
+
+  it('lays the question footer buttons out in one row on mobile', () => {
+    expect(presentationCss).toMatch(
+      /@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.qfoot\s+\.qbtns\s*\{[^}]*flex-direction:\s*row/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.app\.mobile\s+\.qfoot\s+\.qbtns\s+\.ui-button\s*\{[^}]*flex:\s*1\s+1\s+0/s,
+    );
+  });
+
+  it('keeps the question stem out of the scrolling options list on mobile', () => {
+    expect(presentationCss).toMatch(
+      /\.app\.mobile\s+\.qcard\s+\.qbody\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.app\.mobile\s+\.qcard\s+\.qbody\s*>\s*\.qmdbody\s*\{[^}]*flex:\s*none/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.app\.mobile\s+\.qcard\s+\.qbody\s*>\s*\.qopts\s*\{[^}]*overflow-y:\s*auto/s,
+    );
+  });
+});
+
+describe('mobile question choices and actions', () => {
+  it('orders back, danger-colored dismiss, and next in the footer', () => {
+    expect(presentationCss).toMatch(/\.qbtns\s+\.ui-button:nth-child\(2\)\s*\{[^}]*order:\s*-1/s);
+    expect(presentationCss).toMatch(/\.qbtns\s+\.ui-button:last-child:not\(\.qmain\)\s*\{[^}]*order:\s*0/s);
+    expect(presentationCss).toMatch(/\.qbtns\s+\.ui-button:last-child:not\(\.qmain\)\s*\{[^}]*var\(--color-danger\)/s);
+    expect(presentationCss).toMatch(/\.qbtns\s+\.qmain\s*\{[^}]*order:\s*1/s);
+  });
+
+  it('emphasizes a chosen option without changing the others', () => {
+    expect(presentationCss).toMatch(/\.qopt\.selected\s*\{[^}]*var\(--color-accent-soft\)/s);
+    expect(presentationCss).toMatch(/\.qopt\.selected\s+\.qopt-label\s*\{[^}]*font-size:\s*var\(--text-lg\)/s);
+    expect(presentationCss).toMatch(/\.qopt\.selected\s+\.qopt-label\s*\{[^}]*font-weight:\s*var\(--weight-semibold\)/s);
+    expect(presentationCss).toMatch(/\.qopts\s*>\s*\.qopt\s*\{[^}]*flex-shrink:\s*0/s);
+  });
 });
