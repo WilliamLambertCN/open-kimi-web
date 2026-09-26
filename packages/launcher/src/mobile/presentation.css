@@ -776,4 +776,79 @@
   .sheet-root.okw-workspaces .srow-flat .kb {
     color: rgba(255, 255, 255, .48);
   }
+
+  .app.mobile .qcard:not(.minimized) {
+    max-height: calc(var(--app-height, 100dvh) * 0.5);
+    margin-block: 0;
+  }
+
+  .app.mobile .qcard:not(.minimized) .qbody {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: var(--space-4);
+  }
+
+  .app.mobile .qfoot {
+    flex-direction: row;
+    align-items: center;
+    padding-block: var(--space-2);
+  }
+
+  .app.mobile .qfoot .qbtns {
+    flex: 1;
+    flex-direction: row;
+    gap: var(--space-1);
+  }
+
+  .app.mobile .qfoot .qbtns .ui-button {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .app.mobile .qfoot .qbtns .ui-button:nth-child(2) {
+    order: -1;
+  }
+
+  .app.mobile .qfoot .qbtns .ui-button:last-child:not(.qmain) {
+    order: 0;
+    background: var(--color-danger);
+    color: var(--color-text-on-accent);
+    border-color: var(--color-danger);
+  }
+
+  .app.mobile .qfoot .qbtns .qmain {
+    order: 1;
+  }
+
+  .app.mobile .qcard .qopt.selected {
+    background: var(--color-accent-soft);
+  }
+
+  .app.mobile .qcard .qopt.selected .qopt-label {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+  }
+
+  .app.mobile .qcard .qbody {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app.mobile .qcard .qbody > .qmdbody {
+    flex: none;
+  }
+
+  .app.mobile .qcard .qbody > .qopts {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .app.mobile .qcard .qopts > .qopt {
+    flex-shrink: 0;
+  }
 }
