@@ -3,6 +3,30 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.1.1-r1] - 2026-09-28
+
+兼容基线升级到 Kimi Code `2.1.1`，并修复 Side Chat 流式输出时抢走阅读位置的问题。
+
+- 官方 bundle 的下载失败回退版本、launcher 版本和安装链接同步到 `2.1.1`。
+- 复核供应商表单、归档入口、工作区排序、fork 标题、通知权限和 `prompts:steer` 的发布包结构。
+- Side Chat 仍在底部时继续自动跟随；用户向上滚动后保留阅读位置，回到底部后恢复跟随。
+- 定向测试与隔离 Chrome 验证通过；虚构内容的长短文本、桌面与手机、官方外观与氛围主题初始布局一致。
+- 隔离 `2.1.1` 后端的版本探测、官方页面加载和 Side Chat 脚本注入通过。
+
+### 事件：Side Chat 流式输出强制滚到底部
+
+- 影响：阅读较早的 Side Chat 内容时，新 token 会反复把页面拉到最底部。
+- 触发条件：官方 `2.1.1` Side Chat 中，侧聊代理运行或发送中，最新回合文本、思考或工具内容变化。
+- 根因：官方 `SideChatPanel` 的监听器在每次上述变化后无条件写入
+  `.sc-body.scrollTop = .sc-body.scrollHeight`，没有检查用户是否已离开底部。
+- 证据：官方发布包中的监听器和赋值；隔离 Chrome 对照中，原版从阅读位置 120 跳到 3630。
+- 修复：仅在官方 Side Chat 容器上拦截离开底部后的强制滚底；其他容器和用户自备 Web 构建不受影响。
+- 回归验证：定向测试覆盖持续输出、重新回到底部、键盘和触摸、重复注入与作用域；
+  注入集成测试通过。隔离 Chrome 中阅读位置保持 120，回到底部后跟随到 3700。
+- 运维动作：升级后重启 launcher，再刷新或重新打开页面；无需迁移会话数据。
+- 剩余边界：隔离 Chrome 使用虚构内容和官方 `2.1.1` 样式；真实侧聊代理的逐项操作未验证。
+  旧测试没有覆盖 Side Chat 的流式滚动和用户离开底部的交互。
+
 ## [open-kimi-web v2.0.2-r2] - 2026-09-25
 
 工作区首次使用默认按最近活动排序，并在官方 Web 中保护 fork 会话的标题标记。
@@ -207,6 +231,7 @@
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
 [open-kimi-web v0.42.0-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.42.0-r1
+[open-kimi-web v2.1.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r1
 [open-kimi-web v2.0.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r2
 [open-kimi-web v2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1
 [open-kimi-web v0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1

@@ -27,8 +27,8 @@ import {
 
 const tar = promisify(execFile);
 
-// Matches the 2.0.2 minified title composer (see patchRuntimeTitle).
-const BUNDLE_TITLE_SNIPPET = 'function _Je(e,t){return e!==""?e:t?`${xJe(t)} | Kimi Code`:"Kimi Code"}';
+// Matches the 2.1.1 minified title composer (see patchRuntimeTitle).
+const BUNDLE_TITLE_SNIPPET = 'function KXe(e,t){return e!==""?e:t?`${VXe(t)} | Kimi Code`:"Kimi Code"}';
 const INDEX_HTML = [
   '<!doctype html><html><head>',
   '<script src="/boot.js"></script>',
@@ -80,7 +80,7 @@ describe('resolveOfficialVersion', () => {
     ['missing version', metaFetch(undefined)],
     ['path-like version', metaFetch('../../etc')],
   ])('falls back to the pinned version on %s', async (_name, fetchImpl) => {
-    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.0.2');
+    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.1.1');
     await expect(resolveOfficialVersion('http://127.0.0.1:58627', null, fetchImpl)).resolves.toBe(
       OFFICIAL_FALLBACK_VERSION,
     );
@@ -127,7 +127,7 @@ describe('patchRuntimeTitle', () => {
     const { count, text } = patchRuntimeTitle(BUNDLE_TITLE_SNIPPET);
     expect(count).toBe(1);
     expect(text).toBe(
-      'function _Je(e,t){return e!==""?e:t?`${xJe(t)} | open Kimi-Code`:"open Kimi-Code"}',
+      'function KXe(e,t){return e!==""?e:t?`${VXe(t)} | open Kimi-Code`:"open Kimi-Code"}',
     );
     expect(text).not.toContain('Kimi Code');
   });

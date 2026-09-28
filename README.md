@@ -9,16 +9,16 @@
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-## [open-kimi-web v2.0.2-r2][release-2.0.2-r2] 最新变化
+## [open-kimi-web v2.1.1-r1][release-2.1.1-r1] 最新变化
 
 版本号跟随已验证的 Kimi Code 兼容基线；`rN` 表示同一基线上的项目修订号。
 本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本。
 
-- 首次打开工作区列表时默认使用 Kimi Code `2.0.2` 官方的“最近活动”排序。
-- 已明确选择手动顺序的浏览器保留该偏好；置顶工作区继续排在前面。
-- 在官方 Web 中向 fork 会话发送消息时，阻止自动标题生成抹掉 `Fork: ` 标记；手动重新生成仍可用。
+- 将官方 Web 兼容基线和离线失败回退版本更新到 Kimi Code `2.1.1`。
+- Side Chat 流式输出时，用户向上滚动阅读后保持当前位置；滚回底部时继续跟随新内容。
+- 继续保留工作区最近活动排序、fork 标题保护等现有增强。
 
-本版完成官方包静态审计和自动化回归；真实浏览器中的工作区排序与 fork 标题仍待运行验收。
+本版完成官方包静态审计、定向回归及隔离浏览器滚动验证；真实会话的逐项操作仍待验收。
 
 完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。从旧版本升级后需要重启 `kimi web` / launcher，
 再刷新或重新打开页面；已经运行的服务不会热加载新资源。
@@ -49,7 +49,8 @@
   二次确认后调用 Kimi Code 官方正式删除接口。
 - **发送与阅读体验**：会话运行中可在桌面和手机使用“插队”按钮；按钮通过官方 `.send`
   创建当前 queued prompt，再按精确 `prompt_id` 调用 `prompts:steer`。官方快捷键仍由上游处理。
-  工具调用完成后默认保持展开，已有手动偏好继续生效。
+  工具调用完成后默认保持展开，已有手动偏好继续生效。Side Chat 流式输出仅在阅读位置仍在底部时
+  自动跟随；向上滚动后不再抢走阅读位置，回到底部后恢复跟随。
 - **通知权限整流**：保留官方首次自动申请行为，合并并发请求；关闭提示后后台事件不会反复
   申请，设置中的主动重试仍可用。
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
@@ -122,10 +123,10 @@
 源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到
 npm registry，可从 GitHub Release 的版本化 tgz 或源码安装。
 
-**GitHub Release tgz**（固定为 `v2.0.2-r2`）：
+**GitHub Release tgz**（固定为 `v2.1.1-r1`）：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.0.2-r2/open-kimi-web-2.0.2-r2.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r1/open-kimi-web-2.1.1-r1.tgz
 open-kimi-web integrate install
 ```
 
@@ -238,7 +239,7 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
 "open Kimi-Code web"。手机端另加独立展示层，对齐首页、会话设置、模型菜单和工作区列表。
 
 - **首次启动需联网**：launcher 会从 npm registry 下载对应版本的包（约 20 MB，仅一次），
-  自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到已审计版本 `2.0.2`）；先试
+  自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到已审计版本 `2.1.1`）；先试
   npmjs，再试 npmmirror 镜像，尊重 `HTTPS_PROXY`/`HTTP_PROXY`。
 - **下载校验范围**：有 registry 的 sha512 integrity 元数据时校验下载包；元数据缺失时警告。
   仍会检查解包和必需文件是否完整；不会在每次启动时对缓存逐文件计算哈希。
@@ -249,7 +250,7 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
   能力通过官方 `POST/PUT /api/v1/providers` 字段保存；模型发现请求由受当前页面 bearer
   token 保护的 launcher 同源端点转发，限制为 http(s)、短超时、1 MiB 响应且不跟随
   重定向，API Key 不写日志、不回显。`--web-dir` 不注入该展示层及主题功能。已对照的
-  上游构建为 `2.0.2`，未来版本若改变组件结构，需要重新检查这些选择器。
+  上游构建为 `2.1.1`，未来版本若改变组件结构，需要重新检查这些选择器。
 - **失败行为（兼容性变更）**：官方 bundle 不可用时 launcher 现在会明确中止启动，不再静默改用不同的界面。恢复 npm 网络与 `curl` / `tar` 后重试，或用 `--web-dir` 指向隔离且已准备好的官方前端构建目录。
 - **显式指定**：`open-kimi-web serve --web-dir <path>` 直接公开并服务现成构建目录。
   不要在目录中放日志、备份、配置或凭证；静态服务会拒绝通过符号链接越过该目录。
@@ -298,8 +299,8 @@ wrapper，应调用它所记录的真实二进制，再运行 `pnpm dev`。
 
 结构：`packages/launcher` 包含 HTTPS、REST/WS 代理、官方资源加载和手机展示层；`contracts/upstream` 保留历史协议快照作为参考。上游版本与维护边界见 [`UPSTREAM.md`](UPSTREAM.md)。
 
-兼容性基线：CLI `2.0.2`（npm provenance 指向
-[`9d07f634`](https://github.com/MoonshotAI/kimi-code/commit/9d07f634be94ebeb1deba2f55d247807cf729315)）；
+兼容性基线：CLI `2.1.1`（官方发布标签指向
+[`f67e6398`](https://github.com/MoonshotAI/kimi-code/commit/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f)）；
 已审计受影响的页面结构和请求路径，尚未完成真实浏览器与后端的逐项验收。
 
 ## License
@@ -310,4 +311,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[release-2.0.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r2
+[release-2.1.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r1

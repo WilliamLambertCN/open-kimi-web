@@ -7,29 +7,35 @@ or a vendored transcript implementation.
 ## Current baseline
 
 - Upstream: [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code).
-- Inspected published package version: `2.0.2`.
-- Provenance release commit: `9d07f634be94ebeb1deba2f55d247807cf729315`.
+- Inspected published package version: `2.1.1`.
+- Official release tag commit: `f67e6398fb3210ad8ace970e2dfd5bcc984ed61f`.
 - Published package integrity:
-  `sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==`.
-- Server API compatibility target: `2.0.2`; no complete live protocol recapture was performed.
-- Open Kimi Web release target: `2.0.2-r2`.
+  `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
+- Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
+- Open Kimi Web release target: `2.1.1-r1`.
 - Machine-readable version and historical contract records: `upstream.json`.
 
-The commit comes from the resolved Git dependency in the npm provenance
-attestation for `@moonshot-ai/kimi-code@2.0.2`; the integrity comes from npm
-package metadata. Static inspection of that published `dist-web` confirmed
-the title composer, archive selectors, provider model rows (`.pmt-grid`),
-the `prompts:steer` path, and the new empty-state logo (`.empty-logo`).
+The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
+the integrity comes from npm package metadata. Static inspection of the
+published `dist-web` confirmed the title composer, archive selectors,
+provider model rows (`.pmt-grid`), `prompts:steer`, and the empty-state logo.
 The old `.empty-doodle` and `.empty-hint-text` elements are absent, so their
 mobile overrides were removed. These are bundle observations, not live server
 or browser interaction results.
 
-The `2.0.2` workspace store reads `kimi-web.workspace-sort` as `manual` or
+An isolated `2.1.1` backend returned `server_version: 2.1.1`; the launcher
+served that official page with the Side Chat guard before the official module.
+Separate headless Chrome checks used fictional content with the official
+`2.1.1` CSS to verify scroll behavior and unchanged initial layout across
+content lengths, viewports, and affected themes. A real side agent turn was
+not run in this isolated environment.
+
+The `2.1.1` workspace store reads `kimi-web.workspace-sort` as `manual` or
 `recent`. Its recent order uses session update times and workspace
 `last_opened_at`; the default script selects `recent` only when this preference
 has not been set, leaving an explicit manual choice intact.
 
-The `2.0.2` Web bundle requests non-forced title generation after a turn and
+The `2.1.1` Web bundle requests non-forced title generation after a turn and
 uses `force: true` for manual regeneration. Default fork titles begin with
 `Fork: `, but neither v1 session details nor the v2 session list exposes
 `forkedFrom`. The presentation guard checks the current v1 title before the
@@ -40,9 +46,16 @@ outside Open Kimi Web, including direct CLI traffic, remain upstream behavior.
 The `0.43.1` compatibility audit established that, during a running turn,
 the regular `.send` control creates a queued prompt. Steering a specific new
 prompt requires `POST /api/v1/sessions/{session_id}/prompts:steer` with its
-`prompt_id`; `Ctrl+S` promotes the existing queue head. The `2.0.2` bundle
+`prompt_id`; `Ctrl+S` promotes the existing queue head. The `2.1.1` bundle
 still contains the steer path, but this release has not been checked through
 a real-browser click-through or live server protocol validation.
+
+In `2.1.1`, `SideChatPanel` watches a summary of the latest turn and assigns
+`.sc-body.scrollTop = .sc-body.scrollHeight` after every streamed change while
+the side agent is running. The local guard keeps tail following until the
+reader scrolls away, then blocks only that bottom assignment on the Side Chat
+body. Scrolling back to the bottom resumes following. Other scroll containers
+and user-provided `--web-dir` builds are untouched.
 
 By default the launcher resolves the web bundle version from the target
 server, with its configured fallback when metadata is unavailable.
@@ -77,4 +90,4 @@ origin and original checksums. They remain historical reference material;
 the retired standalone-client contract tests and capture workflow no longer
 run. The `0.43.1` archive, deletion, and steer behavior was checked separately,
 but the full artifacts were not recaptured, so these snapshots do not claim
-`0.43.1` or `2.0.2` coverage.
+`0.43.1`, `2.0.2`, or `2.1.1` coverage.
