@@ -101,6 +101,52 @@ afterEach(() => {
   documents.splice(0).forEach((frame) => frame.remove());
 });
 
+describe('archived delete observer streaming scope', () => {
+  it('ignores long chat streaming but restores actions after related rows and buttons change', async () => {
+    const ui = install({ extraMessages: 500 });
+    await loadArchived(ui);
+    const app = ui.view.document.querySelector('#app');
+    const sideChat = ui.view.document.createElement('div');
+    sideChat.className = 'side-chat';
+    const queries = vi.spyOn(ui.view.document, 'querySelectorAll');
+
+    app.append(sideChat);
+    for (let batch = 0; batch < 20; batch += 1) {
+      const message = ui.view.document.createElement('div');
+      message.className = 'a-msg';
+      message.textContent = `History batch ${batch}`;
+      app.append(message);
+      const sideMessage = ui.view.document.createElement('div');
+      sideMessage.textContent = `Side Chat batch ${batch}`;
+      sideChat.append(sideMessage);
+      await tick();
+    }
+    expect(queries).not.toHaveBeenCalled();
+
+    ui.archiveButton().remove();
+    ui.sidebarButton().remove();
+    await tick();
+    expect(ui.archiveButton()).not.toBeNull();
+    expect(ui.sidebarButton()).not.toBeNull();
+
+    const oldRow = ui.view.document.querySelector('.archive-row');
+    const newRow = ui.view.document.createElement('div');
+    newRow.className = 'archive-row';
+    newRow.innerHTML = '<span class="archive-name">Archived title</span><time class="archive-time">2026-09-08 12:34</time>';
+    oldRow.replaceWith(newRow);
+    await tick();
+    expect(newRow.querySelector('.okw-archive-delete')).not.toBeNull();
+
+    ui.view.document.querySelector('.archive-list').outerHTML = settingsMarkup;
+    ui.view.document.querySelector('.sessions').outerHTML = sidebarMarkup;
+    await tick();
+    expect(ui.archiveButton()).not.toBeNull();
+    expect(ui.sidebarButton()).not.toBeNull();
+    await expectSettled(ui);
+    expect(ui.state.callbacks).toBeLessThan(80);
+  });
+});
+
 describe('archived delete observer convergence', () => {
   it.each(['sidebar', 'settings'])('settles when only the %s archived row exists', async (rowScope) => {
     const ui = install({ rowScope });

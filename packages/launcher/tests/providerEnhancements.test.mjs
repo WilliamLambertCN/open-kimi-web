@@ -212,6 +212,8 @@ class FakeForm extends FakeElement {
     return null;
   }
 
+  closest(selector) { return selector === '.pf-form, .pf' ? this : null; }
+
   querySelectorAll(selector) {
     if (selector === '.pf-field') return this.fields;
     if (selector === ALL_ROWS || selector === LEGACY_ROWS && !this.current || selector === CURRENT_ROWS && this.current) {
@@ -328,7 +330,8 @@ function install({ current = false } = {}) {
   };
   runInNewContext(sortingSource, context);
   runInNewContext(enhancementSource, context);
-  return { added, calls, document, existing, form, observerCallback, window };
+  const mutate = () => observerCallback([{ target: form, addedNodes: [], removedNodes: [] }]);
+  return { added, calls, document, existing, form, observerCallback: mutate, window };
 }
 
 const pointerEvent = (type, values) => ({
