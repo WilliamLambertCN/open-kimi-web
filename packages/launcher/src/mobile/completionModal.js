@@ -261,7 +261,16 @@
     window.WebSocket = ObservedWebSocket;
   }
 
-  new MutationObserver(scheduleEvaluation).observe(document.documentElement, {
+  const observedControls = `.app .composer, .app.mobile .topbar, ${pendingSelector}`;
+  const containsControls = (node, selector) => node.nodeType === 1 && (
+    node.matches(selector) || node.querySelector(selector)
+  );
+  const controlsChanged = ({ target, addedNodes, removedNodes }) => target.closest?.(observedControls) ||
+    [...addedNodes, ...removedNodes].some((node) => containsControls(node, observedControls)) ||
+    (target.closest?.('.app') && [...removedNodes].some((node) => containsControls(node, '.composer, .topbar')));
+  new MutationObserver((records) => {
+    if (syncRoute() || records.some(controlsChanged)) scheduleEvaluation();
+  }).observe(document.documentElement, {
     childList: true,
     subtree: true,
   });

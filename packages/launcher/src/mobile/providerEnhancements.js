@@ -482,7 +482,14 @@
     return response;
   };
 
-  new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
+  const formChanged = (records) => records.some(({ target, addedNodes, removedNodes }) => (
+    target.closest?.(FORM_SELECTOR) || [...addedNodes, ...removedNodes].some((node) => (
+      node.nodeType === 1 && (node.matches(FORM_SELECTOR) || node.querySelector(FORM_SELECTOR))
+    ))
+  ));
+  new MutationObserver((records) => {
+    if (formChanged(records)) enhance();
+  }).observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('popstate', enhance);
   enhance();
 }
