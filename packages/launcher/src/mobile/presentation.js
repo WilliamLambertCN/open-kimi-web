@@ -451,8 +451,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
     document.querySelectorAll('.mp > .chip-strip').forEach(enhanceProviderStrip);
     document.querySelectorAll('.app .composer').forEach(enhanceSteerButton);
     if (!mobile.matches) return;
-    const main = document.querySelector('.app.mobile .topbar .tb-main');
-    if (main) renderObservedHeaderState();
+    renderObservedHeaderState();
 
     document.querySelectorAll('.sheet-root').forEach((root) => {
       enhanceSettings(root);
@@ -481,7 +480,12 @@ const mobile = window.matchMedia('(max-width: 640px)');
     });
   };
 
-  new MutationObserver(enhance).observe(document.documentElement, {
+  const presentationSelectors = '.side .ch-name, .mp > .chip-strip, .app .composer, .app.mobile .topbar, .sheet-root';
+  const affectsPresentation = ({ target, addedNodes }) => target.closest?.(presentationSelectors) ||
+    [...addedNodes].some((node) => node.matches?.(presentationSelectors) || node.querySelector?.(presentationSelectors));
+  new MutationObserver((records) => {
+    if (records.some(affectsPresentation)) enhance();
+  }).observe(document.documentElement, {
     childList: true,
     subtree: true,
     attributes: true,

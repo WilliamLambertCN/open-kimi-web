@@ -82,6 +82,8 @@ class FakeCard extends FakeElement {
     [this.row] = this.rows;
   }
 
+  closest(selector) { return selector === '.archive-list, .sessions' ? this : null; }
+
   querySelector(selector) {
     if (selector === '.archive-workspace .path') return this.path;
     if (selector === '.archive-workspace .count') return this.count;
@@ -245,12 +247,13 @@ export async function install({
     headers: listHeaders(authorization),
   });
   await new Promise((resolve) => setTimeout(resolve, 0));
-  observerCallback();
+  const mutate = () => observerCallback([{ target: card, addedNodes: [], removedNodes: [] }]);
+  mutate();
   const actions = card.row.querySelector('.okw-archive-actions');
   const remove = actions?.querySelector('.okw-archive-delete');
   const sidebarRemove = sidebarRows[0]?.querySelector('.okw-sidebar-archive-delete');
   return {
-    archivedUrl, card, mutate: observerCallback, nativeFetch, remove,
+    archivedUrl, card, mutate, nativeFetch, remove,
     setLocale: (value) => { currentLocale = value; },
     sidebarRemove, sidebarRows, window,
   };

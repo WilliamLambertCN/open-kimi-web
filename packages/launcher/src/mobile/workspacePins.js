@@ -226,6 +226,12 @@
   }, true);
 
   pinnedIds = readPinnedIds();
-  new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
+  const workspaceSelectors = '.ws-dir, .ws-drop-target, .workspace-menu';
+  const affectsWorkspaces = ({ target, addedNodes }) => target.closest?.(workspaceSelectors) ||
+    Array.from(addedNodes).some((node) => node.matches?.(workspaceSelectors) ||
+      node.querySelector?.(workspaceSelectors));
+  new MutationObserver((records) => {
+    if (records.some(affectsWorkspaces)) enhance();
+  }).observe(document.documentElement, { childList: true, subtree: true });
   enhance();
 }

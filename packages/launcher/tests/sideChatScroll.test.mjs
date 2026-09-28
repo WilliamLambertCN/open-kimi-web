@@ -11,9 +11,15 @@ const frames = [];
 function createBody(view, { height = 1000, viewport = 200 } = {}) {
   const body = view.document.createElement('div');
   body.className = 'sc-body';
-  const dimensions = { height, viewport };
-  Object.defineProperty(body, 'scrollHeight', { get: () => dimensions.height });
-  Object.defineProperty(body, 'clientHeight', { get: () => dimensions.viewport });
+  const dimensions = { height, viewport, heightReads: 0, viewportReads: 0 };
+  Object.defineProperty(body, 'scrollHeight', { get: () => {
+    dimensions.heightReads += 1;
+    return dimensions.height;
+  } });
+  Object.defineProperty(body, 'clientHeight', { get: () => {
+    dimensions.viewportReads += 1;
+    return dimensions.viewport;
+  } });
   view.document.body.append(body);
   return { body, dimensions };
 }
@@ -23,11 +29,22 @@ function userScroll(view, body, top) {
   body.dispatchEvent(new view.Event('scroll'));
 }
 
-async function install() {
+async function install({ clampScroll = false } = {}) {
   const frame = document.createElement('iframe');
   document.body.append(frame);
   frames.push(frame);
   const view = frame.contentWindow;
+  if (clampScroll) {
+    const native = Object.getOwnPropertyDescriptor(view.Element.prototype, 'scrollTop');
+    Object.defineProperty(view.Element.prototype, 'scrollTop', {
+      configurable: true,
+      get() { return native.get.call(this); },
+      set(value) {
+        const bottom = Math.max(0, this.scrollHeight - this.clientHeight);
+        native.set.call(this, Math.min(Number(value), bottom));
+      },
+    });
+  }
   view.eval(`(() => { ${source}\n})()`);
   const { body, dimensions } = createBody(view);
   await Promise.resolve();
@@ -87,6 +104,81 @@ describe('Side Chat streaming scroll guard', () => {
     const next = createBody(view).body;
     await Promise.resolve();
     expect(Object.hasOwn(next, 'scrollTop')).toBe(true);
+  });
+});
+
+describe('Side Chat reading position', () => {
+  it('keeps following when a prior scroll event arrives after the next content growth', async () => {
+    const { body, dimensions, view } = await install({ clampScroll: true });
+    body.scrollTop = body.scrollHeight;
+    dimensions.height = 1100;
+    body.scrollTop = body.scrollHeight;
+    dimensions.height = 1400;
+    body.dispatchEvent(new view.Event('scroll'));
+    body.scrollTop = body.scrollHeight;
+    expect(body.scrollTop).toBe(1200);
+
+    userScroll(view, body, 1200);
+    dimensions.height = 1500;
+    body.dispatchEvent(new view.Event('scroll'));
+    body.scrollTop = body.scrollHeight;
+    expect(body.scrollTop).toBe(1300);
+  });
+
+  it('recognizes a real scrollbar move even with a programmatic event pending', async () => {
+    const { body, dimensions, view } = await install({ clampScroll: true });
+    body.scrollTop = body.scrollHeight;
+    dimensions.height = 1100;
+    body.scrollTop = body.scrollHeight;
+    userScroll(view, body, 200);
+    dimensions.height = 1200;
+    body.scrollTop = body.scrollHeight;
+    expect(body.scrollTop).toBe(200);
+    userScroll(view, body, 1000);
+    dimensions.height = 1300;
+    body.scrollTop = body.scrollHeight;
+    expect(body.scrollTop).toBe(1100);
+  });
+
+  it('lets an ordinary programmatic non-bottom assignment leave follow mode', async () => {
+    const { body, dimensions, view } = await install({ clampScroll: true });
+    body.scrollTop = body.scrollHeight;
+    body.scrollTop = 300;
+    body.dispatchEvent(new view.Event('scroll'));
+    dimensions.height = 1200;
+    body.scrollTop = body.scrollHeight;
+    expect(body.scrollTop).toBe(300);
+  });
+});
+
+describe('Side Chat input and panel behavior', () => {
+  it('avoids extra layout reads while following and still allows non-bottom programmatic scrolls', async () => {
+    const { body, dimensions, view } = await install();
+    body.scrollTop = body.scrollHeight;
+    expect(dimensions.heightReads).toBe(1);
+    expect(dimensions.viewportReads).toBe(0);
+
+    body.dispatchEvent(new view.WheelEvent('wheel', { deltaY: -120 }));
+    dimensions.height = 1200;
+    body.scrollTop = body.scrollHeight;
+    expect(body.scrollTop).toBe(1000);
+    body.scrollTop = 300;
+    expect(body.scrollTop).toBe(300);
+  });
+
+  it('keeps follow state separate when the reader switches to a new Side Chat body', async () => {
+    const { body, view } = await install();
+    body.scrollTop = 800;
+    body.dispatchEvent(new view.Event('scroll'));
+    body.dispatchEvent(new view.WheelEvent('wheel', { deltaY: -120 }));
+    userScroll(view, body, 250);
+    body.remove();
+
+    const next = createBody(view).body;
+    await Promise.resolve();
+    next.scrollTop = next.scrollHeight;
+    expect(next.scrollTop).toBe(1000);
+    expect(body.scrollTop).toBe(250);
   });
 
   it('lets keyboard and touch reading gestures detach from the live tail', async () => {

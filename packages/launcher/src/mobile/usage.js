@@ -494,6 +494,6 @@ if (!window.__okwUsageInstalled) {
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   }, true);
-  new MutationObserver(mountEntries).observe(document.documentElement, { childList: true, subtree: true });
+  window.__okwUsageObserveEntries(mountEntries);
   mountEntries();
 }

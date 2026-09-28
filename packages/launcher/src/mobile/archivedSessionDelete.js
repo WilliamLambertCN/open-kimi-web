@@ -431,16 +431,27 @@
     ));
   };
 
+  let renderedLocale = currentLocale();
   function enhance() {
     if (pendingArchivedRequests > 0) {
       clearVisibleRowSessions();
+      renderedLocale = currentLocale();
       return;
     }
     matchRows();
     document.querySelectorAll('.archive-list .archive-row').forEach(enhanceArchiveRow);
     document.querySelectorAll('.sessions .se').forEach(enhanceSidebarRow);
+    renderedLocale = currentLocale();
   }
 
-  new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
+  const archiveChanged = (records) => records.some(({ target, addedNodes, removedNodes }) => (
+    target.closest?.('.archive-list, .sessions') ||
+    [...addedNodes, ...removedNodes].some((node) => node.nodeType === 1 && (
+      node.matches('.archive-list, .sessions') || node.querySelector('.archive-list, .sessions')
+    ))
+  ));
+  new MutationObserver((records) => {
+    if (renderedLocale !== currentLocale() || archiveChanged(records)) enhance();
+  }).observe(document.documentElement, { childList: true, subtree: true });
   enhance();
 }
