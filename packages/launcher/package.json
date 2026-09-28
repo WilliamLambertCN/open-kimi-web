@@ -1,6 +1,6 @@
 {
   "name": "open-kimi-web",
-  "version": "2.1.1-r2",
+  "version": "2.1.1-r3",
   "description": "Mobile and LAN enhancements for the official Kimi Code web UI.",
   "license": "MIT",
   "type": "module",
