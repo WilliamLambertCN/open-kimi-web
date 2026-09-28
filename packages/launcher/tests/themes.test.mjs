@@ -7,6 +7,7 @@ const source = readFileSync(resolve('packages/launcher/src/mobile/themes.js'), '
 const themeCss = readFileSync(resolve('packages/launcher/src/mobile/themes.css'), 'utf8');
 const STORAGE_KEY = 'open-kimi-web.atmospheric-theme';
 const frames = [];
+const observers = [];
 
 // Stable semantic portion of the official 0.41.0 account-menu DOM.
 const userMenuHtml = `
@@ -26,7 +27,7 @@ const userMenuHtml = `
   </div>
 `;
 
-function install({ mobile = false, storedTheme, body = userMenuHtml } = {}) {
+function install({ mobile = false, storedTheme, body = userMenuHtml, observeMutations = false } = {}) {
   const frame = document.createElement('iframe');
   document.body.append(frame);
   frames.push(frame);
@@ -41,9 +42,22 @@ function install({ mobile = false, storedTheme, body = userMenuHtml } = {}) {
     matches: mobile,
     addEventListener: vi.fn(),
   };
+  const observerState = { callbacks: 0, exceeded: false };
+  const NativeMutationObserver = view.MutationObserver;
   view.MutationObserver = class MutationObserver {
-    constructor(callback) { this.callback = callback; }
-    observe() {}
+    constructor(callback) {
+      this.observer = observeMutations && new NativeMutationObserver((records) => {
+        observerState.callbacks += 1;
+        if (observerState.callbacks > 100) {
+          observerState.exceeded = true;
+          this.observer.disconnect();
+          return;
+        }
+        callback(records);
+      });
+      if (this.observer) observers.push(this.observer);
+    }
+    observe(target, options) { if (this.observer) this.observer.observe(target, options); }
   };
   view.matchMedia = vi.fn(() => media);
   view.requestAnimationFrame = (callback) => {
@@ -51,10 +65,15 @@ function install({ mobile = false, storedTheme, body = userMenuHtml } = {}) {
     return 1;
   };
   view.eval(`(() => { ${source}\n})()`);
-  return { media, view };
+  return { media, observerState, view };
 }
 
+const settleMutations = async () => {
+  for (let pass = 0; pass < 4; pass += 1) await Promise.resolve();
+};
+
 afterEach(() => {
+  observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove());
 });
 
@@ -161,5 +180,117 @@ describe('atmospheric theme selection', () => {
     expect(view.getComputedStyle(picker.querySelector('.okw-theme-options')).gridTemplateColumns)
       .toBe('repeat(2, minmax(0, 1fr))');
     expect(view.document.querySelector('.okw-theme-current').textContent).toBe('夜幕 · Nocturne');
+  });
+});
+
+describe('atmospheric theme mutation observer', () => {
+  it('does not revisit old messages for repeated additions in the last message', async () => {
+    const body = `<div class="side"><div class="ch-brand">Kimi</div></div>
+      <div class="messages">${'<div class="a-msg"><span>Earlier</span></div>'.repeat(500)}</div>
+      ${userMenuHtml}`;
+    const { observerState, view } = install({ body, observeMutations: true });
+    await settleMutations();
+    const doc = view.document;
+    const messages = doc.querySelector('.messages');
+    const lastMessage = messages.lastElementChild;
+    expect(doc.querySelectorAll('.a-msg > .okw-assistant-mark')).toHaveLength(500);
+    expect(doc.querySelector('.side .ch-brand > .okw-brand-mark')).not.toBeNull();
+
+    let globalMessageQueries = 0;
+    let oldMessageChecks = 0;
+    const queryAll = doc.querySelectorAll.bind(doc);
+    const query = view.Element.prototype.querySelector;
+    doc.querySelectorAll = (selector) => {
+      if (selector === '.a-msg') globalMessageQueries += 1;
+      return queryAll(selector);
+    };
+    view.Element.prototype.querySelector = function querySelector(selector) {
+      if (selector === ':scope > .okw-assistant-mark' && this !== lastMessage &&
+        this.classList.contains('a-msg')) oldMessageChecks += 1;
+      return query.call(this, selector);
+    };
+
+    for (let batch = 0; batch < 20; batch += 1) {
+      lastMessage.append(doc.createElement('span'));
+      await settleMutations();
+    }
+    expect(oldMessageChecks).toBe(0);
+    expect(globalMessageQueries).toBe(0);
+    expect(observerState.exceeded).toBe(false);
+    expect(observerState.callbacks).toBeLessThan(100);
+    const settledCallbacks = observerState.callbacks;
+    await settleMutations();
+    expect(observerState.callbacks).toBe(settledCallbacks);
+  });
+
+  it('restores changed markers and adds controls in newly inserted subtrees', async () => {
+    const body = `<div class="side"><div class="ch-brand">Kimi</div></div>
+      <div class="messages"><div class="a-msg">Earlier</div></div>${userMenuHtml}`;
+    const { observerState, view } = install({ body, observeMutations: true });
+    await settleMutations();
+    const doc = view.document;
+    const messages = doc.querySelector('.messages');
+
+    const wrapper = doc.createElement('div');
+    wrapper.innerHTML = '<div class="a-msg"><span>New</span></div>';
+    messages.append(wrapper);
+    await settleMutations();
+    expect(wrapper.querySelector('.a-msg > .okw-assistant-mark')).not.toBeNull();
+
+    const moved = messages.firstElementChild;
+    messages.append(moved);
+    await settleMutations();
+    expect(moved.querySelectorAll(':scope > .okw-assistant-mark')).toHaveLength(1);
+    moved.querySelector('.okw-assistant-mark').remove();
+    doc.querySelector('.side .ch-brand').innerHTML = 'New brand';
+    await settleMutations();
+    expect(moved.querySelector(':scope > .okw-assistant-mark')).not.toBeNull();
+    expect(doc.querySelector('.side .ch-brand > .okw-brand-mark')).not.toBeNull();
+
+    const newSide = doc.createElement('div');
+    newSide.className = 'side';
+    newSide.innerHTML = '<div class="ch-brand">Another</div>';
+    doc.body.append(newSide);
+    const newMenu = doc.createElement('div');
+    newMenu.innerHTML = userMenuHtml;
+    doc.body.append(newMenu);
+    await settleMutations();
+    expect(newSide.querySelector('.okw-brand-mark')).not.toBeNull();
+    expect(newMenu.querySelector('[data-okw-theme-menu-trigger]')).not.toBeNull();
+    expect(observerState.exceeded).toBe(false);
+    expect(observerState.callbacks).toBeLessThan(100);
+    const settledCallbacks = observerState.callbacks;
+    await settleMutations();
+    expect(observerState.callbacks).toBe(settledCallbacks);
+  });
+});
+
+describe('atmospheric theme responsive controls', () => {
+  it('adds settings controls on a new panel and retains media-change behavior', async () => {
+    const { media, observerState, view } = install({
+      body: userMenuHtml,
+      mobile: true,
+      observeMutations: true,
+    });
+    const panel = view.document.createElement('div');
+    panel.className = 'sheet-panel';
+    panel.setAttribute('aria-label', '设置');
+    panel.innerHTML = '<div class="sheet-body"><div class="card"></div></div>';
+    view.document.body.append(panel);
+    await settleMutations();
+    expect(panel.querySelectorAll('[data-okw-theme-picker]')).toHaveLength(1);
+
+    media.matches = false;
+    media.addEventListener.mock.calls[0][1]();
+    await settleMutations();
+    expect(panel.querySelector('[data-okw-theme-picker]')).toBeNull();
+    expect(view.document.querySelector('[data-okw-theme-menu-trigger]')).not.toBeNull();
+
+    media.matches = true;
+    media.addEventListener.mock.calls[0][1]();
+    await settleMutations();
+    expect(panel.querySelectorAll('[data-okw-theme-picker]')).toHaveLength(1);
+    expect(view.document.querySelector('[data-okw-theme-menu-trigger]')).toBeNull();
+    expect(observerState.exceeded).toBe(false);
   });
 });
