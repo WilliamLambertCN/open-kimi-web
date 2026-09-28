@@ -303,7 +303,10 @@ describe('priority-send control', () => {
     expect(button.disabled).toBe(false);
 
     fixture.composer.send.disabled = true;
-    fixture.observer.callback();
+    fixture.observer.callback([{
+      target: { closest: () => fixture.composer },
+      addedNodes: [],
+    }]);
     expect(fixture.composer.querySelector('.okw-steer-button')).toBeNull();
   });
 

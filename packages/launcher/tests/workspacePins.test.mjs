@@ -88,7 +88,10 @@ function install({ body, storedPins, workspaces = [], useNativeObserver = false 
   }));
   view.eval(`(() => { ${source}\n})()`);
   return {
-    mutate: () => mutationCallbacks.forEach((callback) => callback()),
+    mutate: () => mutationCallbacks.forEach((callback) => callback([{
+      target: view.document.body,
+      addedNodes: [view.document.body],
+    }])),
     observerState,
     view,
   };

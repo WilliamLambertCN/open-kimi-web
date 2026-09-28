@@ -1,4 +1,19 @@
 {
+  const entryAnchors = '.side-footer, .sheet-body > .actions, .sheet-body > .view-tabs';
+  const entryNodes = `${entryAnchors}, .okw-usage-entry, .okw-usage-mobile-entry`;
+
+  const affectsEntries = (record) => {
+    if (record.target.nodeType === 1 && record.target.closest(entryAnchors)) return true;
+    return [...record.addedNodes, ...record.removedNodes].some((node) =>
+      node.nodeType === 1 && (node.matches(entryNodes) || node.querySelector(entryNodes)));
+  };
+
+  window.__okwUsageObserveEntries = (mount) => {
+    new MutationObserver((records) => {
+      if (records.some(affectsEntries)) mount();
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+
   const field = (node, label, control) => {
     const wrapper = node('label', 'okw-usage-field');
     wrapper.append(node('span', '', label), control);
