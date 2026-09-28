@@ -4,19 +4,23 @@
     "cliVersion": "0.41.0"
   },
   "compatibilityBaseline": {
-    "commit": "9d07f634be94ebeb1deba2f55d247807cf729315",
-    "cliVersion": "2.0.2",
-    "commitEvidence": "npm provenance attestation"
+    "commit": "f67e6398fb3210ad8ace970e2dfd5bcc984ed61f",
+    "cliVersion": "2.1.1",
+    "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.1.1"
   },
   "minimumServerVersion": "0.43.1",
-  "inspectedPackageVersions": ["0.43.1", "2.0.2"],
+  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1"],
   "inspectedPackageIntegrity": {
     "0.43.1": "sha512-jq60K07tJV+uZB/mTN7rgb99WU5z6PtUeLybywGhXpF5QybaehIWsWudZ9HR8hEEmc7pppB+GAA92RDqOOKnRg==",
-    "2.0.2": "sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA=="
+    "2.0.2": "sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==",
+    "2.1.1": "sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw=="
   },
   "provenanceReleaseCommits": [
     "75ac010bcb2050338444455de8328492d152c919",
     "9d07f634be94ebeb1deba2f55d247807cf729315"
+  ],
+  "officialReleaseTagCommits": [
+    "f67e6398fb3210ad8ace970e2dfd5bcc984ed61f"
   ],
   "liveTestedServerCommits": [],
   "liveTestedServerVersions": [],
@@ -24,7 +28,7 @@
     "capturedFrom": "live kap-server booted from the sibling kimi-code checkout",
     "snapshotCommit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",
     "snapshotVersion": "0.41.0",
-    "snapshotStatus": "historical-reference; not recaptured for 2.0.2",
+    "snapshotStatus": "historical-reference; not recaptured for 2.1.1",
     "metadata": "contracts/upstream/metadata.json",
     "openapi": "contracts/upstream/openapi.json",
     "asyncapi": "contracts/upstream/asyncapi.json"
