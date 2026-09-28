@@ -778,8 +778,71 @@
   }
 
   .app.mobile .qcard:not(.minimized) {
-    max-height: calc(var(--app-height, 100dvh) * 0.5);
+    position: relative;
+    max-height: min(
+      max(var(--okw-question-card-min-height, 0px), calc(var(--app-height, 100dvh) * 0.5)),
+      calc(var(--app-height, 100dvh) - var(--dock-card-top-clearance, 0px))
+    );
     margin-block: 0;
+  }
+
+  .app.mobile .qcard:not(.minimized).okw-question-height-fixed {
+    height: min(
+      max(
+        var(--okw-question-card-min-height),
+        calc(var(--app-height, 100dvh) * var(--okw-question-card-height-tier))
+      ),
+      calc(var(--app-height, 100dvh) - var(--dock-card-top-clearance, 0px))
+    );
+    max-height: min(
+      max(
+        var(--okw-question-card-min-height),
+        calc(var(--app-height, 100dvh) * var(--okw-question-card-height-tier))
+      ),
+      calc(var(--app-height, 100dvh) - var(--dock-card-top-clearance, 0px))
+    );
+  }
+
+  .app.mobile .qcard:not(.minimized).okw-question-height-dragging {
+    height: var(--okw-question-card-preview-height);
+    max-height: var(--okw-question-card-preview-height);
+    transition: none;
+  }
+
+  .app.mobile .qcard:not(.minimized).okw-question-height-fixed > .qpane,
+  .app.mobile .qcard:not(.minimized).okw-question-height-dragging > .qpane {
+    flex: 1 1 auto;
+  }
+
+  .app.mobile .qcard:not(.minimized) > .okw-question-height-handle {
+    display: flex;
+    flex: 0 0 24px;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    width: min(112px, 36%);
+    min-width: 88px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-faint);
+    cursor: ns-resize;
+    touch-action: none;
+  }
+
+  .app.mobile .qcard:not(.minimized) > .okw-question-height-handle::before {
+    width: 38px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    content: '';
+    opacity: .58;
+  }
+
+  .app.mobile .qcard:not(.minimized) > .okw-question-height-handle:focus-visible {
+    outline: none;
+    box-shadow: var(--p-focus-ring, 0 0 0 2px var(--color-accent));
   }
 
   html[data-okw-theme] .app.mobile .qcard {
@@ -793,6 +856,25 @@
     flex: 1 1 auto;
     min-height: 0;
     padding-bottom: var(--space-4);
+  }
+
+  .app.mobile .qcard:not(.minimized).okw-question-title-in-body > .qh > .qtitle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--okw-question-title-width);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .app.mobile .qcard:not(.minimized) .qbody > .okw-question-title-body {
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-normal);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 
   .app.mobile .qfoot {
