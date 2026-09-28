@@ -128,12 +128,14 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     return marker;
   };
 
-  const enhanceVisualAnchors = () => {
-    const brand = document.querySelector('.side .ch-brand');
-    if (brand && !brand.querySelector('.okw-brand-mark')) {
-      brand.prepend(makeHexMarker('okw-brand-mark'));
-    }
-    document.querySelectorAll('.a-msg').forEach((message) => {
+  const enhanceVisualAnchors = (
+    messages = document.querySelectorAll('.a-msg'),
+    brands = document.querySelectorAll('.side .ch-brand'),
+  ) => {
+    brands.forEach((brand) => {
+      if (!brand.querySelector('.okw-brand-mark')) brand.prepend(makeHexMarker('okw-brand-mark'));
+    });
+    messages.forEach((message) => {
       if (!message.querySelector(':scope > .okw-assistant-mark')) {
         message.prepend(makeHexMarker('okw-assistant-mark'));
       }
@@ -217,17 +219,17 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
 
   const itemLabel = (item) => item.querySelector('.user-menu-item-label')?.textContent?.trim() ?? '';
 
-  const enhanceUserMenus = () => {
+  const enhanceUserMenus = (menus = document.querySelectorAll('.user-menu')) => {
     if (mobile.matches) {
       if (openPicker?.trigger.matches('[data-okw-theme-menu-trigger]')) closeThemePicker();
       desktopDialog?.remove();
       desktopDialog = null;
-      document.querySelectorAll('.user-menu').forEach((menu) => {
+      menus.forEach((menu) => {
         menu.querySelector(':scope > [data-okw-theme-menu-trigger]')?.remove();
       });
       return;
     }
-    document.querySelectorAll('.user-menu[role="menu"], .user-menu').forEach((menu) => {
+    menus.forEach((menu) => {
       if (menu.querySelector(':scope > [data-okw-theme-menu-trigger]')) return;
       const appearance = Array.from(menu.querySelectorAll(':scope > button.ui-menu-item'))
         .find((item) => ['外观', 'Appearance'].includes(itemLabel(item)));
@@ -259,8 +261,9 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
       ['设置', '会话设置', 'Settings', 'Session settings'].includes(title);
   };
 
-  const enhanceSettings = () => {
-    document.querySelectorAll('.sheet-panel, .ui-dialog[aria-label="设置"], .ui-dialog[aria-label="Settings"]').forEach((panel) => {
+  const settingsSelector = '.sheet-panel, .ui-dialog[aria-label="设置"], .ui-dialog[aria-label="Settings"]';
+  const enhanceSettings = (panels = document.querySelectorAll(settingsSelector)) => {
+    panels.forEach((panel) => {
       if (!isSettingsPanel(panel)) return;
       const body = panel.querySelector('.sheet-body, .settings-region .body');
       if (!body) return;
@@ -287,7 +290,53 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     enhanceVisualAnchors();
   };
 
-  new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
+  const collectWithin = (root, selector, matches) => {
+    if (root.matches(selector)) matches.add(root);
+    root.querySelectorAll(selector).forEach((match) => matches.add(match));
+  };
+
+  const removedMarker = (record, selector) => Array.from(record.removedNodes).some((node) =>
+    node.nodeType === 1 && (node.matches(selector) || node.querySelector(selector)));
+
+  const collectTarget = (record, { menus, panels, messages, brands }) => {
+    const target = record.target.nodeType === 1 ? record.target : null;
+    if (!target) return;
+    const menu = target.closest('.user-menu');
+    const panel = target.closest(settingsSelector);
+    const message = target.closest('.a-msg');
+    const brand = target.closest('.side .ch-brand');
+    if (menu) menus.add(menu);
+    if (panel) panels.add(panel);
+    if (message && removedMarker(record, '.okw-assistant-mark')) messages.add(message);
+    if (brand && removedMarker(record, '.okw-brand-mark')) brands.add(brand);
+  };
+
+  const collectAdded = (record, { menus, panels, messages, brands }) => {
+    for (const node of record.addedNodes) {
+      if (node.nodeType !== 1) continue;
+      collectWithin(node, '.user-menu', menus);
+      collectWithin(node, settingsSelector, panels);
+      collectWithin(node, '.a-msg', messages);
+      collectWithin(node, '.side .ch-brand', brands);
+    }
+  };
+
+  const enhanceChanged = (records) => {
+    if (openPicker && !openPicker.trigger.isConnected) closeThemePicker();
+    const changes = {
+      menus: new Set(), panels: new Set(), messages: new Set(), brands: new Set(),
+    };
+    for (const record of records) {
+      collectTarget(record, changes);
+      collectAdded(record, changes);
+    }
+    const { menus, panels, messages, brands } = changes;
+    if (menus.size) enhanceUserMenus(menus);
+    if (panels.size) enhanceSettings(panels);
+    if (messages.size || brands.size) enhanceVisualAnchors(messages, brands);
+  };
+
+  new MutationObserver(enhanceChanged).observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('pointerdown', (event) => {
     if (openPicker && !openPicker.trigger.contains(event.target) && !openPicker.dialog.contains(event.target)) {
       closeThemePicker();
