@@ -11,7 +11,10 @@
       if (guarded.has(body) || Object.hasOwn(body, 'scrollTop')) return;
       let follow = true;
       let lastTouchY = null;
-      const nearBottom = () => body.scrollHeight - body.clientHeight - scrollTop.get.call(body) <= bottomTolerance;
+      let pendingBottomTop = null;
+      let lastObservedTop = null;
+      let lastObservedBottom = -Infinity;
+      const matchesTop = (top, expected) => expected !== null && Math.abs(top - expected) <= bottomTolerance;
 
       try {
         Object.defineProperty(body, 'scrollTop', {
@@ -20,9 +23,17 @@
             return scrollTop.get.call(this);
           },
           set(value) {
+            if (follow) {
+              scrollTop.set.call(this, value);
+              const target = Number(value);
+              const actual = scrollTop.get.call(this);
+              pendingBottomTop = Number.isFinite(target) && target > actual + bottomTolerance ? actual : null;
+              return;
+            }
             const target = Number(value);
             const bottom = this.scrollHeight - this.clientHeight;
-            if (!follow && Number.isFinite(target) && target >= bottom - bottomTolerance) return;
+            if (Number.isFinite(target) && target >= bottom - bottomTolerance) return;
+            pendingBottomTop = null;
             scrollTop.set.call(this, value);
           },
         });
@@ -33,7 +44,14 @@
 
       guarded.add(body);
       body.addEventListener('scroll', () => {
-        follow = nearBottom();
+        const top = scrollTop.get.call(body);
+        const bottom = body.scrollHeight - body.clientHeight;
+        const delayedProgrammatic = matchesTop(top, pendingBottomTop);
+        const delayedGrowth = follow && matchesTop(top, lastObservedTop) && bottom > lastObservedBottom;
+        pendingBottomTop = null;
+        lastObservedTop = top;
+        lastObservedBottom = bottom;
+        if (!delayedProgrammatic && !delayedGrowth) follow = bottom - top <= bottomTolerance;
       }, { passive: true });
       body.addEventListener('wheel', (event) => {
         if (event.deltaY < 0 && body.scrollHeight > body.clientHeight) follow = false;
