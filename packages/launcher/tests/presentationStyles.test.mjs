@@ -68,7 +68,15 @@ describe('presentation theme layout boundaries', () => {
 describe('mobile question card layout', () => {
   it('caps the mobile question card so the content behind stays visible', () => {
     expect(presentationCss).toMatch(
-      /\.app\.mobile\s+\.qcard:not\(\.minimized\)\s*\{[^}]*max-height:\s*calc\(var\(--app-height[^)]*\)\s*\*\s*0\.5\)/s,
+      new RegExp(
+        String.raw`\.app\.mobile\s+\.qcard:not\(\.minimized\)\s*\{[^}]*max-height:\s*min\(` +
+          String.raw`[^}]*max\(var\(--okw-question-card-min-height,\s*0px\),\s*calc\(var\(--app-height` +
+          String.raw`[^)]*\)\s*\*\s*0\.5\)\)[^}]*--dock-card-top-clearance`,
+        's',
+      ),
+    );
+    expect(presentationCss).not.toMatch(
+      /\.app\.mobile\s+\.qcard:not\(\.minimized\)\s*\{[^}]*[^-]height:\s*min/s,
     );
   });
 
@@ -107,6 +115,36 @@ describe('mobile question card layout', () => {
     expect(presentationCss).not.toMatch(
       /\.app\.mobile\s+\.qcard\s+\.qbody\s*>\s*\.qopts\s*\{[^}]*overflow-y:\s*auto/s,
     );
+  });
+
+  it('hides only an activated source title and styles its body mirror', () => {
+    expect(presentationCss).toMatch(
+      /\.qcard:not\(\.minimized\)\.okw-question-title-in-body\s*>\s*\.qh\s*>\s*\.qtitle\s*\{[^}]*visibility:\s*hidden/s,
+    );
+    expect(presentationCss).toMatch(
+      new RegExp(
+        String.raw`\.qbody\s*>\s*\.okw-question-title-body\s*\{[^}]*font-size:\s*var\(--text-base\)` +
+          String.raw`[^}]*font-weight:\s*var\(--weight-medium\)[^}]*line-height:\s*var\(--leading-normal\)`,
+        's',
+      ),
+    );
+  });
+
+  it('limits saved card heights and reserves touch gestures for the handle', () => {
+    expect(presentationCss).toMatch(
+      new RegExp(
+        String.raw`\.qcard:not\(\.minimized\)\.okw-question-height-fixed\s*\{[^}]*height:\s*min\(` +
+          String.raw`[^}]*max\([^}]*--okw-question-card-min-height`,
+        's',
+      ),
+    );
+    expect(presentationCss).toMatch(
+      /\.qcard:not\(\.minimized\)\.okw-question-height-fixed\s*\{[^}]*--dock-card-top-clearance/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.qcard:not\(\.minimized\)\s*>\s*\.okw-question-height-handle\s*\{[^}]*height:\s*24px[^}]*touch-action:\s*none/s,
+    );
+    expect(presentationCss).not.toMatch(/\.qbody\s*\{[^}]*touch-action:\s*none/s);
   });
 });
 
