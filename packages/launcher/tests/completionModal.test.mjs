@@ -8,6 +8,7 @@ const source = readFileSync(
   'utf8',
 ).replace('const SETTLE_DELAY_MS = 120;', 'const SETTLE_DELAY_MS = 0;');
 const frames = [];
+const observers = [];
 
 const settle = () => new Promise((resolveWait) => setTimeout(resolveWait, 10));
 
@@ -75,6 +76,12 @@ function install({
   const setMobile = installMedia(view, mobile);
   installWebSocket(view, sockets);
   const composer = makeComposer(view, running);
+  const NativeMutationObserver = view.MutationObserver;
+  view.MutationObserver = function MutationObserver(callback) {
+    const observer = new NativeMutationObserver(callback);
+    observers.push(observer);
+    return observer;
+  };
 
   for (let index = 0; index < executions; index += 1) {
     view.eval(`(() => { ${source}\n})()`);
@@ -109,6 +116,7 @@ function install({
 }
 
 afterEach(() => {
+  observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove());
 });
 
