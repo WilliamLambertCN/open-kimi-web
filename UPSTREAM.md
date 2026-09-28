@@ -12,9 +12,9 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web release: `2.1.1-r3`, based on `2.1.1`.
+- Open Kimi Web release: `2.1.1-r4`, based on `2.1.1`.
   The earlier `2.1.1-r1` release, package, and tag were withdrawn on 2026-09-28 after the archive loop was confirmed.
-  This release includes the archive fix, streaming performance changes, usage statistics, and mobile question layout fixes.
+  This release includes the archive fix, streaming performance changes, usage statistics, and resizable mobile question cards.
 - Machine-readable version and historical contract records: `upstream.json`.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
@@ -31,6 +31,12 @@ Separate headless Chrome checks used fictional content with the official
 `2.1.1` CSS to verify scroll behavior and unchanged initial layout across
 content lengths, viewports, and affected themes. A real side agent turn was
 not run in this isolated environment.
+
+The `r4` mobile question checks used the complete `2.1.1` Web app with fictional
+API and WebSocket responses. They covered the real `question` field, choices,
+answer requests, height dragging and persistence, constrained viewports, and
+seven appearances. These are isolated browser results, not physical phone or
+real-session acceptance. See the [verification record](docs/plans/mobile-question-height-v1-verification.md).
 
 The `2.1.1` workspace store reads `kimi-web.workspace-sort` as `manual` or
 `recent`. Its recent order uses session update times and workspace
