@@ -3,7 +3,36 @@
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
-## [open-kimi-web v2.1.1-r1] - 2026-09-28
+## Unreleased
+
+- 新增模型用量与 API 成本统计：历史回补、四类 token、模型缓存命中率、时间与工作区筛选。
+- 支持最近 1、3、7、30、60、90 天和自定义时间，展示趋势、模型分布及未定价状态。
+- 公开价格目录可联网刷新，支持本地缓存、手动模型映射与单价覆盖，费用按当前价格估算。
+- 按实际请求模型 ID 汇总和定价，别名仅供参考；身份不明确的旧记录保留总量并标为未确认。
+- 多模型明细与分布支持滚动，模型价格配置和公开目录可搜索，长 ID 在手机上换行展示。
+- README 前排增加统计功能说明和虚构演示数据的桌面、手机实图。
+- 修复归档删除按钮重复写入相同文本导致的 MutationObserver 无限回调，补充真实 DOM 收敛回归。
+- 减少主题层对长历史的全量扫描；模型配置增强只解析相关响应，通知握手完成后跳过普通 WS 帧解析。
+
+### 事件：归档删除按钮使注入层持续回调
+
+- 影响：侧栏或设置页出现能唯一匹配归档接口结果的条目后，即使没有点击删除，也可能持续占用页面主线程。
+- 触发条件：成功读取已归档会话，并为对应 DOM 行创建了未禁用的删除按钮；不限于手机或特定主题。
+- 根因：observer 每次回调都给已有按钮写入相同 `textContent`，仍生成 childList mutation 并再次唤醒观察器。
+- 证据：真实 jsdom MutationObserver 可在虚构侧栏与设置页分别复现；测试在回调内达到上限后主动断开。
+- 修复：只在按钮文案或辅助标签变化时写入；同时减少已确认的全历史扫描和无关响应重复解析。
+- 回归验证：使用真实 DOM 覆盖两种归档行、语言切换、无关 mutation，以及当前 15 个注入脚本共同运行的收敛。
+  旧测试使用普通对象模拟文本和空 `observe()`，不能产生真实 mutation；新回归直接覆盖该缺口。
+  在 500 条消息、20 批末尾追加的 fixture 中，主题全局消息查询由 20 次降至 0，
+  未变化消息的图标检查由 9,980 次降至 0；新增节点、图标恢复和响应式主题入口仍有回归覆盖。
+  不相关 HTTP 响应不再克隆解析，WS 握手就绪后的 40 条大消息不再由提醒脚本重复解析。
+- 运维动作：加载修复版本并重启 launcher 后刷新页面；已打开的旧页面不会自动替换注入脚本。
+- 剩余边界：本轮以虚构内存数据验证代码缺陷；未访问真实会话，不能据此确认某个现场 Chrome 标签页的状态。
+
+## open-kimi-web v2.1.1-r1（已撤回） - 2026-09-28
+
+2026-09-28 撤回 GitHub Release、安装包和 tag：归档列表中的删除按钮会形成无限观察器回调，
+打开“已完成”或会话管理归档列表即可导致页面卡死。修复记录见上方 Unreleased，暂未重新发包。
 
 兼容基线升级到 Kimi Code `2.1.1`，并修复 Side Chat 流式输出时抢走阅读位置的问题。
 
@@ -231,7 +260,6 @@
 [open-kimi-web v0.41.0-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0-r2
 [open-kimi-web v0.41.0]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.41.0
 [open-kimi-web v0.42.0-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.42.0-r1
-[open-kimi-web v2.1.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r1
 [open-kimi-web v2.0.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r2
 [open-kimi-web v2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1
 [open-kimi-web v0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1

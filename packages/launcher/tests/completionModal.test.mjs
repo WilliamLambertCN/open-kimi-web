@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const source = readFileSync(
   resolve('packages/launcher/src/mobile/completionModal.js'),
@@ -110,6 +110,40 @@ function install({
 
 afterEach(() => {
   frames.splice(0).forEach((frame) => frame.remove());
+});
+
+describe('mobile completion frame parsing', () => {
+  it('parses inbound frames only while waiting for the current client hello ack', async () => {
+    const fixture = install();
+    const socket = new fixture.view.WebSocket('ws://localhost/api/v1/ws');
+    const parse = vi.spyOn(fixture.view.JSON, 'parse');
+    const ordinaryFrame = JSON.stringify({ type: 'turn_event', payload: 'x'.repeat(16384) });
+
+    socket.message(ordinaryFrame);
+    expect(parse).not.toHaveBeenCalled();
+
+    socket.send(JSON.stringify({ type: 'client_hello', id: 'hello-one' }));
+    expect(parse).toHaveBeenCalledTimes(1);
+    socket.message({ type: 'ack', id: 'wrong-id', code: 0 });
+    socket.message({ type: 'ack', id: 'hello-one', code: 401 });
+    socket.message({ type: 'ack', id: 'hello-one', code: 0 });
+    const afterAck = parse.mock.calls.length;
+
+    for (let index = 0; index < 40; index += 1) socket.message(ordinaryFrame);
+    expect(parse).toHaveBeenCalledTimes(afterAck);
+
+    socket.send(JSON.stringify({ type: 'client_hello', id: 'hello-two' }));
+    socket.message({ type: 'ack', id: 'hello-one', code: 0 });
+    socket.message({ type: 'ack', id: 'hello-two', code: 0 });
+    const afterSecondAck = parse.mock.calls.length;
+    socket.message(ordinaryFrame);
+    expect(parse).toHaveBeenCalledTimes(afterSecondAck);
+
+    fixture.createPending('dock-question');
+    await settle();
+    expect(fixture.dialog().querySelector('h2').textContent).toBe('需要回答');
+    parse.mockRestore();
+  });
 });
 
 describe('mobile completion modal trigger', () => {

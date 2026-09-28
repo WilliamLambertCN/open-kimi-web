@@ -8,26 +8,28 @@ import { proxyRequest } from './httpProxy.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
 import { serveStatic } from './staticFiles.mjs';
+import { createUsageService, serveUsage } from './usage/routes.mjs';
 import { createWsProxy } from './wsProxy.mjs';
 
 export const WS_PATH = '/api/v1/ws';
 const DEFAULT_CLOSE_GRACE_MS = 1_000;
 
-async function serveOfficialExtension(req, res, target, enabled) {
-  if (!enabled) return false;
-  return serveModelDiscovery(req, res, target);
+async function serveOfficialExtension(req, res, context) {
+  if (!context.officialPresentation) return false;
+  if (await serveUsage(req, res, context.target, context.usageService, context.fetchImpl)) return true;
+  return serveModelDiscovery(req, res, context.target);
 }
 
-async function route(req, res, target, publicDir, officialPresentation) {
+async function route(req, res, context) {
   const url = req.url ?? '/';
   const pathname = url.split('?')[0];
-  if (await serveOfficialExtension(req, res, target, officialPresentation)) return;
+  if (await serveOfficialExtension(req, res, context)) return;
   if (pathname === '/api/v1/debug' || pathname.startsWith('/api/v1/debug/')) {
     res.writeHead(404).end('Not Found');
     return;
   }
   if (pathname === '/api' || pathname.startsWith('/api/')) {
-    proxyRequest(req, res, target);
+    proxyRequest(req, res, context.target);
     return;
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -35,7 +37,7 @@ async function route(req, res, target, publicDir, officialPresentation) {
       .end('Method Not Allowed');
     return;
   }
-  const served = await serveFrontendFiles(req, res, publicDir, officialPresentation);
+  const served = await serveFrontendFiles(req, res, context.publicDir, context.officialPresentation);
   if (!served) res.writeHead(404).end('Not Found');
 }
 
@@ -64,10 +66,15 @@ export async function createLauncher({
   tls = null,
   closeGraceMs = DEFAULT_CLOSE_GRACE_MS,
   officialPresentation = false,
+  usageHome = null,
+  usageStorageDir = null,
+  usageFetch = fetch,
 }) {
   const { wss, handleUpgrade, closeConnections } = createWsProxy();
+  const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
+  const context = { target, publicDir, officialPresentation, usageService, fetchImpl: usageFetch };
   const listener = (req, res) => {
-    route(req, res, target, publicDir, officialPresentation).catch(() => {
+    route(req, res, context).catch(() => {
       if (!res.headersSent) res.writeHead(500);
       res.end();
     });

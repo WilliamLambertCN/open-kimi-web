@@ -7,6 +7,10 @@
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 为当时的实施、审查和验收基线。当前 `2.1.1` 兼容边界见 `UPSTREAM.md` 和 `upstream.json`。
 
+当前用量统计功能按已确认的
+[`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md)
+执行；实现、审查、截图和验收以该计划为基线，范围变化先同步文档。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
@@ -47,6 +51,9 @@
   并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。
   不得记录标题、ID、路径或把它们写入浏览器存储。
 - 页面 Bearer token 只在当前运行内存中沿用，不写日志、不回显、不另行持久化。模型发现 endpoint 的 API Key 也遵守同一规则。
+- `MutationObserver` 回调中的 DOM 增强必须幂等；文本、属性和顺序未变化时不重复写入。
+  涉及观察器写入的回归必须验证真实 DOM mutation 会收敛，不能只靠空 `observe()` 的 fake DOM。
+  无限回调的测试保护须在 observer 回调内部断开；外部 timer timeout 可能被微任务循环阻塞。
 
 ## 进程和运行时检查
 
