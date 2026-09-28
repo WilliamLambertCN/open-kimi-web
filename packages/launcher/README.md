@@ -6,15 +6,17 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.1.1-r3` GitHub Release 提供固定版本的 tgz：
+本项目当前不发布到 npm registry。`v2.1.1-r4` GitHub Release 提供固定版本的 tgz：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r3/open-kimi-web-2.1.1-r3.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r4/open-kimi-web-2.1.1-r4.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r3` 适配 Kimi Code `2.1.1`，修正手机提问卡片，让题干和选项在同一区域滚动。
-适配新版官方按钮和主题面板，保留半屏高度上限、横排操作区及“放弃”的危险色。
+`2.1.1-r4` 适配 Kimi Code `2.1.1`，修复长题干占满手机提问卡片、选项被压缩到无法点击的问题。
+超高题干的完整内容与选项一起滚动，底部按钮保持可用；短题继续沿用原布局。
+上下拖动卡片上沿把手可调整高度，松手吸附到 `35%`、`50%`、`70%`、`85%` 四档并自动保存。
+档位仅保存在当前浏览器和站点，刷新或再次提问时沿用；默认半屏上限，保留已有按钮布局和主题配色。
 本版继续包含模型用量统计、归档卡死修复、长会话性能优化，以及 Side Chat 阅读位置与提醒时序修复。
 兼容验证使用自动化回归与隔离 Chrome，真实会话的逐项操作仍待验收。
 
