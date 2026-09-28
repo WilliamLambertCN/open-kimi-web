@@ -12,9 +12,9 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web source baseline: `2.1.1`; `2.1.1-r1` was withdrawn on 2026-09-28.
+- Open Kimi Web release: `2.1.1-r2`, based on `2.1.1`; `2.1.1-r1` was withdrawn on 2026-09-28.
   Its release, package, and tag were removed after the archive observer loop was confirmed.
-  The fixes below are available from source; no replacement release is published yet.
+  The replacement `2.1.1-r2` includes the archive fix, streaming performance changes, and usage statistics.
 - Machine-readable version and historical contract records: `upstream.json`.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
