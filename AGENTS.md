@@ -5,7 +5,7 @@
 
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
-为当时的实施、审查和验收基线。当前 `2.0.2` 兼容边界见 `UPSTREAM.md` 和 `upstream.json`。
+为当时的实施、审查和验收基线。当前 `2.1.1` 兼容边界见 `UPSTREAM.md` 和 `upstream.json`。
 
 ## 项目边界
 
@@ -16,19 +16,19 @@
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.0.2 与历史 0.43.1 适配事实
+## 官方 2.1.1 与历史 0.43.1 适配事实
 
-- 当前兼容基线是 Kimi Code `2.0.2`；`UPSTREAM.md` 和 `upstream.json` 区分静态审计与真实运行验收。
+- 当前兼容基线是 Kimi Code `2.1.1`；`UPSTREAM.md` 和 `upstream.json` 区分静态审计与真实运行验收。
   升级官方版本前，必须重新检查受影响的 API、DOM、交互和失败行为，不能把历史快照当成新版本保证。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
-  官方请求结果。`2.0.2` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
+  官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、
   `.archive-time` 与 `.archive-workspace .path`；上游变更时重新核对。
 - 归档列表可使用 v2 `GET /api/v2/sessions?meta.archived=true`，条目包含 `id`、`workspace` 和 `meta`。
   保留 v1 `GET /api/v1/sessions?archived_only=true` 兼容，不能只监听其中一个版本。
-- 官方 `2.0.2` 仍提供 `POST /api/v1/sessions/{session_id}:delete`。永久删除必须调用该正式接口，
+- 官方 `2.1.1` 仍提供 `POST /api/v1/sessions/{session_id}:delete`。永久删除必须调用该正式接口，
   继续让官方服务负责关闭会话并清理会话数据。
-- 自定义按钮在 `2.0.2` 的运行中草稿先通过 `.send` 创建 queued prompt，再用返回的精确 `prompt_id` 调用
+- 自定义按钮在 `2.1.1` 的运行中草稿先通过 `.send` 创建 queued prompt，再用返回的精确 `prompt_id` 调用
   `POST /api/v1/sessions/{session_id}/prompts:steer`。官方快捷键行为由上游维护；自定义“插队”按钮
   必须提交当前草稿后精确 steer，不能用合成 `Ctrl+S` 替代。
 - 浏览器不得访问通用 debug dispatcher。`/api/v1/debug` 及其子路径必须在代理层返回 404；
