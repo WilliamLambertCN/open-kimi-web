@@ -398,8 +398,9 @@
     if (!session || deletedIds.has(session.id)) return;
     const existing = row.querySelector('.okw-archive-delete');
     if (existing) {
-      if (!existing.disabled) existing.textContent = copy().remove;
-      existing.setAttribute('aria-label', copy().remove);
+      const label = copy().remove;
+      if (!existing.disabled && existing.textContent !== label) existing.textContent = label;
+      if (existing.getAttribute('aria-label') !== label) existing.setAttribute('aria-label', label);
       return;
     }
     const actions = document.createElement('div');
@@ -414,8 +415,9 @@
     if (!session || deletedIds.has(session.id)) return;
     const existing = row.querySelector('.okw-sidebar-archive-delete');
     if (existing) {
-      if (!existing.disabled) existing.textContent = copy().removeShort;
-      existing.setAttribute('aria-label', copy().remove);
+      const labels = copy();
+      if (!existing.disabled && existing.textContent !== labels.removeShort) existing.textContent = labels.removeShort;
+      if (existing.getAttribute('aria-label') !== labels.remove) existing.setAttribute('aria-label', labels.remove);
       return;
     }
     const reopenButton = row.querySelector('.reopen-btn');

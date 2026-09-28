@@ -23,6 +23,7 @@ class FakeElement {
 
   addEventListener(type, listener) { this.listeners.set(type, listener); }
   setAttribute(name, value) { this.attributes.set(name, value); }
+  getAttribute(name) { return this.attributes.get(name) ?? null; }
   focus() {}
   append(...nodes) {
     nodes.forEach((node) => { node.parentElement = this; });
