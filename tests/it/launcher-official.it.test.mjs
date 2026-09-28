@@ -16,8 +16,8 @@ import { startFrontend } from '../../packages/launcher/src/frontend.mjs';
 
 const tar = promisify(execFile);
 
-// The 0.43.1 runtime title composer, byte-for-byte.
-const TITLE_SNIPPET = 'function qGe(e,t){return e!==""?e:t?`${GGe(t)} | Kimi Code`:"Kimi Code"}';
+// The 2.1.1 runtime title composer, byte-for-byte.
+const TITLE_SNIPPET = 'function KXe(e,t){return e!==""?e:t?`${VXe(t)} | Kimi Code`:"Kimi Code"}';
 const BOOT_JS = "// upstream boot fixture\nlocalStorage.getItem('kimi-web.color-scheme');\n";
 const INDEX_HTML = [
   '<!doctype html><html><head>',
@@ -148,6 +148,7 @@ async function expectPresentationAssets(baseUrl) {
     'foldingDefaults.js',
     'workspaceSortDefault.js',
     'forkTitleGuard.js',
+    'sideChatScroll.js',
     'notificationPermission.js',
     'completionModal.css',
     'completionModal.js',
@@ -226,6 +227,7 @@ describe('official mode end-to-end', () => {
       expect(indexText).not.toContain('Kimi Code Web');
       for (const name of [
         'presentation.css', 'foldingDefaults.js', 'workspaceSortDefault.js', 'forkTitleGuard.js',
+        'sideChatScroll.js',
         'notificationPermission.js',
         'completionModal.css', 'completionModal.js',
       ]) expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
@@ -242,6 +244,7 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('workspaceSortDefault.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('forkTitleGuard.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText.indexOf('sideChatScroll.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('notificationPermission.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('completionModal.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
