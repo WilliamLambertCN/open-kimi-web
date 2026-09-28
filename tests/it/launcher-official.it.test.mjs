@@ -159,6 +159,10 @@ async function expectPresentationAssets(baseUrl) {
     'providerEnhancements.js',
     'workspacePins.css',
     'workspacePins.js',
+    'usage.css',
+    'usageView.js',
+    'usageTrend.js',
+    'usage.js',
     'themes.css',
     'themes.js',
     'backgrounds/aurora.png',
@@ -240,6 +244,12 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/themes.js');
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.css');
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.js');
+      expect(indexText).toContain('/__open-kimi-mobile/usage.css');
+      expect(indexText).toContain('/__open-kimi-mobile/usageView.js');
+      expect(indexText).toContain('/__open-kimi-mobile/usageTrend.js');
+      expect(indexText).toContain('/__open-kimi-mobile/usage.js');
+      expect(indexText.indexOf('usageView.js')).toBeLessThan(indexText.indexOf('usage.js'));
+      expect(indexText.indexOf('usageTrend.js')).toBeLessThan(indexText.indexOf('usage.js'));
       expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('workspaceSortDefault.js')).toBeLessThan(indexText.indexOf('<script type="module"'));

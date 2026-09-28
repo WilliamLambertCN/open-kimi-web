@@ -82,6 +82,14 @@ async function resolvePublicDir(opts, token) {
 // an OS-assigned ephemeral port before giving up.
 export const PORT_RETRY_ATTEMPTS = 10;
 
+function usageOptions(opts) {
+  return {
+    usageHome: opts.usageHome ?? null,
+    usageStorageDir: opts.usageStorageDir ?? null,
+    usageFetch: opts.usageFetch ?? fetch,
+  };
+}
+
 const RETRYABLE_LISTEN_CODES = new Set(['EACCES', 'EADDRINUSE']);
 
 function wildcardLoopback(host) {
@@ -174,6 +182,7 @@ export async function startFrontend(opts) {
     target: opts.target,
     publicDir,
     officialPresentation: !opts.publicDir && !opts.webDir,
+    ...usageOptions(opts),
     host: opts.host,
     port: opts.port,
     portExplicit: opts.portExplicit,
