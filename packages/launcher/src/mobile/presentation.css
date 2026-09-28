@@ -782,6 +782,13 @@
     margin-block: 0;
   }
 
+  html[data-okw-theme] .app.mobile .qcard {
+    background: var(--color-surface-raised);
+    border-color: var(--color-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-menu);
+  }
+
   .app.mobile .qcard:not(.minimized) .qbody {
     flex: 1 1 auto;
     min-height: 0;
@@ -800,7 +807,8 @@
     gap: var(--space-1);
   }
 
-  .app.mobile .qfoot .qbtns .ui-button {
+  .app.mobile .qfoot .qbtns .ui-button,
+  .app.mobile .qfoot .qbtns .cbtn {
     width: auto;
     flex: 1 1 0;
     min-width: 0;
@@ -820,6 +828,12 @@
     border-color: var(--color-danger);
   }
 
+  .app.mobile .qfoot .qbtns .cbtn:nth-last-child(2):not(.qmain) {
+    background: var(--color-danger);
+    color: var(--color-text-on-accent);
+    border-color: var(--color-danger);
+  }
+
   .app.mobile .qfoot .qbtns .qmain {
     order: 1;
   }
@@ -831,21 +845,6 @@
   .app.mobile .qcard .qopt.selected .qopt-label {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-  }
-
-  .app.mobile .qcard .qbody {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .app.mobile .qcard .qbody > .qmdbody {
-    flex: none;
-  }
-
-  .app.mobile .qcard .qbody > .qopts {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
   }
 
   .app.mobile .qcard .qopts > .qopt {

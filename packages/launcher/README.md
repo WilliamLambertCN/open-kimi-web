@@ -6,17 +6,17 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.1.1-r2` GitHub Release 提供固定版本的 tgz：
+本项目当前不发布到 npm registry。`v2.1.1-r3` GitHub Release 提供固定版本的 tgz：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r2/open-kimi-web-2.1.1-r2.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r3/open-kimi-web-2.1.1-r3.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r2` 适配 Kimi Code `2.1.1`，替代已撤回的 `r1`。本版新增模型用量与 API 等值费用统计，
-修复“已完成”与会话管理归档列表卡死，并减少长会话、Side Chat 流式输出时的重复扫描与布局读取。
-向上阅读保持位置，回底恢复跟随；Side Chat 输出不会推迟审批或提问提醒。
-已完成真实 DOM 观察器回归与隔离 Chrome 验证；真实会话的逐项操作仍待验收。
+`2.1.1-r3` 适配 Kimi Code `2.1.1`，修正手机提问卡片，让题干和选项在同一区域滚动。
+适配新版官方按钮和主题面板，保留半屏高度上限、横排操作区及“放弃”的危险色。
+本版继续包含模型用量统计、归档卡死修复、长会话性能优化，以及 Side Chat 阅读位置与提醒时序修复。
+兼容验证使用自动化回归与隔离 Chrome，真实会话的逐项操作仍待验收。
 
 也可从源码安装：
 
