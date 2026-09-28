@@ -63,7 +63,9 @@ describe('presentation theme layout boundaries', () => {
       /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*[^-\w]height:\s*calc\(100dvh/s,
     );
   });
+});
 
+describe('mobile question card layout', () => {
   it('caps the mobile question card so the content behind stays visible', () => {
     expect(presentationCss).toMatch(
       /\.app\.mobile\s+\.qcard:not\(\.minimized\)\s*\{[^}]*max-height:\s*calc\(var\(--app-height[^)]*\)\s*\*\s*0\.5\)/s,
@@ -75,29 +77,52 @@ describe('presentation theme layout boundaries', () => {
       /@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.qfoot\s+\.qbtns\s*\{[^}]*flex-direction:\s*row/s,
     );
     expect(presentationCss).toMatch(
-      /\.app\.mobile\s+\.qfoot\s+\.qbtns\s+\.ui-button\s*\{[^}]*flex:\s*1\s+1\s+0/s,
+      new RegExp(
+        String.raw`\.app\.mobile\s+\.qfoot\s+\.qbtns\s+\.ui-button\s*,\s*` +
+          String.raw`\.app\.mobile\s+\.qfoot\s+\.qbtns\s+\.cbtn\s*\{[^}]*flex:\s*1\s+1\s+0`,
+        's',
+      ),
     );
   });
 
-  it('keeps the question stem out of the scrolling options list on mobile', () => {
+  it('restores themed mobile question cards to the established panel tokens', () => {
     expect(presentationCss).toMatch(
-      /\.app\.mobile\s+\.qcard\s+\.qbody\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column/s,
+      /html\[data-okw-theme\]\s+\.app\.mobile\s+\.qcard\s*\{[^}]*background:\s*var\(--color-surface-raised\)/s,
     );
     expect(presentationCss).toMatch(
-      /\.app\.mobile\s+\.qcard\s+\.qbody\s*>\s*\.qmdbody\s*\{[^}]*flex:\s*none/s,
+      /html\[data-okw-theme\]\s+\.app\.mobile\s+\.qcard\s*\{[^}]*border-color:\s*var\(--color-line\)/s,
     );
+    expect(presentationCss).not.toMatch(
+      /(?:^|\})\s*\.app\.mobile\s+\.qcard\s*\{[^}]*background:\s*var\(--color-surface-raised\)/s,
+    );
+  });
+
+  it('keeps the stem and options in the same scroll area when height is limited', () => {
     expect(presentationCss).toMatch(
+      /\.app\.mobile\s+\.qcard:not\(\.minimized\)\s+\.qbody\s*\{[^}]*min-height:\s*0/s,
+    );
+    expect(presentationCss).not.toMatch(
+      /\.app\.mobile\s+\.qcard\s+\.qbody\s*\{[^}]*display:\s*flex/s,
+    );
+    expect(presentationCss).not.toMatch(
       /\.app\.mobile\s+\.qcard\s+\.qbody\s*>\s*\.qopts\s*\{[^}]*overflow-y:\s*auto/s,
     );
   });
 });
 
 describe('mobile question choices and actions', () => {
-  it('orders back, danger-colored dismiss, and next in the footer', () => {
+  it('keeps the legacy footer order and danger-colored dismiss action', () => {
     expect(presentationCss).toMatch(/\.qbtns\s+\.ui-button:nth-child\(2\)\s*\{[^}]*order:\s*-1/s);
     expect(presentationCss).toMatch(/\.qbtns\s+\.ui-button:last-child:not\(\.qmain\)\s*\{[^}]*order:\s*0/s);
     expect(presentationCss).toMatch(/\.qbtns\s+\.ui-button:last-child:not\(\.qmain\)\s*\{[^}]*var\(--color-danger\)/s);
     expect(presentationCss).toMatch(/\.qbtns\s+\.qmain\s*\{[^}]*order:\s*1/s);
+  });
+
+  it('uses the official 2.1.1 card-button order and styles its dismiss action', () => {
+    expect(presentationCss).toMatch(
+      /\.qbtns\s+\.cbtn:nth-last-child\(2\):not\(\.qmain\)\s*\{[^}]*var\(--color-danger\)/s,
+    );
+    expect(presentationCss).not.toMatch(/\.qbtns\s+\.cbtn:nth-child\(2\)\s*\{[^}]*order:\s*-1/s);
   });
 
   it('emphasizes a chosen option without changing the others', () => {
