@@ -6,26 +6,39 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.1.1-r1` GitHub Release 提供固定版本的 tgz：
+本项目当前不发布到 npm registry。`v2.1.1-r2` GitHub Release 提供固定版本的 tgz：
 
 ```sh
-npm install -g \
-  https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r1/open-kimi-web-2.1.1-r1.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r2/open-kimi-web-2.1.1-r2.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r1` 适配 Kimi Code `2.1.1`，并修复 Side Chat 流式输出时抢走阅读位置的问题。
-工作区最近活动排序和 fork 标题保护继续可用。已完成静态审计、定向回归与隔离浏览器滚动验证；
-真实会话的逐项操作仍待验收。
+`2.1.1-r2` 适配 Kimi Code `2.1.1`，替代已撤回的 `r1`。本版新增模型用量与 API 等值费用统计，
+修复“已完成”与会话管理归档列表卡死，并减少长会话、Side Chat 流式输出时的重复扫描与布局读取。
+向上阅读保持位置，回底恢复跟随；Side Chat 输出不会推迟审批或提问提醒。
+已完成真实 DOM 观察器回归与隔离 Chrome 验证；真实会话的逐项操作仍待验收。
 
 也可从源码安装：
 
 ```sh
-git clone https://github.com/WilliamLambertCN/open-kimi-web.git
+git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
 cd open-kimi-web
 corepack pnpm install --frozen-lockfile
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
+
+已有接管时，切换安装方式或目录还需要按下方“升级”说明更新入口。
+
+## 模型用量与 API 成本统计
+
+桌面侧栏和手机会话／工作区切换抽屉提供“使用统计”入口。
+支持 `1d`、`3d`、`1w`、`1m`、`2m`、`3m` 和自定义时间，按实际请求的模型 ID 汇总，
+展示普通输入、缓存读取、输出、缓存写入、缓存命中率和 API 等值费用。
+历史用量排除 fork 复制前缀；多模型明细可滚动，价格配置可搜索模型与公共目录、刷新价格或手动覆盖单价。
+
+统计需要通过接管的 `kimi web` 受管模式启动，独立 `serve --target` 模式不会读取本机用量。
+未记录或身份不明确的数据会标出；费用按当前单价估算，不代表订阅支出或服务商账单。
+完整功能与截图见[项目 README](https://github.com/WilliamLambertCN/open-kimi-web#readme)。
 
 ## 用法
 
@@ -110,9 +123,19 @@ Kimi 插件是否安装无关。
 ## 升级
 
 全局 tgz 安装更新时，再次安装上面的版本化 URL。源码安装更新时，在仓库目录运行
-`git pull --ff-only` 和 `corepack pnpm install --frozen-lockfile`。随后执行
-`open-kimi-web integrate status`，仅在异常时执行 `open-kimi-web integrate repair`。
-最后结束旧的 `kimi web` / launcher 进程并重新启动。
+`git pull --ff-only origin main` 和 `corepack pnpm install --frozen-lockfile`，确保使用 main 分支。
+切换安装方式或目录时，`integrate install` 可能保留已有入口，需显式使用目标安装位置执行 `repair`：
+
+```sh
+# 切换到已安装的全局 tgz 包
+node "$(npm root -g)/open-kimi-web/bin/open-kimi-web.mjs" integrate repair
+
+# 或切换到当前源码仓库
+node packages/launcher/bin/open-kimi-web.mjs integrate repair
+```
+
+随后在新终端执行 `open-kimi-web integrate status`；若有异常，使用目标入口执行 `integrate repair`。
+最后停止旧的 `kimi web` / launcher 并重新启动，再刷新或重新打开页面；无需迁移会话数据。
 
 ## 安全
 
