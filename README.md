@@ -1,6 +1,8 @@
 # OpenWeb for Kimi Code
 
-**把手机变成 Kimi Code 的第二块屏幕。** Open Kimi Web 保留官方 Web 与后端，在外层补上局域网 HTTPS、token 直达链接和移动页面适配；需要时还可让 `kimi web` 走这层增强。
+**把手机变成 Kimi Code 的第二块屏幕，也能看清模型用量与 API 等值费用。**
+Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域网 HTTPS、移动页面适配和交互增强；
+可通过命令接管让 `kimi web` 直接启动这些功能。
 
 [![CI][ci-badge]][ci-workflow]
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -9,13 +11,15 @@
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
+> **当前版本：[v2.1.1-r2][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 包含模型用量统计、归档卡死修复和长会话性能优化；安装与升级见[快速上手](#快速上手)。
+> `v2.1.1-r1` 已撤回，旧版用户请升级到 `r2`。
+
 ## 模型用量与 API 成本统计
 
 **看清每个模型用了多少 token、命中了多少缓存，以及按 API 单价计算值多少钱。**
 桌面从侧栏打开“使用统计”；手机先打开顶部的会话／工作区切换抽屉，再进入“使用统计”。
 两端都可以查看同一台 Kimi 的历史用量。
-
-> 此功能随当前源码提供，尚未发布新的安装包。
 
 - **时间与分布**：预设 `1d`、`3d`、`1w`、`1m`、`2m`、`3m`，对应最近 1、3、7、30、60、90 天，
   也可自定义起止时间；按模型和工作区筛选，查看用量趋势与模型分布。
@@ -42,23 +46,23 @@
 缺少请求模型 ID 或关联不明确的旧记录保留 token 总量，单列为“模型 ID 未确认”，不猜测模型或价格。
 模型 ID 不包含历史渠道信息，渠道价格仍需明确选择。API 等值费用不是订阅实际支出或服务商账单。
 
-## 当前源码变化（尚未重新发布）
+## 最新改动 · v2.1.1-r2
 
-版本号跟随已验证的 Kimi Code 兼容基线；`rN` 表示同一基线上的项目修订号。
-本项目当前不发布到 npm registry。`v2.1.1-r1` 因归档列表可能使页面卡死，已于 2026-09-28
-撤回 Release、下载包和 tag；当前请使用修复后的源码，安装方式见下文。
+本版适用于 Kimi Code `2.1.1`；`rN` 表示同一兼容基线上的项目修订号。
 
-- 将官方 Web 兼容基线和离线失败回退版本更新到 Kimi Code `2.1.1`。
-- Side Chat 流式输出时，用户向上滚动阅读后保持当前位置；滚回底部时继续跟随新内容。
-- 修复打开“已完成”或会话管理归档列表后，删除按钮重复写入文本引发的观察器无限回调。
-- 主题层按变化节点增强，减少长历史重复扫描；供应商和通知脚本避免解析无关响应与 WS 帧。
-- 流式消息只触发相关区域的增强；Side Chat 输出不再重复扫描工作区、归档列表、供应商表单和统计入口，
-  也不再反复延后待处理提醒。侧聊滚动保留阅读位置，并减少跟随底部时的额外布局读取。
-- 新增模型用量与 API 成本统计，支持实际模型 ID、历史回补、多模型滚动和价格配置。
-- 继续保留工作区最近活动排序、fork 标题保护等现有增强。
+- **模型用量统计**：按实际模型 ID 汇总历史用量，支持时间筛选、缓存命中率、API 等值费用和多模型浏览。
+- **归档列表卡死修复**：解决打开“已完成”或设置中的会话管理后，删除按钮反复更新引发的无限回调。
+- **长会话性能优化**：主题按变化节点增强；流式消息不再反复扫描工作区、归档、供应商表单和统计入口，
+  并减少无关 HTTP 响应与 WS 帧的重复解析。
+- **Side Chat 阅读位置**：向上阅读时保持当前位置，回到底部后恢复跟随；
+  修复延迟滚动事件造成的跟随中断，减少额外布局读取。
+- **待处理提醒**：Side Chat 持续输出不再推迟审批或提问弹窗。
 
-已完成官方包静态审计、定向回归及隔离浏览器滚动验证；归档修复通过真实 DOM 观察器收敛测试。
-真实会话的逐项操作仍待验收。
+在 500 条主历史、50 条侧聊历史、20 批双栏追加的隔离 Chrome 场景中，
+注入层全局查询从 **280 次降至 0 次**；7 套外观、桌面与手机共 14 组初始布局及截图保持一致。
+这些结果使用官方 CSS 与虚构 DOM，不能视为真实超长会话的整体性能保证。
+测试与范围见[流式性能验收记录](docs/plans/streaming-performance-v1-verification.md)，
+兼容边界见 [UPSTREAM.md](UPSTREAM.md)。
 
 完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。从旧版本升级后需要重启 `kimi web` / launcher，
 再刷新或重新打开页面；已经运行的服务不会热加载新资源。
@@ -78,7 +82,7 @@
 - **移动页面适配**：改善首页、会话设置、模型菜单、工作区列表、输入区和 composer dock
   在小屏设备上的布局，并修复桌面侧栏收起后的空白。
 - **手机任务强提醒**：任务完成、审批请求和提问请求会显示可关闭的弹窗；待处理弹窗可定位
-  到原控件，并避免初始空闲、切换会话、历史回放和断线重连误触发。
+  到原控件，并避免初始空闲、切换会话、历史回放和断线重连误触发；Side Chat 输出不会推迟提醒。
 - **五套氛围主题**：提供夜幕、极光、暮色、余烬和矿物青绿主题，覆盖桌面与手机；
   可恢复官方外观，选择只保存在当前浏览器和站点。
 - **供应商编辑增强**：供应商标签支持触摸、拖动、滚轮和键盘导航；模型可配置多模态、
@@ -93,6 +97,7 @@
   创建当前 queued prompt，再按精确 `prompt_id` 调用 `prompts:steer`。官方快捷键仍由上游处理。
   工具调用完成后默认保持展开，已有手动偏好继续生效。Side Chat 流式输出仅在阅读位置仍在底部时
   自动跟随；向上滚动后不再抢走阅读位置，回到底部后恢复跟随。
+- **流式更新开销控制**：增强层只处理相关区域变化，减少长历史扫描、无关响应解析与侧聊布局读取。
 - **通知权限整流**：保留官方首次自动申请行为，合并并发请求；关闭提示后后台事件不会反复
   申请，设置中的主动重试仍可用。
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
@@ -100,7 +105,8 @@
 
 ## 界面预览
 
-以下截图来自官方 `0.41.0` 前端与本项目增强层，使用隔离浏览器和固定演示数据。`demo-project`、对话内容与 `Demo` 模型均为虚构示例，不代表真实账号或额外提供的模型服务。
+以下主题与交互截图基于官方 `0.41.0` 前端，当前 `2.1.1` 的组件细节可能不同。
+截图使用隔离浏览器和固定演示数据；`demo-project`、对话内容与 `Demo` 模型均为虚构示例。
 
 **主推：夜幕 · Nocturne — 工作区、会话与对话界面**
 
@@ -114,7 +120,7 @@
   <img src="docs/images/theme-aurora-mobile.png" alt="极光主题：六选项主题切换面板" width="31%" />
 </p>
 
-### 新功能展示
+### 交互功能预览
 
 供应商标签超出弹窗宽度时，可直接触摸滑动或按住鼠标拖动；鼠标滚轮和键盘方向键也可横向浏览。
 
@@ -128,7 +134,7 @@
   <img src="docs/images/feature-priority-send-mobile.png" alt="手机端：运行中草稿的插队按钮" width="28%" />
 </p>
 
-**五套主题实机预览**（夜幕为主推视觉）：
+**五套主题预览**（夜幕为主推视觉）：
 
 - **夜幕 · Nocturne（主推）**：[桌面](docs/images/theme-nocturne-desktop.png) ·
   [手机](docs/images/theme-nocturne-mobile.png)
@@ -162,19 +168,29 @@
 ## 快速上手
 
 前提：已安装官方 [Kimi Code](https://github.com/MoonshotAI/kimi-code)（`kimi web` 可用）和 Node ≥ 22。
-源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到
-npm registry。`v2.1.1-r1` 安装包已撤回，新包发布前请从源码安装。
+下载官方界面还需 PATH 中有 `curl` 和 `tar`；源码安装另外需要 Git 和 Corepack。
+本项目当前不发布到 npm registry，请使用 GitHub Release 的固定版本 tgz，或从 main 源码安装。
 
-**源码：**
+**安装发布包：**
 
 ```sh
-git clone https://github.com/WilliamLambertCN/open-kimi-web.git
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r2/open-kimi-web-2.1.1-r2.tgz
+open-kimi-web integrate install
+```
+
+**或从源码安装：**
+
+```sh
+git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
 cd open-kimi-web
 corepack pnpm install --frozen-lockfile
 
 # 一次性接管 kimi web
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
+
+已经接管过 `kimi web` 且切换安装方式或目录时，还需按[升级](#升级)中的说明更新接管入口。
+源码接管会引用此仓库中的 launcher，安装后请保留仓库目录。
 
 如果 Windows 在 `corepack pnpm install` 下载 `pnpm-10.33.0.tgz` 时出现
 `ECONNRESET`，先解决 Corepack 的下载链路，再运行 `integrate install`；直接跳过依赖安装
@@ -231,16 +247,38 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-全局 tgz 安装更新时，再次安装上面的版本化 URL；源码安装更新时，在仓库目录执行：
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r2`。
+
+**已有 main 源码安装：** 在原仓库的 main 分支执行：
 
 ```sh
-git pull --ff-only
+git pull --ff-only origin main
 corepack pnpm install --frozen-lockfile
 ```
 
-随后运行 `open-kimi-web integrate status`；仅在它报告 wrapper、PATH 或真实 `kimi` 路径异常时，
-运行 `open-kimi-web integrate repair`。最后结束仍在运行的旧 `kimi web` / launcher 进程，
-再执行 `kimi web --host`，否则旧进程不会加载新版本。
+**切换到源码安装：** 先按上面的源码流程克隆 main 并安装依赖，
+然后在新仓库目录执行以下命令，让接管入口使用这份源码：
+
+```sh
+node packages/launcher/bin/open-kimi-web.mjs integrate repair
+```
+
+**从源码切换到全局 tgz 安装：** 安装发布包后，显式使用全局包入口更新接管，避免命令仍指向旧源码：
+
+```sh
+node "$(npm root -g)/open-kimi-web/bin/open-kimi-web.mjs" integrate repair
+```
+
+单独执行 `integrate install` 在已有完整接管时可能不做修改，因此切换安装位置需要显式 `repair`。
+随后开一个新终端检查接管状态：
+
+```sh
+open-kimi-web integrate status
+```
+
+若检查报告 wrapper、PATH 或真实 `kimi` 路径异常，使用目标安装位置的入口执行 `integrate repair`。
+最后停止原终端中运行的旧 `kimi web` / launcher，在新终端重新执行 `kimi web --host`，
+再刷新或重新打开浏览器页面。拉取源码不会热替换运行中的服务与已加载的页面脚本，无需迁移会话数据。
 
 不想接管也行——自己先跑 `kimi web`，再运行
 `node packages/launcher/bin/open-kimi-web.mjs serve --lan`，即可使用代理、HTTPS 与页面增强。
@@ -259,7 +297,7 @@ corepack pnpm install --frozen-lockfile
 手机/浏览器 ──HTTPS──> OpenWeb launcher（绑 0.0.0.0，你看到的入口）
                            │  本机回环代理，不出机器
                            ▼
-                      kimi 官方 server（只听 127.0.0.1 随机端口）
+                      kimi 官方 server（只听 127.0.0.1:58627）
 ```
 
 接管通过 PATH 中的小 shim（`~/.open-kimi-web/bin/kimi[.cmd]`）实现：支持的 `web` 参数走
@@ -292,7 +330,8 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
   `--web-version <ver>` 固定官方包版本；接管后的 `kimi web` 也支持
   `OPEN_KIMI_WEB_DIR` / `OPEN_KIMI_WEB_VERSION`。
 
-旧版内置前端已移除：请删除启动参数 `--web-ui open` 或环境变量 `OPEN_KIMI_WEB_UI=open`，使用默认官方界面。`--web-version` 仍可固定官方版本；`--web-dir` 仅用于加载自行修复后的隔离前端构建目录。
+旧版内置前端已移除：请删除启动参数 `--web-ui open` 或环境变量 `OPEN_KIMI_WEB_UI=open`，
+使用默认官方界面。`--web-version` 仍可固定官方版本；`--web-dir` 仅用于加载自行修复后的隔离前端构建目录。
 
 ## Kimi 插件入口
 
@@ -332,7 +371,8 @@ pnpm test:it        # 集成测试（同上）
 `pnpm dev`。未接管时，先用真实的官方 Kimi 二进制启动 target；如果 `kimi` 已指向
 wrapper，应调用它所记录的真实二进制，再运行 `pnpm dev`。
 
-结构：`packages/launcher` 包含 HTTPS、REST/WS 代理、官方资源加载和手机展示层；`contracts/upstream` 保留历史协议快照作为参考。上游版本与维护边界见 [`UPSTREAM.md`](UPSTREAM.md)。
+结构：`packages/launcher` 包含 HTTPS、REST/WS 代理、官方资源加载和手机展示层；
+`contracts/upstream` 保留历史协议快照作为参考。上游版本与维护边界见 [`UPSTREAM.md`](UPSTREAM.md)。
 
 兼容性基线：CLI `2.1.1`（官方发布标签指向
 [`f67e6398`](https://github.com/MoonshotAI/kimi-code/commit/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f)）；
@@ -346,3 +386,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
+[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r2
