@@ -1,9 +1,13 @@
 # Changelog
 
 本项目是 Kimi Code 的非官方社区增强层，与 Moonshot AI 无关联、不由其维护或背书。
-版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
+版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
+在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
-## Unreleased
+## [open-kimi-web v2.1.1-r2] - 2026-09-28
+
+替代已撤回的 `v2.1.1-r1`，包含模型用量统计、归档卡死修复和长会话性能优化。
+升级后需要重启 launcher 并刷新页面；无需迁移会话数据。
 
 - 新增模型用量与 API 成本统计：历史回补、四类 token、模型缓存命中率、时间与工作区筛选。
 - 支持最近 1、3、7、30、60、90 天和自定义时间，展示趋势、模型分布及未定价状态。
@@ -16,6 +20,7 @@
 - 页面增强、工作区置顶、归档、供应商和统计入口只响应相关区域的 DOM 变化，减少长会话与 Side Chat 的开销。
 - 提醒计时器只响应运行态、待处理控件和路由变化，Side Chat 连续输出不再推迟审批或提问提醒。
 - Side Chat 跟随底部时减少额外布局读取，并修复延迟 scroll 事件在内容增长后误判用户离底的问题。
+- README 收口为完整增强功能与本版改动，补充安装位置切换、接管修复和升级后重启说明。
 
 ### 事件：归档删除按钮使注入层持续回调
 
@@ -51,7 +56,7 @@
 ## open-kimi-web v2.1.1-r1（已撤回） - 2026-09-28
 
 2026-09-28 撤回 GitHub Release、安装包和 tag：归档列表中的删除按钮会形成无限观察器回调，
-打开“已完成”或会话管理归档列表即可导致页面卡死。修复记录见上方 Unreleased，暂未重新发包。
+打开“已完成”或会话管理归档列表即可导致页面卡死。替代版本与修复记录见上方 `v2.1.1-r2`。
 
 兼容基线升级到 Kimi Code `2.1.1`，并修复 Side Chat 流式输出时抢走阅读位置的问题。
 
@@ -282,3 +287,4 @@
 [open-kimi-web v2.0.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r2
 [open-kimi-web v2.0.2-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.0.2-r1
 [open-kimi-web v0.43.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v0.43.1-r1
+[open-kimi-web v2.1.1-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r2
