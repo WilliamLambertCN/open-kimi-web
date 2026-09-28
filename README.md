@@ -11,9 +11,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r3][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 包含手机提问卡片修正、模型用量统计、归档卡死修复和长会话优化；安装与升级见[快速上手](#快速上手)。
-> `v2.1.1-r1` 已撤回，旧版用户请升级到 `r3`。
+> **当前版本：[v2.1.1-r4][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 手机提问卡片可拖动调高并保存档位，修复长题干挤压选项；安装见[快速上手](#快速上手)。
+> `v2.1.1-r1` 已撤回，旧版用户请升级到 `r4`。
 
 ## 模型用量与 API 成本统计
 
@@ -46,12 +46,16 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 缺少请求模型 ID 或关联不明确的旧记录保留 token 总量，单列为“模型 ID 未确认”，不猜测模型或价格。
 模型 ID 不包含历史渠道信息，渠道价格仍需明确选择。API 等值费用不是订阅实际支出或服务商账单。
 
-## 最新改动 · v2.1.1-r3
+## 最新改动 · v2.1.1-r4
 
 本版适用于 Kimi Code `2.1.1`；`rN` 表示同一兼容基线上的项目修订号。
 
-- **手机提问卡片**：题干与选项回到同一个滚动区域，并适配新版官方按钮和面板样式。
-  保留半屏高度上限、选项反馈、横排操作区和“放弃”的危险色；氛围主题沿用原有面板配色。
+- **手机提问卡片可调高度**：上下拖动卡片上沿的把手，松手吸附到 `35%`、`50%`、`70%` 或 `85%`。
+  自动保存当前浏览器、当前站点的档位，刷新、切题和再次打开时沿用；默认保持半屏上限。
+  小屏或可用高度变小时，实际高度会限制在能操作选项和按钮的范围内。
+- **手机长题干可读、选项可选**：放不下的真实题干不再占满固定头部，完整内容与选项一起滚动。
+  按钮保留在底部，支持切换题目与收起展开；短题干继续沿用原有布局。
+- 保留选项反馈、横排操作区和“放弃”的危险色，继续沿用已有主题面板配色。
 
 本版继续包含用量统计、归档卡死修复，以及长会话与 Side Chat 的性能优化，完整能力见下文。
 兼容边界见 [UPSTREAM.md](UPSTREAM.md)，此前性能验证见
@@ -73,7 +77,8 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **稳定启动与诊断**：受管模式固定后端和入口端口，等待官方服务就绪，并清楚报告端口、
   工作区、后端、依赖和官方 bundle 错误。
 - **移动页面适配**：改善首页、会话设置、模型菜单、工作区列表、输入区和 composer dock
-  在小屏设备上的布局；提问卡片的题干与选项共同滚动，并修复桌面侧栏收起后的空白。
+  在小屏设备上的布局；提问卡片支持拖动调高并记住档位，超高题干与选项共同滚动，
+  并修复桌面侧栏收起后的空白。
 - **手机任务强提醒**：任务完成、审批请求和提问请求会显示可关闭的弹窗；待处理弹窗可定位
   到原控件，并避免初始空闲、切换会话、历史回放和断线重连误触发；Side Chat 输出不会推迟提醒。
 - **五套氛围主题**：提供夜幕、极光、暮色、余烬和矿物青绿主题，覆盖桌面与手机；
@@ -167,7 +172,7 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 **安装发布包：**
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r3/open-kimi-web-2.1.1-r3.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r4/open-kimi-web-2.1.1-r4.tgz
 open-kimi-web integrate install
 ```
 
@@ -240,7 +245,7 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r3`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r4`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -379,4 +384,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r3
+[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r4
