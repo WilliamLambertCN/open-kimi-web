@@ -10,6 +10,7 @@ const FILES = new Map([
   ['notificationPermission.js', 'text/javascript; charset=utf-8'],
   ['completionModal.css', 'text/css; charset=utf-8'],
   ['completionModal.js', 'text/javascript; charset=utf-8'],
+  ['questionCardLayout.js', 'text/javascript; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
@@ -45,6 +46,7 @@ const SCRIPTS = [
   'usageView.js',
   'usageTrend.js',
   'usage.js',
+  'questionCardLayout.js',
   'presentation.js',
 ];
 const STYLES = [

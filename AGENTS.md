@@ -11,6 +11,10 @@
 [`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md)
 执行；实现、审查、截图和验收以该计划为基线，范围变化先同步文档。
 
+手机提问卡片高度与长题干按已确认的
+[`docs/plans/mobile-question-height-v1-plan.md`](docs/plans/mobile-question-height-v1-plan.md)
+执行；保持既有外观，验证真实题干、拖动档位及选项可达性后发布。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
