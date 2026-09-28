@@ -3,11 +3,12 @@
 // then front it with the OpenWeb launcher. One process exits → the other is
 // shut down; SIGINT/SIGTERM tries the authenticated shutdown endpoint first.
 import { spawn } from 'node:child_process';
+import { dirname } from 'node:path';
 
 import { isLoopbackHost, withTokenFragment } from '../accessUrls.mjs';
 import { assertOfficialWebUi } from '../args.mjs';
 import { startFrontend } from '../frontend.mjs';
-import { resolveLaunchToken } from '../launchToken.mjs';
+import { defaultTokenFile, resolveLaunchToken } from '../launchToken.mjs';
 import { openUrl } from './browserOpen.mjs';
 import { isWindowsCmdScript, resolveSpawnTarget, runCapture } from './proc.mjs';
 import {
@@ -262,6 +263,7 @@ async function startBackendAndFrontend(ctx) {
     const frontend = await startFrontend({
       ...frontendOptions(ctx.web, instance.port, env),
       env,
+      usageHome: dirname(defaultTokenFile(env)),
       log,
       warn,
       publicDir: deps.publicDir,

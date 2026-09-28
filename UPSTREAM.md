@@ -12,7 +12,9 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web release target: `2.1.1-r1`.
+- Open Kimi Web source baseline: `2.1.1`; `2.1.1-r1` was withdrawn on 2026-09-28.
+  Its release, package, and tag were removed after the archive observer loop was confirmed.
+  The fixes below are available from source; no replacement release is published yet.
 - Machine-readable version and historical contract records: `upstream.json`.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
@@ -65,11 +67,39 @@ serves a prepared build without injecting the presentation layer or theme picker
 
 ## Maintaining enhancements
 
+The usage statistics feature follows
+[`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md).
+Kimi Code `2.1.1` persists `usage.record` events with request usage, model alias,
+and a millisecond timestamp. The four counters are `inputOther`, `inputCacheRead`,
+`inputCacheCreation`, and `output`; total input includes all three input counters.
+Durable `llm.request` records carry the model ID sent to the upstream API in `model`;
+their `provider` field is a protocol, not a historical billing channel. Statistics
+associate compatible request and usage records within each agent wire, accepting
+only an unambiguous model ID. Missing or conflicting identities remain unresolved
+and unpriced, with their token counts preserved. Aliases are display metadata only.
+The existing session and transcript APIs do not preserve equivalent history
+detail, so full statistics require the known local managed backend data directory.
+External `--target` mode must not silently read a different local data source.
+
+Forks copy source agent wire records and append a `forked` marker. Statistics
+exclude inherited prefixes and retain physical usage from inactive branches.
+Provider cache fields can be normalized to zero when unreported. Statistics and
+price mappings use confirmed model IDs; multiple aliases for one ID are combined,
+while an alias rebound to different IDs is separated. Old alias-keyed price settings
+are not reinterpreted as ID mappings. Historical channels cannot be recovered from
+the request protocol. Costs use current public or manually entered prices as API estimates.
+Deleted, damaged, unrecorded, and unverified older wire formats may be incomplete.
+
 Keep HTTPS and proxy behavior in the launcher, and keep presentation fixes
 in `packages/launcher/src/mobile/`. When adopting another official version,
 check the affected selectors and behaviors. Remove a local workaround when
 the upstream version fixes the corresponding issue. Do not rebuild session
 state management in DOM patches.
+
+Observer-driven enhancements must converge after their own DOM writes. Assigning
+the same `textContent` still emits a child-list mutation, so existing controls need
+value guards. Keep a real MutationObserver regression with an in-callback stop guard;
+a fake observer or an HTTP asset check does not establish browser-side convergence.
 
 The presentation layer also provides five optional CSS atmosphere themes through
 the official settings panel. Theme selection uses its own local browser storage

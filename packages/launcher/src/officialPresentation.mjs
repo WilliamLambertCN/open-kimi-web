@@ -17,6 +17,10 @@ const FILES = new Map([
   ['providerEnhancements.js', 'text/javascript; charset=utf-8'],
   ['workspacePins.css', 'text/css; charset=utf-8'],
   ['workspacePins.js', 'text/javascript; charset=utf-8'],
+  ['usage.css', 'text/css; charset=utf-8'],
+  ['usageView.js', 'text/javascript; charset=utf-8'],
+  ['usageTrend.js', 'text/javascript; charset=utf-8'],
+  ['usage.js', 'text/javascript; charset=utf-8'],
   ['themes.css', 'text/css; charset=utf-8'],
   ['themes.js', 'text/javascript; charset=utf-8'],
   ['backgrounds/aurora.png', 'image/png'],
@@ -38,6 +42,9 @@ const SCRIPTS = [
   'providerEnhancements.js',
   'workspacePins.js',
   'archivedSessionDelete.js',
+  'usageView.js',
+  'usageTrend.js',
+  'usage.js',
   'presentation.js',
 ];
 const STYLES = [
@@ -46,6 +53,7 @@ const STYLES = [
   'workspacePins.css',
   'archivedSessionDelete.css',
   'completionModal.css',
+  'usage.css',
 ];
 
 // Serve the presentation layer from the installed launcher, so existing

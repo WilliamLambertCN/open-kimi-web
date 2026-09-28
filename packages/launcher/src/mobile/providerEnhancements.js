@@ -474,7 +474,9 @@
     rememberAuthorization(input, init, url);
     const [forwardedInput, forwardedInit] = await mergeProviderFields(input, init, url, method);
     const response = await nativeFetch.call(this, forwardedInput, forwardedInit);
-    if (response.ok && url.origin === location.origin) {
+    if (response.ok && url.origin === location.origin && method === 'GET' && (
+      url.pathname === '/api/v1/config' || url.pathname === '/api/v1/models'
+    )) {
       void response.clone().json().then((body) => rememberResponse(url, method, body)).catch(() => {});
     }
     return response;

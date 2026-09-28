@@ -9,22 +9,62 @@
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-## [open-kimi-web v2.1.1-r1][release-2.1.1-r1] 最新变化
+## 模型用量与 API 成本统计
+
+**看清每个模型用了多少 token、命中了多少缓存，以及按 API 单价计算值多少钱。**
+桌面从侧栏打开“使用统计”；手机先打开顶部的会话／工作区切换抽屉，再进入“使用统计”。
+两端都可以查看同一台 Kimi 的历史用量。
+
+> 此功能随当前源码提供，尚未发布新的安装包。
+
+- **时间与分布**：预设 `1d`、`3d`、`1w`、`1m`、`2m`、`3m`，对应最近 1、3、7、30、60、90 天，
+  也可自定义起止时间；按模型和工作区筛选，查看用量趋势与模型分布。
+- **四类 token 与缓存命中率**：普通输入、缓存读取、输出、缓存写入分别展示；
+  命中率按所选范围内的缓存读取量除以总输入量计算，不平均各次请求的百分比。
+- **API 等值费用**：预设公开价格、在线刷新、本地缓存和手动覆盖；
+  支持模型映射与上下文阶梯价，未定价模型明确标出，费用按当前单价估算。
+- **模型 ID 统计**：按实际请求的模型 ID 汇总和定价；同 ID 的不同别名合并，别名改绑后分开统计。
+  多模型分布与明细可滚动浏览，价格配置可搜索模型 ID 和公开目录。
+- **历史回补**：读取官方已保存的用量记录，覆盖同一数据目录的 CLI、Web 与 agent 调用，
+  排除 fork 复制的历史前缀。用量留在本机，联网只下载公共价格目录。
+
+![模型用量与 API 成本统计：桌面总览](docs/images/feature-usage-desktop.png)
+
+<p>
+  <img src="docs/images/feature-usage-mobile.png" alt="手机端使用统计与模型明细" width="360" />
+</p>
+
+截图使用虚构演示记录，不代表真实账号、消费或提供的模型服务。
+
+统计需要通过本项目接管的 `kimi web` 受管模式启动，以确认对应的本机 Kimi 数据目录。
+独立 `serve --target` 会明确提示数据源不可用，避免把本机用量当作远端统计。
+缓存数字以 Kimi 已记录的字段为准；供应商未上报、失败或中断且未落盘、删除或损坏的记录可能缺失。
+缺少请求模型 ID 或关联不明确的旧记录保留 token 总量，单列为“模型 ID 未确认”，不猜测模型或价格。
+模型 ID 不包含历史渠道信息，渠道价格仍需明确选择。API 等值费用不是订阅实际支出或服务商账单。
+
+## 当前源码变化（尚未重新发布）
 
 版本号跟随已验证的 Kimi Code 兼容基线；`rN` 表示同一基线上的项目修订号。
-本项目当前不发布到 npm registry，请从 GitHub Release 或源码明确选择版本。
+本项目当前不发布到 npm registry。`v2.1.1-r1` 因归档列表可能使页面卡死，已于 2026-09-28
+撤回 Release、下载包和 tag；当前请使用修复后的源码，安装方式见下文。
 
 - 将官方 Web 兼容基线和离线失败回退版本更新到 Kimi Code `2.1.1`。
 - Side Chat 流式输出时，用户向上滚动阅读后保持当前位置；滚回底部时继续跟随新内容。
+- 修复打开“已完成”或会话管理归档列表后，删除按钮重复写入文本引发的观察器无限回调。
+- 主题层按变化节点增强，减少长历史重复扫描；供应商和通知脚本避免解析无关响应与 WS 帧。
+- 新增模型用量与 API 成本统计，支持实际模型 ID、历史回补、多模型滚动和价格配置。
 - 继续保留工作区最近活动排序、fork 标题保护等现有增强。
 
-本版完成官方包静态审计、定向回归及隔离浏览器滚动验证；真实会话的逐项操作仍待验收。
+已完成官方包静态审计、定向回归及隔离浏览器滚动验证；归档修复通过真实 DOM 观察器收敛测试。
+真实会话的逐项操作仍待验收。
 
 完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。从旧版本升级后需要重启 `kimi web` / launcher，
 再刷新或重新打开页面；已经运行的服务不会热加载新资源。
 
 ## 相对官方 Kimi Web 的完整增强功能
 
+- **模型用量与 API 成本统计**：按时间、模型和工作区查看四类 token、缓存命中率、用量趋势和
+  API 等值费用；历史回补、fork 去重、公开价格刷新和手动单价覆盖，详见上方主功能展示。
 - **局域网 HTTPS**：让官方 server 保持回环监听，由 launcher 提供局域网 HTTPS、
   自签名证书和 SHA-256 指纹。
 - **token 直达链接**：在启动输出中提供带 `#token=...` 的 Local 与 Network 链接，
@@ -121,14 +161,7 @@
 
 前提：已安装官方 [Kimi Code](https://github.com/MoonshotAI/kimi-code)（`kimi web` 可用）和 Node ≥ 22。
 源码安装还需要 Corepack；下载官方界面还需 PATH 中有 `curl` 和 `tar`。本项目当前不发布到
-npm registry，可从 GitHub Release 的版本化 tgz 或源码安装。
-
-**GitHub Release tgz**（固定为 `v2.1.1-r1`）：
-
-```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r1/open-kimi-web-2.1.1-r1.tgz
-open-kimi-web integrate install
-```
+npm registry。`v2.1.1-r1` 安装包已撤回，新包发布前请从源码安装。
 
 **源码：**
 
@@ -311,4 +344,3 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[release-2.1.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r1

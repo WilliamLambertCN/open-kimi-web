@@ -237,8 +237,9 @@
       return nativeSend.apply(this, arguments);
     };
     socket.addEventListener('message', (event) => {
+      if (state.ready || state.helloId === null) return;
       const frame = parseFrame(event.data);
-      if (frame?.type !== 'ack' || frame.id !== state.helloId || frame.code !== 0 || state.ready) return;
+      if (frame?.type !== 'ack' || frame.id !== state.helloId || frame.code !== 0) return;
       state.ready = true;
       readySocketCount += 1;
       scheduleEvaluation();

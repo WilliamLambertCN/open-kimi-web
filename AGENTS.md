@@ -8,6 +8,7 @@
 ## 实施计划
 
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
+- [用量统计](docs/plans/usage-statistics-v1-plan.md)
 
 ## 项目边界
 
@@ -49,6 +50,9 @@
   并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。
   不得记录标题、ID、路径或把它们写入浏览器存储。
 - 页面 Bearer token 只在当前运行内存中沿用，不写日志、不回显、不另行持久化。模型发现 endpoint 的 API Key 也遵守同一规则。
+- `MutationObserver` 回调中的 DOM 增强必须幂等；文本、属性和顺序未变化时不重复写入。
+  涉及观察器写入的回归必须验证真实 DOM mutation 会收敛，不能只靠空 `observe()` 的 fake DOM。
+  无限回调的测试保护须在 observer 回调内部断开；外部 timer timeout 可能被微任务循环阻塞。
 
 ## 进程和运行时检查
 
