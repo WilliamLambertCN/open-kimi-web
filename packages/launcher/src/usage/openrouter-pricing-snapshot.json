@@ -1,0 +1,6779 @@
+{
+  "source": "OpenRouter",
+  "sourceUrl": "https://openrouter.ai/api/v1/models",
+  "fetchedAt": "2026-09-29T03:12:42.607Z",
+  "catalog": [
+    {
+      "key": "openrouter:~anthropic/claude-fable-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~anthropic/claude-fable-latest",
+      "name": "Anthropic: Claude Fable Latest",
+      "rates": {
+        "input": 10,
+        "cacheRead": 0.25,
+        "cacheWrite": 12.5,
+        "output": 50
+      }
+    },
+    {
+      "key": "openrouter:~anthropic/claude-haiku-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~anthropic/claude-haiku-latest",
+      "name": "Anthropic: Claude Haiku Latest",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:~anthropic/claude-opus-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~anthropic/claude-opus-latest",
+      "name": "Anthropic: Claude Opus Latest",
+      "rates": {
+        "input": 4,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 5,
+        "output": 20
+      }
+    },
+    {
+      "key": "openrouter:~anthropic/claude-sonnet-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~anthropic/claude-sonnet-latest",
+      "name": "Anthropic: Claude Sonnet Latest",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:~deepseek/deepseek-flash-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~deepseek/deepseek-flash-latest",
+      "name": "DeepSeek: DeepSeek Flash Latest",
+      "rates": {
+        "input": 0.02,
+        "cacheRead": 0.02,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:~deepseek/deepseek-pro-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~deepseek/deepseek-pro-latest",
+      "name": "DeepSeek: DeepSeek Pro Latest",
+      "rates": {
+        "input": 0.22592,
+        "cacheRead": 0.07488,
+        "cacheWrite": null,
+        "output": 1.9584000000000001
+      }
+    },
+    {
+      "key": "openrouter:~deepseek/deepseek-v4-flash-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~deepseek/deepseek-v4-flash-latest",
+      "name": "DeepSeek: DeepSeek V4 Flash Latest",
+      "rates": {
+        "input": 0.012,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.5
+      }
+    },
+    {
+      "key": "openrouter:~google/gemini-flash-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~google/gemini-flash-latest",
+      "name": "Google: Gemini Flash Latest",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": 0.0416666666666667,
+        "output": 3.75
+      }
+    },
+    {
+      "key": "openrouter:~google/gemini-pro-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~google/gemini-pro-latest",
+      "name": "Google: Gemini Pro Latest",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 0.375,
+        "output": 12
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 18
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:~moonshotai/kimi-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~moonshotai/kimi-latest",
+      "name": "MoonshotAI: Kimi Latest",
+      "rates": {
+        "input": 0.6795,
+        "cacheRead": 0.3,
+        "cacheWrite": null,
+        "output": 8.7934
+      }
+    },
+    {
+      "key": "openrouter:~openai/gpt-astra-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~openai/gpt-astra-latest",
+      "name": "OpenAI: GPT Astra Latest",
+      "rates": {
+        "input": 10,
+        "cacheRead": 1,
+        "cacheWrite": 12.5,
+        "output": 50
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 20,
+            "cacheRead": 2,
+            "cacheWrite": 25,
+            "output": 75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:~openai/gpt-luna-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~openai/gpt-luna-latest",
+      "name": "OpenAI: GPT Luna Latest",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": 0.125,
+        "output": 0.5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.25,
+            "output": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:~openai/gpt-mini-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~openai/gpt-mini-latest",
+      "name": "OpenAI: GPT Mini Latest",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": null,
+        "output": 4.5
+      }
+    },
+    {
+      "key": "openrouter:~openai/gpt-sol-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~openai/gpt-sol-latest",
+      "name": "OpenAI: GPT Sol Latest",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 15
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:~openai/gpt-terra-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~openai/gpt-terra-latest",
+      "name": "OpenAI: GPT Terra Latest",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 12
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 18
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:~x-ai/grok-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~x-ai/grok-latest",
+      "name": "xAI: Grok Latest",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 1,
+            "cacheWrite": null,
+            "output": 12
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:~z-ai/glm-flash-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~z-ai/glm-flash-latest",
+      "name": "Z.ai: GLM Flash Latest",
+      "rates": {
+        "input": 0.03,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.5
+      }
+    },
+    {
+      "key": "openrouter:~z-ai/glm-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "~z-ai/glm-latest",
+      "name": "Z.ai: GLM Latest",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:aion-labs/aion-2.0",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "aion-labs/aion-2.0",
+      "name": "AionLabs: Aion-2.0",
+      "rates": {
+        "input": 0.7999999999999999,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 1.5999999999999999
+      }
+    },
+    {
+      "key": "openrouter:aion-labs/aion-3.0",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "aion-labs/aion-3.0",
+      "name": "AionLabs: Aion-3.0",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.75,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:aion-labs/aion-3.0-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "aion-labs/aion-3.0-mini",
+      "name": "AionLabs: Aion-3.0-Mini",
+      "rates": {
+        "input": 0.7,
+        "cacheRead": 0.18,
+        "cacheWrite": null,
+        "output": 1.4
+      }
+    },
+    {
+      "key": "openrouter:aion-labs/aion-3.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "aion-labs/aion-3.5",
+      "name": "AionLabs: Aion 3.5",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.75,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:aion-labs/aion-3.5-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "aion-labs/aion-3.5-mini",
+      "name": "AionLabs: Aion 3.5 Mini",
+      "rates": {
+        "input": 0.7,
+        "cacheRead": 0.18,
+        "cacheWrite": null,
+        "output": 1.4
+      }
+    },
+    {
+      "key": "openrouter:aion-labs/aion-rp-llama-3.1-8b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "aion-labs/aion-rp-llama-3.1-8b",
+      "name": "AionLabs: Aion-RP 1.0 (8B)",
+      "rates": {
+        "input": 0.7999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.5999999999999999
+      }
+    },
+    {
+      "key": "openrouter:amazon/nova-2-lite-v1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "amazon/nova-2-lite-v1",
+      "name": "Amazon: Nova 2 Lite",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:amazon/nova-lite-v1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "amazon/nova-lite-v1",
+      "name": "Amazon: Nova Lite 1.0",
+      "rates": {
+        "input": 0.06,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.24
+      }
+    },
+    {
+      "key": "openrouter:amazon/nova-micro-v1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "amazon/nova-micro-v1",
+      "name": "Amazon: Nova Micro 1.0",
+      "rates": {
+        "input": 0.035,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.14
+      }
+    },
+    {
+      "key": "openrouter:amazon/nova-premier-v1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "amazon/nova-premier-v1",
+      "name": "Amazon: Nova Premier 1.0",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.625,
+        "cacheWrite": null,
+        "output": 12.5
+      }
+    },
+    {
+      "key": "openrouter:amazon/nova-pro-v1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "amazon/nova-pro-v1",
+      "name": "Amazon: Nova Pro 1.0",
+      "rates": {
+        "input": 0.7999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3.1999999999999997
+      }
+    },
+    {
+      "key": "openrouter:anthracite-org/magnum-v4-72b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthracite-org/magnum-v4-72b",
+      "name": "Magnum v4 72B",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-fable-5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-fable-5",
+      "name": "Anthropic: Claude Fable 5",
+      "rates": {
+        "input": 10,
+        "cacheRead": 1,
+        "cacheWrite": 12.5,
+        "output": 50
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-fable-5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-fable-5:batch",
+      "name": "Anthropic: Claude Fable 5 (batch)",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-fable-5.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-fable-5.1",
+      "name": "Anthropic: Claude Fable 5.1",
+      "rates": {
+        "input": 10,
+        "cacheRead": 0.25,
+        "cacheWrite": 12.5,
+        "output": 50
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-fable-5.1:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-fable-5.1:batch",
+      "name": "Anthropic: Claude Fable 5.1 (batch)",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.125,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-haiku-4.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "name": "Anthropic: Claude Haiku 4.5",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-haiku-4.5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-haiku-4.5:batch",
+      "name": "Anthropic: Claude Haiku 4.5 (batch)",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": 0.625,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.1",
+      "name": "Anthropic: Claude Opus 4.1",
+      "rates": {
+        "input": 15,
+        "cacheRead": 1.5,
+        "cacheWrite": 18.75,
+        "output": 75
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.1:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.1:batch",
+      "name": "Anthropic: Claude Opus 4.1 (batch)",
+      "rates": {
+        "input": 7.5,
+        "cacheRead": 0.75,
+        "cacheWrite": 9.375,
+        "output": 37.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.5",
+      "name": "Anthropic: Claude Opus 4.5",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.5:batch",
+      "name": "Anthropic: Claude Opus 4.5 (batch)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": 3.125,
+        "output": 12.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.6",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.6",
+      "name": "Anthropic: Claude Opus 4.6",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.6:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.6:batch",
+      "name": "Anthropic: Claude Opus 4.6 (batch)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": 3.125,
+        "output": 12.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.7",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.7",
+      "name": "Anthropic: Claude Opus 4.7",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.7:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.7:batch",
+      "name": "Anthropic: Claude Opus 4.7 (batch)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": 3.125,
+        "output": 12.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.8",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.8",
+      "name": "Anthropic: Claude Opus 4.8",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-4.8:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-4.8:batch",
+      "name": "Anthropic: Claude Opus 4.8 (batch)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": 3.125,
+        "output": 12.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-5",
+      "name": "Anthropic: Claude Opus 5",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-5:batch",
+      "name": "Anthropic: Claude Opus 5 (batch)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": 3.125,
+        "output": 12.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-5.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "name": "Anthropic: Claude Opus 5.5",
+      "rates": {
+        "input": 4,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 5,
+        "output": 20
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-opus-5.5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-opus-5.5:batch",
+      "name": "Anthropic: Claude Opus 5.5 (batch)",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 2.5,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-4",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-4",
+      "name": "Anthropic: Claude Sonnet 4",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.3,
+        "cacheWrite": 3.75,
+        "output": 15
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 6,
+            "cacheRead": 0.6,
+            "cacheWrite": 7.5,
+            "output": 22.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-4.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-4.5",
+      "name": "Anthropic: Claude Sonnet 4.5",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.3,
+        "cacheWrite": 3.75,
+        "output": 15
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 6,
+            "cacheRead": 0.6,
+            "cacheWrite": 7.5,
+            "output": 22.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-4.5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-4.5:batch",
+      "name": "Anthropic: Claude Sonnet 4.5 (batch)",
+      "rates": {
+        "input": 1.5,
+        "cacheRead": 0.15,
+        "cacheWrite": 1.875,
+        "output": 7.5
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 3,
+            "cacheRead": 0.3,
+            "cacheWrite": 3.75,
+            "output": 11.25
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-4.6",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-4.6",
+      "name": "Anthropic: Claude Sonnet 4.6",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.3,
+        "cacheWrite": 3.75,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-4.6:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-4.6:batch",
+      "name": "Anthropic: Claude Sonnet 4.6 (batch)",
+      "rates": {
+        "input": 1.5,
+        "cacheRead": 0.15,
+        "cacheWrite": 1.875,
+        "output": 7.5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "name": "Anthropic: Claude Sonnet 5",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-5:batch",
+      "name": "Anthropic: Claude Sonnet 5 (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-5.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-5.5",
+      "name": "Anthropic: Claude Sonnet 5.5",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:anthropic/claude-sonnet-5.5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "anthropic/claude-sonnet-5.5:batch",
+      "name": "Anthropic: Claude Sonnet 5.5 (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:arcee-ai/trinity-large-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "arcee-ai/trinity-large-thinking",
+      "name": "Arcee AI: Trinity Large Thinking",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.06,
+        "cacheWrite": null,
+        "output": 0.7999999999999999
+      }
+    },
+    {
+      "key": "openrouter:baidu/ernie-4.5-vl-424b-a47b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "baidu/ernie-4.5-vl-424b-a47b",
+      "name": "Baidu: ERNIE 4.5 VL 424B A47B ",
+      "rates": {
+        "input": 0.42,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.25
+      }
+    },
+    {
+      "key": "openrouter:bytedance-seed/seed-1.6",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance-seed/seed-1.6",
+      "name": "ByteDance Seed: Seed 1.6",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2
+      },
+      "tiers": [
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 0.5,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 4
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:bytedance-seed/seed-1.6-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance-seed/seed-1.6-flash",
+      "name": "ByteDance Seed: Seed 1.6 Flash",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.3
+      },
+      "tiers": [
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 0.09999999999999999,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 0.7999999999999999
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:bytedance-seed/seed-2-1-turbo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance-seed/seed-2-1-turbo",
+      "name": "ByteDance Seed: Seed 2.1 Turbo",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:bytedance-seed/seed-2.0-code",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance-seed/seed-2.0-code",
+      "name": "ByteDance Seed: Seed-2.0-Code",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3
+      },
+      "tiers": [
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 1,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 6
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:bytedance-seed/seed-2.0-lite",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance-seed/seed-2.0-lite",
+      "name": "ByteDance Seed: Seed-2.0-Lite",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2
+      },
+      "tiers": [
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 0.5,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 4
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:bytedance-seed/seed-2.0-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance-seed/seed-2.0-mini",
+      "name": "ByteDance Seed: Seed-2.0-Mini",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      },
+      "tiers": [
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 0.7999999999999999
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:bytedance/ui-tars-1.5-7b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "bytedance/ui-tars-1.5-7b",
+      "name": "ByteDance: UI-TARS 7B ",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:cognitivecomputations/dolphin-mistral-24b-venice-edition",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+      "name": "Venice: Uncensored",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.8999999999999999
+      }
+    },
+    {
+      "key": "openrouter:cohere/command-a",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cohere/command-a",
+      "name": "Cohere: Command A",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:cohere/command-a-plus",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cohere/command-a-plus",
+      "name": "Cohere: Command A+",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:cohere/command-r-08-2024",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cohere/command-r-08-2024",
+      "name": "Cohere: Command R (08-2024)",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:cohere/command-r-plus-08-2024",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cohere/command-r-plus-08-2024",
+      "name": "Cohere: Command R+ (08-2024)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:cohere/command-r7b-12-2024",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cohere/command-r7b-12-2024",
+      "name": "Cohere: Command R7B (12-2024)",
+      "rates": {
+        "input": 0.0375,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.15
+      }
+    },
+    {
+      "key": "openrouter:cohere/north-mini-code:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "cohere/north-mini-code:free",
+      "name": "Cohere: North Mini Code (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-chat",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-chat",
+      "name": "DeepSeek: DeepSeek V3",
+      "rates": {
+        "input": 0.2574,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.0287
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-chat-v3-0324",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-chat-v3-0324",
+      "name": "DeepSeek: DeepSeek V3 0324",
+      "rates": {
+        "input": 0.29,
+        "cacheRead": 0.11,
+        "cacheWrite": null,
+        "output": 1.1400000000000001
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-chat-v3.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-chat-v3.1",
+      "name": "DeepSeek: DeepSeek V3.1",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.13,
+        "cacheWrite": null,
+        "output": 0.95
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-r1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-r1",
+      "name": "DeepSeek: R1",
+      "rates": {
+        "input": 0.7,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-r1-0528",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-r1-0528",
+      "name": "DeepSeek: R1 0528",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": 0.35,
+        "cacheWrite": null,
+        "output": 2.1500000000000004
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v3.1-terminus",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v3.1-terminus",
+      "name": "DeepSeek: DeepSeek V3.1 Terminus",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.135,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v3.2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v3.2",
+      "name": "DeepSeek: DeepSeek V3.2",
+      "rates": {
+        "input": 0.28,
+        "cacheRead": 0.028,
+        "cacheWrite": null,
+        "output": 0.42
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v3.2-exp",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v3.2-exp",
+      "name": "DeepSeek: DeepSeek V3.2 Exp",
+      "rates": {
+        "input": 0.13440000000000002,
+        "cacheRead": 0.06720000000000001,
+        "cacheWrite": null,
+        "output": 0.2016
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "name": "DeepSeek: DeepSeek V4 Flash 0423",
+      "rates": {
+        "input": 0.14,
+        "cacheRead": 0.028,
+        "cacheWrite": null,
+        "output": 0.28
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4-flash-0731",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "name": "DeepSeek: DeepSeek V4 Flash 0731",
+      "rates": {
+        "input": 0.018,
+        "cacheRead": 0.018,
+        "cacheWrite": null,
+        "output": 0.32
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4-flash-vision-exp",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4-flash-vision-exp",
+      "name": "DeepSeek: DeepSeek V4 Flash Vision Exp",
+      "rates": {
+        "input": 0.21559999999999999,
+        "cacheRead": 0.00686,
+        "cacheWrite": null,
+        "output": 0.6468
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4-pro",
+      "name": "DeepSeek: DeepSeek V4 Pro 0423",
+      "rates": {
+        "input": 0.9552599999999999,
+        "cacheRead": 0.07960500000000001,
+        "cacheWrite": null,
+        "output": 1.9105199999999998
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4-pro-0813",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4-pro-0813",
+      "name": "DeepSeek: DeepSeek V4 Pro 0813",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": 0.32,
+        "cacheWrite": null,
+        "output": 4.199999999999999
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4.1-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4.1-flash",
+      "name": "DeepSeek: DeepSeek V4.1 Flash",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.006,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:deepseek/deepseek-v4.1-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "deepseek/deepseek-v4.1-flash:batch",
+      "name": "DeepSeek: DeepSeek V4.1 Flash (batch)",
+      "rates": {
+        "input": 0.112,
+        "cacheRead": 0.00336,
+        "cacheWrite": null,
+        "output": 0.33599999999999997
+      }
+    },
+    {
+      "key": "openrouter:dots-studio/dots-3-note-preview:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:fireworks/ember-1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "fireworks/ember-1",
+      "name": "Fireworks: Ember-1",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.3,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-flash",
+      "name": "Google: Gemini 2.5 Flash",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.03,
+        "cacheWrite": 0.0833333333333333,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-flash-image",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-flash-image",
+      "name": "Google: Nano Banana (Gemini 2.5 Flash Image)",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.03,
+        "cacheWrite": 0.0833333333333333,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-flash-lite",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-flash-lite",
+      "name": "Google: Gemini 2.5 Flash Lite",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": 0.0833333333333333,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-flash-lite:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-flash-lite:batch",
+      "name": "Google: Gemini 2.5 Flash Lite (batch)",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-flash:batch",
+      "name": "Google: Gemini 2.5 Flash (batch)",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 1.25
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-pro",
+      "name": "Google: Gemini 2.5 Pro",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.125,
+        "cacheWrite": 0.375,
+        "output": 10
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2.5,
+            "cacheRead": 0.25,
+            "cacheWrite": null,
+            "output": 15
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-pro-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-pro-preview",
+      "name": "Google: Gemini 2.5 Pro Preview 06-05",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.125,
+        "cacheWrite": 0.375,
+        "output": 10
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2.5,
+            "cacheRead": 0.25,
+            "cacheWrite": null,
+            "output": 15
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:google/gemini-2.5-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-2.5-pro:batch",
+      "name": "Google: Gemini 2.5 Pro (batch)",
+      "rates": {
+        "input": 0.625,
+        "cacheRead": 0.125,
+        "cacheWrite": null,
+        "output": 5
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 1.25,
+            "cacheRead": 0.25,
+            "cacheWrite": null,
+            "output": 7.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:google/gemini-3-flash-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3-flash-preview",
+      "name": "Google: Gemini 3 Flash Preview",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": 0.0833333333333333,
+        "output": 3
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3-flash-preview:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3-flash-preview:batch",
+      "name": "Google: Gemini 3 Flash Preview (batch)",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3-pro-image",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3-pro-image",
+      "name": "Google: Nano Banana Pro (Gemini 3 Pro Image)",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 0.375,
+        "output": 12
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3-pro-image-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3-pro-image-preview",
+      "name": "Google: Nano Banana Pro (Gemini 3 Pro Image Preview)",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 0.375,
+        "output": 12
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-flash-image",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-flash-image",
+      "name": "Google: Nano Banana 2 (Gemini 3.1 Flash Image)",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-flash-image-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-flash-image-preview",
+      "name": "Google: Nano Banana 2 (Gemini 3.1 Flash Image Preview)",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-flash-lite",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-flash-lite",
+      "name": "Google: Gemini 3.1 Flash Lite",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": 0.0833333333333333,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-flash-lite-image",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-flash-lite-image",
+      "name": "Google: Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image)",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-flash-lite-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-flash-lite-preview",
+      "name": "Google: Gemini 3.1 Flash Lite Preview",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": 0.0833333333333333,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-flash-lite:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-flash-lite:batch",
+      "name": "Google: Gemini 3.1 Flash Lite (batch)",
+      "rates": {
+        "input": 0.125,
+        "cacheRead": 0.012499999999999999,
+        "cacheWrite": null,
+        "output": 0.75
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-pro-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-pro-preview",
+      "name": "Google: Gemini 3.1 Pro Preview",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 0.375,
+        "output": 12
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 18
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-pro-preview-customtools",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-pro-preview-customtools",
+      "name": "Google: Gemini 3.1 Pro Preview Custom Tools",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 0.375,
+        "output": 12
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 18
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:google/gemini-3.1-pro-preview:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.1-pro-preview:batch",
+      "name": "Google: Gemini 3.1 Pro Preview (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 9
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:google/gemini-3.5-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.5-flash",
+      "name": "Google: Gemini 3.5 Flash",
+      "rates": {
+        "input": 1.5,
+        "cacheRead": 0.15,
+        "cacheWrite": 0.0833333333333333,
+        "output": 9
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.5-flash-lite",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.5-flash-lite",
+      "name": "Google: Gemini 3.5 Flash Lite",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.03,
+        "cacheWrite": 0.0833333333333333,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.5-flash-lite:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.5-flash-lite:batch",
+      "name": "Google: Gemini 3.5 Flash Lite (batch)",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 1.25
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.5-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.5-flash:batch",
+      "name": "Google: Gemini 3.5 Flash (batch)",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": null,
+        "output": 4.5
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.6-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.6-flash",
+      "name": "Google: Gemini 3.6 Flash",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": 0.0416666666666667,
+        "output": 3.75
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.6-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.6-flash:batch",
+      "name": "Google: Gemini 3.6 Flash (batch)",
+      "rates": {
+        "input": 0.375,
+        "cacheRead": 0.0375,
+        "cacheWrite": 0.0416666666666667,
+        "output": 1.875
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.7-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.7-flash",
+      "name": "Google: Gemini 3.7 Flash",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": 0.0416666666666667,
+        "output": 3.75
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.7-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.7-flash:batch",
+      "name": "Google: Gemini 3.7 Flash (batch)",
+      "rates": {
+        "input": 0.375,
+        "cacheRead": 0.0375,
+        "cacheWrite": 0.0416666666666667,
+        "output": 1.875
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.8-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.8-flash",
+      "name": "Google: Gemini 3.8 Flash",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": 0.0416666666666667,
+        "output": 3.75
+      }
+    },
+    {
+      "key": "openrouter:google/gemini-3.8-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemini-3.8-flash:batch",
+      "name": "Google: Gemini 3.8 Flash (batch)",
+      "rates": {
+        "input": 0.375,
+        "cacheRead": 0.0375,
+        "cacheWrite": 0.0416666666666667,
+        "output": 1.875
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-2-27b-it",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-2-27b-it",
+      "name": "Google: Gemma 2 27B",
+      "rates": {
+        "input": 0.65,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.65
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-3-12b-it",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-3-12b-it",
+      "name": "Google: Gemma 3 12B",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.15
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-3-27b-it",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-3-27b-it",
+      "name": "Google: Gemma 3 27B",
+      "rates": {
+        "input": 0.08,
+        "cacheRead": 0.04,
+        "cacheWrite": null,
+        "output": 0.44999999999999996
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-3-4b-it",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-3-4b-it",
+      "name": "Google: Gemma 3 4B",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.09999999999999999
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-4-26b-a4b-it",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "name": "Google: Gemma 4 26B A4B ",
+      "rates": {
+        "input": 0.0765,
+        "cacheRead": 0.042499999999999996,
+        "cacheWrite": null,
+        "output": 0.255
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-4-26b-a4b-it:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-4-31b-it",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-4-31b-it",
+      "name": "Google: Gemma 4 31B",
+      "rates": {
+        "input": 0.09,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": null,
+        "output": 0.33999999999999997
+      }
+    },
+    {
+      "key": "openrouter:google/gemma-4-31b-it:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:google/lyria-3-clip-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/lyria-3-clip-preview",
+      "name": "Google: Lyria 3 Clip Preview",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:google/lyria-3-pro-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "google/lyria-3-pro-preview",
+      "name": "Google: Lyria 3 Pro Preview",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:gryphe/mythomax-l2-13b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "gryphe/mythomax-l2-13b",
+      "name": "MythoMax 13B",
+      "rates": {
+        "input": 0.08,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.11
+      }
+    },
+    {
+      "key": "openrouter:ibm-granite/granite-4.0-h-micro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "ibm-granite/granite-4.0-h-micro",
+      "name": "IBM: Granite 4.0 Micro",
+      "rates": {
+        "input": 0.017,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.112
+      }
+    },
+    {
+      "key": "openrouter:ibm-granite/granite-4.2-8b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "ibm-granite/granite-4.2-8b",
+      "name": "IBM: Granite 4.2 8B",
+      "rates": {
+        "input": 0.06,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 0.25
+      }
+    },
+    {
+      "key": "openrouter:inception/mercury-2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inception/mercury-2",
+      "name": "Inception: Mercury 2",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": null,
+        "output": 0.75
+      }
+    },
+    {
+      "key": "openrouter:inception/mercury-2.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inception/mercury-2.5",
+      "name": "Inception: Mercury 2.5",
+      "rates": {
+        "input": 0.04,
+        "cacheRead": 0.004,
+        "cacheWrite": null,
+        "output": 0.15
+      }
+    },
+    {
+      "key": "openrouter:inclusionai/ling-3.0-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inclusionai/ling-3.0-flash",
+      "name": "inclusionAI: Ling 3.0 Flash",
+      "rates": {
+        "input": 0.020999999999999998,
+        "cacheRead": 0.004200000000000001,
+        "cacheWrite": null,
+        "output": 0.063
+      }
+    },
+    {
+      "key": "openrouter:inclusionai/ling-3.0-flash-fin",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inclusionai/ling-3.0-flash-fin",
+      "name": "inclusionAI: Ling 3.0 Flash Fin",
+      "rates": {
+        "input": 0.06,
+        "cacheRead": 0.012,
+        "cacheWrite": null,
+        "output": 0.18
+      }
+    },
+    {
+      "key": "openrouter:inclusionai/ling-3.0-flash-sante:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inclusionai/ling-3.0-flash-sante:free",
+      "name": "inclusionAI: Ling 3.0 Flash Sante (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:inclusionai/ling-3.0-flash-vl",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inclusionai/ling-3.0-flash-vl",
+      "name": "inclusionAI: Ling 3.0 Flash VL",
+      "rates": {
+        "input": 0.020999999999999998,
+        "cacheRead": 0.004200000000000001,
+        "cacheWrite": null,
+        "output": 0.061599999999999995
+      }
+    },
+    {
+      "key": "openrouter:inference-net/schematron-v2-small",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inference-net/schematron-v2-small",
+      "name": "Inference.net: Schematron V2 Small",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": null,
+        "output": 0.22999999999999998
+      }
+    },
+    {
+      "key": "openrouter:inference-net/schematron-v2-turbo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "inference-net/schematron-v2-turbo",
+      "name": "Inference.net: Schematron V2 Turbo",
+      "rates": {
+        "input": 0.03,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 0.15
+      }
+    },
+    {
+      "key": "openrouter:kwaipilot/kat-coder-pro-v2.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "kwaipilot/kat-coder-pro-v2.5",
+      "name": "Kwaipilot: KAT-Coder-Pro V2.5",
+      "rates": {
+        "input": 0.74,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 2.96
+      }
+    },
+    {
+      "key": "openrouter:liquid/lfm-2.5-2.6b:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "liquid/lfm-2.5-2.6b:free",
+      "name": "LiquidAI: LFM2.5-2.6B (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:mancer/weaver",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mancer/weaver",
+      "name": "Mancer: Weaver (alpha)",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.75
+      }
+    },
+    {
+      "key": "openrouter:meituan/longcat-2.0",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meituan/longcat-2.0",
+      "name": "Meituan: LongCat 2.0",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.006,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-3.1-70b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-3.1-70b-instruct",
+      "name": "Meta: Llama 3.1 70B Instruct",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-3.1-8b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-3.1-8b-instruct",
+      "name": "Meta: Llama 3.1 8B Instruct",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": null,
+        "output": 0.08
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-3.2-1b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-3.2-1b-instruct",
+      "name": "Meta: Llama 3.2 1B Instruct",
+      "rates": {
+        "input": 0.027,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.201
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-3.2-3b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-3.2-3b-instruct",
+      "name": "Meta: Llama 3.2 3B Instruct",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.33
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-3.3-70b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-3.3-70b-instruct",
+      "name": "Meta: Llama 3.3 70B Instruct",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.32
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-4-maverick",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-4-maverick",
+      "name": "Meta: Llama 4 Maverick",
+      "rates": {
+        "input": 0.1875,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.6525
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-4-scout",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-4-scout",
+      "name": "Meta: Llama 4 Scout",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.3
+      }
+    },
+    {
+      "key": "openrouter:meta-llama/llama-guard-4-12b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta-llama/llama-guard-4-12b",
+      "name": "Meta: Llama Guard 4 12B",
+      "rates": {
+        "input": 0.18,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.18
+      }
+    },
+    {
+      "key": "openrouter:meta/muse-glimmer-30b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta/muse-glimmer-30b",
+      "name": "Meta: Muse Glimmer 30B",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.04,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:meta/muse-spark-1.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta/muse-spark-1.1",
+      "name": "Meta: Muse Spark 1.1",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 4.25
+      }
+    },
+    {
+      "key": "openrouter:meta/muse-spark-1.2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta/muse-spark-1.2",
+      "name": "Meta: Muse Spark 1.2",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 4.25
+      }
+    },
+    {
+      "key": "openrouter:meta/muse-spark-1.2-contributor",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta/muse-spark-1.2-contributor",
+      "name": "Meta: Muse Spark 1.2 Contributor",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.002,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:meta/muse-spark-1.3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta/muse-spark-1.3",
+      "name": "Meta: Muse Spark 1.3",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 4.25
+      }
+    },
+    {
+      "key": "openrouter:meta/muse-spark-1.3-contributor",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "meta/muse-spark-1.3-contributor",
+      "name": "Meta: Muse Spark 1.3 Contributor",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.002,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:microsoft/phi-4",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "microsoft/phi-4",
+      "name": "Microsoft: Phi 4",
+      "rates": {
+        "input": 0.07,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.14
+      }
+    },
+    {
+      "key": "openrouter:microsoft/wizardlm-2-8x22b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "microsoft/wizardlm-2-8x22b",
+      "name": "WizardLM-2 8x22B",
+      "rates": {
+        "input": 0.62,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.62
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-01",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-01",
+      "name": "MiniMax: MiniMax-01",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.1
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m1",
+      "name": "MiniMax: MiniMax M1",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.2
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m2",
+      "name": "MiniMax: MiniMax M2",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m2-her",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m2-her",
+      "name": "MiniMax: MiniMax M2-her",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m2.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m2.1",
+      "name": "MiniMax: MiniMax M2.1",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m2.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m2.5",
+      "name": "MiniMax: MiniMax M2.5",
+      "rates": {
+        "input": 0.27,
+        "cacheRead": 0.027,
+        "cacheWrite": null,
+        "output": 1.08
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m2.7",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m2.7",
+      "name": "MiniMax: MiniMax M2.7",
+      "rates": {
+        "input": 0.21,
+        "cacheRead": 0.041999999999999996,
+        "cacheWrite": null,
+        "output": 0.84
+      }
+    },
+    {
+      "key": "openrouter:minimax/minimax-m3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "minimax/minimax-m3",
+      "name": "MiniMax: MiniMax M3",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.06,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:mistralai/codestral-2508",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/codestral-2508",
+      "name": "Mistral: Codestral 2508",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 0.8999999999999999
+      }
+    },
+    {
+      "key": "openrouter:mistralai/codestral-2508:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/codestral-2508:batch",
+      "name": "Mistral: Codestral 2508 (batch)",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 0.44999999999999996
+      }
+    },
+    {
+      "key": "openrouter:mistralai/devstral-2512",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/devstral-2512",
+      "name": "Mistral: Devstral 2 2512",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": 0.04,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:mistralai/ministral-14b-2512",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "name": "Mistral: Ministral 3 14B 2512",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.02,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:mistralai/ministral-3b-2512",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/ministral-3b-2512",
+      "name": "Mistral: Ministral 3 3B 2512",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.09999999999999999
+      }
+    },
+    {
+      "key": "openrouter:mistralai/ministral-8b-2512",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/ministral-8b-2512",
+      "name": "Mistral: Ministral 3 8B 2512",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 0.15
+      }
+    },
+    {
+      "key": "openrouter:mistralai/ministral-8b-2512:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/ministral-8b-2512:batch",
+      "name": "Mistral: Ministral 3 8B 2512 (batch)",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": 0.0075,
+        "cacheWrite": null,
+        "output": 0.075
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-large",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-large",
+      "name": "Mistral Large",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-large-2407",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-large-2407",
+      "name": "Mistral Large 2407",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-large-2512",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-large-2512",
+      "name": "Mistral: Mistral Large 3 2512",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-large-2512:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-large-2512:batch",
+      "name": "Mistral: Mistral Large 3 2512 (batch)",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": null,
+        "output": 0.75
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-medium-3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-medium-3",
+      "name": "Mistral: Mistral Medium 3",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": 0.04,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-medium-3-5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-medium-3-5",
+      "name": "Mistral: Mistral Medium 3.5",
+      "rates": {
+        "input": 1.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 7.5
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-medium-3-5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-medium-3-5:batch",
+      "name": "Mistral: Mistral Medium 3.5 (batch)",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3.75
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-medium-3.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-medium-3.1",
+      "name": "Mistral: Mistral Medium 3.1",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": 0.04,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-medium-3.1:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-medium-3.1:batch",
+      "name": "Mistral: Mistral Medium 3.1 (batch)",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.02,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-nemo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-nemo",
+      "name": "Mistral: Mistral Nemo",
+      "rates": {
+        "input": 0.019000000000000003,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.03
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-saba",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-saba",
+      "name": "Mistral: Saba",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.02,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-small-24b-instruct-2501",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-small-24b-instruct-2501",
+      "name": "Mistral: Mistral Small 3",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.08
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-small-2603",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-small-2603",
+      "name": "Mistral: Mistral Small 4",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-small-2603:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-small-2603:batch",
+      "name": "Mistral: Mistral Small 4 (batch)",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": 0.0075,
+        "cacheWrite": null,
+        "output": 0.3
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-small-3.1-24b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-small-3.1-24b-instruct",
+      "name": "Mistral: Mistral Small 3.1 24B",
+      "rates": {
+        "input": 0.351,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.5549999999999999
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mistral-small-3.2-24b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "name": "Mistral: Mistral Small 3.2 24B",
+      "rates": {
+        "input": 0.09375,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.25
+      }
+    },
+    {
+      "key": "openrouter:mistralai/mixtral-8x22b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/mixtral-8x22b-instruct",
+      "name": "Mistral: Mixtral 8x22B Instruct",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:mistralai/voxtral-small-24b-2507",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "mistralai/voxtral-small-24b-2507",
+      "name": "Mistral: Voxtral Small 24B 2507",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.3
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k2",
+      "name": "MoonshotAI: Kimi K2 0711",
+      "rates": {
+        "input": 0.5700000000000001,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.3
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k2-0905",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k2-0905",
+      "name": "MoonshotAI: Kimi K2 0905",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k2-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k2-thinking",
+      "name": "MoonshotAI: Kimi K2 Thinking",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 2.5
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k2.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k2.5",
+      "name": "MoonshotAI: Kimi K2.5",
+      "rates": {
+        "input": 0.44999999999999996,
+        "cacheRead": 0.07,
+        "cacheWrite": null,
+        "output": 2.25
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k2.6",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k2.6",
+      "name": "MoonshotAI: Kimi K2.6",
+      "rates": {
+        "input": 0.65,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 3.41
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k2.7-code",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "name": "MoonshotAI: Kimi K2.7 Code",
+      "rates": {
+        "input": 0.6562,
+        "cacheRead": 0.18,
+        "cacheWrite": null,
+        "output": 3.3000000000000003
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k3",
+      "name": "MoonshotAI: Kimi K3",
+      "rates": {
+        "input": 3,
+        "cacheRead": 0.3,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:moonshotai/kimi-k3:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "moonshotai/kimi-k3:batch",
+      "name": "MoonshotAI: Kimi K3 (batch)",
+      "rates": {
+        "input": 2.2800000000000002,
+        "cacheRead": 0.228,
+        "cacheWrite": null,
+        "output": 11.399999999999999
+      }
+    },
+    {
+      "key": "openrouter:morph/morph-v3-fast",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "morph/morph-v3-fast",
+      "name": "Morph: Morph V3 Fast",
+      "rates": {
+        "input": 0.7999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:morph/morph-v3-large",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "morph/morph-v3-large",
+      "name": "Morph: Morph V3 Large",
+      "rates": {
+        "input": 0.8999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.9
+      }
+    },
+    {
+      "key": "openrouter:nex-agi/nex-n2.5-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nex-agi/nex-n2.5-mini",
+      "name": "Nex AGI: Nex-N2.5-Mini",
+      "rates": {
+        "input": 0.024999999999999998,
+        "cacheRead": 0.0025,
+        "cacheWrite": null,
+        "output": 0.09999999999999999
+      }
+    },
+    {
+      "key": "openrouter:nex-agi/nex-n2.5-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nex-agi/nex-n2.5-pro",
+      "name": "Nex AGI: Nex-N2.5-Pro",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 0.25
+      }
+    },
+    {
+      "key": "openrouter:nousresearch/hermes-3-llama-3.1-405b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nousresearch/hermes-3-llama-3.1-405b",
+      "name": "Nous: Hermes 3 405B Instruct",
+      "rates": {
+        "input": 1,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:nousresearch/hermes-3-llama-3.1-70b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nousresearch/hermes-3-llama-3.1-70b",
+      "name": "Nous: Hermes 3 70B Instruct",
+      "rates": {
+        "input": 0.7,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.7
+      }
+    },
+    {
+      "key": "openrouter:nousresearch/hermes-4-405b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nousresearch/hermes-4-405b",
+      "name": "Nous: Hermes 4 405B",
+      "rates": {
+        "input": 1,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3-nano-30b-a3b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3-nano-30b-a3b",
+      "name": "NVIDIA: Nemotron 3 Nano 30B A3B",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3-super-120b-a12b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3-super-120b-a12b",
+      "name": "NVIDIA: Nemotron 3 Super",
+      "rates": {
+        "input": 0.08,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.44999999999999996
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3-super-120b-a12b:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3-super-120b-a12b:free",
+      "name": "NVIDIA: Nemotron 3 Super (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3-ultra-550b-a55b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b",
+      "name": "NVIDIA: Nemotron 3 Ultra",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": 0.12,
+        "cacheWrite": null,
+        "output": 2.4
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "name": "NVIDIA: Nemotron 3 Ultra (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3.5-content-safety",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3.5-content-safety",
+      "name": "NVIDIA: Nemotron 3.5 Content Safety",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3.5-content-safety:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3.5-content-safety:free",
+      "name": "NVIDIA: Nemotron 3.5 Content Safety (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3.5-lightning",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3.5-lightning",
+      "name": "NVIDIA: Nemotron 3.5 Lightning",
+      "rates": {
+        "input": 0.06,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 0.16
+      }
+    },
+    {
+      "key": "openrouter:nvidia/nemotron-3.5-lightning:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "nvidia/nemotron-3.5-lightning:free",
+      "name": "NVIDIA: Nemotron 3.5 Lightning (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-3.5-turbo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-3.5-turbo",
+      "name": "OpenAI: GPT-3.5 Turbo",
+      "rates": {
+        "input": 0.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-3.5-turbo-0613",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-3.5-turbo-0613",
+      "name": "OpenAI: GPT-3.5 Turbo (older v0613)",
+      "rates": {
+        "input": 1,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-3.5-turbo-16k",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-3.5-turbo-16k",
+      "name": "OpenAI: GPT-3.5 Turbo 16k",
+      "rates": {
+        "input": 3,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-3.5-turbo-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-3.5-turbo-instruct",
+      "name": "OpenAI: GPT-3.5 Turbo Instruct",
+      "rates": {
+        "input": 1.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-3.5-turbo:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-3.5-turbo:batch",
+      "name": "OpenAI: GPT-3.5 Turbo (batch)",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.75
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4",
+      "name": "OpenAI: GPT-4",
+      "rates": {
+        "input": 30,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 60
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4-turbo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4-turbo",
+      "name": "OpenAI: GPT-4 Turbo",
+      "rates": {
+        "input": 10,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 30
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4-turbo:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4-turbo:batch",
+      "name": "OpenAI: GPT-4 Turbo (batch)",
+      "rates": {
+        "input": 5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4.1",
+      "name": "OpenAI: GPT-4.1",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 8
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4.1-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4.1-mini",
+      "name": "OpenAI: GPT-4.1 Mini",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 1.5999999999999999
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4.1-mini:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4.1-mini:batch",
+      "name": "OpenAI: GPT-4.1 Mini (batch)",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": null,
+        "output": 0.7999999999999999
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4.1-nano",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4.1-nano",
+      "name": "OpenAI: GPT-4.1 Nano",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4.1-nano:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4.1-nano:batch",
+      "name": "OpenAI: GPT-4.1 Nano (batch)",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.012499999999999999,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4.1:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4.1:batch",
+      "name": "OpenAI: GPT-4.1 (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o",
+      "name": "OpenAI: GPT-4o",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 1.25,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o-2024-05-13",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o-2024-05-13",
+      "name": "OpenAI: GPT-4o (2024-05-13)",
+      "rates": {
+        "input": 5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o-2024-08-06",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o-2024-08-06",
+      "name": "OpenAI: GPT-4o (2024-08-06)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 1.25,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o-2024-11-20",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o-2024-11-20",
+      "name": "OpenAI: GPT-4o (2024-11-20)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 1.25,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o-mini",
+      "name": "OpenAI: GPT-4o-mini",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.075,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o-mini-2024-07-18",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o-mini-2024-07-18",
+      "name": "OpenAI: GPT-4o-mini (2024-07-18)",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.075,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o-mini:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o-mini:batch",
+      "name": "OpenAI: GPT-4o-mini (batch)",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": 0.0375,
+        "cacheWrite": null,
+        "output": 0.3
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-4o:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-4o:batch",
+      "name": "OpenAI: GPT-4o (batch)",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.625,
+        "cacheWrite": null,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5",
+      "name": "OpenAI: GPT-5",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.125,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-image",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-image",
+      "name": "OpenAI: GPT-5 Image",
+      "rates": {
+        "input": 10,
+        "cacheRead": 1.25,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-image-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-image-mini",
+      "name": "OpenAI: GPT-5 Image Mini",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-mini",
+      "name": "OpenAI: GPT-5 Mini",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-mini:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-mini:batch",
+      "name": "OpenAI: GPT-5 Mini (batch)",
+      "rates": {
+        "input": 0.125,
+        "cacheRead": 0.012499999999999999,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-nano",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-nano",
+      "name": "OpenAI: GPT-5 Nano",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.005,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-nano:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-nano:batch",
+      "name": "OpenAI: GPT-5 Nano (batch)",
+      "rates": {
+        "input": 0.024999999999999998,
+        "cacheRead": 0.0025,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-pro",
+      "name": "OpenAI: GPT-5 Pro",
+      "rates": {
+        "input": 15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 120
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5-pro:batch",
+      "name": "OpenAI: GPT-5 Pro (batch)",
+      "rates": {
+        "input": 7.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 60
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5:batch",
+      "name": "OpenAI: GPT-5 (batch)",
+      "rates": {
+        "input": 0.625,
+        "cacheRead": 0.0625,
+        "cacheWrite": null,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.1",
+      "name": "OpenAI: GPT-5.1",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.125,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.1-codex",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.1-codex",
+      "name": "OpenAI: GPT-5.1-Codex",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.13,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.1-codex-max",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.1-codex-max",
+      "name": "OpenAI: GPT-5.1-Codex-Max",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.125,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.1-codex-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.1-codex-mini",
+      "name": "OpenAI: GPT-5.1-Codex-Mini",
+      "rates": {
+        "input": 0.25,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.1:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.1:batch",
+      "name": "OpenAI: GPT-5.1 (batch)",
+      "rates": {
+        "input": 0.625,
+        "cacheRead": 0.0625,
+        "cacheWrite": null,
+        "output": 5
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.2",
+      "name": "OpenAI: GPT-5.2",
+      "rates": {
+        "input": 1.75,
+        "cacheRead": 0.175,
+        "cacheWrite": null,
+        "output": 14
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.2-chat",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.2-chat",
+      "name": "OpenAI: GPT-5.2 Chat",
+      "rates": {
+        "input": 1.75,
+        "cacheRead": 0.175,
+        "cacheWrite": null,
+        "output": 14
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.2-codex",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.2-codex",
+      "name": "OpenAI: GPT-5.2-Codex",
+      "rates": {
+        "input": 1.75,
+        "cacheRead": 0.175,
+        "cacheWrite": null,
+        "output": 14
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.2-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.2-pro",
+      "name": "OpenAI: GPT-5.2 Pro",
+      "rates": {
+        "input": 21,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 168
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.2-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.2-pro:batch",
+      "name": "OpenAI: GPT-5.2 Pro (batch)",
+      "rates": {
+        "input": 10.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 84
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.2:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.2:batch",
+      "name": "OpenAI: GPT-5.2 (batch)",
+      "rates": {
+        "input": 0.875,
+        "cacheRead": 0.0875,
+        "cacheWrite": null,
+        "output": 7
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.3-codex",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.3-codex",
+      "name": "OpenAI: GPT-5.3-Codex",
+      "rates": {
+        "input": 1.75,
+        "cacheRead": 0.175,
+        "cacheWrite": null,
+        "output": 14
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4",
+      "name": "OpenAI: GPT-5.4",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 15
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 5,
+            "cacheRead": 0.5,
+            "cacheWrite": null,
+            "output": 22.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-image-2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-image-2",
+      "name": "OpenAI: GPT-5.4 Image 2",
+      "rates": {
+        "input": 8,
+        "cacheRead": 2,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-mini",
+      "name": "OpenAI: GPT-5.4 Mini",
+      "rates": {
+        "input": 0.75,
+        "cacheRead": 0.075,
+        "cacheWrite": null,
+        "output": 4.5
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-mini:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-mini:batch",
+      "name": "OpenAI: GPT-5.4 Mini (batch)",
+      "rates": {
+        "input": 0.375,
+        "cacheRead": 0.0375,
+        "cacheWrite": null,
+        "output": 2.25
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-nano",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-nano",
+      "name": "OpenAI: GPT-5.4 Nano",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.02,
+        "cacheWrite": null,
+        "output": 1.25
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-nano:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-nano:batch",
+      "name": "OpenAI: GPT-5.4 Nano (batch)",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.625
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-pro",
+      "name": "OpenAI: GPT-5.4 Pro",
+      "rates": {
+        "input": 30,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 180
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 60,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 270
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4-pro:batch",
+      "name": "OpenAI: GPT-5.4 Pro (batch)",
+      "rates": {
+        "input": 15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 90
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 30,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 135
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.4:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.4:batch",
+      "name": "OpenAI: GPT-5.4 (batch)",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.125,
+        "cacheWrite": null,
+        "output": 7.5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2.5,
+            "cacheRead": 0.25,
+            "cacheWrite": null,
+            "output": 11.25
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.5",
+      "name": "OpenAI: GPT-5.5",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 30
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 10,
+            "cacheRead": 1,
+            "cacheWrite": null,
+            "output": 45
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.5-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.5-pro",
+      "name": "OpenAI: GPT-5.5 Pro",
+      "rates": {
+        "input": 30,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 180
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 60,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 270
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.5-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.5-pro:batch",
+      "name": "OpenAI: GPT-5.5 Pro (batch)",
+      "rates": {
+        "input": 15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 90
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 30,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 135
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.5:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.5:batch",
+      "name": "OpenAI: GPT-5.5 (batch)",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 15
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 5,
+            "cacheRead": 0.5,
+            "cacheWrite": null,
+            "output": 22.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-luna",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-luna",
+      "name": "OpenAI: GPT-5.6 Luna",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.02,
+        "cacheWrite": 0.25,
+        "output": 1.2
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.39999999999999997,
+            "cacheRead": 0.04,
+            "cacheWrite": 0.5,
+            "output": 1.7999999999999998
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-luna-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-luna-pro",
+      "name": "OpenAI: GPT-5.6 Luna Pro",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.02,
+        "cacheWrite": 0.25,
+        "output": 1.2
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.39999999999999997,
+            "cacheRead": 0.04,
+            "cacheWrite": 0.5,
+            "output": 1.7999999999999998
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-luna-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-luna-pro:batch",
+      "name": "OpenAI: GPT-5.6 Luna Pro (batch)",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.6
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": 0.02,
+            "cacheWrite": null,
+            "output": 0.8999999999999999
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-luna:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-luna:batch",
+      "name": "OpenAI: GPT-5.6 Luna (batch)",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": null,
+        "output": 0.6
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": 0.02,
+            "cacheWrite": null,
+            "output": 0.8999999999999999
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-sol",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-sol",
+      "name": "OpenAI: GPT-5.6 Sol",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 15
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-sol-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-sol-pro",
+      "name": "OpenAI: GPT-5.6 Sol Pro",
+      "rates": {
+        "input": 4,
+        "cacheRead": 0.39999999999999997,
+        "cacheWrite": 5,
+        "output": 20
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 8,
+            "cacheRead": 0.7999999999999999,
+            "cacheWrite": 10,
+            "output": 30
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-sol-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-sol-pro:batch",
+      "name": "OpenAI: GPT-5.6 Sol Pro (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.19999999999999998,
+            "cacheWrite": 2.5,
+            "output": 7.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-sol:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-sol:batch",
+      "name": "OpenAI: GPT-5.6 Sol (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.19999999999999998,
+            "cacheWrite": 2.5,
+            "output": 7.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-terra",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-terra",
+      "name": "OpenAI: GPT-5.6 Terra",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 12
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 18
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-terra-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-terra-pro",
+      "name": "OpenAI: GPT-5.6 Terra Pro",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 12
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 18
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-terra-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-terra-pro:batch",
+      "name": "OpenAI: GPT-5.6 Terra Pro (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.19999999999999998,
+            "cacheWrite": null,
+            "output": 9
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-5.6-terra:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-5.6-terra:batch",
+      "name": "OpenAI: GPT-5.6 Terra (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.19999999999999998,
+            "cacheWrite": null,
+            "output": 9
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-astra",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-astra",
+      "name": "OpenAI: GPT-6 Astra",
+      "rates": {
+        "input": 10,
+        "cacheRead": 1,
+        "cacheWrite": 12.5,
+        "output": 50
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 20,
+            "cacheRead": 2,
+            "cacheWrite": 25,
+            "output": 75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-astra-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-astra-pro",
+      "name": "OpenAI: GPT-6 Astra Pro",
+      "rates": {
+        "input": 10,
+        "cacheRead": 1,
+        "cacheWrite": 12.5,
+        "output": 50
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 20,
+            "cacheRead": 2,
+            "cacheWrite": 25,
+            "output": 75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-astra-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-astra-pro:batch",
+      "name": "OpenAI: GPT-6 Astra Pro (batch)",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 10,
+            "cacheRead": 1,
+            "cacheWrite": 12.5,
+            "output": 37.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-astra:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-astra:batch",
+      "name": "OpenAI: GPT-6 Astra (batch)",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": 6.25,
+        "output": 25
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 10,
+            "cacheRead": 1,
+            "cacheWrite": 12.5,
+            "output": 37.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-luna",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-luna",
+      "name": "OpenAI: GPT-6 Luna",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": 0.125,
+        "output": 0.5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.25,
+            "output": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-luna-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-luna-pro",
+      "name": "OpenAI: GPT-6 Luna Pro",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.01,
+        "cacheWrite": 0.125,
+        "output": 0.5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.25,
+            "output": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-luna-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-luna-pro:batch",
+      "name": "OpenAI: GPT-6 Luna Pro (batch)",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.005,
+        "cacheWrite": 0.0625,
+        "output": 0.25
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.09999999999999999,
+            "cacheRead": 0.01,
+            "cacheWrite": 0.125,
+            "output": 0.375
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-luna:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-luna:batch",
+      "name": "OpenAI: GPT-6 Luna (batch)",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.005,
+        "cacheWrite": 0.0625,
+        "output": 0.25
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 0.09999999999999999,
+            "cacheRead": 0.01,
+            "cacheWrite": 0.125,
+            "output": 0.375
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-sol",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-sol",
+      "name": "OpenAI: GPT-6 Sol",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 15
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-sol-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-sol-pro",
+      "name": "OpenAI: GPT-6 Sol Pro",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": 2.5,
+        "output": 10
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": 5,
+            "output": 15
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-sol-pro:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-sol-pro:batch",
+      "name": "OpenAI: GPT-6 Sol Pro (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.19999999999999998,
+            "cacheWrite": 2.5,
+            "output": 7.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-6-sol:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-6-sol:batch",
+      "name": "OpenAI: GPT-6 Sol (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": 1.25,
+        "output": 5
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.19999999999999998,
+            "cacheWrite": 2.5,
+            "output": 7.5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:openai/gpt-audio",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-audio",
+      "name": "OpenAI: GPT Audio",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 10
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-audio-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-audio-mini",
+      "name": "OpenAI: GPT Audio Mini",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.4
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-chat-latest",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-chat-latest",
+      "name": "OpenAI: GPT Chat Latest",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 30
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-oss-120b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-oss-120b",
+      "name": "OpenAI: gpt-oss-120b",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.075,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-oss-120b:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-oss-120b:batch",
+      "name": "OpenAI: gpt-oss-120b (batch)",
+      "rates": {
+        "input": 0.0296,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.136
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-oss-20b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-oss-20b",
+      "name": "OpenAI: gpt-oss-20b",
+      "rates": {
+        "input": 0.018,
+        "cacheRead": 0.009,
+        "cacheWrite": null,
+        "output": 0.09
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-oss-20b:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-oss-20b:batch",
+      "name": "OpenAI: gpt-oss-20b (batch)",
+      "rates": {
+        "input": 0.024,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.112
+      }
+    },
+    {
+      "key": "openrouter:openai/gpt-oss-safeguard-20b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/gpt-oss-safeguard-20b",
+      "name": "OpenAI: gpt-oss-safeguard-20b",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": 0.0375,
+        "cacheWrite": null,
+        "output": 0.3
+      }
+    },
+    {
+      "key": "openrouter:openai/o1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o1",
+      "name": "OpenAI: o1",
+      "rates": {
+        "input": 15,
+        "cacheRead": 7.5,
+        "cacheWrite": null,
+        "output": 60
+      }
+    },
+    {
+      "key": "openrouter:openai/o1-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o1-pro",
+      "name": "OpenAI: o1-pro",
+      "rates": {
+        "input": 150,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 600
+      }
+    },
+    {
+      "key": "openrouter:openai/o3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o3",
+      "name": "OpenAI: o3",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 8
+      }
+    },
+    {
+      "key": "openrouter:openai/o3-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o3-mini",
+      "name": "OpenAI: o3 Mini",
+      "rates": {
+        "input": 1.1,
+        "cacheRead": 0.55,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:openai/o3-mini-high",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o3-mini-high",
+      "name": "OpenAI: o3 Mini High",
+      "rates": {
+        "input": 1.1,
+        "cacheRead": 0.55,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:openai/o3-mini:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o3-mini:batch",
+      "name": "OpenAI: o3 Mini (batch)",
+      "rates": {
+        "input": 0.55,
+        "cacheRead": 0.275,
+        "cacheWrite": null,
+        "output": 2.2
+      }
+    },
+    {
+      "key": "openrouter:openai/o3-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o3-pro",
+      "name": "OpenAI: o3 Pro",
+      "rates": {
+        "input": 20,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 80
+      }
+    },
+    {
+      "key": "openrouter:openai/o3:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o3:batch",
+      "name": "OpenAI: o3 (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:openai/o4-mini",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o4-mini",
+      "name": "OpenAI: o4 Mini",
+      "rates": {
+        "input": 1.1,
+        "cacheRead": 0.275,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:openai/o4-mini-high",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o4-mini-high",
+      "name": "OpenAI: o4 Mini High",
+      "rates": {
+        "input": 1.1,
+        "cacheRead": 0.275,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:openai/o4-mini:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openai/o4-mini:batch",
+      "name": "OpenAI: o4 Mini (batch)",
+      "rates": {
+        "input": 0.55,
+        "cacheRead": 0.1375,
+        "cacheWrite": null,
+        "output": 2.2
+      }
+    },
+    {
+      "key": "openrouter:openrouter/free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "openrouter/free",
+      "name": "Free Models Router",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:perceptron/perceptron-mk1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perceptron/perceptron-mk1",
+      "name": "Perceptron: Perceptron Mk1",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:perceptron/perceptron-mk1.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perceptron/perceptron-mk1.5",
+      "name": "Perceptron: Perceptron Mk1.5",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.5
+      }
+    },
+    {
+      "key": "openrouter:perplexity/sonar",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perplexity/sonar",
+      "name": "Perplexity: Sonar",
+      "rates": {
+        "input": 1,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:perplexity/sonar-deep-research",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perplexity/sonar-deep-research",
+      "name": "Perplexity: Sonar Deep Research",
+      "rates": {
+        "input": 2,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 8
+      }
+    },
+    {
+      "key": "openrouter:perplexity/sonar-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perplexity/sonar-pro",
+      "name": "Perplexity: Sonar Pro",
+      "rates": {
+        "input": 3,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:perplexity/sonar-pro-search",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perplexity/sonar-pro-search",
+      "name": "Perplexity: Sonar Pro Search",
+      "rates": {
+        "input": 3,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 15
+      }
+    },
+    {
+      "key": "openrouter:perplexity/sonar-reasoning-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "perplexity/sonar-reasoning-pro",
+      "name": "Perplexity: Sonar Reasoning Pro",
+      "rates": {
+        "input": 2,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 8
+      }
+    },
+    {
+      "key": "openrouter:poolside/laguna-s-2.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "poolside/laguna-s-2.1",
+      "name": "Poolside: Laguna S 2.1",
+      "rates": {
+        "input": 0.09,
+        "cacheRead": 0.009,
+        "cacheWrite": null,
+        "output": 0.18
+      }
+    },
+    {
+      "key": "openrouter:poolside/laguna-s-2.1:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "poolside/laguna-s-2.1:free",
+      "name": "Poolside: Laguna S 2.1 (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:poolside/laguna-xs-2.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "poolside/laguna-xs-2.1",
+      "name": "Poolside: Laguna XS 2.1",
+      "rates": {
+        "input": 0.06,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 0.12
+      }
+    },
+    {
+      "key": "openrouter:poolside/laguna-xs-2.1:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "poolside/laguna-xs-2.1:free",
+      "name": "Poolside: Laguna XS 2.1 (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:prism-ml/ternary-bonsai-2-27b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "prism-ml/ternary-bonsai-2-27b",
+      "name": "PrismML: Ternary Bonsai 2 27B",
+      "rates": {
+        "input": 0.075,
+        "cacheRead": 0.0375,
+        "cacheWrite": null,
+        "output": 0.5
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen-2.5-72b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen-2.5-72b-instruct",
+      "name": "Qwen2.5 72B Instruct",
+      "rates": {
+        "input": 0.36,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen-2.5-7b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen-2.5-7b-instruct",
+      "name": "Qwen: Qwen2.5 7B Instruct",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen-2.5-coder-32b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen-2.5-coder-32b-instruct",
+      "name": "Qwen2.5 Coder 32B Instruct",
+      "rates": {
+        "input": 0.66,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen-plus",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen-plus",
+      "name": "Qwen: Qwen-Plus",
+      "rates": {
+        "input": 0.26,
+        "cacheRead": 0.052000000000000005,
+        "cacheWrite": 0.325,
+        "output": 0.78
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.78,
+            "cacheRead": 0.156,
+            "cacheWrite": 0.975,
+            "output": 2.34
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen-plus-2025-07-28",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen-plus-2025-07-28",
+      "name": "Qwen: Qwen Plus 0728",
+      "rates": {
+        "input": 0.26,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.78
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.78,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 2.34
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen2.5-vl-72b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen2.5-vl-72b-instruct",
+      "name": "Qwen: Qwen2.5 VL 72B Instruct",
+      "rates": {
+        "input": 0.7999999999999999,
+        "cacheRead": 0.39999999999999997,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-14b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-14b",
+      "name": "Qwen: Qwen3 14B",
+      "rates": {
+        "input": 0.12,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.24
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-235b-a22b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-235b-a22b",
+      "name": "Qwen: Qwen3 235B A22B",
+      "rates": {
+        "input": 0.45499999999999996,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.8199999999999998
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-235b-a22b-2507",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-235b-a22b-2507",
+      "name": "Qwen: Qwen3 235B A22B Instruct 2507",
+      "rates": {
+        "input": 0.0875,
+        "cacheRead": 0.0175,
+        "cacheWrite": null,
+        "output": 0.35
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-235b-a22b-thinking-2507",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-235b-a22b-thinking-2507",
+      "name": "Qwen: Qwen3 235B A22B Thinking 2507",
+      "rates": {
+        "input": 0.22999999999999998,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.3
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-30b-a3b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-30b-a3b",
+      "name": "Qwen: Qwen3 30B A3B",
+      "rates": {
+        "input": 0.13,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.52
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-30b-a3b-instruct-2507",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-30b-a3b-instruct-2507",
+      "name": "Qwen: Qwen3 30B A3B Instruct 2507",
+      "rates": {
+        "input": 0.04815,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.19305
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-30b-a3b-thinking-2507",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-30b-a3b-thinking-2507",
+      "name": "Qwen: Qwen3 30B A3B Thinking 2507",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.4
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-32b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-32b",
+      "name": "Qwen: Qwen3 32B",
+      "rates": {
+        "input": 0.08,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.28
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-8b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-8b",
+      "name": "Qwen: Qwen3 8B",
+      "rates": {
+        "input": 0.117,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.45499999999999996
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-coder",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-coder",
+      "name": "Qwen: Qwen3 Coder 480B A35B",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-coder-30b-a3b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "name": "Qwen: Qwen3 Coder 30B A3B Instruct",
+      "rates": {
+        "input": 0.07,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.28
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-coder-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-coder-flash",
+      "name": "Qwen: Qwen3 Coder Flash",
+      "rates": {
+        "input": 0.195,
+        "cacheRead": 0.039,
+        "cacheWrite": 0.24375,
+        "output": 0.975
+      },
+      "tiers": [
+        {
+          "threshold": 32000,
+          "rates": {
+            "input": 0.325,
+            "cacheRead": 0.065,
+            "cacheWrite": 0.40625,
+            "output": 1.625
+          }
+        },
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 0.52,
+            "cacheRead": 0.10400000000000001,
+            "cacheWrite": 0.65,
+            "output": 2.6
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3-coder-next",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "name": "Qwen: Qwen3 Coder Next",
+      "rates": {
+        "input": 0.12,
+        "cacheRead": 0.07,
+        "cacheWrite": null,
+        "output": 0.7999999999999999
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-coder-plus",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-coder-plus",
+      "name": "Qwen: Qwen3 Coder Plus",
+      "rates": {
+        "input": 0.65,
+        "cacheRead": 0.13,
+        "cacheWrite": 0.8125,
+        "output": 3.25
+      },
+      "tiers": [
+        {
+          "threshold": 32000,
+          "rates": {
+            "input": 1.17,
+            "cacheRead": 0.234,
+            "cacheWrite": 1.4625,
+            "output": 5.85
+          }
+        },
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 1.95,
+            "cacheRead": 0.39,
+            "cacheWrite": 2.4375,
+            "output": 9.75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3-max",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-max",
+      "name": "Qwen: Qwen3 Max",
+      "rates": {
+        "input": 0.78,
+        "cacheRead": 0.156,
+        "cacheWrite": 0.975,
+        "output": 3.9
+      },
+      "tiers": [
+        {
+          "threshold": 32000,
+          "rates": {
+            "input": 1.56,
+            "cacheRead": 0.312,
+            "cacheWrite": 1.95,
+            "output": 7.8
+          }
+        },
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 1.95,
+            "cacheRead": 0.39,
+            "cacheWrite": 2.4375,
+            "output": 9.75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3-max-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-max-thinking",
+      "name": "Qwen: Qwen3 Max Thinking",
+      "rates": {
+        "input": 0.78,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3.9
+      },
+      "tiers": [
+        {
+          "threshold": 32000,
+          "rates": {
+            "input": 1.56,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 7.8
+          }
+        },
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 1.95,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 9.75
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3-next-80b-a3b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-next-80b-a3b-instruct",
+      "name": "Qwen: Qwen3 Next 80B A3B Instruct",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": 0.07,
+        "cacheWrite": null,
+        "output": 1.1
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-next-80b-a3b-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-next-80b-a3b-thinking",
+      "name": "Qwen: Qwen3 Next 80B A3B Thinking",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-235b-a22b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-235b-a22b-instruct",
+      "name": "Qwen: Qwen3 VL 235B A22B Instruct",
+      "rates": {
+        "input": 0.21,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 1.9
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-235b-a22b-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-235b-a22b-thinking",
+      "name": "Qwen: Qwen3 VL 235B A22B Thinking",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-30b-a3b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-30b-a3b-instruct",
+      "name": "Qwen: Qwen3 VL 30B A3B Instruct",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-30b-a3b-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-30b-a3b-thinking",
+      "name": "Qwen: Qwen3 VL 30B A3B Thinking",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.4
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-32b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-32b-instruct",
+      "name": "Qwen: Qwen3 VL 32B Instruct",
+      "rates": {
+        "input": 0.10400000000000001,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.41600000000000004
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-8b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-8b-instruct",
+      "name": "Qwen: Qwen3 VL 8B Instruct",
+      "rates": {
+        "input": 0.117,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.45499999999999996
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3-vl-8b-thinking",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3-vl-8b-thinking",
+      "name": "Qwen: Qwen3 VL 8B Thinking",
+      "rates": {
+        "input": 0.18,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.0999999999999996
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-122b-a10b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-122b-a10b",
+      "name": "Qwen: Qwen3.5-122B-A10B",
+      "rates": {
+        "input": 0.26,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 2.08
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-27b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-27b",
+      "name": "Qwen: Qwen3.5-27B",
+      "rates": {
+        "input": 0.195,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.56
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-35b-a3b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-35b-a3b",
+      "name": "Qwen: Qwen3.5-35B-A3B",
+      "rates": {
+        "input": 0.1625,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.3
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-397b-a17b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-397b-a17b",
+      "name": "Qwen: Qwen3.5 397B A17B",
+      "rates": {
+        "input": 0.55,
+        "cacheRead": 0.22499999999999998,
+        "cacheWrite": null,
+        "output": 3.5
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-9b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-9b",
+      "name": "Qwen: Qwen3.5-9B",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.15
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-flash-02-23",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-flash-02-23",
+      "name": "Qwen: Qwen3.5-Flash",
+      "rates": {
+        "input": 0.065,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.26
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-plus-02-15",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-plus-02-15",
+      "name": "Qwen: Qwen3.5 Plus 2026-02-15",
+      "rates": {
+        "input": 0.26,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.56
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.325,
+            "cacheRead": null,
+            "cacheWrite": null,
+            "output": 1.95
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.5-plus-20260420",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.5-plus-20260420",
+      "name": "Qwen: Qwen3.5 Plus 2026-04-20",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": null,
+        "cacheWrite": 0.375,
+        "output": 1.7999999999999998
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.375,
+            "cacheRead": null,
+            "cacheWrite": 0.46875,
+            "output": 2.25
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.6-27b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.6-27b",
+      "name": "Qwen: Qwen3.6 27B",
+      "rates": {
+        "input": 0.32,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3.1999999999999997
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.6-35b-a3b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.6-35b-a3b",
+      "name": "Qwen: Qwen3.6 35B A3B",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": null,
+        "output": 1
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.6-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.6-flash",
+      "name": "Qwen: Qwen3.6 Flash",
+      "rates": {
+        "input": 0.1875,
+        "cacheRead": null,
+        "cacheWrite": 0.234375,
+        "output": 1.125
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.75,
+            "cacheRead": null,
+            "cacheWrite": 0.9375,
+            "output": 3
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.6-max-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.6-max-preview",
+      "name": "Qwen: Qwen3.6 Max Preview",
+      "rates": {
+        "input": 1.0270000000000001,
+        "cacheRead": null,
+        "cacheWrite": 1.28375,
+        "output": 6.162
+      },
+      "tiers": [
+        {
+          "threshold": 128000,
+          "rates": {
+            "input": 1.5799999999999998,
+            "cacheRead": null,
+            "cacheWrite": 1.975,
+            "output": 9.48
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.6-plus",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.6-plus",
+      "name": "Qwen: Qwen3.6 Plus",
+      "rates": {
+        "input": 0.325,
+        "cacheRead": null,
+        "cacheWrite": 0.40625,
+        "output": 1.95
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 1.3,
+            "cacheRead": null,
+            "cacheWrite": 1.625,
+            "output": 3.9
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.7-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.7-flash",
+      "name": "Qwen: Qwen3.7 Flash",
+      "rates": {
+        "input": 0.03,
+        "cacheRead": 0.006,
+        "cacheWrite": 0.038000000000000006,
+        "output": 0.13
+      },
+      "tiers": [
+        {
+          "threshold": 32000,
+          "rates": {
+            "input": 0.09999999999999999,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.125,
+            "output": 0.39999999999999997
+          }
+        },
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.19999999999999998,
+            "cacheRead": 0.04,
+            "cacheWrite": 0.25,
+            "output": 0.7999999999999999
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.7-max",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.7-max",
+      "name": "Qwen: Qwen3.7 Max",
+      "rates": {
+        "input": 1.475,
+        "cacheRead": 0.295,
+        "cacheWrite": 1.84375,
+        "output": 4.425
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.7-plus",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.7-plus",
+      "name": "Qwen: Qwen3.7 Plus",
+      "rates": {
+        "input": 0.32,
+        "cacheRead": 0.064,
+        "cacheWrite": 0.39999999999999997,
+        "output": 1.28
+      },
+      "tiers": [
+        {
+          "threshold": 256000,
+          "rates": {
+            "input": 0.96,
+            "cacheRead": 0.192,
+            "cacheWrite": 1.2,
+            "output": 3.84
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-2.4t-a95b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-2.4t-a95b",
+      "name": "Qwen: Qwen3.8 2.4T A95B",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-27b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-27b",
+      "name": "Qwen: Qwen3.8 27B",
+      "rates": {
+        "input": 0.0428,
+        "cacheRead": 0.0342,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-27b:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-27b:free",
+      "name": "Qwen: Qwen3.8 27B (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-flash",
+      "name": "Qwen: Qwen3.8 Flash",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.016,
+        "cacheWrite": 0.19999999999999998,
+        "output": 0.47
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-max-0902",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-max-0902",
+      "name": "Qwen: Qwen3.8 Max (0902)",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.25,
+        "cacheWrite": 2.5,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-max-prime",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-max-prime",
+      "name": "Qwen: Qwen3.8 Max Prime",
+      "rates": {
+        "input": 4,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 12
+      }
+    },
+    {
+      "key": "openrouter:qwen/qwen3.8-omni-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "qwen/qwen3.8-omni-flash",
+      "name": "Qwen: Qwen3.8 Omni Flash",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.016,
+        "cacheWrite": null,
+        "output": 0.47
+      }
+    },
+    {
+      "key": "openrouter:rekaai/reka-edge",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "rekaai/reka-edge",
+      "name": "Reka Edge",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.09999999999999999
+      }
+    },
+    {
+      "key": "openrouter:rekaai/reka-flash-3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "rekaai/reka-flash-3",
+      "name": "Reka Flash 3",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:relace/relace-apply-3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "relace/relace-apply-3",
+      "name": "Relace: Relace Apply 3",
+      "rates": {
+        "input": 0.85,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 1.25
+      }
+    },
+    {
+      "key": "openrouter:relace/relace-search",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "relace/relace-search",
+      "name": "Relace: Relace Search",
+      "rates": {
+        "input": 1,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 3
+      }
+    },
+    {
+      "key": "openrouter:sakana/fugu-max",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sakana/fugu-max",
+      "name": "Sakana: Fugu Max",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:sakana/fugu-ultra",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sakana/fugu-ultra",
+      "name": "Sakana: Fugu Ultra",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 30
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 10,
+            "cacheRead": 1,
+            "cacheWrite": null,
+            "output": 45
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:sakana/fugu-ultra-v2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sakana/fugu-ultra-v2",
+      "name": "Sakana: Fugu Ultra v2",
+      "rates": {
+        "input": 5,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 30
+      },
+      "tiers": [
+        {
+          "threshold": 272000,
+          "rates": {
+            "input": 10,
+            "cacheRead": 1,
+            "cacheWrite": null,
+            "output": 45
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:sakana/sakana-namazu",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sakana/sakana-namazu",
+      "name": "Sakana: Sakana Namazu",
+      "rates": {
+        "input": 0.95,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:sao10k/l3-lunaris-8b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sao10k/l3-lunaris-8b",
+      "name": "Sao10K: Llama 3 8B Lunaris",
+      "rates": {
+        "input": 0.04,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.049999999999999996
+      }
+    },
+    {
+      "key": "openrouter:sao10k/l3.1-euryale-70b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sao10k/l3.1-euryale-70b",
+      "name": "Sao10K: Llama 3.1 Euryale 70B v2.2",
+      "rates": {
+        "input": 0.85,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.85
+      }
+    },
+    {
+      "key": "openrouter:sao10k/l3.3-euryale-70b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "sao10k/l3.3-euryale-70b",
+      "name": "Sao10K: Llama 3.3 Euryale 70B",
+      "rates": {
+        "input": 0.65,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.75
+      }
+    },
+    {
+      "key": "openrouter:stealth/space-bunny-alpha",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "stealth/space-bunny-alpha",
+      "name": "Space Bunny Alpha",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:stepfun/step-3.5-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "stepfun/step-3.5-flash",
+      "name": "StepFun: Step 3.5 Flash",
+      "rates": {
+        "input": 0.09999999999999999,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.3
+      }
+    },
+    {
+      "key": "openrouter:stepfun/step-3.7-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "stepfun/step-3.7-flash",
+      "name": "StepFun: Step 3.7 Flash",
+      "rates": {
+        "input": 0.19999999999999998,
+        "cacheRead": 0.04,
+        "cacheWrite": null,
+        "output": 1.15
+      }
+    },
+    {
+      "key": "openrouter:tencent/hunyuan-a13b-instruct",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hunyuan-a13b-instruct",
+      "name": "Tencent: Hunyuan A13B Instruct",
+      "rates": {
+        "input": 0.14,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.5700000000000001
+      }
+    },
+    {
+      "key": "openrouter:tencent/hy-mt2-1.8b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hy-mt2-1.8b",
+      "name": "Tencent: Hy-MT2-1.8B",
+      "rates": {
+        "input": 0.044,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.17700000000000002
+      }
+    },
+    {
+      "key": "openrouter:tencent/hy-mt2-30b-a3b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hy-mt2-30b-a3b",
+      "name": "Tencent: Hy-MT2-30B-A3B",
+      "rates": {
+        "input": 0.074,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.295
+      }
+    },
+    {
+      "key": "openrouter:tencent/hy-mt2-7b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hy-mt2-7b",
+      "name": "Tencent: Hy-MT2-7B",
+      "rates": {
+        "input": 0.074,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.295
+      }
+    },
+    {
+      "key": "openrouter:tencent/hy3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hy3",
+      "name": "Tencent: Hy3",
+      "rates": {
+        "input": 0.13199999999999998,
+        "cacheRead": 0.032999999999999995,
+        "cacheWrite": null,
+        "output": 0.5279999999999999
+      }
+    },
+    {
+      "key": "openrouter:tencent/hy3-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hy3-preview",
+      "name": "Tencent: Hy3 preview",
+      "rates": {
+        "input": 0.18,
+        "cacheRead": 0.06,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:tencent/hy4-preview",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "tencent/hy4-preview",
+      "name": "Tencent: Hy4 preview",
+      "rates": {
+        "input": 0.834,
+        "cacheRead": 0.041999999999999996,
+        "cacheWrite": null,
+        "output": 2.501
+      }
+    },
+    {
+      "key": "openrouter:thedrummer/cydonia-24b-v4.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thedrummer/cydonia-24b-v4.1",
+      "name": "TheDrummer: Cydonia 24B V4.1",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.15,
+        "cacheWrite": null,
+        "output": 0.5
+      }
+    },
+    {
+      "key": "openrouter:thedrummer/skyfall-36b-v2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thedrummer/skyfall-36b-v2",
+      "name": "TheDrummer: Skyfall 36B V2",
+      "rates": {
+        "input": 0.55,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 0.7999999999999999
+      }
+    },
+    {
+      "key": "openrouter:thedrummer/unslopnemo-12b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thedrummer/unslopnemo-12b",
+      "name": "TheDrummer: UnslopNemo 12B",
+      "rates": {
+        "input": 0.39999999999999997,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:thinkingmachines/inkling",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thinkingmachines/inkling",
+      "name": "Thinking Machines: Inkling",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.16999999999999998,
+        "cacheWrite": null,
+        "output": 4.05
+      }
+    },
+    {
+      "key": "openrouter:thinkingmachines/inkling-small",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thinkingmachines/inkling-small",
+      "name": "Thinking Machines: Inkling Small",
+      "rates": {
+        "input": 0.44999999999999996,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 1.2
+      }
+    },
+    {
+      "key": "openrouter:thinkingmachines/inkling-small:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thinkingmachines/inkling-small:free",
+      "name": "Thinking Machines: Inkling Small (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:thinkingmachines/inkling:free",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "rates": {
+        "input": 0,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0
+      }
+    },
+    {
+      "key": "openrouter:unbiased/pareto",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "unbiased/pareto",
+      "name": "Pareto",
+      "rates": {
+        "input": 2.5,
+        "cacheRead": 0.25,
+        "cacheWrite": null,
+        "output": 7.5
+      }
+    },
+    {
+      "key": "openrouter:undi95/remm-slerp-l2-13b",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "undi95/remm-slerp-l2-13b",
+      "name": "ReMM SLERP 13B",
+      "rates": {
+        "input": 0.35,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.65
+      }
+    },
+    {
+      "key": "openrouter:upstage/solar-mini4",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "upstage/solar-mini4",
+      "name": "Upstage: Solar Mini 4",
+      "rates": {
+        "input": 0.049999999999999996,
+        "cacheRead": 0.005,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:upstage/solar-pro-3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "upstage/solar-pro-3",
+      "name": "Upstage: Solar Pro 3",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.015,
+        "cacheWrite": null,
+        "output": 0.6
+      }
+    },
+    {
+      "key": "openrouter:upstage/solar-pro4",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "upstage/solar-pro4",
+      "name": "Upstage: Solar Pro 4",
+      "rates": {
+        "input": 0.09,
+        "cacheRead": 0.018,
+        "cacheWrite": null,
+        "output": 0.36
+      }
+    },
+    {
+      "key": "openrouter:writer/palmyra-x5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "writer/palmyra-x5",
+      "name": "Writer: Palmyra X5",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 6
+      }
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.20",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.20",
+      "name": "SpaceXAI: Grok 4.20",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 2.5
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2.5,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.20-multi-agent",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.20-multi-agent",
+      "name": "SpaceXAI: Grok 4.20 Multi-Agent",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 2.5
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2.5,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.3",
+      "name": "SpaceXAI: Grok 4.3",
+      "rates": {
+        "input": 1.25,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 2.5
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2.5,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 5
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.3:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.3:batch",
+      "name": "SpaceXAI: Grok 4.3 (batch)",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.16,
+        "cacheWrite": null,
+        "output": 2
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.32,
+            "cacheWrite": null,
+            "output": 4
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.5",
+      "name": "SpaceXAI: Grok 4.5",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.3,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 0.6,
+            "cacheWrite": null,
+            "output": 12
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.6",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.6",
+      "name": "SpaceXAI: Grok 4.6",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 1,
+            "cacheWrite": null,
+            "output": 12
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-4.7",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-4.7",
+      "name": "SpaceXAI: Grok 4.7",
+      "rates": {
+        "input": 2,
+        "cacheRead": 0.5,
+        "cacheWrite": null,
+        "output": 6
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 4,
+            "cacheRead": 1,
+            "cacheWrite": null,
+            "output": 12
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:x-ai/grok-build-0.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "x-ai/grok-build-0.1",
+      "name": "SpaceXAI: Grok Build 0.1",
+      "rates": {
+        "input": 1,
+        "cacheRead": 0.19999999999999998,
+        "cacheWrite": null,
+        "output": 2
+      },
+      "tiers": [
+        {
+          "threshold": 200000,
+          "rates": {
+            "input": 2,
+            "cacheRead": 0.39999999999999997,
+            "cacheWrite": null,
+            "output": 4
+          }
+        }
+      ]
+    },
+    {
+      "key": "openrouter:xiaomi/mimo-v2.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "xiaomi/mimo-v2.5",
+      "name": "Xiaomi: MiMo-V2.5",
+      "rates": {
+        "input": 0.14,
+        "cacheRead": 0.0028,
+        "cacheWrite": null,
+        "output": 0.28
+      }
+    },
+    {
+      "key": "openrouter:xiaomi/mimo-v2.5-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "xiaomi/mimo-v2.5-pro",
+      "name": "Xiaomi: MiMo-V2.5-Pro",
+      "rates": {
+        "input": 0.435,
+        "cacheRead": 0.0036,
+        "cacheWrite": null,
+        "output": 0.87
+      }
+    },
+    {
+      "key": "openrouter:xiaomi/mimo-v2.6-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "xiaomi/mimo-v2.6-flash",
+      "name": "Xiaomi: MiMo-V2.6-Flash",
+      "rates": {
+        "input": 0.14,
+        "cacheRead": 0.0028,
+        "cacheWrite": null,
+        "output": 0.28
+      }
+    },
+    {
+      "key": "openrouter:xiaomi/mimo-v2.6-pro",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "xiaomi/mimo-v2.6-pro",
+      "name": "Xiaomi: MiMo-V2.6-Pro",
+      "rates": {
+        "input": 0.435,
+        "cacheRead": 0.0036,
+        "cacheWrite": null,
+        "output": 0.87
+      }
+    },
+    {
+      "key": "openrouter:xiaomi/mimo-v2.6-pro-ultraspeed",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "xiaomi/mimo-v2.6-pro-ultraspeed",
+      "name": "Xiaomi: MiMo-V2.6-Pro-UltraSpeed",
+      "rates": {
+        "input": 4.35,
+        "cacheRead": 0.036,
+        "cacheWrite": null,
+        "output": 8.7
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.5",
+      "name": "Z.ai: GLM 4.5",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": 0.11,
+        "cacheWrite": null,
+        "output": 2.2
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.5-air",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "name": "Z.ai: GLM 4.5 Air",
+      "rates": {
+        "input": 0.13,
+        "cacheRead": 0.024999999999999998,
+        "cacheWrite": null,
+        "output": 0.85
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.5v",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.5v",
+      "name": "Z.ai: GLM 4.5V",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": 0.11,
+        "cacheWrite": null,
+        "output": 1.7999999999999998
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.6",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.6",
+      "name": "Z.ai: GLM 4.6",
+      "rates": {
+        "input": 0.43,
+        "cacheRead": 0.08,
+        "cacheWrite": null,
+        "output": 1.75
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.6v",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.6v",
+      "name": "Z.ai: GLM 4.6V",
+      "rates": {
+        "input": 0.3,
+        "cacheRead": 0.049999999999999996,
+        "cacheWrite": null,
+        "output": 0.8999999999999999
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.7",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.7",
+      "name": "Z.ai: GLM 4.7",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": 0.11,
+        "cacheWrite": null,
+        "output": 2.2
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-4.7-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-4.7-flash",
+      "name": "Z.ai: GLM 4.7 Flash",
+      "rates": {
+        "input": 0.060500000000000005,
+        "cacheRead": null,
+        "cacheWrite": null,
+        "output": 0.39999999999999997
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5",
+      "name": "Z.ai: GLM 5",
+      "rates": {
+        "input": 0.6,
+        "cacheRead": 0.12,
+        "cacheWrite": null,
+        "output": 1.92
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5-turbo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5-turbo",
+      "name": "Z.ai: GLM 5 Turbo",
+      "rates": {
+        "input": 1.2,
+        "cacheRead": 0.24,
+        "cacheWrite": null,
+        "output": 4
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.1",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.1",
+      "name": "Z.ai: GLM 5.1",
+      "rates": {
+        "input": 1.4,
+        "cacheRead": 0.26,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.2",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.2",
+      "name": "Z.ai: GLM 5.2",
+      "rates": {
+        "input": 0.3249,
+        "cacheRead": 0.25989999999999996,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.3",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.3",
+      "name": "Z.ai: GLM 5.3",
+      "rates": {
+        "input": 1.4,
+        "cacheRead": 0.26,
+        "cacheWrite": null,
+        "output": 4.4
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.3-flash",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.3-flash",
+      "name": "Z.ai: GLM 5.3 Flash",
+      "rates": {
+        "input": 0.15,
+        "cacheRead": 0.03,
+        "cacheWrite": null,
+        "output": 0.5
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.3-flash:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.3-flash:batch",
+      "name": "Z.ai: GLM 5.3 Flash (batch)",
+      "rates": {
+        "input": 0.06,
+        "cacheRead": 0.012,
+        "cacheWrite": null,
+        "output": 0.19999999999999998
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.3-flashx",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.3-flashx",
+      "name": "Z.ai: GLM 5.3 FlashX",
+      "rates": {
+        "input": 0.37,
+        "cacheRead": 0.09,
+        "cacheWrite": null,
+        "output": 1.25
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.3-prime",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.3-prime",
+      "name": "Z.ai: GLM 5.3 Prime",
+      "rates": {
+        "input": 2.8,
+        "cacheRead": 0.56,
+        "cacheWrite": null,
+        "output": 8.8
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5.3:batch",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5.3:batch",
+      "name": "Z.ai: GLM 5.3 (batch)",
+      "rates": {
+        "input": 0.44999999999999996,
+        "cacheRead": 0.09999999999999999,
+        "cacheWrite": null,
+        "output": 2
+      }
+    },
+    {
+      "key": "openrouter:z-ai/glm-5v-turbo",
+      "providerId": "openrouter",
+      "providerName": "OpenRouter",
+      "modelId": "z-ai/glm-5v-turbo",
+      "name": "Z.ai: GLM 5V Turbo",
+      "rates": {
+        "input": 1.2,
+        "cacheRead": 0.24,
+        "cacheWrite": null,
+        "output": 4
+      }
+    }
+  ]
+}

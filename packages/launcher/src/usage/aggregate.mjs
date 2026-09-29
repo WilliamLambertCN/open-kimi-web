@@ -1,4 +1,4 @@
-import { costForRecord, resolvedPrice } from './pricing.mjs';
+import { costForRecord, resolvedPrice, suggestedPrice } from './pricing.mjs';
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -88,6 +88,18 @@ function publicPrice(price) {
   return { catalogKey, provider, modelId, source, rates, custom };
 }
 
+function publicSuggestion(suggestion) {
+  if (suggestion === null) return null;
+  const {
+    catalogKey, provider, providerId, modelId, name, source, rates,
+    matchKind, confidence,
+  } = suggestion;
+  return {
+    catalogKey, provider, providerId, modelId, name, source, rates,
+    matchKind, confidence,
+  };
+}
+
 function matchesQuery(record, query) {
   return record.time >= query.from && record.time < query.to &&
     (query.model === null || identityOf(record).id === query.model) &&
@@ -100,10 +112,11 @@ function identityOf(record) {
     : { id: `model:${record.modelId}`, model: record.modelId, modelId: record.modelId };
 }
 
-function modelGroup(identity, pricing) {
+function modelGroup(identity, price, suggestion) {
   return {
     ...identity, aliases: new Set(), ...emptySummary(),
-    price: publicPrice(resolvedPrice(identity.modelId, pricing)),
+    price: publicPrice(price),
+    suggestion: publicSuggestion(suggestion),
   };
 }
 
@@ -116,6 +129,16 @@ export function aggregateUsage(scan, pricing, query) {
   const buckets = new Map();
   const modelOptions = new Map();
   const totals = emptySummary();
+  const prices = new Map();
+  const suggestions = new Map();
+  const priceFor = (modelId) => {
+    if (!prices.has(modelId)) prices.set(modelId, resolvedPrice(modelId, pricing));
+    return prices.get(modelId);
+  };
+  const suggestionFor = (modelId) => {
+    if (!suggestions.has(modelId)) suggestions.set(modelId, suggestedPrice(modelId, pricing));
+    return suggestions.get(modelId);
+  };
   const step = query.bucket === 'hour' ? HOUR_MS : DAY_MS;
   const firstBucket = Math.floor(query.from / step) * step;
   const lastBucket = Math.floor((query.to - 1) / step) * step;
@@ -130,13 +153,13 @@ export function aggregateUsage(scan, pricing, query) {
     if (!matchesQuery(record, query)) continue;
     let group = models.get(identity.id);
     if (group === undefined) {
-      group = modelGroup(identity, pricing);
+      group = modelGroup(identity, priceFor(identity.modelId), suggestionFor(identity.modelId));
       models.set(identity.id, group);
     }
     group.aliases.add(record.alias);
     const time = Math.floor(record.time / step) * step;
     const bucket = buckets.get(time);
-    const price = resolvedPrice(record.modelId, pricing);
+    const price = priceFor(record.modelId);
     const cost = costForRecord(record, price);
     add(totals, record, cost);
     add(group, record, cost);
