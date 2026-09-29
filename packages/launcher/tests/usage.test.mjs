@@ -317,12 +317,11 @@ describe('pricing and query boundaries', () => {
     const price = resolvedPrice('gpt-6-sol', pricing);
     expect(price.rates.input).toBe(2);
     expect(price.custom).toBe(false);
-    expect(price.source).toBe('models.dev built-in snapshot');
+    expect(price.source).toBe('OpenRouter built-in snapshot + models.dev curated snapshot');
     await expect(store.put({ model: 'gpt-6-sol', catalogKey: {}, rates: {} }))
       .rejects.toThrow('目录模型无效');
   });
 });
-
 describe('catalog refresh behavior', () => {
   it('keeps a concurrent manual mapping after one shared directory refresh', async () => {
     const dir = join(root, 'refresh-home');
@@ -370,7 +369,7 @@ describe('catalog refresh behavior', () => {
 
   it('backs off automatic refresh retries for stale catalogs', async () => {
     const dir = join(root, 'retry-home');
-    let now = Date.parse('2026-09-29T01:00:00Z');
+    let now = Date.parse('2026-10-02T01:00:00Z');
     const fetchImpl = vi.fn(async () => { throw new Error('offline'); });
     const store = createPricingStore(dir, fetchImpl, () => now);
     await store.get();
@@ -382,6 +381,7 @@ describe('catalog refresh behavior', () => {
     await store.get();
     await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(4));
   });
+
 });
 
 describe('persisted pricing data', () => {
@@ -442,7 +442,7 @@ describe('persisted pricing data', () => {
       catalog: [{ key: '__proto__' }], mappings: {}, updatedAt: '2026-09-28', source: 'spoof',
     }));
     const restored = await createPricingStore(dir, vi.fn(), () => Date.parse('2026-09-28T01:00:00Z')).get();
-    expect(restored.source).toBe('models.dev built-in snapshot');
+    expect(restored.source).toBe('OpenRouter built-in snapshot + models.dev curated snapshot');
   });
 });
 

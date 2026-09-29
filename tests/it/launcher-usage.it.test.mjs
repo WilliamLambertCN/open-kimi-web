@@ -258,7 +258,9 @@ describe('launcher usage input errors', () => {
       });
       expect(invalid.status).toBe(400);
       const large = await fetch(`${launcher.url}${prefix}/pricing`, {
-        method: 'PUT', headers: { authorization: 'Bearer local-test-token' }, body: 'x'.repeat(17 * 1024),
+        method: 'PUT',
+        headers: { authorization: 'Bearer local-test-token' },
+        body: 'x'.repeat(1024 * 1024 + 1),
       });
       expect(large.status).toBe(413);
       const pricing = await (await request(launcher.url, `${prefix}/pricing`)).json();
