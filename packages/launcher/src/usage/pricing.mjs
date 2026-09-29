@@ -8,6 +8,7 @@ import {
   fetchPublicCatalog,
   numberOrNull,
 } from './pricingCatalog.mjs';
+import { nextContinuity, sanitizedContinuity, selectedRetained, uniqueDefaults } from './pricingContinuity.mjs';
 import { createCatalogMatcher } from './pricingMatch.mjs';
 
 export { PricingError } from './pricingCatalog.mjs';
@@ -84,22 +85,22 @@ function validateRates(value) {
   return rates;
 }
 
-function validateCatalogKey(key, catalog) {
+function validateCatalogKey(key, catalog, retained) {
   if (key !== null && key !== undefined && typeof key !== 'string') {
     throw new PricingError(400, '目录模型无效');
   }
-  if (key && !catalog.some((entry) => entry.key === key)) {
+  if (key && !catalog.some((entry) => entry.key === key) && !Object.hasOwn(retained, key)) {
     throw new PricingError(400, '目录模型不存在');
   }
   return key ?? null;
 }
 
-function validateMapping(input, catalog) {
+function validateMapping(input, catalog, retained) {
   if (input === null || typeof input !== 'object' || !validModel(input.model)) {
     throw new PricingError(400, '模型 ID 无效');
   }
   if (input.remove === true) return { model: input.model, remove: true };
-  const catalogKey = validateCatalogKey(input.catalogKey, catalog);
+  const catalogKey = validateCatalogKey(input.catalogKey, catalog, retained);
   const rates = validateRates(input.rates);
   if (!catalogKey && !hasRates(rates)) {
     throw new PricingError(400, '请选择目录模型或填写单价');
@@ -107,12 +108,12 @@ function validateMapping(input, catalog) {
   return { model: input.model, catalogKey, rates: hasRates(rates) ? rates : undefined };
 }
 
-function validatePut(input, catalog) {
+function validatePut(input, catalog, retained) {
   if (input !== null && typeof input === 'object' && Array.isArray(input.mappings)) {
     if (input.mappings.length === 0 || input.mappings.length > MAX_BATCH_MAPPINGS) {
       throw new PricingError(400, '批量映射数量无效');
     }
-    const mappings = input.mappings.map((mapping) => validateMapping(mapping, catalog));
+    const mappings = input.mappings.map((mapping) => validateMapping(mapping, catalog, retained));
     const models = new Set();
     for (const mapping of mappings) {
       if (models.has(mapping.model)) throw new PricingError(400, '批量映射包含重复模型 ID');
@@ -120,7 +121,7 @@ function validatePut(input, catalog) {
     }
     return mappings;
   }
-  return [validateMapping(input, catalog)];
+  return [validateMapping(input, catalog, retained)];
 }
 
 function hasRates(rates) {
@@ -213,20 +214,39 @@ function sanitizedState(parsed) {
   );
   if (mappings === null || !Number.isFinite(Date.parse(parsed.updatedAt)) ||
       typeof parsed.source !== 'string' || parsed.source.length > 120) return null;
+  const continuity = sanitizedContinuity(parsed, {
+    builtIn: snapshotCatalog(), curated: CURATED_SNAPSHOT,
+    validModel, validEntry: validCatalogEntry, projectEntry: projectCatalogEntry,
+  });
+  if (continuity === null) return null;
   const lastRefreshError = typeof parsed.lastRefreshError === 'string'
     ? parsed.lastRefreshError.slice(0, 200) : null;
   return {
     catalog: parsed.catalog.map(projectCatalogEntry), mappings, legacyAliasMappings,
-    identityVersion: IDENTITY_VERSION,
+    ...continuity, identityVersion: IDENTITY_VERSION,
     legacyMappingsIgnored: Object.keys(legacyAliasMappings).length,
     updatedAt: parsed.updatedAt, source: parsed.source, lastRefreshError,
   };
 }
 
+function refreshedState(state, catalog, builtIn, timestamp) {
+  if (!validStoredCatalog({ catalog })) throw new PricingError(502, '公开价格目录格式无效');
+  const next = {
+    ...state, ...nextContinuity(state, catalog, builtIn, projectCatalogEntry), catalog,
+    updatedAt: new Date(timestamp).toISOString(), source: 'models.dev + OpenRouter', lastRefreshError: null,
+  };
+  if (Buffer.byteLength(JSON.stringify(next)) > MAX_CATALOG_BYTES) {
+    throw new PricingError(502, '公开价格目录响应过大');
+  }
+  return next;
+}
+
 export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now) {
   const path = join(storageDir, 'usage-pricing.json');
+  const initialCatalog = snapshotCatalog();
   let state = {
-    catalog: snapshotCatalog(), mappings: {}, legacyAliasMappings: {}, updatedAt: SNAPSHOT_AT,
+    catalog: initialCatalog, mappings: {}, legacyAliasMappings: {}, updatedAt: SNAPSHOT_AT,
+    automaticDefaults: uniqueDefaults(initialCatalog), retainedEntries: {},
     identityVersion: IDENTITY_VERSION, legacyMappingsIgnored: 0,
     source: 'OpenRouter built-in snapshot + models.dev curated snapshot', lastRefreshError: null,
   };
@@ -258,10 +278,7 @@ export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now
     refreshing = (async () => {
       try {
         const catalog = await fetchPublicCatalog(fetchImpl);
-        state = {
-          ...state, catalog, updatedAt: new Date(now()).toISOString(),
-          source: 'models.dev + OpenRouter', lastRefreshError: null,
-        };
+        state = refreshedState(state, catalog, initialCatalog, now());
         await persist();
       } catch (error) {
         state = {
@@ -277,6 +294,7 @@ export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now
   function publicState() {
     return {
       catalog: state.catalog, mappings: state.mappings,
+      automaticDefaults: state.automaticDefaults, retainedEntries: state.retainedEntries,
       identityVersion: state.identityVersion, legacyMappingsIgnored: state.legacyMappingsIgnored,
       updatedAt: state.updatedAt, source: state.source, lastRefreshError: state.lastRefreshError,
     };
@@ -290,13 +308,14 @@ export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now
   }
   async function put(input) {
     await load();
-    const values = validatePut(input, state.catalog);
+    const values = validatePut(input, state.catalog, state.retainedEntries);
     const mappings = Object.assign(Object.create(null), state.mappings);
     for (const value of values) {
       if (value.remove) delete mappings[value.model];
       else mappings[value.model] = { catalogKey: value.catalogKey, rates: value.rates };
     }
-    state = { ...state, mappings };
+    state = { ...state, mappings,
+      retainedEntries: selectedRetained(state.automaticDefaults, mappings, state.retainedEntries) };
     await persist();
     return publicState();
   }
@@ -332,26 +351,34 @@ function indexesFor(catalog) {
 
 function mappedEntry(modelId, pricing, mapping) {
   const indexes = indexesFor(pricing.catalog);
-  if (mapping !== undefined) {
-    return indexes.byKey.get(mapping.catalogKey);
-  }
-  return indexes.byModel.get(modelId) ?? undefined;
+  const key = mapping === undefined ? pricing.automaticDefaults?.[modelId] : mapping.catalogKey;
+  if (key === null) return { entry: undefined, retained: null };
+  if (key === undefined) return { entry: indexes.byModel.get(modelId) ?? undefined, retained: null };
+  const entry = indexes.byKey.get(key);
+  const retained = entry === undefined ? pricing.retainedEntries?.[key] : null;
+  return { entry: entry ?? retained?.entry, retained };
 }
 
-function sourceForPrice(pricing, entry, mapping) {
-  if (mapping?.rates !== undefined) return 'manual';
+function sourceForPrice(pricing, entry, mapping, retained) {
+  const manual = mapping?.rates;
+  if (manual && RATE_FIELDS.every((key) => Object.hasOwn(manual, key))) return 'manual';
+  if (retained) {
+    const source = `${retained.source}（旧目录价格，目录项已消失）`;
+    return manual ? `手动单价 + ${source}` : source;
+  }
+  if (manual) return 'manual';
   if (entry?.providerId === 'openrouter') return 'OpenRouter';
   return pricing.source;
 }
 
-function priceDescriptor(alias, pricing, entry, mapping) {
+function priceDescriptor(alias, pricing, entry, mapping, retained = null) {
   const base = entry ?? {};
   const override = mapping ?? {};
   return {
     catalogKey: base.key ?? null,
     provider: base.providerName ?? null,
     modelId: base.modelId ?? alias,
-    source: sourceForPrice(pricing, entry, mapping),
+    source: sourceForPrice(pricing, entry, mapping, retained),
     providerId: base.providerId,
     rates: { ...EMPTY_RATES, ...base.rates, ...override.rates },
     tiers: base.tiers,
@@ -363,9 +390,9 @@ function priceDescriptor(alias, pricing, entry, mapping) {
 export function resolvedPrice(modelId, pricing) {
   if (modelId === null) return null;
   const mapping = Object.hasOwn(pricing.mappings, modelId) ? pricing.mappings[modelId] : undefined;
-  const entry = mappedEntry(modelId, pricing, mapping);
+  const { entry, retained } = mappedEntry(modelId, pricing, mapping);
   if (entry === undefined && mapping?.rates === undefined) return null;
-  return priceDescriptor(modelId, pricing, entry, mapping);
+  return priceDescriptor(modelId, pricing, entry, mapping, retained);
 }
 
 export function suggestedPrice(modelId, pricing) {

@@ -12,10 +12,18 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web release: `2.1.1-r4`, based on `2.1.1`.
-  The earlier `2.1.1-r1` release, package, and tag were withdrawn on 2026-09-28 after the archive loop was confirmed.
-  This release includes the archive fix, streaming performance changes, usage statistics, and resizable mobile question cards.
-- Machine-readable version and historical contract records: `upstream.json`.
+- Open Kimi Web version: `2.1.1-r5`, still based on `2.1.1`.
+  The earlier `2.1.1-r1` was withdrawn after the archive loop was confirmed; `r2`–`r4` remain historical releases.
+  `r5` includes usage pricing auto-match, batch confirmation, pagination, a complete usage bundle and pricing
+  refresh continuity. After `r5` is released, retire only the older `r2`–`r4` tgz assets; retain tags and releases.
+- Machine-readable upstream version and historical contract records: `upstream.json`.
+
+`r5` keeps manual mappings and rates ahead of automatic defaults. Each model's original default catalog key
+is preserved separately from manual mappings: the same key uses the updated price after refresh; if absent,
+the last valid entry remains available with an old-price source label. `r4` cache recovery uses only known
+built-in origins, never fuzzy suggestions for billing. The earlier `r4` refresh with 7,932 entries left
+13 built-in models unpriced; a live public catalog with 7,926 entries was checked after the fix, and all
+13 retained their original keys with updated rates. These checks did not access a user's actual local data.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
 the integrity comes from npm package metadata. Static inspection of the
@@ -32,7 +40,7 @@ Separate headless Chrome checks used fictional content with the official
 content lengths, viewports, and affected themes. A real side agent turn was
 not run in this isolated environment.
 
-The `r4` mobile question checks used the complete `2.1.1` Web app with fictional
+The historical `r4` mobile question checks used the complete `2.1.1` Web app with fictional
 API and WebSocket responses. They covered the real `question` field, choices,
 answer requests, height dragging and persistence, constrained viewports, and
 seven appearances. These are isolated browser results, not physical phone or
