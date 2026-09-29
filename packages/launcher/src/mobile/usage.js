@@ -34,6 +34,8 @@ if (!window.__okwUsageInstalled) {
   const fmt = (value) => number.format(Number.isFinite(Number(value)) ? Number(value) : 0);
   const usd = (value) => value == null ? '—' : money.format(value);
   const rate = (value) => value == null ? '—' : `${(value * 100).toFixed(1)}%`;
+  const { setStatus, priceStatus, renderSummary, renderBars, showQuality } =
+    window.__okwUsageCreateRenderers({ by, node, fmt, rate, usd });
   const shortDate = (value) => new Date(value).toLocaleString(undefined, {
     month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
@@ -42,11 +44,6 @@ if (!window.__okwUsageInstalled) {
     const pad = (part) => String(part).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
       `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  };
-  const setStatus = (message, kind = '') => {
-    const status = by('status');
-    status.textContent = message;
-    status.dataset.kind = kind;
   };
   const fillSelect = (control, choices, placeholder) => {
     const previous = control.value;
@@ -76,54 +73,21 @@ if (!window.__okwUsageInstalled) {
     fillSelect(by('model'), searchableChoices(choices, query, by('model').value), '全部模型');
   };
 
-  const renderSummary = (data) => {
-    const totals = data.totals ?? {};
-    by('total').textContent = fmt(totals.totalTokens);
-    by('total-sub').textContent = `总输入 ${fmt(totals.totalInput)} · ${fmt(totals.requests)} 次请求`;
-    by('hit').textContent = rate(totals.cacheHitRate);
-    by('hit-sub').textContent = `缓存读取 ${fmt(totals.cacheRead)} / 总输入 ${fmt(totals.totalInput)}`;
-    by('cost').textContent = usd(totals.costUsd);
-    by('cost-sub').textContent = totals.costComplete
-      ? '当前单价估算，非实际账单'
-      : `${totals.costUsd == null ? '暂无可定价金额' : '已知部分小计'} · ` +
-        `${fmt(totals.unpricedRequests)} 次请求、${fmt(totals.unpricedTokens)} token 未定价`;
-    by('cost-sub').classList.toggle('okw-usage-warning', !totals.costComplete);
-  };
-
-  const renderBars = (host, items, labelOf) => {
-    host.replaceChildren();
-    const maximum = Math.max(1, ...items.map((item) => item.totalTokens ?? 0));
-    for (const item of items) {
-      const row = node('div', 'okw-usage-bar-row');
-      const label = node('span', 'okw-usage-bar-label', labelOf(item));
-      if (item.aliases?.length) label.title = `别名：${item.aliases.join('、')}`;
-      const track = node('span', 'okw-usage-bar-track');
-      const fill = node('span', 'okw-usage-bar-fill');
-      fill.style.width = `${Math.max(0, (item.totalTokens ?? 0) / maximum * 100)}%`;
-      track.append(fill);
-      row.append(label, track, node('strong', 'okw-usage-bar-value', fmt(item.totalTokens)));
-      host.append(row);
+  const renderTrend = (items, bucket) => {
+    const host = by('trend');
+    if (typeof window.__okwUsageRenderTrend !== 'function') {
+      const error = new Error('趋势图资源未加载，请刷新页面。');
+      host.replaceChildren(node('p', 'okw-usage-muted', '趋势图暂不可用；汇总、分布和明细仍可查看。请刷新页面。'));
+      return error;
     }
-    if (items.length === 0) host.append(node('p', 'okw-usage-muted', '所选范围内没有用量记录。'));
+    window.__okwUsageRenderTrend(host, items, bucket, { node, fmt, shortDate });
+    return null;
   };
-
-  const renderTrend = (items, bucket) => window.__okwUsageRenderTrend(
-    by('trend'), items, bucket, { node, fmt, shortDate },
-  );
 
   const renderTable = (models) => window.__okwUsageRenderTable(
     by('table-body'), by('table-empty'), models,
     { node, fmt, rate, usd, tokenKeys: TOKEN_KEYS, tokenLabels: TOKEN_LABELS },
   );
-
-  const showQuality = (quality) => {
-    const host = by('quality');
-    host.replaceChildren();
-    for (const note of quality?.notes ?? []) {
-      host.append(node('p', '', `${note.message}${note.count == null ? '' : `（${fmt(note.count)}）`}`));
-    }
-    host.hidden = host.childElementCount === 0;
-  };
 
   const renderData = (data) => {
     result = data;
@@ -136,13 +100,14 @@ if (!window.__okwUsageInstalled) {
     fillFilterModels();
     fillSelect(by('workspace'), data.workspaces, '全部工作区');
     renderSummary(data);
-    renderTrend(data.buckets ?? [], data.range?.bucket);
+    const trendError = renderTrend(data.buckets ?? [], data.range?.bucket);
     modelPager.reset();
     showQuality(data.quality);
     fillEditModels();
     suggestions.render();
     const requests = data.totals?.requests ?? 0;
     setStatus(requests ? `已载入 ${fmt(requests)} 次请求 · 按 Kimi 已记录的数据计算` : '所选范围内没有用量记录。');
+    if (trendError) throw trendError;
   };
 
   const range = () => {
@@ -154,10 +119,10 @@ if (!window.__okwUsageInstalled) {
     return { from, to };
   };
 
-  const dataQuery = (dates) => {
+  const dataQuery = ({ from, to }) => {
     const query = new URLSearchParams({
-      from: String(dates.from), to: String(dates.to),
-      bucket: dates.to - dates.from <= 3 * 86400000 ? 'hour' : 'day',
+      from: String(from), to: String(to),
+      bucket: to - from <= 3 * 86400000 ? 'hour' : 'day',
     });
     for (const name of ['model', 'workspace']) {
       const value = by(name).value;
@@ -168,15 +133,27 @@ if (!window.__okwUsageInstalled) {
 
   const loadData = async () => {
     const generation = ++requestGeneration;
-    let dates;
-    try { dates = range(); } catch (error) { setStatus(error.message, 'error'); return; }
+    let query;
+    try { query = dataQuery(range()); }
+    catch (error) {
+      setStatus(error.message, 'error');
+      return { ok: false, stage: 'range', error };
+    }
     setStatus('正在载入使用统计…');
     by('refresh').disabled = true;
     try {
-      const data = await api(`${API}?${dataQuery(dates)}`);
-      if (generation === requestGeneration && opened) renderData(data);
+      const data = await api(`${API}?${query}`);
+      if (generation !== requestGeneration || !opened) return { ok: false, stage: 'stale' };
+      try { renderData(data); }
+      catch (error) {
+        setStatus(`统计数据已载入，但面板重绘失败：${error.message}`, 'error');
+        return { ok: false, stage: 'render', error };
+      }
+      return { ok: true };
     } catch (error) {
-      if (generation === requestGeneration && opened) setStatus(error.message, 'error');
+      if (generation !== requestGeneration || !opened) return { ok: false, stage: 'stale' };
+      setStatus(error.message, 'error');
+      return { ok: false, stage: 'request', error };
     } finally {
       if (generation === requestGeneration) by('refresh').disabled = false;
     }
@@ -192,11 +169,6 @@ if (!window.__okwUsageInstalled) {
     loadData();
   };
 
-  const priceStatus = (message, kind = '') => {
-    const status = by('price-status');
-    status.textContent = message;
-    status.dataset.kind = kind;
-  };
 
   const renderPricingStatus = () => {
     if (!pricing) return;
@@ -319,6 +291,7 @@ if (!window.__okwUsageInstalled) {
   };
 
   const mappingPayload = (model, remove) => {
+    if (!model) throw new Error('请先选择已确认的真实模型 ID。');
     if (remove) return { model, remove: true };
     const rates = manualRates();
     const catalogKey = by('catalog').value || null;
@@ -328,26 +301,47 @@ if (!window.__okwUsageInstalled) {
     return { model, catalogKey, ...(Object.keys(rates).length ? { rates } : {}) };
   };
 
+  const refreshPriceView = async (render) => {
+    try { render(); return await loadData(); }
+    catch (error) {
+      setStatus(`统计面板重绘失败：${error.message}`, 'error');
+      return { ok: false, stage: 'render', error };
+    }
+  };
+
+  const reportPriceUpdate = (message, redraw) => {
+    const failed = !redraw.ok && redraw.stage !== 'stale';
+    const success = message.endsWith('。') ? message.slice(0, -1) : message;
+    const failure = redraw.error?.message ?? '请重新打开或刷新统计面板。';
+    priceStatus(failed ? `${success}，但统计面板重绘失败：${failure}` : message, failed ? 'error' : '');
+  };
+  const currentPricing = (generation) => generation === pricingGeneration && opened;
+
   const saveMapping = async (remove = false) => {
-    const model = by('edit-model').value;
-    if (!model) { priceStatus('请先选择已确认的真实模型 ID。', 'error'); return; }
     let payload;
-    try { payload = mappingPayload(model, remove); }
+    try { payload = mappingPayload(by('edit-model').value, remove); }
     catch (error) { priceStatus(error.message, 'error'); return; }
+    const model = payload.model;
     const generation = ++pricingGeneration;
     by('save').disabled = true;
     try {
-      const data = await api(`${API}/pricing`, { method: 'PUT', body: JSON.stringify(payload) });
+      let data;
+      try { data = await api(`${API}/pricing`, { method: 'PUT', body: JSON.stringify(payload) }); }
+      catch (error) {
+        if (currentPricing(generation)) priceStatus(error.message, 'error');
+        return;
+      }
       if (generation !== pricingGeneration) return;
       pricing = data;
-      renderPricingStatus();
-      fillEditModels();
-      by('edit-model').value = model;
-      showMapping();
-      priceStatus(remove ? '已移除映射和手动单价。' : '价格设置已保存。');
-      await loadData();
-    } catch (error) {
-      if (generation === pricingGeneration && opened) priceStatus(error.message, 'error');
+      const redraw = await refreshPriceView(() => {
+        renderPricingStatus();
+        fillEditModels();
+        by('edit-model').value = model;
+        showMapping();
+      });
+      if (currentPricing(generation)) {
+        reportPriceUpdate(remove ? '已移除映射和手动单价。' : '价格设置已保存。', redraw);
+      }
     } finally {
       if (generation === pricingGeneration) by('save').disabled = false;
     }
@@ -358,14 +352,16 @@ if (!window.__okwUsageInstalled) {
     by('price-refresh').disabled = true;
     priceStatus('正在刷新公开价格目录…');
     try {
-      const data = await api(`${API}/pricing:refresh`, { method: 'POST' });
+      let data;
+      try { data = await api(`${API}/pricing:refresh`, { method: 'POST' }); }
+      catch (error) {
+        if (generation === pricingGeneration && opened) priceStatus(error.message, 'error');
+        return;
+      }
       if (generation !== pricingGeneration || !opened) return;
       pricing = data;
-      renderPricingStatus();
-      fillCatalog();
-      await loadData();
-    } catch (error) {
-      if (generation === pricingGeneration && opened) priceStatus(error.message, 'error');
+      const redraw = await refreshPriceView(() => { renderPricingStatus(); fillCatalog(); });
+      if (generation === pricingGeneration && opened) reportPriceUpdate('价格目录已刷新。', redraw);
     } finally {
       if (generation === pricingGeneration) by('price-refresh').disabled = false;
     }
@@ -373,20 +369,19 @@ if (!window.__okwUsageInstalled) {
 
   const saveSuggestedMappings = async (mappings) => {
     const generation = ++pricingGeneration;
+    let data;
     try {
-      const data = await api(`${API}/pricing`, {
+      data = await api(`${API}/pricing`, {
         method: 'PUT', body: JSON.stringify({ mappings }),
       });
-      if (generation !== pricingGeneration || !opened) return false;
-      pricing = data;
-      renderPricingStatus();
-      fillEditModels();
-      await loadData();
-      return true;
     } catch (error) {
       if (generation === pricingGeneration && opened) throw error;
-      return false;
+      return { saved: false };
     }
+    if (generation !== pricingGeneration || !opened) return { saved: false };
+    pricing = data;
+    const redraw = await refreshPriceView(() => { renderPricingStatus(); fillEditModels(); });
+    return { saved: true, redraw };
   };
 
   const buildPanel = () => window.__okwUsageBuildPanel({

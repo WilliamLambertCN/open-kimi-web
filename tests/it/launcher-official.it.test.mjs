@@ -142,7 +142,18 @@ describe('concurrent official frontends', () => {
   });
 });
 
+const verifyUsageBundle = (name, body, sourceAssets) => {
+  if (name.startsWith('usage') && name.endsWith('.js') && name !== 'usageBundle.js') {
+    sourceAssets.set(name, body);
+  }
+  if (name === 'usageBundle.js') {
+    const parts = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js'];
+    expect(body).toBe(parts.map((part) => sourceAssets.get(part)).join('\n'));
+  }
+};
+
 async function expectPresentationAssets(baseUrl) {
+  const sourceAssets = new Map();
   for (const name of [
     'presentation.css',
     'foldingDefaults.js',
@@ -166,6 +177,7 @@ async function expectPresentationAssets(baseUrl) {
     'usageTrend.js',
     'usageControllers.js',
     'usage.js',
+    'usageBundle.js',
     'themes.css',
     'themes.js',
     'backgrounds/aurora.png',
@@ -179,6 +191,7 @@ async function expectPresentationAssets(baseUrl) {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-cache');
     const body = name.endsWith('.png') ? await response.arrayBuffer() : await response.text();
+    verifyUsageBundle(name, body, sourceAssets);
     if (name.endsWith('.png')) {
       expect(response.headers.get('content-type')).toBe('image/png');
       expect(Number(response.headers.get('content-length'))).toBeGreaterThan(0);
@@ -249,15 +262,11 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.css');
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.js');
       expect(indexText).toContain('/__open-kimi-mobile/usage.css');
-      expect(indexText).toContain('/__open-kimi-mobile/usageApi.js');
-      expect(indexText).toContain('/__open-kimi-mobile/usageView.js');
-      expect(indexText).toContain('/__open-kimi-mobile/usageTrend.js');
-      expect(indexText).toContain('/__open-kimi-mobile/usageControllers.js');
-      expect(indexText).toContain('/__open-kimi-mobile/usage.js');
-      expect(indexText.indexOf('usageApi.js')).toBeLessThan(indexText.indexOf('usage.js'));
-      expect(indexText.indexOf('usageView.js')).toBeLessThan(indexText.indexOf('usage.js'));
-      expect(indexText.indexOf('usageTrend.js')).toBeLessThan(indexText.indexOf('usage.js'));
-      expect(indexText.indexOf('usageControllers.js')).toBeLessThan(indexText.indexOf('usage.js'));
+      expect(indexText).toContain('/__open-kimi-mobile/usageBundle.js');
+      for (const source of ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js']) {
+        expect(indexText).not.toContain(`<script src="/__open-kimi-mobile/${source}"></script>`);
+      }
+      expect(indexText.indexOf('usageBundle.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('workspaceSortDefault.js')).toBeLessThan(indexText.indexOf('<script type="module"'));

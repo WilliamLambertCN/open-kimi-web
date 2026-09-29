@@ -5,7 +5,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { addMobilePresentation } from '../src/officialPresentation.mjs';
 
-const mobileSource = (name) => readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8');
+const usageParts = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js'];
+const mobileSource = (name) => name === 'usageBundle.js'
+  ? usageParts.map((part) => readFileSync(resolve(`packages/launcher/src/mobile/${part}`), 'utf8')).join('\n')
+  : readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8');
 const archivedUrl = '/api/v2/sessions?meta.archived=true';
 const documents = [];
 const observerStates = [];
@@ -209,11 +212,8 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(18);
-    expect(ui.names.slice(-7)).toEqual([
-      'usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js',
-      'questionCardLayout.js', 'presentation.js',
-    ]);
+    expect(ui.names).toHaveLength(14);
+    expect(ui.names.slice(-3)).toEqual(['usageBundle.js', 'questionCardLayout.js', 'presentation.js']);
     await loadArchived(ui);
     expect(ui.view.document.querySelectorAll('.a-msg')).toHaveLength(100);
     expect(ui.archiveButton()).not.toBeNull();

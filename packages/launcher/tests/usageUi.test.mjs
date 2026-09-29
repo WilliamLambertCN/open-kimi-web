@@ -140,7 +140,7 @@ const deferred = () => {
   return { promise, resolve };
 };
 
-function install(respond, { mobile = false } = {}) {
+function install(respond, { mobile = false, omitTrend = false } = {}) {
   const footer = new Element();
   const sidebar = new Element();
   sidebar.append(footer);
@@ -180,7 +180,7 @@ function install(respond, { mobile = false } = {}) {
     MutationObserver, URL, URLSearchParams, Request, Headers, Date, Intl, Number, String, Math };
   runInNewContext(apiLogic, context);
   runInNewContext(view, context);
-  runInNewContext(trend, context);
+  if (!omitTrend) runInNewContext(trend, context);
   runInNewContext(controllers, context);
   runInNewContext(logic, context);
   const get = (name) => body.querySelector(`[data-usage="${name}"]`);
@@ -189,7 +189,54 @@ function install(respond, { mobile = false } = {}) {
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+describe('usage fallback', () => {
+  it('keeps distribution and detail visible when the trend renderer is missing', async () => {
+    const ui = install((url) => json(String(url).includes('/pricing') ? pricingResponse() : usageResponse()),
+      { omitTrend: true });
+    await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer demo-token' } });
+    ui.sidebar.children[0].dispatch('click');
+    await flush();
+    expect(ui.get('total').textContent).toBe('1,300');
+    expect(ui.get('trend').children[0].textContent).toContain('趋势图暂不可用');
+    expect(ui.get('status').textContent).toContain('面板重绘失败：趋势图资源未加载');
+    expect(ui.get('status').textContent).not.toContain('__okwUsageRenderTrend');
+    expect(ui.get('distribution').children).toHaveLength(1);
+    expect(ui.get('table-body').children).toHaveLength(1);
+  });
 
+  it.each(['single', 'refresh', 'batch', 'server-error'])(
+    'distinguishes the %s pricing result from a failed redraw', async (operation) => {
+      const data = usageResponse();
+      data.models[0].suggestion = {
+        catalogKey: 'test/model', modelId: data.models[0].modelId, name: 'Test model',
+        rates: { input: 1 }, matchKind: 'exact', confidence: 1,
+      };
+      const ui = install((url, options) => operation === 'server-error' && options?.method === 'PUT'
+        ? json({ error: 'Fixture rejected' }, 500)
+        : json(options?.method === 'PUT' || String(url).includes('/pricing') ? pricingResponse() : data),
+      { omitTrend: true });
+      await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer demo-token' } });
+      ui.sidebar.children[0].dispatch('click');
+      await flush();
+      if (operation === 'single' || operation === 'server-error') {
+        ui.get('edit-model').value = data.models[0].modelId;
+        ui.get('rate-input').value = '0';
+        ui.get('save').dispatch('click');
+      } else if (operation === 'refresh') ui.get('price-refresh').dispatch('click');
+      else ui.get('suggestions-save').dispatch('click');
+      await flush();
+      await flush();
+      if (operation === 'server-error') {
+        expect(ui.get('price-status').textContent).toBe('Fixture rejected');
+        return;
+      }
+      expect(ui.get('price-status').textContent).toContain('统计面板重绘失败：趋势图资源未加载');
+      expect(ui.get('price-status').textContent).toMatch(/已保存|已刷新|已一次保存/);
+      expect(ui.get('price-status').dataset.kind).toBe('error');
+      expect(ui.get('table-body').children).toHaveLength(1);
+    },
+  );
+});
 describe('usage UI', () => {
   it('loads the seven-day preset with page authorization and renders incomplete cost honestly', async () => {
     const ui = install((url) => json(String(url).includes('/pricing') ? pricingResponse() : usageResponse()));

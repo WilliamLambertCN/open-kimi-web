@@ -24,6 +24,7 @@ const FILES = new Map([
   ['usageTrend.js', 'text/javascript; charset=utf-8'],
   ['usageControllers.js', 'text/javascript; charset=utf-8'],
   ['usage.js', 'text/javascript; charset=utf-8'],
+  ['usageBundle.js', 'text/javascript; charset=utf-8'],
   ['themes.css', 'text/css; charset=utf-8'],
   ['themes.js', 'text/javascript; charset=utf-8'],
   ['backgrounds/aurora.png', 'image/png'],
@@ -33,6 +34,7 @@ const FILES = new Map([
   ['backgrounds/nocturne.png', 'image/png'],
 ]);
 
+const USAGE_SCRIPTS = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js'];
 const SCRIPTS = [
   'foldingDefaults.js',
   'workspaceSortDefault.js',
@@ -45,11 +47,7 @@ const SCRIPTS = [
   'providerEnhancements.js',
   'workspacePins.js',
   'archivedSessionDelete.js',
-  'usageApi.js',
-  'usageView.js',
-  'usageTrend.js',
-  'usageControllers.js',
-  'usage.js',
+  'usageBundle.js',
   'questionCardLayout.js',
   'presentation.js',
 ];
@@ -73,7 +71,10 @@ export async function servePresentationAsset(req, res) {
     res.writeHead(404).end('Not Found');
     return true;
   }
-  const body = await readFile(new URL(`./mobile/${name}`, import.meta.url));
+  const body = name === 'usageBundle.js'
+    ? Buffer.from((await Promise.all(USAGE_SCRIPTS.map((script) =>
+      readFile(new URL(`./mobile/${script}`, import.meta.url))))).join('\n'))
+    : await readFile(new URL(`./mobile/${name}`, import.meta.url));
   res.writeHead(200, {
     'content-type': type,
     'content-length': body.length,
