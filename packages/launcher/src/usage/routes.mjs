@@ -5,7 +5,7 @@ import { PricingError, createPricingStore } from './pricing.mjs';
 import { createUsageScanner } from './scanner.mjs';
 
 const PREFIX = '/__open-kimi-mobile/usage';
-const MAX_REQUEST_BYTES = 16 * 1024;
+const MAX_REQUEST_BYTES = 1024 * 1024;
 const AUTH_TIMEOUT_MS = 3_000;
 
 function sendJson(res, status, body) {
