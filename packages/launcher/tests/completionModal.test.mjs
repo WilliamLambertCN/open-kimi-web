@@ -304,7 +304,7 @@ describe('mobile completion modal pending and reconnect behavior', () => {
     link.href = '#answer';
     fixture.createPending('dock-question', [disabled, link]);
     fixture.createSocket();
-    await settle();
+    await vi.waitFor(() => expect(fixture.dialog()).not.toBeNull());
 
     fixture.dialog().querySelector('.okw-completion-modal-result').click();
     expect(fixture.dialog()).toBeNull();

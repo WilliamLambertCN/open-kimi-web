@@ -70,4 +70,4 @@ const snapshot = {
   catalog,
 };
 await writeFile(OUTPUT, `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
-process.stdout.write(`Saved ${catalog.length} OpenRouter prices to ${OUTPUT.pathname}\n`);
+process.stdout.write(`Saved ${catalog.length} OpenRouter prices to openrouter-pricing-snapshot.json\n`);

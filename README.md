@@ -11,9 +11,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r4][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 手机提问卡片可拖动调高并保存档位，修复长题干挤压选项；安装见[快速上手](#快速上手)。
-> `v2.1.1-r1` 已撤回，旧版用户请升级到 `r4`。
+> **当前版本：[v2.1.1-r5][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 包含价格自动匹配、批量确认、分批展示、完整用量 bundle 和价格刷新连续性修复。
+> 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
 
@@ -26,7 +26,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **四类 token 与缓存命中率**：普通输入、缓存读取、输出、缓存写入分别展示；
   命中率按所选范围内的缓存读取量除以总输入量计算，不平均各次请求的百分比。
 - **API 等值费用**：随包提供数百项 OpenRouter 公共价格，联网合并 models.dev 与 OpenRouter；
-  刷新后按真实模型 ID 自动生成完整候选清单，只需一次确认即可批量保存，仍可逐项手动覆盖。
+  对真实模型 ID 给出自动候选，模糊建议不直接计费，审核后可批量确认，手动映射和单价优先。
+  刷新目录时保留各模型原默认键，同键使用新单价，缺失键沿用上次有效价格并标为旧价；
+  旧版缓存按已知内置来源自动恢复，无需删除缓存或迁移会话数据。
 - **模型 ID 统计**：按实际请求的模型 ID 汇总和定价；同 ID 的不同别名合并，别名改绑后分开统计。
   大列表分批渲染并使用单一纵向滚动区；价格配置可搜索任意历史模型 ID 和公开目录项。
 - **历史回补**：读取官方已保存的用量记录，覆盖同一数据目录的 CLI、Web 与 agent 调用，
@@ -51,28 +53,15 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 独立 `serve --target` 会明确提示数据源不可用，避免把本机用量当作远端统计。
 缓存数字以 Kimi 已记录的字段为准；供应商未上报、失败或中断且未落盘、删除或损坏的记录可能缺失。
 缺少请求模型 ID 或关联不明确的旧记录保留 token 总量，单列为“模型 ID 未确认”，不猜测模型或价格。
-模型 ID 不包含历史渠道信息，自动候选仍需一次批量确认。API 等值费用不是订阅实际支出或服务商账单。
+模型 ID 不包含历史渠道信息；不明确的自动候选仍需批量确认。API 等值费用不是实际账单。
 
-> 自动匹配、批量确认和大列表滚动优化当前位于 `develop`，尚未包含在已发布的 `v2.1.1-r4` 中。
-> `develop` 版用量面板脚本一起加载；若趋势图异常，分布与模型明细仍可查看。
-> 价格刷新或保存成功后若面板更新失败，会明确提示刷新页面，已保存的设置不会因重绘失败而撤销。
+> 用量面板资源按序整体加载；若趋势图异常，分布与模型明细仍可查看。
+> 价格刷新或保存成功后若面板重绘失败，会分别说明服务端结果与页面问题。
 
-## 最新改动 · v2.1.1-r4
+兼容边界见 [UPSTREAM.md](UPSTREAM.md)，逐版改动见 [CHANGELOG.md](CHANGELOG.md)。
+此前性能验证见 [流式性能验收记录](docs/plans/streaming-performance-v1-verification.md)。
 
-本版适用于 Kimi Code `2.1.1`；`rN` 表示同一兼容基线上的项目修订号。
-
-- **手机提问卡片可调高度**：上下拖动卡片上沿的把手，松手吸附到 `35%`、`50%`、`70%` 或 `85%`。
-  自动保存当前浏览器、当前站点的档位，刷新、切题和再次打开时沿用；默认保持半屏上限。
-  小屏或可用高度变小时，实际高度会限制在能操作选项和按钮的范围内。
-- **手机长题干可读、选项可选**：放不下的真实题干不再占满固定头部，完整内容与选项一起滚动。
-  按钮保留在底部，支持切换题目与收起展开；短题干继续沿用原有布局。
-- 保留选项反馈、横排操作区和“放弃”的危险色，继续沿用已有主题面板配色。
-
-本版继续包含用量统计、归档卡死修复，以及长会话与 Side Chat 的性能优化，完整能力见下文。
-兼容边界见 [UPSTREAM.md](UPSTREAM.md)，此前性能验证见
-[流式性能验收记录](docs/plans/streaming-performance-v1-verification.md)。
-
-完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。从旧版本升级后需要重启 `kimi web` / launcher，
+从旧版本升级后需要重启 `kimi web` / launcher，
 再刷新或重新打开页面；已经运行的服务不会热加载新资源。
 
 ## 相对官方 Kimi Web 的完整增强功能
@@ -183,7 +172,7 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 **安装发布包：**
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r4/open-kimi-web-2.1.1-r4.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r5/open-kimi-web-2.1.1-r5.tgz
 open-kimi-web integrate install
 ```
 
@@ -256,7 +245,7 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r4`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r5`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -385,7 +374,8 @@ wrapper，应调用它所记录的真实二进制，再运行 `pnpm dev`。
 
 兼容性基线：CLI `2.1.1`（官方发布标签指向
 [`f67e6398`](https://github.com/MoonshotAI/kimi-code/commit/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f)）；
-已审计受影响的页面结构和请求路径，尚未完成真实浏览器与后端的逐项验收。
+已审计受影响的页面结构和请求路径；价格刷新已做定向测试与公共源验证，
+未读取用户实际现场数据，也未在实体设备上验证。
 
 ## License
 
@@ -395,4 +385,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r4
+[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r5

@@ -341,12 +341,13 @@ describe('catalog refresh behavior', () => {
       } }] });
     });
     const store = createPricingStore(dir, fetchImpl, () => Date.parse('2026-09-28T01:00:00Z'));
-    const [one, two] = await Promise.all([
+    const [, two] = await Promise.all([
       store.refresh(), store.refresh(),
       store.put({ model: 'manual-only', catalogKey: null, rates: { input: 0 } }),
     ]);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
-    expect(one.mappings['manual-only']).toMatchObject({ catalogKey: null, rates: { input: 0 } });
+    expect((await store.get()).mappings['manual-only'])
+      .toMatchObject({ catalogKey: null, rates: { input: 0 } });
     expect(two.catalog.find((item) => item.key === 'test/alpha').tiers[0].threshold).toBe(100);
     const restored = await createPricingStore(dir, vi.fn(), () => Date.parse('2026-09-28T01:00:00Z')).get();
     expect(restored.mappings['manual-only'].rates.input).toBe(0);
@@ -381,7 +382,6 @@ describe('catalog refresh behavior', () => {
     await store.get();
     await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(4));
   });
-
 });
 
 describe('persisted pricing data', () => {
