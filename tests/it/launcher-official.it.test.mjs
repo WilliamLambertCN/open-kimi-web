@@ -161,8 +161,10 @@ async function expectPresentationAssets(baseUrl) {
     'workspacePins.css',
     'workspacePins.js',
     'usage.css',
+    'usageApi.js',
     'usageView.js',
     'usageTrend.js',
+    'usageControllers.js',
     'usage.js',
     'themes.css',
     'themes.js',
@@ -247,11 +249,15 @@ describe('official mode end-to-end', () => {
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.css');
       expect(indexText).toContain('/__open-kimi-mobile/workspacePins.js');
       expect(indexText).toContain('/__open-kimi-mobile/usage.css');
+      expect(indexText).toContain('/__open-kimi-mobile/usageApi.js');
       expect(indexText).toContain('/__open-kimi-mobile/usageView.js');
       expect(indexText).toContain('/__open-kimi-mobile/usageTrend.js');
+      expect(indexText).toContain('/__open-kimi-mobile/usageControllers.js');
       expect(indexText).toContain('/__open-kimi-mobile/usage.js');
+      expect(indexText.indexOf('usageApi.js')).toBeLessThan(indexText.indexOf('usage.js'));
       expect(indexText.indexOf('usageView.js')).toBeLessThan(indexText.indexOf('usage.js'));
       expect(indexText.indexOf('usageTrend.js')).toBeLessThan(indexText.indexOf('usage.js'));
+      expect(indexText.indexOf('usageControllers.js')).toBeLessThan(indexText.indexOf('usage.js'));
       expect(indexText.indexOf('presentation.css')).toBeLessThan(indexText.indexOf('themes.css'));
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('workspaceSortDefault.js')).toBeLessThan(indexText.indexOf('<script type="module"'));

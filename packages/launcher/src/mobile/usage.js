@@ -1,36 +1,35 @@
 if (!window.__okwUsageInstalled) {
   window.__okwUsageInstalled = true;
-  const API = '/__open-kimi-mobile/usage';
+  const API = window.__okwUsageApiPath;
   const TOKEN_KEYS = ['input', 'cacheRead', 'cacheWrite', 'output'];
   const TOKEN_LABELS = ['普通输入', '缓存读取', '缓存写入', '输出'];
   const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
   const money = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 4 });
-  let authorization = '';
   let panel;
   let entry;
   let mobileEntry;
   let activeEntry;
   let result;
   let pricing;
+  let modelPager;
+  let suggestions;
   let requestGeneration = 0;
   let pricingGeneration = 0;
   let opened = false;
   let appWasInert = false;
-
+  const api = window.__okwUsageCreateApi();
   const node = (tag, className, content) => {
     const element = document.createElement(tag);
     if (className) element.className = className;
     if (content !== undefined) element.textContent = content;
     return element;
   };
-
   const button = (className, content, action) => {
     const element = node('button', className, content);
     element.type = 'button';
     element.addEventListener('click', action);
     return element;
   };
-
   const by = (name) => panel.querySelector(`[data-usage="${name}"]`);
   const fmt = (value) => number.format(Number.isFinite(Number(value)) ? Number(value) : 0);
   const usd = (value) => value == null ? '—' : money.format(value);
@@ -44,45 +43,11 @@ if (!window.__okwUsageInstalled) {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
       `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
-
-  // Observe only authenticated same-origin official API requests. The value stays in this page's memory.
-  const nativeFetch = window.fetch;
-  window.fetch = function usageAuthFetch(resource, options) {
-    try {
-      const url = new URL(resource instanceof Request ? resource.url : String(resource), location.href);
-      if (url.origin === location.origin && url.pathname.startsWith('/api/')) {
-        const headers = new Headers(resource instanceof Request ? resource.headers : undefined);
-        if (options?.headers) new Headers(options.headers).forEach((value, key) => headers.set(key, value));
-        const bearer = headers.get('authorization');
-        if (bearer?.startsWith('Bearer ')) authorization = bearer;
-      }
-    } catch {
-      // The official fetch retains its normal validation and error behavior.
-    }
-    return nativeFetch.apply(this, arguments);
-  };
-
-  const api = async (path, options = {}) => {
-    if (!authorization) throw new Error('页面授权尚未就绪，请刷新页面后重试。');
-    const response = await window.fetch(path, {
-      ...options,
-      headers: { authorization, ...(options.body ? { 'content-type': 'application/json' } : {}) },
-    });
-    let body;
-    try { body = await response.json(); } catch { body = null; }
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) throw new Error('页面授权已失效，请刷新页面。');
-      throw new Error(typeof body?.error === 'string' ? body.error : `请求失败（${response.status}）。`);
-    }
-    return body;
-  };
-
   const setStatus = (message, kind = '') => {
     const status = by('status');
     status.textContent = message;
     status.dataset.kind = kind;
   };
-
   const fillSelect = (control, choices, placeholder) => {
     const previous = control.value;
     control.replaceChildren();
@@ -96,10 +61,8 @@ if (!window.__okwUsageInstalled) {
     }
     control.value = Array.from(control.options).some((option) => option.value === previous) ? previous : '';
   };
-
   const matchesSearch = (item, query) => [item.id, item.label, item.modelId]
     .some((part) => String(part ?? '').toLocaleLowerCase().includes(query));
-
   const searchableChoices = (choices, query, selected) => {
     const found = choices.filter((item) => matchesSearch(item, query));
     const selectedChoice = choices.find((item) => item.id === selected);
@@ -174,12 +137,10 @@ if (!window.__okwUsageInstalled) {
     fillSelect(by('workspace'), data.workspaces, '全部工作区');
     renderSummary(data);
     renderTrend(data.buckets ?? [], data.range?.bucket);
-    const models = data.models ?? [];
-    renderBars(by('distribution'), models, (item) => item.model);
-    renderTable(models);
-    window.__okwUsageSetCountHints(by, fmt, models.length);
+    modelPager.reset();
     showQuality(data.quality);
     fillEditModels();
+    suggestions.render();
     const requests = data.totals?.requests ?? 0;
     setStatus(requests ? `已载入 ${fmt(requests)} 次请求 · 按 Kimi 已记录的数据计算` : '所选范围内没有用量记录。');
   };
@@ -339,6 +300,7 @@ if (!window.__okwUsageInstalled) {
       renderPricingStatus();
       fillCatalog();
       fillEditModels();
+      suggestions.render();
     } catch (error) {
       if (generation === pricingGeneration && opened) priceStatus(error.message, 'error');
     }
@@ -409,10 +371,47 @@ if (!window.__okwUsageInstalled) {
     }
   };
 
+  const saveSuggestedMappings = async (mappings) => {
+    const generation = ++pricingGeneration;
+    try {
+      const data = await api(`${API}/pricing`, {
+        method: 'PUT', body: JSON.stringify({ mappings }),
+      });
+      if (generation !== pricingGeneration || !opened) return false;
+      pricing = data;
+      renderPricingStatus();
+      fillEditModels();
+      await loadData();
+      return true;
+    } catch (error) {
+      if (generation === pricingGeneration && opened) throw error;
+      return false;
+    }
+  };
+
   const buildPanel = () => window.__okwUsageBuildPanel({
     node, button, close, setPreset, loadData, fillFilterModels, fillEditModels,
     showMapping, fillCatalog, showCatalogRateHint, saveMapping, refreshCatalog, by,
+    showMoreModels: () => modelPager.showMore(),
+    confirmSuggestions: () => suggestions.confirm(),
+    showMoreSuggestions: () => suggestions.showMore(),
   });
+
+  const initializePanel = () => {
+    panel = buildPanel();
+    const getModels = () => result?.models ?? [];
+    modelPager = window.__okwUsageCreateModelPager({
+      by, fmt, getModels,
+      renderModels: (models) => {
+        renderBars(by('distribution'), models, (item) => item.model);
+        renderTable(models);
+      },
+    });
+    suggestions = window.__okwUsageCreateSuggestionController({
+      by, fmt, node, tokenKeys: TOKEN_KEYS, tokenLabels: TOKEN_LABELS,
+      getModels, priceStatus, saveMappings: saveSuggestedMappings,
+    });
+  };
 
   function close() {
     if (!panel || !opened) return;
@@ -424,6 +423,7 @@ if (!window.__okwUsageInstalled) {
     if (app) app.inert = appWasInert;
     by('refresh').disabled = false;
     by('save').disabled = false;
+    by('suggestions-save').disabled = false;
     by('price-refresh').disabled = false;
     document.documentElement.classList.remove('okw-usage-open');
     const returnTarget = activeEntry?.isConnected ? activeEntry
@@ -433,7 +433,7 @@ if (!window.__okwUsageInstalled) {
 
   const open = (event) => {
     activeEntry = event?.currentTarget ?? entry;
-    if (!panel) panel = buildPanel();
+    if (!panel) initializePanel();
     opened = true;
     panel.hidden = false;
     const app = document.querySelector('#app');

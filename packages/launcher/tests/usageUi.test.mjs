@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
 
+const apiLogic = readFileSync(new URL('../src/mobile/usageApi.js', import.meta.url), 'utf8');
 const view = readFileSync(new URL('../src/mobile/usageView.js', import.meta.url), 'utf8');
 const trend = readFileSync(new URL('../src/mobile/usageTrend.js', import.meta.url), 'utf8');
+const controllers = readFileSync(new URL('../src/mobile/usageControllers.js', import.meta.url), 'utf8');
 const logic = readFileSync(new URL('../src/mobile/usage.js', import.meta.url), 'utf8');
 
 class Element {
@@ -17,6 +19,7 @@ class Element {
     this.hidden = false;
     this.inert = false;
     this.disabled = false;
+    this.checked = false;
     this.value = '';
     this.textContent = '';
     this.isConnected = true;
@@ -105,9 +108,9 @@ const pricingResponse = () => ({
   updatedAt: null, source: 'built-in', lastRefreshError: null,
 });
 
-const manyModels = () => {
-  const ids = Array.from({ length: 48 }, (_, index) =>
-    index === 47 ? 'vendor/very-long-model-id-with-a-distinct-tail-marker-and-another-long-segment'
+const manyModels = (count = 48) => {
+  const ids = Array.from({ length: count }, (_, index) =>
+    index === count - 1 ? 'vendor/very-long-model-id-with-a-distinct-tail-marker-and-another-long-segment'
       : `vendor/model-${String(index).padStart(2, '0')}`);
   const models = ids.map((id) => ({ ...summary(id), aliases: ['shared-alias'] }));
   models.push({ ...summary('模型 ID 未确认'), id: 'unresolved', modelId: null, aliases: ['shared-alias'] });
@@ -175,8 +178,10 @@ function install(respond, { mobile = false } = {}) {
   class MutationObserver { observe() {} }
   const context = { window, document, location: { href: 'http://localhost/', origin: 'http://localhost' },
     MutationObserver, URL, URLSearchParams, Request, Headers, Date, Intl, Number, String, Math };
+  runInNewContext(apiLogic, context);
   runInNewContext(view, context);
   runInNewContext(trend, context);
+  runInNewContext(controllers, context);
   runInNewContext(logic, context);
   const get = (name) => body.querySelector(`[data-usage="${name}"]`);
   return { actions, app, body, calls, context, footer, sidebar, get, window, listeners };
@@ -282,8 +287,20 @@ describe('mobile usage UI', () => {
   });
 });
 
+describe('usage API authorization capture', () => {
+  it('keeps one fetch wrapper when the injected resource runs twice', async () => {
+    const ui = install(() => json({ code: 0 }));
+    const wrappedFetch = ui.window.fetch;
+    runInNewContext(apiLogic, ui.context);
+    expect(ui.window.fetch).toBe(wrappedFetch);
+    await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'bearer demo-token' } });
+    await ui.window.__okwUsageCreateApi()('/__open-kimi-mobile/usage/pricing');
+    expect(ui.calls.at(-1).options.headers.authorization).toBe('bearer demo-token');
+  });
+});
+
 describe('many model identities', () => {
-  it('keeps all rows and finds a tail ID for filtering and pricing without using its shared alias', async () => {
+  it('progressively renders rows and finds a tail ID without using its shared alias', async () => {
     const data = manyModels();
     const prices = manyPrices();
     const tail = data.modelOptions[47];
@@ -296,12 +313,15 @@ describe('many model identities', () => {
     await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer demo-token' } });
     ui.sidebar.children[0].dispatch('click');
     await flush();
+    expect(ui.get('table-body').children).toHaveLength(40);
+    expect(ui.get('distribution').children).toHaveLength(40);
+    expect(ui.get('distribution-count').textContent).toBe('已显示 40 / 49 项，可继续加载');
+    expect(ui.get('distribution-count').hidden).toBe(false);
+    expect(ui.get('table-count').textContent).toBe('已显示 40 / 49 项，可继续加载');
+    expect(ui.get('table-count').hidden).toBe(false);
+    ui.get('models-more').dispatch('click');
     expect(ui.get('table-body').children).toHaveLength(49);
     expect(ui.get('distribution').children).toHaveLength(49);
-    expect(ui.get('distribution-count').textContent).toBe('49 项 · 滚动查看全部');
-    expect(ui.get('distribution-count').hidden).toBe(false);
-    expect(ui.get('table-count').textContent).toBe('49 项 · 滚动查看全部');
-    expect(ui.get('table-count').hidden).toBe(false);
     expect(ui.get('legacy-warning').textContent).toContain('3 项已隔离');
     ui.get('model-search').value = 'distinct-tail-marker';
     ui.get('model-search').dispatch('input');
@@ -332,6 +352,84 @@ describe('many model identities', () => {
     expect(JSON.parse(put.options.body)).toEqual({
       model: tail.modelId, catalogKey: 'test/tail-special-model', rates: { input: 0 },
     });
+  });
+
+  it.each([200, 500])('bounds the initial DOM for %i model IDs and expands it in fixed batches', async (count) => {
+    const data = manyModels(count);
+    const ui = install((url) => json(String(url).includes('/pricing') ? pricingResponse() : data));
+    await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer demo-token' } });
+    ui.sidebar.children[0].dispatch('click');
+    await flush();
+    expect(ui.get('table-body').children).toHaveLength(40);
+    expect(ui.get('distribution').children).toHaveLength(40);
+    expect(ui.get('table-count').textContent).toBe(`已显示 40 / ${count + 1} 项，可继续加载`);
+    ui.get('models-more').dispatch('click');
+    expect(ui.get('table-body').children).toHaveLength(80);
+    expect(ui.get('distribution').children).toHaveLength(80);
+  });
+});
+
+describe('automatic pricing suggestions', () => {
+  it('renders a 500-model review list in fixed batches', async () => {
+    const data = manyModels(500);
+    for (const model of data.models.filter((item) => item.modelId)) {
+      model.suggestion = {
+        catalogKey: `openrouter:${model.modelId}`,
+        provider: 'OpenRouter',
+        modelId: model.modelId,
+        name: model.modelId,
+        rates: { input: 1, cacheRead: 0.1, cacheWrite: null, output: 3 },
+        matchKind: 'exact',
+        confidence: 1,
+      };
+    }
+    const ui = install((url) => json(String(url).includes('/pricing') ? pricingResponse() : data));
+    await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer demo-token' } });
+    ui.sidebar.children[0].dispatch('click');
+    await flush();
+    expect(ui.get('suggestions-list').children).toHaveLength(40);
+    expect(ui.get('suggestions-summary').textContent).toContain('500 个真实模型 ID');
+    const suggestionChildren = ui.get('suggestions').children;
+    expect(suggestionChildren.indexOf(ui.get('suggestions-save').parentElement)).toBeLessThan(
+      suggestionChildren.indexOf(ui.get('suggestions-list')),
+    );
+    ui.get('suggestions-more').dispatch('click');
+    expect(ui.get('suggestions-list').children).toHaveLength(80);
+  });
+
+  it('confirms selected model matches in one batch request', async () => {
+    const data = usageResponse();
+    data.models[0].suggestion = {
+      catalogKey: 'openrouter:test/custom-long-model-name',
+      provider: 'OpenRouter',
+      providerId: 'openrouter',
+      modelId: 'test/custom-long-model-name',
+      name: 'Custom long model',
+      source: 'OpenRouter',
+      rates: { input: 1, cacheRead: 0.1, cacheWrite: null, output: 3 },
+      matchKind: 'provider-normalized',
+      confidence: 0.94,
+    };
+    const prices = pricingResponse();
+    const ui = install((url, options) => {
+      if (options?.method === 'PUT') return json({
+        ...prices,
+        mappings: { 'custom-long-model-name': { catalogKey: data.models[0].suggestion.catalogKey } },
+      });
+      return json(String(url).includes('/pricing') ? prices : data);
+    });
+    await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer demo-token' } });
+    ui.sidebar.children[0].dispatch('click');
+    await flush();
+    expect(ui.get('suggestions-summary').textContent).toContain('1 个真实模型 ID');
+    expect(ui.get('suggestions-list').children).toHaveLength(1);
+    ui.get('suggestions-save').dispatch('click');
+    await flush();
+    const put = ui.calls.find(({ options }) => options?.method === 'PUT');
+    expect(JSON.parse(put.options.body)).toEqual({ mappings: [{
+      model: 'custom-long-model-name',
+      catalogKey: 'openrouter:test/custom-long-model-name',
+    }] });
   });
 });
 
