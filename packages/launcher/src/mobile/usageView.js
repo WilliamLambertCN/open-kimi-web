@@ -14,6 +14,56 @@
     }).observe(document.documentElement, { childList: true, subtree: true });
   };
 
+  window.__okwUsageCreateRenderers = ({ by, node, fmt, rate, usd }) => {
+    const setStatus = (name, message, kind = '') => {
+      const status = by(name);
+      status.textContent = message;
+      status.dataset.kind = kind;
+    };
+    const renderSummary = (data) => {
+      const totals = data.totals ?? {};
+      by('total').textContent = fmt(totals.totalTokens);
+      by('total-sub').textContent = `总输入 ${fmt(totals.totalInput)} · ${fmt(totals.requests)} 次请求`;
+      by('hit').textContent = rate(totals.cacheHitRate);
+      by('hit-sub').textContent = `缓存读取 ${fmt(totals.cacheRead)} / 总输入 ${fmt(totals.totalInput)}`;
+      by('cost').textContent = usd(totals.costUsd);
+      by('cost-sub').textContent = totals.costComplete
+        ? '当前单价估算，非实际账单'
+        : `${totals.costUsd == null ? '暂无可定价金额' : '已知部分小计'} · ` +
+          `${fmt(totals.unpricedRequests)} 次请求、${fmt(totals.unpricedTokens)} token 未定价`;
+      by('cost-sub').classList.toggle('okw-usage-warning', !totals.costComplete);
+    };
+    const renderBars = (host, items, labelOf) => {
+      host.replaceChildren();
+      const maximum = Math.max(1, ...items.map((item) => item.totalTokens ?? 0));
+      for (const item of items) {
+        const row = node('div', 'okw-usage-bar-row');
+        const label = node('span', 'okw-usage-bar-label', labelOf(item));
+        if (item.aliases?.length) label.title = `别名：${item.aliases.join('、')}`;
+        const track = node('span', 'okw-usage-bar-track');
+        const fill = node('span', 'okw-usage-bar-fill');
+        fill.style.width = `${Math.max(0, (item.totalTokens ?? 0) / maximum * 100)}%`;
+        track.append(fill);
+        row.append(label, track, node('strong', 'okw-usage-bar-value', fmt(item.totalTokens)));
+        host.append(row);
+      }
+      if (items.length === 0) host.append(node('p', 'okw-usage-muted', '所选范围内没有用量记录。'));
+    };
+    const showQuality = (quality) => {
+      const host = by('quality');
+      host.replaceChildren();
+      for (const note of quality?.notes ?? []) {
+        host.append(node('p', '', `${note.message}${note.count == null ? '' : `（${fmt(note.count)}）`}`));
+      }
+      host.hidden = host.childElementCount === 0;
+    };
+    return {
+      setStatus: (message, kind) => setStatus('status', message, kind),
+      priceStatus: (message, kind) => setStatus('price-status', message, kind),
+      renderSummary, renderBars, showQuality,
+    };
+  };
+
   const field = (node, label, control) => {
     const wrapper = node('label', 'okw-usage-field');
     wrapper.append(node('span', '', label), control);

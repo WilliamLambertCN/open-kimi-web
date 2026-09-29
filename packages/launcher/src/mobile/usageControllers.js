@@ -94,8 +94,13 @@
       by('suggestions-save').disabled = true;
       priceStatus(`正在保存 ${fmt(mappings.length)} 项模型映射…`);
       try {
-        if (await saveMappings(mappings)) {
-          priceStatus(`已一次保存 ${fmt(mappings.length)} 项模型映射。`);
+        const outcome = await saveMappings(mappings);
+        if (outcome.saved) {
+          const message = `已一次保存 ${fmt(mappings.length)} 项模型映射。`;
+          const failed = !outcome.redraw.ok && outcome.redraw.stage !== 'stale';
+          const failure = outcome.redraw.error?.message ?? '请重新打开或刷新统计面板。';
+          const failedMessage = `已一次保存 ${fmt(mappings.length)} 项模型映射，但统计面板重绘失败：${failure}`;
+          priceStatus(failed ? failedMessage : message, failed ? 'error' : '');
         }
       } catch (error) {
         priceStatus(error.message, 'error');
