@@ -1,15 +1,31 @@
+import { readFileSync } from 'node:fs';
 import { lstat, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
+import {
+  PricingError,
+  RATE_FIELDS,
+  fetchPublicCatalog,
+  numberOrNull,
+} from './pricingCatalog.mjs';
+import { nextContinuity, sanitizedContinuity, selectedRetained, uniqueDefaults } from './pricingContinuity.mjs';
+import { createCatalogMatcher } from './pricingMatch.mjs';
+
+export { PricingError } from './pricingCatalog.mjs';
+
+const OPENROUTER_SNAPSHOT = JSON.parse(readFileSync(
+  new URL('./openrouter-pricing-snapshot.json', import.meta.url),
+  'utf8',
+));
+
 const CATALOG_TTL_MS = 24 * 60 * 60 * 1000;
 const FAILED_REFRESH_RETRY_MS = 30 * 60 * 1000;
-const FETCH_TIMEOUT_MS = 10_000;
 const MAX_CATALOG_BYTES = 12 * 1024 * 1024;
-const RATE_FIELDS = ['input', 'cacheRead', 'cacheWrite', 'output'];
 const EMPTY_RATES = { input: null, cacheRead: null, cacheWrite: null, output: null };
-const SNAPSHOT_AT = '2026-09-28';
+const SNAPSHOT_AT = OPENROUTER_SNAPSHOT.fetchedAt;
 const IDENTITY_VERSION = 1;
-const SNAPSHOT = [
+const MAX_BATCH_MAPPINGS = 1_000;
+const CURATED_SNAPSHOT = [
   ['openai', 'OpenAI', 'gpt-6-astra', 10, 1, 12.5, 50],
   ['openai', 'OpenAI', 'gpt-6-sol', 2, 0.2, 2.5, 10],
   ['openai', 'OpenAI', 'gpt-6-luna', 0.1, 0.01, 0.125, 0.5],
@@ -34,144 +50,10 @@ const SNAPSHOT_TIERS = {
   },
 };
 
-export class PricingError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
-}
-
-function numberOrNull(value) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100_000
-    ? value : null;
-}
-
-function millionRate(value) {
-  if (typeof value !== 'string' && typeof value !== 'number') return null;
-  if (value === '') return null;
-  const amount = Number(value);
-  return Number.isFinite(amount) && amount >= 0 && amount <= 0.1 ? amount * 1_000_000 : null;
-}
-
-function ratesOf(cost) {
-  return {
-    input: numberOrNull(cost?.input),
-    cacheRead: numberOrNull(cost?.cache_read),
-    cacheWrite: numberOrNull(cost?.cache_write),
-    output: numberOrNull(cost?.output),
-  };
-}
-
-function contextTiers(cost) {
-  if (!Array.isArray(cost?.tiers)) return undefined;
-  const tiers = cost.tiers.filter((item) => item?.tier?.type === 'context' &&
-    Number.isSafeInteger(item.tier.size) && item.tier.size > 0).map((item) => ({
-    threshold: item.tier.size,
-    rates: ratesOf(item),
-  })).sort((a, b) => a.threshold - b.threshold);
-  return tiers.length > 0 ? tiers : undefined;
-}
-
-function modelsDevEntry(providerId, provider, modelId, model) {
-  if (!model?.cost || modelId.length > 256 || modelId.length === 0) return null;
-  return {
-    key: `${providerId}/${modelId}`,
-    providerId,
-    providerName: String(provider.name ?? providerId).slice(0, 120),
-    modelId,
-    name: String(model.name ?? modelId).slice(0, 256),
-    rates: ratesOf(model.cost),
-    tiers: contextTiers(model.cost),
-  };
-}
-
-function providerModels(providerId, provider) {
-  if (providerId === 'openrouter' || !/^[\w.-]{1,80}$/.test(providerId)) return [];
-  if (provider?.models === null || typeof provider?.models !== 'object') return [];
-  return Object.entries(provider.models).map(([modelId, model]) =>
-    modelsDevEntry(providerId, provider, modelId, model)).filter(Boolean);
-}
-
-function fromModelsDev(payload) {
-  if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
-    throw new PricingError(502, 'models.dev 目录格式无效');
-  }
-  const entries = Object.entries(payload).flatMap(([providerId, provider]) =>
-    providerModels(providerId, provider)).slice(0, 10_000);
-  if (entries.length === 0) throw new PricingError(502, 'models.dev 目录为空');
-  return entries;
-}
-
-function openRouterRates(pricing) {
-  return {
-    input: millionRate(pricing.prompt),
-    cacheRead: millionRate(pricing.input_cache_read),
-    cacheWrite: millionRate(pricing.input_cache_write),
-    output: millionRate(pricing.completion),
-  };
-}
-
-function openRouterTiers(pricing) {
-  if (!Array.isArray(pricing.overrides)) return undefined;
-  const tiers = pricing.overrides
-    .filter((tier) => Number.isSafeInteger(tier?.min_prompt_tokens) && tier.min_prompt_tokens > 0)
-    .map((tier) => ({ threshold: tier.min_prompt_tokens, rates: openRouterRates(tier) }))
-    .sort((a, b) => a.threshold - b.threshold);
-  return tiers.length > 0 ? tiers : undefined;
-}
-
-function openRouterEntry(model) {
-  const modelId = model?.id;
-  if (typeof modelId !== 'string' || modelId.length === 0 || modelId.length > 256) return null;
-  const pricing = model.pricing;
-  if (pricing === null || typeof pricing !== 'object') return null;
-  return {
-    key: `openrouter:${modelId}`, providerId: 'openrouter',
-    providerName: 'OpenRouter', modelId,
-    name: String(model.name ?? modelId).slice(0, 256),
-    rates: openRouterRates(pricing), tiers: openRouterTiers(pricing),
-  };
-}
-
-function fromOpenRouter(payload) {
-  if (!Array.isArray(payload?.data)) throw new PricingError(502, 'OpenRouter 目录格式无效');
-  const entries = payload.data.map(openRouterEntry).filter(Boolean);
-  if (entries.length === 0) throw new PricingError(502, 'OpenRouter 目录为空');
-  return entries;
-}
-
-async function fetchJson(url, fetchImpl) {
-  let response;
-  try {
-    response = await fetchImpl(url, {
-      headers: { accept: 'application/json' },
-      redirect: 'error',
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-  } catch {
-    throw new PricingError(502, '公开价格目录暂时无法连接');
-  }
-  if (!response.ok) throw new PricingError(502, `公开价格目录返回 HTTP ${response.status}`);
-  if (Number(response.headers.get('content-length')) > MAX_CATALOG_BYTES) {
-    throw new PricingError(502, '公开价格目录响应过大');
-  }
-  if (response.body === null) throw new PricingError(502, '公开价格目录响应为空');
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of response.body) {
-    size += chunk.length;
-    if (size > MAX_CATALOG_BYTES) throw new PricingError(502, '公开价格目录响应过大');
-    chunks.push(chunk);
-  }
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  } catch {
-    throw new PricingError(502, '公开价格目录 JSON 格式无效');
-  }
-}
-
 function snapshotCatalog() {
-  return SNAPSHOT.map(([providerId, providerName, modelId, input, cacheRead, cacheWrite, output]) => {
+  const curated = CURATED_SNAPSHOT.map(([
+    providerId, providerName, modelId, input, cacheRead, cacheWrite, output,
+  ]) => {
     const key = `${providerId}/${modelId}`;
     return {
       key, providerId, providerName, modelId, name: modelId,
@@ -179,6 +61,9 @@ function snapshotCatalog() {
       tiers: SNAPSHOT_TIERS[key] ? [SNAPSHOT_TIERS[key]] : undefined,
     };
   });
+  const openRouter = Array.isArray(OPENROUTER_SNAPSHOT.catalog)
+    ? OPENROUTER_SNAPSHOT.catalog.filter(validCatalogEntry).map(projectCatalogEntry) : [];
+  return [...curated, ...openRouter];
 }
 
 function validModel(value) {
@@ -200,27 +85,43 @@ function validateRates(value) {
   return rates;
 }
 
-function validateCatalogKey(key, catalog) {
+function validateCatalogKey(key, catalog, retained) {
   if (key !== null && key !== undefined && typeof key !== 'string') {
     throw new PricingError(400, '目录模型无效');
   }
-  if (key && !catalog.some((entry) => entry.key === key)) {
+  if (key && !catalog.some((entry) => entry.key === key) && !Object.hasOwn(retained, key)) {
     throw new PricingError(400, '目录模型不存在');
   }
   return key ?? null;
 }
 
-function validateMapping(input, catalog) {
+function validateMapping(input, catalog, retained) {
   if (input === null || typeof input !== 'object' || !validModel(input.model)) {
     throw new PricingError(400, '模型 ID 无效');
   }
   if (input.remove === true) return { model: input.model, remove: true };
-  const catalogKey = validateCatalogKey(input.catalogKey, catalog);
+  const catalogKey = validateCatalogKey(input.catalogKey, catalog, retained);
   const rates = validateRates(input.rates);
   if (!catalogKey && !hasRates(rates)) {
     throw new PricingError(400, '请选择目录模型或填写单价');
   }
   return { model: input.model, catalogKey, rates: hasRates(rates) ? rates : undefined };
+}
+
+function validatePut(input, catalog, retained) {
+  if (input !== null && typeof input === 'object' && Array.isArray(input.mappings)) {
+    if (input.mappings.length === 0 || input.mappings.length > MAX_BATCH_MAPPINGS) {
+      throw new PricingError(400, '批量映射数量无效');
+    }
+    const mappings = input.mappings.map((mapping) => validateMapping(mapping, catalog, retained));
+    const models = new Set();
+    for (const mapping of mappings) {
+      if (models.has(mapping.model)) throw new PricingError(400, '批量映射包含重复模型 ID');
+      models.add(mapping.model);
+    }
+    return mappings;
+  }
+  return [validateMapping(input, catalog, retained)];
 }
 
 function hasRates(rates) {
@@ -313,22 +214,41 @@ function sanitizedState(parsed) {
   );
   if (mappings === null || !Number.isFinite(Date.parse(parsed.updatedAt)) ||
       typeof parsed.source !== 'string' || parsed.source.length > 120) return null;
+  const continuity = sanitizedContinuity(parsed, {
+    builtIn: snapshotCatalog(), curated: CURATED_SNAPSHOT,
+    validModel, validEntry: validCatalogEntry, projectEntry: projectCatalogEntry,
+  });
+  if (continuity === null) return null;
   const lastRefreshError = typeof parsed.lastRefreshError === 'string'
     ? parsed.lastRefreshError.slice(0, 200) : null;
   return {
     catalog: parsed.catalog.map(projectCatalogEntry), mappings, legacyAliasMappings,
-    identityVersion: IDENTITY_VERSION,
+    ...continuity, identityVersion: IDENTITY_VERSION,
     legacyMappingsIgnored: Object.keys(legacyAliasMappings).length,
     updatedAt: parsed.updatedAt, source: parsed.source, lastRefreshError,
   };
 }
 
+function refreshedState(state, catalog, builtIn, timestamp) {
+  if (!validStoredCatalog({ catalog })) throw new PricingError(502, '公开价格目录格式无效');
+  const next = {
+    ...state, ...nextContinuity(state, catalog, builtIn, projectCatalogEntry), catalog,
+    updatedAt: new Date(timestamp).toISOString(), source: 'models.dev + OpenRouter', lastRefreshError: null,
+  };
+  if (Buffer.byteLength(JSON.stringify(next)) > MAX_CATALOG_BYTES) {
+    throw new PricingError(502, '公开价格目录响应过大');
+  }
+  return next;
+}
+
 export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now) {
   const path = join(storageDir, 'usage-pricing.json');
+  const initialCatalog = snapshotCatalog();
   let state = {
-    catalog: snapshotCatalog(), mappings: {}, legacyAliasMappings: {}, updatedAt: SNAPSHOT_AT,
+    catalog: initialCatalog, mappings: {}, legacyAliasMappings: {}, updatedAt: SNAPSHOT_AT,
+    automaticDefaults: uniqueDefaults(initialCatalog), retainedEntries: {},
     identityVersion: IDENTITY_VERSION, legacyMappingsIgnored: 0,
-    source: 'models.dev built-in snapshot', lastRefreshError: null,
+    source: 'OpenRouter built-in snapshot + models.dev curated snapshot', lastRefreshError: null,
   };
   let loadPromise, refreshing;
   let writeQueue = Promise.resolve();
@@ -357,15 +277,8 @@ export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now
     lastAttempt = now();
     refreshing = (async () => {
       try {
-        const [modelsDev, openRouter] = await Promise.all([
-          fetchJson('https://models.dev/api.json', fetchImpl),
-          fetchJson('https://openrouter.ai/api/v1/models', fetchImpl),
-        ]);
-        const catalog = [...fromModelsDev(modelsDev), ...fromOpenRouter(openRouter)];
-        state = {
-          ...state, catalog, updatedAt: new Date(now()).toISOString(),
-          source: 'models.dev + OpenRouter', lastRefreshError: null,
-        };
+        const catalog = await fetchPublicCatalog(fetchImpl);
+        state = refreshedState(state, catalog, initialCatalog, now());
         await persist();
       } catch (error) {
         state = {
@@ -381,6 +294,7 @@ export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now
   function publicState() {
     return {
       catalog: state.catalog, mappings: state.mappings,
+      automaticDefaults: state.automaticDefaults, retainedEntries: state.retainedEntries,
       identityVersion: state.identityVersion, legacyMappingsIgnored: state.legacyMappingsIgnored,
       updatedAt: state.updatedAt, source: state.source, lastRefreshError: state.lastRefreshError,
     };
@@ -394,39 +308,77 @@ export function createPricingStore(storageDir, fetchImpl = fetch, now = Date.now
   }
   async function put(input) {
     await load();
-    const value = validateMapping(input, state.catalog);
+    const values = validatePut(input, state.catalog, state.retainedEntries);
     const mappings = Object.assign(Object.create(null), state.mappings);
-    if (value.remove) delete mappings[value.model];
-    else mappings[value.model] = { catalogKey: value.catalogKey, rates: value.rates };
-    state = { ...state, mappings };
+    for (const value of values) {
+      if (value.remove) delete mappings[value.model];
+      else mappings[value.model] = { catalogKey: value.catalogKey, rates: value.rates };
+    }
+    state = { ...state, mappings,
+      retainedEntries: selectedRetained(state.automaticDefaults, mappings, state.retainedEntries) };
     await persist();
     return publicState();
   }
   return { get, put, refresh };
 }
 
-function mappedEntry(modelId, pricing, mapping) {
-  if (mapping !== undefined) {
-    return pricing.catalog.find((item) => item.key === mapping.catalogKey);
+const MATCHERS = new WeakMap();
+const CATALOG_INDEXES = new WeakMap();
+
+function matcherFor(pricing) {
+  let matcher = MATCHERS.get(pricing.catalog);
+  if (matcher === undefined) {
+    matcher = createCatalogMatcher(pricing.catalog);
+    MATCHERS.set(pricing.catalog, matcher);
   }
-  const matches = pricing.catalog.filter((item) => item.modelId === modelId);
-  return matches.length === 1 ? matches[0] : undefined;
+  return matcher;
 }
 
-function sourceForPrice(pricing, entry, mapping) {
-  if (mapping?.rates !== undefined) return 'manual';
+function indexesFor(catalog) {
+  let indexes = CATALOG_INDEXES.get(catalog);
+  if (indexes !== undefined) return indexes;
+  const byKey = new Map();
+  const byModel = new Map();
+  for (const entry of catalog) {
+    byKey.set(entry.key, entry);
+    if (byModel.has(entry.modelId)) byModel.set(entry.modelId, null);
+    else byModel.set(entry.modelId, entry);
+  }
+  indexes = { byKey, byModel };
+  CATALOG_INDEXES.set(catalog, indexes);
+  return indexes;
+}
+
+function mappedEntry(modelId, pricing, mapping) {
+  const indexes = indexesFor(pricing.catalog);
+  const key = mapping === undefined ? pricing.automaticDefaults?.[modelId] : mapping.catalogKey;
+  if (key === null) return { entry: undefined, retained: null };
+  if (key === undefined) return { entry: indexes.byModel.get(modelId) ?? undefined, retained: null };
+  const entry = indexes.byKey.get(key);
+  const retained = entry === undefined ? pricing.retainedEntries?.[key] : null;
+  return { entry: entry ?? retained?.entry, retained };
+}
+
+function sourceForPrice(pricing, entry, mapping, retained) {
+  const manual = mapping?.rates;
+  if (manual && RATE_FIELDS.every((key) => Object.hasOwn(manual, key))) return 'manual';
+  if (retained) {
+    const source = `${retained.source}（旧目录价格，目录项已消失）`;
+    return manual ? `手动单价 + ${source}` : source;
+  }
+  if (manual) return 'manual';
   if (entry?.providerId === 'openrouter') return 'OpenRouter';
   return pricing.source;
 }
 
-function priceDescriptor(alias, pricing, entry, mapping) {
+function priceDescriptor(alias, pricing, entry, mapping, retained = null) {
   const base = entry ?? {};
   const override = mapping ?? {};
   return {
     catalogKey: base.key ?? null,
     provider: base.providerName ?? null,
     modelId: base.modelId ?? alias,
-    source: sourceForPrice(pricing, entry, mapping),
+    source: sourceForPrice(pricing, entry, mapping, retained),
     providerId: base.providerId,
     rates: { ...EMPTY_RATES, ...base.rates, ...override.rates },
     tiers: base.tiers,
@@ -438,9 +390,22 @@ function priceDescriptor(alias, pricing, entry, mapping) {
 export function resolvedPrice(modelId, pricing) {
   if (modelId === null) return null;
   const mapping = Object.hasOwn(pricing.mappings, modelId) ? pricing.mappings[modelId] : undefined;
-  const entry = mappedEntry(modelId, pricing, mapping);
+  const { entry, retained } = mappedEntry(modelId, pricing, mapping);
   if (entry === undefined && mapping?.rates === undefined) return null;
-  return priceDescriptor(modelId, pricing, entry, mapping);
+  return priceDescriptor(modelId, pricing, entry, mapping, retained);
+}
+
+export function suggestedPrice(modelId, pricing) {
+  if (modelId === null || Object.hasOwn(pricing.mappings, modelId)) return null;
+  const match = matcherFor(pricing)(modelId);
+  if (match === null) return null;
+  const price = priceDescriptor(modelId, pricing, match.entry, undefined);
+  return {
+    ...price,
+    name: match.entry.name,
+    matchKind: match.matchKind,
+    confidence: match.confidence,
+  };
 }
 
 function requestRates(record, price) {
