@@ -14,6 +14,56 @@
     }).observe(document.documentElement, { childList: true, subtree: true });
   };
 
+  window.__okwUsageCreateRenderers = ({ by, node, fmt, rate, usd }) => {
+    const setStatus = (name, message, kind = '') => {
+      const status = by(name);
+      status.textContent = message;
+      status.dataset.kind = kind;
+    };
+    const renderSummary = (data) => {
+      const totals = data.totals ?? {};
+      by('total').textContent = fmt(totals.totalTokens);
+      by('total-sub').textContent = `总输入 ${fmt(totals.totalInput)} · ${fmt(totals.requests)} 次请求`;
+      by('hit').textContent = rate(totals.cacheHitRate);
+      by('hit-sub').textContent = `缓存读取 ${fmt(totals.cacheRead)} / 总输入 ${fmt(totals.totalInput)}`;
+      by('cost').textContent = usd(totals.costUsd);
+      by('cost-sub').textContent = totals.costComplete
+        ? '当前单价估算，非实际账单'
+        : `${totals.costUsd == null ? '暂无可定价金额' : '已知部分小计'} · ` +
+          `${fmt(totals.unpricedRequests)} 次请求、${fmt(totals.unpricedTokens)} token 未定价`;
+      by('cost-sub').classList.toggle('okw-usage-warning', !totals.costComplete);
+    };
+    const renderBars = (host, items, labelOf) => {
+      host.replaceChildren();
+      const maximum = Math.max(1, ...items.map((item) => item.totalTokens ?? 0));
+      for (const item of items) {
+        const row = node('div', 'okw-usage-bar-row');
+        const label = node('span', 'okw-usage-bar-label', labelOf(item));
+        if (item.aliases?.length) label.title = `别名：${item.aliases.join('、')}`;
+        const track = node('span', 'okw-usage-bar-track');
+        const fill = node('span', 'okw-usage-bar-fill');
+        fill.style.width = `${Math.max(0, (item.totalTokens ?? 0) / maximum * 100)}%`;
+        track.append(fill);
+        row.append(label, track, node('strong', 'okw-usage-bar-value', fmt(item.totalTokens)));
+        host.append(row);
+      }
+      if (items.length === 0) host.append(node('p', 'okw-usage-muted', '所选范围内没有用量记录。'));
+    };
+    const showQuality = (quality) => {
+      const host = by('quality');
+      host.replaceChildren();
+      for (const note of quality?.notes ?? []) {
+        host.append(node('p', '', `${note.message}${note.count == null ? '' : `（${fmt(note.count)}）`}`));
+      }
+      host.hidden = host.childElementCount === 0;
+    };
+    return {
+      setStatus: (message, kind) => setStatus('status', message, kind),
+      priceStatus: (message, kind) => setStatus('price-status', message, kind),
+      renderSummary, renderBars, showQuality,
+    };
+  };
+
   const field = (node, label, control) => {
     const wrapper = node('label', 'okw-usage-field');
     wrapper.append(node('span', '', label), control);
@@ -62,7 +112,7 @@
     return controls;
   };
 
-  const buildOverview = (node) => {
+  const buildOverview = ({ node, button, showMoreModels }) => {
     const content = mark(node('div', 'okw-usage-content'), 'content');
     const summary = node('div', 'okw-usage-summary');
     for (const [name, label] of [['total', '总 token'], ['hit', '缓存命中率'], ['cost', 'API 等值费用']]) {
@@ -80,7 +130,7 @@
       if (name === 'distribution') {
         chart.tabIndex = 0;
         chart.setAttribute('role', 'region');
-        chart.setAttribute('aria-label', '模型分布，可滚动查看全部模型');
+        chart.setAttribute('aria-label', '模型分布，分批显示全部模型');
       }
       section.append(node('h3', '', label));
       if (name === 'distribution') section.append(mark(node('p', 'okw-usage-scroll-hint'), 'distribution-count'));
@@ -88,7 +138,7 @@
       charts.append(section);
     }
     content.append(charts);
-    const detail = node('section', 'okw-usage-section');
+    const detail = node('section', 'okw-usage-section okw-usage-table-section');
     detail.append(node('h3', '', '模型用量明细'));
     detail.append(node('p', 'okw-usage-disclosure',
       '基础单价：USD / 百万 token，依次为普通输入 / 缓存读取 / 缓存写入 / 输出。长上下文按每次请求选档。'));
@@ -104,20 +154,37 @@
     const scroller = node('div', 'okw-usage-table-scroll');
     scroller.tabIndex = 0;
     scroller.setAttribute('role', 'region');
-    scroller.setAttribute('aria-label', '模型用量明细，可滚动查看全部模型');
+    scroller.setAttribute('aria-label', '模型用量明细，分批显示全部模型');
     scroller.append(table);
-    detail.append(scroller, mark(node('p', 'okw-usage-muted', '暂无模型明细。'), 'table-empty'));
+    const more = mark(button('okw-usage-more', '继续显示模型', showMoreModels), 'models-more');
+    more.hidden = true;
+    detail.append(scroller, more, mark(node('p', 'okw-usage-muted', '暂无模型明细。'), 'table-empty'));
     content.append(detail, mark(node('div', 'okw-usage-quality'), 'quality'));
     return content;
   };
 
   const buildPricing = ({ node, button, by, showMapping, fillCatalog, fillEditModels,
-    showCatalogRateHint, saveMapping, refreshCatalog }) => {
+    showCatalogRateHint, saveMapping, refreshCatalog, confirmSuggestions, showMoreSuggestions }) => {
     const edit = node('section', 'okw-usage-section okw-usage-pricing');
     edit.append(node('h3', '', '价格与模型 ID 映射'), node('p', 'okw-usage-muted',
       '按真实模型 ID 保存映射，别名仅辅助展示。当前目录单价估算 API 等值费用；历史渠道可能不同。' +
       '目录未包含的缓存 TTL、特殊模态等计费差异不计入估算。'));
     edit.append(mark(node('p', 'okw-usage-legacy-warning'), 'legacy-warning'));
+    const suggestions = mark(node('div', 'okw-usage-suggestions'), 'suggestions');
+    suggestions.hidden = true;
+    const suggestionActions = node('div', 'okw-usage-price-actions okw-usage-suggestion-actions');
+    suggestionActions.append(mark(
+      button('okw-usage-primary', '确认并保存所选建议', confirmSuggestions),
+      'suggestions-save',
+    ));
+    suggestions.append(
+      node('h4', '', '自动匹配建议'),
+      mark(node('p', 'okw-usage-muted'), 'suggestions-summary'),
+      suggestionActions,
+      mark(node('div', 'okw-usage-suggestion-list'), 'suggestions-list'),
+      mark(button('okw-usage-more', '继续查看建议', showMoreSuggestions), 'suggestions-more'),
+    );
+    edit.append(suggestions);
     const editor = node('div', 'okw-usage-editor');
     const editSearch = mark(input(node, 'search'), 'edit-model-search');
     editSearch.placeholder = '搜索模型 ID';
@@ -183,10 +250,30 @@
     empty.hidden = models.length > 0;
   };
 
-  window.__okwUsageSetCountHints = (by, fmt, count) => {
+  window.__okwUsageRenderSuggestions = (host, items, selected, { node, rateText, toggleSuggestion }) => {
+    host.replaceChildren();
+    for (const item of items) {
+      const suggestion = item.suggestion;
+      const row = node('label', 'okw-usage-suggestion-row');
+      const control = node('input');
+      control.type = 'checkbox';
+      control.checked = selected.has(item.modelId);
+      control.addEventListener('change', (event) => toggleSuggestion(item.modelId, event.target.checked));
+      const content = node('span', 'okw-usage-suggestion-copy');
+      content.append(node('strong', '', item.modelId),
+        node('span', '', `→ ${suggestion.provider} / ${suggestion.name}`),
+        node('small', '', `${rateText(suggestion)} · ${suggestion.catalogKey}`));
+      row.append(control, content);
+      host.append(row);
+    }
+  };
+
+  window.__okwUsageSetCountHints = (by, fmt, shown, count) => {
     for (const [name, limit] of [['distribution', 8], ['table', 5]]) {
       const hint = by(`${name}-count`);
-      hint.textContent = `${fmt(count)} 项 · 滚动查看全部`;
+      hint.textContent = shown < count
+        ? `已显示 ${fmt(shown)} / ${fmt(count)} 项，可继续加载`
+        : `${fmt(count)} 项`;
       hint.hidden = count <= limit;
     }
   };
@@ -209,7 +296,7 @@
     heading.id = 'okw-usage-title';
     title.append(heading, node('p', 'okw-usage-muted', '本机已保存的 CLI、Web 与子 agent 用量'));
     head.append(title, button('okw-usage-close', '关闭 ×', close));
-    const content = buildOverview(node);
+    const content = buildOverview(actions);
     content.append(buildPricing(actions));
     const note = node('p', 'okw-usage-disclosure',
       '口径：按 Kimi 已记录的数据计算。缓存未上报可能记为 0；失败或中断且未落盘的请求不计入。' +

@@ -11,6 +11,14 @@
 [`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md)
 执行；实现、审查、截图和验收以该计划为基线，范围变化先同步文档。
 
+用量定价自动匹配、批量确认与大列表滚动性能按
+[`docs/plans/usage-pricing-auto-match-v2-plan.md`](docs/plans/usage-pricing-auto-match-v2-plan.md)
+执行；该计划补充并覆盖 v1 中逐模型映射和多层滚动的交互约定。
+
+价格刷新连续性、旧缓存恢复与 r5 发布按
+[`docs/plans/usage-pricing-refresh-v3-plan.md`](docs/plans/usage-pricing-refresh-v3-plan.md)
+执行；手工设置优先，保留默认来源及失效目录项的最后有效价格，旧包在新包发布成功后移除。
+
 手机提问卡片高度与长题干按已确认的
 [`docs/plans/mobile-question-height-v1-plan.md`](docs/plans/mobile-question-height-v1-plan.md)
 执行；保持既有外观，验证真实题干、拖动档位及选项可达性后发布。

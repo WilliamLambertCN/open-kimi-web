@@ -14,6 +14,7 @@
     "test:ut": "vitest run --config vitest.ut.config.ts --coverage",
     "test:it": "vitest run --config vitest.it.config.ts --coverage",
     "test:pack": "node scripts/pack-smoke.mjs",
+    "pricing:snapshot": "node scripts/update-pricing-snapshot.mjs",
     "audit": "corepack pnpm audit --prod",
     "licenses": "corepack pnpm licenses list --prod"
   },

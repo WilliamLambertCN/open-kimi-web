@@ -94,16 +94,21 @@ function catalogFetch(mode) {
     if (mode.status === 'offline') throw new Error('private backend detail');
     if (address === 'https://models.dev/api.json') {
       return Response.json({ test: { name: 'Test Provider', models: {
-        alpha: { name: 'Alpha', cost: { input: 1, output: 2, tiers: [
-          { input: 3, output: 4, tier: { type: 'context', size: 100 } },
-        ] } },
+        ...(mode.status === 'missing' ? {} : { alpha: { name: 'Alpha', cost: {
+          input: mode.status === 'changed' ? 5 : 1, output: 2, tiers: [
+            { input: 3, output: 4, tier: { type: 'context', size: 100 } },
+          ],
+        } } }),
+        beta: { cost: { input: 1, output: 2 } },
       } } });
     }
     if (address === 'https://openrouter.ai/api/v1/models') {
       return Response.json({ data: [{ id: 'test/alpha', name: 'Alpha Router', pricing: {
         prompt: '0.000001', completion: '0.000002',
         overrides: [{ min_prompt_tokens: 100, prompt: '0.000004' }],
-      } }] });
+      } }, ...(mode.status === 'duplicate' ? [{ id: 'alpha', pricing: {
+        prompt: '0.000009', completion: '0.000010',
+      } }] : [])] });
     }
     throw new Error('unexpected catalog URL');
   };
@@ -193,7 +198,24 @@ describe('launcher pricing catalog lifecycle', () => {
       expect(refreshed.status).toBe(200);
       const catalog = await refreshed.json();
       expect(catalog.source).toBe('models.dev + OpenRouter');
-      expect(catalog.catalog.map((item) => item.key)).toEqual(['test/alpha', 'openrouter:test/alpha']);
+      expect(catalog.catalog.map((item) => item.key)).toEqual([
+        'test/alpha', 'test/beta', 'openrouter:test/alpha',
+      ]);
+      expect(catalog.automaticDefaults.alpha).toBe('test/alpha');
+      const automatic = await (await request(launcher.url, usagePath)).json();
+      expect(automatic.totals.costUsd).toBeCloseTo(413 / 1_000_000);
+      expect(automatic.models[0].price.catalogKey).toBe('test/alpha');
+
+      mode.status = 'duplicate';
+      await request(launcher.url, `${pricePath}:refresh`, 'POST');
+      expect((await (await request(launcher.url, usagePath)).json()).totals.costUsd)
+        .toBeCloseTo(413 / 1_000_000);
+      mode.status = 'changed';
+      await request(launcher.url, `${pricePath}:refresh`, 'POST');
+      expect((await (await request(launcher.url, usagePath)).json()).totals.costUsd)
+        .toBeCloseTo(613 / 1_000_000);
+      mode.status = 'online';
+      await request(launcher.url, `${pricePath}:refresh`, 'POST');
 
       const mapped = await request(launcher.url, pricePath, 'PUT', {
         model: 'alpha', catalogKey: 'test/alpha', rates: {},
@@ -227,9 +249,18 @@ describe('launcher pricing catalog lifecycle', () => {
       const restored = await (await request(restarted.url, pricePath)).json();
       expect(restored.lastRefreshError).toContain('暂时无法连接');
       expect(restored.mappings.alpha.catalogKey).toBe('openrouter:test/alpha');
-      expect(restored.catalog.map((item) => item.key)).toEqual(['test/alpha', 'openrouter:test/alpha']);
+      expect(restored.catalog.map((item) => item.key)).toEqual([
+        'test/alpha', 'test/beta', 'openrouter:test/alpha',
+      ]);
       const usageResult = await (await request(restarted.url, usagePath)).json();
       expect(usageResult.totals.costUsd).toBeCloseTo(494 / 1_000_000);
+      const removed = await request(restarted.url, pricePath, 'PUT', { model: 'alpha', remove: true });
+      expect(removed.status).toBe(200);
+      mode.status = 'missing';
+      await request(restarted.url, `${pricePath}:refresh`, 'POST');
+      const stale = await (await request(restarted.url, usagePath)).json();
+      expect(stale.totals.costUsd).toBeCloseTo(413 / 1_000_000);
+      expect(stale.models[0].price.source).toContain('旧目录价格');
     } finally {
       await restarted.close();
     }
@@ -258,7 +289,9 @@ describe('launcher usage input errors', () => {
       });
       expect(invalid.status).toBe(400);
       const large = await fetch(`${launcher.url}${prefix}/pricing`, {
-        method: 'PUT', headers: { authorization: 'Bearer local-test-token' }, body: 'x'.repeat(17 * 1024),
+        method: 'PUT',
+        headers: { authorization: 'Bearer local-test-token' },
+        body: 'x'.repeat(1024 * 1024 + 1),
       });
       expect(large.status).toBe(413);
       const pricing = await (await request(launcher.url, `${prefix}/pricing`)).json();
