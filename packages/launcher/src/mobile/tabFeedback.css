@@ -1,0 +1,36 @@
+.okw-tab-feedback {
+  position: fixed;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px;
+  border: var(--p-hairline, 1px) solid var(--line);
+  border-radius: 6px;
+  background: var(--surface, var(--bg));
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--ui-font-size-sm, 12px);
+  line-height: 18px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.okw-tab-feedback-spinner {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--line);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: okw-tab-feedback-spin .8s linear infinite;
+}
+
+@keyframes okw-tab-feedback-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .okw-tab-feedback-spinner { animation-duration: 2s; }
+}
