@@ -4,6 +4,56 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.1.1-r6] - 2026-10-07（发布准备）
+
+继续兼容 Kimi Code `2.1.1`；新增图片完整预览与 tab 及时 Loading 反馈，保留 `r5` 的价格刷新修复。
+实际 `r6` tgz 验收进行中，尚未发布；以下开发验证不等同于实际发布包或发布后验收通过。
+
+- 官方默认 `fs:read` 只读 1 MiB；截断的 base64 图片改走官方鉴权 `fs/{path}:download` 获取完整内容。
+  显式部分读取、文本和无关请求保持官方行为；下载拒绝重定向，校验图片 MIME、原 size 和完整字节。
+  完整图片上限为 32 MiB；超限、下载失败或字节不全明确报错，绝不把截断半图当作成功预览。
+- tab 点击后在内容区提供临时 Loading 与滚圈，不阻挡点击或改变官方选中状态；原生 loading 出现后交回。
+  仅对关联的同源 transcript、fs:read 和分类列表响应交付作绘制让步，保留 Response、鉴权和取消语义。
+  快速 A→B→C 只保留当前反馈；错误、关闭及离开路由会清理，旧请求不能清掉新反馈。
+- 不修改官方 bundle、不使用 Vue 私有状态、不复制官方会话或文件状态，不接管内容 loader 或重放点击。
+- 开发验证已确认 lint、typecheck、55 文件／644 项 UT 和 6 文件／61 项 IT 通过；
+  UT 行／分支覆盖率为 85.80%／77.37%，IT 为 89.90%／77.02%，未修改覆盖率门槛。
+- 当前 GitHub 查询确认 `r1` 的 Release 已无，`r2`–`r4` 的 Release 资产均为空；
+  保留历史 tag 与 Release，不再计划删除资产，本版不改 `r5` 或其它 Release。
+
+### 事件：大图片预览只显示上部，下部出现灰块或棋盘
+
+- 影响：打开图片文件时，下部内容可能缺失，却仍显示为可用的图片预览。
+- 触发条件：官方 `2.1.1` 默认图片读取超过 1 MiB，响应为 base64 且 `truncated=true`。
+- 根因：默认 read 只读取前 1 MiB，前端丢弃 truncated 后将其交给图片解码；PNG 解码成功不代表字节完整。
+  原测试未覆盖截断 PNG 仍可解码并呈现不完整底部的场景。
+- 证据：隔离 Chrome 的虚构 2.69 MB PNG 复现上部正常、下部透明棋盘；默认 read 返回截断数据。
+- 修复：在独立注入层识别默认截断图片，复用官方鉴权 download；图片扩展名的 FS_TOO_LARGE 也可转下载。
+  校验 MIME、原 size／content-length 与实际字节，完整内容不超过 32 MiB；失败明确，不能退回半图。
+  显式部分读取不变，沿用授权、credentials 和 signal；不记录或持久化图片、路径与 token。
+- 回归验证：定向 UT 覆盖 Request/init、透传、安全边界、失败、取消和大文件；IT 核对资产和 module 前顺序。
+  Chrome 开发自检覆盖 opaque、transparent 和 >10 MiB 图片，正常透明棋盘保留；实际 r6 tgz 验收尚在进行。
+- 运维动作：升级后重启 launcher 并刷新或重新打开页面；无需删除官方缓存、图片或会话数据。
+- 剩余边界：未读取用户图片或公开用户截图；完整下载超过 32 MiB 明确失败，未声称实际发布包已通过。
+
+### 事件：tab 点击后缺少及时反馈，加载或渲染期间显得不跟手
+
+- 影响：切换会话、分类或右侧文件 tab 时，内容等待与同步渲染会让点击看起来没有及时响应。
+- 触发条件：官方 `2.1.1` 的网络加载、快速慢 B→快 C 切换，以及较大的内联文本或缓存会话渲染。
+- 根因：会话 spinner 有官方 250 ms 延迟；响应交付后的同步渲染可能占住主线程，反馈没有绘制机会。
+  官方文件 tab 原本已先选中并显示 spinner；增强 observer 单次约 1–2 ms，未据此改写状态或 observer。
+- 证据：真实官方 app 使用虚构 REST／WS，14 组桌面／手机与七套外观中，56 次网络路径目标点击
+  到 rAF 后可见任务为 4.6–31.1 ms，均有官方 selected／route 与 spinner，并结合 screencast 和实图核对。
+  这是绘制机会，不是系统显示延迟；原回归没有覆盖完整官方 app 的点击到可见任务与同步大内容边界。
+- 修复：capture 仅观察语义入口，内容区显示不挡操作的 Loading；关联响应交付在 rAF 后任务让步。
+  原生 loading 出现后交回，缓存／内联无请求时最迟下一可见帧收尾；不把点击意图当作加载成功。
+  不修改 bundle、读取 Vue 私有状态或复制内容状态，继续让官方 generation 处理内容竞态。
+- 回归验证：真实 app 中慢 B、快 C、分类错误／重试、快速点击和关闭均无残留，旧响应没有覆盖 C。
+  tab UT 9 项、注入 IT 5 项通过，与图片 guard 合跑 88 项通过；完整 UT 644 项、IT 61 项及 lint/typecheck 通过。
+- 运维动作：升级后重启 launcher 并刷新页面；无需清缓存或迁移会话，旧页面不会热加载新增资源。
+- 剩余边界：约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，均存在主线程阻塞。
+  安全外层没有拆分官方同步渲染的公开 hook，不宣称所有 tab 卡顿已修复；实际 tgz 与实体设备验收不在上述结论内。
+
 ## [open-kimi-web v2.1.1-r5] - 2026-09-29
 
 继续兼容 Kimi Code `2.1.1`；价格刷新保留原默认来源和已保存的手动设置，旧缓存自动兼容。
@@ -18,8 +68,7 @@
 - 目录刷新为各真实模型 ID 单独保留原默认选择，手动映射和手动单价优先；
   同一目录键用新价，缺失键沿用上次有效价格及阶梯价，并标为旧价。
   旧 `r4` 缓存按内置已知来源自动恢复，无需删除本机价格缓存或迁移会话数据。
-- `r1` 已撤回。`r5` 发布成功后撤下 `r2`–`r4` 的旧 tgz 安装包，保留这些版本的 tag 与 Release；
-  本记录不表示旧 tgz 已被删除。
+- 旧包清理状态见上方 `r6`：`r2`–`r4` 的 Release 资产当前均为空，保留历史 tag 与 Release；不再计划删除。
 
 ### 事件：用量统计脚本部分加载导致价格刷新后只显示摘要
 
@@ -396,3 +445,4 @@
 [open-kimi-web v2.1.1-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r3
 [open-kimi-web v2.1.1-r4]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r4
 [open-kimi-web v2.1.1-r5]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r5
+[open-kimi-web v2.1.1-r6]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r6

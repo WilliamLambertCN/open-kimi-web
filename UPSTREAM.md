@@ -12,10 +12,12 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r5`, still based on `2.1.1`.
-  The earlier `2.1.1-r1` was withdrawn after the archive loop was confirmed; `r2`–`r4` remain historical releases.
-  `r5` includes usage pricing auto-match, batch confirmation, pagination, a complete usage bundle and pricing
-  refresh continuity. After `r5` is released, retire only the older `r2`–`r4` tgz assets; retain tags and releases.
+- Open Kimi Web version: `2.1.1-r6` (release preparation), still based on `2.1.1`.
+  `r6` adds complete image previews and timely tab Loading feedback, retaining the `r5` pricing fixes.
+  The actual `r6` tgz acceptance is in progress; this record does not claim package acceptance or publication.
+  The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
+  The current GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
+  No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
 - Machine-readable upstream version and historical contract records: `upstream.json`.
 
 `r5` keeps manual mappings and rates ahead of automatic defaults. Each model's original default catalog key
@@ -24,6 +26,29 @@ the last valid entry remains available with an old-price source label. `r4` cach
 built-in origins, never fuzzy suggestions for billing. The earlier `r4` refresh with 7,932 entries left
 13 built-in models unpriced; a live public catalog with 7,926 entries was checked after the fix, and all
 13 retained their original keys with updated rates. These checks did not access a user's actual local data.
+
+In `2.1.1`, default `fs:read` reads only 1 MiB; a truncated PNG can still decode with an incomplete bottom.
+The image guard uses the authenticated official `fs/{path}:download` endpoint for truncated base64 images.
+Explicit partial reads and non-image requests retain upstream behavior. Downloads reject redirects and
+validate image MIME, expected size and complete bytes, with a 32 MiB limit. Failures are explicit; the guard
+never returns a partial image as a successful full preview. Page authorization, credentials and cancellation
+remain intact; no image data, paths or tokens are logged or persisted.
+Chrome development self-checks covered opaque, transparent and over-10-MiB images; normal transparency is
+preserved. These are not acceptance results for the actual release package or a user's images.
+
+The tab layer observes semantic click targets and adds temporary, non-intercepting Loading feedback.
+It yields related same-origin transcript, file-read and category-list response delivery for a paint opportunity,
+then returns control to native Loading. It does not modify the official bundle, use Vue private state,
+copy official session/file state, replay clicks or replace content loaders. Rapid clicks keep only current
+feedback; stale responses, errors, closing and navigation clean it up without taking over upstream generation.
+The real official `2.1.1` app, with fictional API data, was checked in 14 desktop/mobile appearance groups:
+56 network-path clicks reached a visible post-rAF task in 4.6–31.1 ms with native selection/route and spinner.
+Slow B then fast C, category errors/retry and closing left no stale feedback or old-response overwrite.
+This measures a paint opportunity, not operating-system display latency or physical-device acceptance.
+About 2.1 MB of inline text still took 453.6 ms, and a cached 45-turn session took 152 ms; both remain blocking.
+There is no public outer-layer hook to split upstream synchronous rendering, so not all tab stalls are fixed.
+The confirmed development checks are lint, typecheck, 644 unit tests and 61 integration tests; actual tgz
+acceptance and release verification remain pending.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
 the integrity comes from npm package metadata. Static inspection of the
@@ -63,7 +88,7 @@ The `0.43.1` compatibility audit established that, during a running turn,
 the regular `.send` control creates a queued prompt. Steering a specific new
 prompt requires `POST /api/v1/sessions/{session_id}/prompts:steer` with its
 `prompt_id`; `Ctrl+S` promotes the existing queue head. The `2.1.1` bundle
-still contains the steer path, but this release has not been checked through
+still contains the steer path, but that steer flow has not been checked through
 a real-browser click-through or live server protocol validation.
 
 In `2.1.1`, `SideChatPanel` watches a summary of the latest turn and assigns
