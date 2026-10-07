@@ -11,9 +11,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r6][latest-release]（发布准备），兼容基线为 Kimi Code `2.1.1`。**
+> **当前版本：[v2.1.1-r6][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
 > 新增图片完整预览与 tab 及时 Loading 反馈；保留 r5 的价格自动匹配、批量确认和刷新连续性修复。
-> 实际 r6 tgz 验收进行中，尚未发布；下方固定安装 URL 在发布后可用。
+> 实际 r6 tgz 已完成隔离安装、启动和浏览器验收；完整验证边界见下方说明。
 > 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
@@ -108,13 +108,16 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
   `open Kimi-Code web`；`--web-dir` 提供用户构建时不注入这些增强。
 
-本版开发验证：Chrome 自检已覆盖 opaque、transparent 和 >10 MiB 图片，不隐藏正常透明棋盘。
-真实官方 `2.1.1` app 配合虚构 API，在 14 组桌面／手机与七套外观中完成 56 次网络路径目标点击，
-rAF 后可见任务为 4.6–31.1 ms，均有官方选中／路由与 spinner；慢 B→快 C、错误及关闭清理通过。
-此指标是绘制机会，不是系统显示延迟。约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，
+实际 r6 tgz 的等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图：opaque 2.69 MB、transparent 1.57 MB、
+>10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确，不隐藏正常透明棋盘。
+此矩阵不同于完整 app 验收：另以官方 `2.1.1` 完整 app 动态 import 实际解包的 officialPresentation 资源，
+4 张 PNG 的原生 `.fp-image` 完成 read 1 MiB→download；opaque 3,148,932 bytes、透明 1,833,306 bytes，
+底部 RGBA 及原生 Fit→Actual→Fit 正确。原始桌面、夜幕手机两组 8 次点击绘制机会为 9.8–34.5 ms，
+慢 B→快 C、失败及关闭通过。此前 14 组／56 次点击的 4.6–31.1 ms 与清理验证仍保留。
+这些指标是绘制机会，不是系统显示延迟。约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，
 两者仍阻塞主线程；安全外层没有拆分官方同步渲染的公开 hook，不能宣称所有 tab 卡顿都已修复。
-已确认 lint、typecheck、644 项 UT 和 61 项 IT 通过；实际 r6 tgz 验收尚在进行，未声称发布包已通过或已经发布。
-未读取用户图片或公开用户截图，实体设备上的实际操作尚未验证。
+lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包安装启动通过，PR #22 CI 已绿。
+未读取用户实际数据或公开用户截图，实体设备上的实际操作尚未验证。
 
 ## 界面预览
 
@@ -184,9 +187,9 @@ rAF 后可见任务为 4.6–31.1 ms，均有官方选中／路由与 spinner；
 下载官方界面还需 PATH 中有 `curl` 和 `tar`；源码安装另外需要 Git 和 Corepack。
 本项目当前不发布到 npm registry，请使用 GitHub Release 的固定版本 tgz，或从 main 源码安装。
 
-**安装发布包（r6 发布后）：**
+**安装发布包：**
 
-实际 r6 tgz 验收进行中，尚未发布；以下固定 URL 不表示资产已经可下载。
+实际 r6 tgz 的隔离验收通过；GitHub 资产可用性以对应 Release 页面为准。
 
 ```sh
 npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r6/open-kimi-web-2.1.1-r6.tgz
@@ -262,7 +265,7 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-**已有全局 tgz 安装：** r6 发布后再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r6`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r6`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 

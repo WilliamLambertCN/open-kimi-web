@@ -6,8 +6,8 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.1.1-r6` 正在准备发布，实际 tgz 验收进行中，尚未发布。
-下方 GitHub Release 固定安装 URL 在发布后可用：
+本项目当前不发布到 npm registry。`v2.1.1-r6` 实际 tgz 的隔离安装、启动及浏览器验收通过。
+通过 GitHub Release 固定版本 URL 安装：
 
 ```sh
 npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r6/open-kimi-web-2.1.1-r6.tgz
@@ -41,11 +41,15 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 快速点击只保留当前反馈，慢 B→快 C 的旧响应、错误和关闭均会正确收尾；内容竞态仍由官方 generation 处理。
 不改官方 bundle，不用 Vue 私有状态，不复制官方会话／文件状态或接管内容 loader。
 
-Chrome 开发自检覆盖 opaque、transparent 和 >10 MiB 图片。真实官方 app 配合虚构 API，
-在 14 组桌面／手机与七套外观中验证 56 次网络路径点击，rAF 后可见任务为 4.6–31.1 ms，均有选中／路由与 spinner。
-这是绘制机会，不是系统显示延迟；约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，仍会阻塞。
-安全外层没有拆分官方同步渲染的公开 hook，不宣称所有 tab 卡顿已消除。
-开发 lint、typecheck、644 项 UT、61 项 IT 已通过；实际 r6 tgz 验收及实体设备验证不在这些结论内。
+最终验收：实际 r6 tgz 等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图；opaque 2.69 MB、transparent 1.57 MB、
+>10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确；这不是完整 app 验收。
+另以完整官方 `2.1.1` app 动态 import 实际解包的 officialPresentation 资源，4 张 PNG 使用原生 `.fp-image`，
+read 1 MiB→download 完整 opaque 3,148,932 bytes、透明 1,833,306 bytes，底部 RGBA 与 Fit→Actual→Fit 通过。
+原始桌面、夜幕手机两组共 8 次点击的绘制机会为 9.8–34.5 ms，slow B→fast C、失败及关闭通过。
+此前 14 组／56 次网络路径点击的 4.6–31.1 ms 与清理验证保留；指标是绘制机会，不是系统显示延迟。
+约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，仍会阻塞；不宣称所有 tab 卡顿已消除。
+lint、typecheck、644 项 UT、61 项 IT、test:pack 与实际包安装启动通过，PR #22 CI 已绿。
+实体设备与用户实际数据未验证，不公开用户截图。
 
 ## 模型用量与 API 成本统计
 
@@ -113,7 +117,7 @@ Side Chat 运行中，向上滚动后会保持阅读位置；滚回底部后继�
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后必须结束旧进程并重新启动，
 再刷新或重新打开页面。`--web-dir` 不注入展示层及主题功能。已检查的官方组件版本为
-`2.1.1`（静态审计、自动化回归及虚构 API 下的隔离官方 app 开发验证；非实际 tgz 验收）。
+`2.1.1`（静态审计、自动化回归及实际 tgz 资源在虚构 API 下的完整官方 app 隔离验收）。
 
 ## 接管（可选）
 

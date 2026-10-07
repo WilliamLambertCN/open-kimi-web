@@ -61,7 +61,11 @@
 
 - 实际 r6 tgz 用隔离 HTTP 后端、真实 PNG 和 Chrome 复现官方 1 MiB 截断读取；比较修复前后底部 alpha。
 - 覆盖小/大/透明图、窄屏/桌面、原尺寸/适应切换、失败状态，不隐藏正常透明棋盘。
-- 全部 lint、typecheck、UT/IT及覆盖率门槛、test:pack，130列和 git diff --check。
+- 已通过 lint、typecheck、644 UT、61 IT及覆盖率门槛、实际安装 test:pack、130列和 diff 检查。
+- 实际 r6 解包资源的图片矩阵完成 115 断言、110 实图，全 RGBA 正确；等价组件矩阵不冒充完整官方 UI。
+  另在完整官方 2.1.1 app 的桌面与手机加载实际包注入资源，8 次切换反馈为 9.8–34.5 ms 绘制机会；
+  4 次原生图片预览完成 1 MiB 截断→完整下载，底部 RGBA 正确，Fit→Actual→Fit 控件通过。
+  仍未消除已记录的大内联文本与缓存长会话同步渲染阻塞，不以网络路径验收覆盖该边界。
 - 同步 launcher/plugin/README/package README/UPSTREAM/CHANGELOG 为 r6，记录事件根因、验证和剩余边界。
 - privacy-check 只审实际新 diff/新增历史/实际 tgz；不用用户截图作公开媒体。
 - 已核对 develop 与 main 的文件相同，但 squash 历史使 develop 携带许多旧祖先及个人邮箱。
