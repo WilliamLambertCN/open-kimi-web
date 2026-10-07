@@ -11,8 +11,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r5][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 包含价格自动匹配、批量确认、分批展示、完整用量 bundle 和价格刷新连续性修复。
+> **当前版本：[v2.1.1-r6][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 新增图片完整预览与 tab 及时 Loading 反馈；保留 r5 的价格自动匹配、批量确认和刷新连续性修复。
+> 实际 r6 tgz 已完成隔离安装、启动和浏览器验收；完整验证边界见下方说明。
 > 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
@@ -91,6 +92,12 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   保留该标题；手动重命名与主动重新生成标题继续使用官方接口。
 - **归档会话删除**：已归档设置页和首页“已完成”列表提供永久删除；仅为唯一匹配项显示入口，
   二次确认后调用 Kimi Code 官方正式删除接口。
+- **图片完整预览**：官方默认 `fs:read` 只读 1 MiB；截断 base64 图片通过官方鉴权 `fs/{path}:download`
+  获取完整内容，校验图片 MIME、原 size 与实际字节，上限 32 MiB。下载失败、超限或字节不全明确报错，
+  不把半图当成功；正常透明区域保留。显式部分读取、文本和无关请求不变，不记录或持久化图片、路径与 token。
+- **tab 及时反馈**：切换会话、分类和右侧文件 tab 时显示不挡操作的 Loading 与滚圈；关联响应交付
+  让出一次绘制机会，原生 loading 出现后交回。快速点击只保留当前反馈，慢 B→快 C、错误和关闭均会清理。
+  不改官方 bundle、不用 Vue 私有状态、不复制官方会话／文件状态，内容竞态仍由官方 generation 处理。
 - **发送与阅读体验**：会话运行中可在桌面和手机使用“插队”按钮；按钮通过官方 `.send`
   创建当前 queued prompt，再按精确 `prompt_id` 调用 `prompts:steer`。官方快捷键仍由上游处理。
   工具调用完成后默认保持展开，已有手动偏好继续生效。Side Chat 流式输出仅在阅读位置仍在底部时
@@ -100,6 +107,17 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   申请，设置中的主动重试仍可用。
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
   `open Kimi-Code web`；`--web-dir` 提供用户构建时不注入这些增强。
+
+实际 r6 tgz 的等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图：opaque 2.69 MB、transparent 1.57 MB、
+>10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确，不隐藏正常透明棋盘。
+此矩阵不同于完整 app 验收：另以官方 `2.1.1` 完整 app 动态 import 实际解包的 officialPresentation 资源，
+4 张 PNG 的原生 `.fp-image` 完成 read 1 MiB→download；opaque 3,148,932 bytes、透明 1,833,306 bytes，
+底部 RGBA 及原生 Fit→Actual→Fit 正确。原始桌面、夜幕手机两组 8 次点击绘制机会为 9.8–34.5 ms，
+慢 B→快 C、失败及关闭通过。此前 14 组／56 次点击的 4.6–31.1 ms 与清理验证仍保留。
+这些指标是绘制机会，不是系统显示延迟。约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，
+两者仍阻塞主线程；安全外层没有拆分官方同步渲染的公开 hook，不能宣称所有 tab 卡顿都已修复。
+lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包安装启动通过，PR #22 CI 已绿。
+未读取用户实际数据或公开用户截图，实体设备上的实际操作尚未验证。
 
 ## 界面预览
 
@@ -171,8 +189,10 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 
 **安装发布包：**
 
+实际 r6 tgz 的隔离验收通过；GitHub 资产可用性以对应 Release 页面为准。
+
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r5/open-kimi-web-2.1.1-r5.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r6/open-kimi-web-2.1.1-r6.tgz
 open-kimi-web integrate install
 ```
 
@@ -245,7 +265,7 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r5`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r6`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -385,4 +405,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r5
+[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r6

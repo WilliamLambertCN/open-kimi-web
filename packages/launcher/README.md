@@ -6,16 +6,18 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。通过 GitHub Release 安装 `v2.1.1-r5` 固定版本 tgz：
+本项目当前不发布到 npm registry。`v2.1.1-r6` 实际 tgz 的隔离安装、启动及浏览器验收通过。
+通过 GitHub Release 固定版本 URL 安装：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r5/open-kimi-web-2.1.1-r5.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r6/open-kimi-web-2.1.1-r6.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r5` 仍兼容 Kimi Code `2.1.1`。手机提问卡片支持长题干与选项共同滚动，
-也可拖动高度并保存当前浏览器和站点的档位；包含模型用量统计、归档删除与长会话性能增强。
-价格支持离线快照、联网刷新、真实模型 ID 自动建议和批量确认；模糊建议不直接计费。
+`2.1.1-r6` 仍兼容 Kimi Code `2.1.1`。新增图片完整预览与 tab 及时 Loading 反馈。
+手机提问卡片支持长题干与选项共同滚动，也可拖动高度并保存当前浏览器和站点的档位；
+包含模型用量统计、归档删除与长会话性能增强。
+保留 r5 的价格修复：离线快照、联网刷新、真实模型 ID 自动建议和批量确认，模糊建议不直接计费。
 手动映射和单价优先；目录刷新沿用各模型原默认键，缺失键保留上次有效价格并标出旧价。
 
 也可从源码安装：
@@ -28,6 +30,26 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
 已有接管时，切换安装方式或目录还需要按下方“升级”说明更新入口。
+
+## 图片完整预览与 tab 反馈
+
+官方默认 `fs:read` 只读 1 MiB；截断的 base64 图片通过官方鉴权 `fs/{path}:download` 获取完整内容。
+显式部分读取、文本和无关请求不变；下载拒绝重定向，校验图片 MIME、原 size 与实际字节，上限 32 MiB。
+超限、下载失败或字节不全明确报错，不退回半图；正常透明区域继续显示，不记录或持久化图片、路径与 token。
+
+会话、分类和右侧文件 tab 提供不挡操作的 Loading 与滚圈；关联响应交付让出一次绘制机会，原生 loading 出现后交回。
+快速点击只保留当前反馈，慢 B→快 C 的旧响应、错误和关闭均会正确收尾；内容竞态仍由官方 generation 处理。
+不改官方 bundle，不用 Vue 私有状态，不复制官方会话／文件状态或接管内容 loader。
+
+最终验收：实际 r6 tgz 等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图；opaque 2.69 MB、transparent 1.57 MB、
+>10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确；这不是完整 app 验收。
+另以完整官方 `2.1.1` app 动态 import 实际解包的 officialPresentation 资源，4 张 PNG 使用原生 `.fp-image`，
+read 1 MiB→download 完整 opaque 3,148,932 bytes、透明 1,833,306 bytes，底部 RGBA 与 Fit→Actual→Fit 通过。
+原始桌面、夜幕手机两组共 8 次点击的绘制机会为 9.8–34.5 ms，slow B→fast C、失败及关闭通过。
+此前 14 组／56 次网络路径点击的 4.6–31.1 ms 与清理验证保留；指标是绘制机会，不是系统显示延迟。
+约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，仍会阻塞；不宣称所有 tab 卡顿已消除。
+lint、typecheck、644 项 UT、61 项 IT、test:pack 与实际包安装启动通过，PR #22 CI 已绿。
+实体设备与用户实际数据未验证，不公开用户截图。
 
 ## 模型用量与 API 成本统计
 
@@ -95,7 +117,7 @@ Side Chat 运行中，向上滚动后会保持阅读位置；滚回底部后继�
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后必须结束旧进程并重新启动，
 再刷新或重新打开页面。`--web-dir` 不注入展示层及主题功能。已检查的官方组件版本为
-`2.1.1`（静态审计、自动化回归与隔离浏览器滚动验证）。
+`2.1.1`（静态审计、自动化回归及实际 tgz 资源在虚构 API 下的完整官方 app 隔离验收）。
 
 ## 接管（可选）
 

@@ -159,6 +159,9 @@ async function expectPresentationAssets(baseUrl) {
     'foldingDefaults.js',
     'workspaceSortDefault.js',
     'forkTitleGuard.js',
+    'imagePreviewGuard.js',
+    'tabFeedback.js',
+    'tabFeedback.css',
     'sideChatScroll.js',
     'notificationPermission.js',
     'completionModal.css',
@@ -271,6 +274,11 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('foldingDefaults.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('workspaceSortDefault.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('forkTitleGuard.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText.indexOf('imagePreviewGuard.js')).toBeGreaterThan(-1);
+      expect(indexText.indexOf('imagePreviewGuard.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText.indexOf('tabFeedback.js')).toBeGreaterThan(-1);
+      expect(indexText.indexOf('tabFeedback.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText).toContain('/__open-kimi-mobile/tabFeedback.css');
       expect(indexText.indexOf('sideChatScroll.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('notificationPermission.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('completionModal.js')).toBeLessThan(indexText.indexOf('<script type="module"'));

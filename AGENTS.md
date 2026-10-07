@@ -19,6 +19,10 @@
 [`docs/plans/usage-pricing-refresh-v3-plan.md`](docs/plans/usage-pricing-refresh-v3-plan.md)
 执行；手工设置优先，保留默认来源及失效目录项的最后有效价格，旧包在新包发布成功后移除。
 
+图片完整预览、tab 及时切换反馈与 r6 发布按
+[`docs/plans/image-preview-complete-v1-plan.md`](docs/plans/image-preview-complete-v1-plan.md)
+执行；保留官方鉴权与状态边界，不把截断图当完整图，不以加载等待阻塞 tab 点击反馈。
+
 手机提问卡片高度与长题干按已确认的
 [`docs/plans/mobile-question-height-v1-plan.md`](docs/plans/mobile-question-height-v1-plan.md)
 执行；保持既有外观，验证真实题干、拖动档位及选项可达性后发布。
