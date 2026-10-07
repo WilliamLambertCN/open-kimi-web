@@ -6,6 +6,9 @@ const FILES = new Map([
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['workspaceSortDefault.js', 'text/javascript; charset=utf-8'],
   ['forkTitleGuard.js', 'text/javascript; charset=utf-8'],
+  ['imagePreviewGuard.js', 'text/javascript; charset=utf-8'],
+  ['tabFeedback.js', 'text/javascript; charset=utf-8'],
+  ['tabFeedback.css', 'text/css; charset=utf-8'],
   ['sideChatScroll.js', 'text/javascript; charset=utf-8'],
   ['notificationPermission.js', 'text/javascript; charset=utf-8'],
   ['completionModal.css', 'text/css; charset=utf-8'],
@@ -39,6 +42,8 @@ const SCRIPTS = [
   'foldingDefaults.js',
   'workspaceSortDefault.js',
   'forkTitleGuard.js',
+  'imagePreviewGuard.js',
+  'tabFeedback.js',
   'sideChatScroll.js',
   'notificationPermission.js',
   'completionModal.js',
@@ -58,6 +63,7 @@ const STYLES = [
   'archivedSessionDelete.css',
   'completionModal.css',
   'usage.css',
+  'tabFeedback.css',
 ];
 
 // Serve the presentation layer from the installed launcher, so existing
