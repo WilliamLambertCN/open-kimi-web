@@ -11,6 +11,7 @@
 - [用量统计](docs/plans/usage-statistics-v1-plan.md)
 - [自动匹配价格](docs/plans/usage-pricing-auto-match-v2-plan.md)
 - [价格刷新连续性](docs/plans/usage-pricing-refresh-v3-plan.md)
+- [完整图片预览](docs/plans/image-preview-complete-v1-plan.md)
 - [手机提问卡片](docs/plans/mobile-question-height-v1-plan.md)
 
 ## 项目边界
