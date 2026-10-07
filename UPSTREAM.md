@@ -12,9 +12,9 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r6` (release preparation), still based on `2.1.1`.
+- Open Kimi Web version: `2.1.1-r6`, still based on `2.1.1`.
   `r6` adds complete image previews and timely tab Loading feedback, retaining the `r5` pricing fixes.
-  The actual `r6` tgz acceptance is in progress; this record does not claim package acceptance or publication.
+  Actual `r6` tgz installation, startup and browser acceptance passed; use the fixed GitHub Release URL.
   The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
   The current GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
@@ -33,8 +33,12 @@ Explicit partial reads and non-image requests retain upstream behavior. Download
 validate image MIME, expected size and complete bytes, with a 32 MiB limit. Failures are explicit; the guard
 never returns a partial image as a successful full preview. Page authorization, credentials and cancellation
 remain intact; no image data, paths or tokens are logged or persisted.
-Chrome development self-checks covered opaque, transparent and over-10-MiB images; normal transparency is
-preserved. These are not acceptance results for the actual release package or a user's images.
+The actual r6 tgz equivalent-image Chrome pixel matrix passed 115 assertions with 110 screenshots: opaque
+2.69 MB, transparent 1.57 MB, over-10-MiB images, failures and Fit/Actual across all themes. Full RGBA and
+normal transparency were correct. This pixel matrix is distinct from complete official-app acceptance.
+Separately, the complete official `2.1.1` app dynamically imported the unpacked package's officialPresentation
+resources. Four PNGs used native `.fp-image`, reading 1 MiB before downloading full opaque 3,148,932-byte and
+transparent 1,833,306-byte files; bottom RGBA and native Fit-to-Actual-to-Fit passed.
 
 The tab layer observes semantic click targets and adds temporary, non-intercepting Loading feedback.
 It yields related same-origin transcript, file-read and category-list response delivery for a paint opportunity,
@@ -44,11 +48,13 @@ feedback; stale responses, errors, closing and navigation clean it up without ta
 The real official `2.1.1` app, with fictional API data, was checked in 14 desktop/mobile appearance groups:
 56 network-path clicks reached a visible post-rAF task in 4.6–31.1 ms with native selection/route and spinner.
 Slow B then fast C, category errors/retry and closing left no stale feedback or old-response overwrite.
-This measures a paint opportunity, not operating-system display latency or physical-device acceptance.
+Actual unpacked resources also passed complete-app checks in original desktop and Nocturne mobile: eight
+clicks had 9.8–34.5 ms paint opportunities; slow B/fast C, failure and closing passed.
+These measure paint opportunities, not operating-system display latency or physical-device acceptance.
 About 2.1 MB of inline text still took 453.6 ms, and a cached 45-turn session took 152 ms; both remain blocking.
 There is no public outer-layer hook to split upstream synchronous rendering, so not all tab stalls are fixed.
-The confirmed development checks are lint, typecheck, 644 unit tests and 61 integration tests; actual tgz
-acceptance and release verification remain pending.
+lint, typecheck, 644 unit tests, 61 integration tests, test:pack and actual package installation/startup passed;
+PR #22 CI is green. Physical devices and users' actual data were not tested.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
 the integrity comes from npm package metadata. Static inspection of the
