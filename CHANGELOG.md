@@ -4,10 +4,10 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
-## [open-kimi-web v2.1.1-r6] - 2026-10-07（发布准备）
+## [open-kimi-web v2.1.1-r6] - 2026-10-07
 
 继续兼容 Kimi Code `2.1.1`；新增图片完整预览与 tab 及时 Loading 反馈，保留 `r5` 的价格刷新修复。
-实际 `r6` tgz 验收进行中，尚未发布；以下开发验证不等同于实际发布包或发布后验收通过。
+实际 `r6` tgz 隔离安装、启动及浏览器验收通过；安装使用 GitHub Release 的固定版本 URL。
 
 - 官方默认 `fs:read` 只读 1 MiB；截断的 base64 图片改走官方鉴权 `fs/{path}:download` 获取完整内容。
   显式部分读取、文本和无关请求保持官方行为；下载拒绝重定向，校验图片 MIME、原 size 和完整字节。
@@ -16,7 +16,7 @@
   仅对关联的同源 transcript、fs:read 和分类列表响应交付作绘制让步，保留 Response、鉴权和取消语义。
   快速 A→B→C 只保留当前反馈；错误、关闭及离开路由会清理，旧请求不能清掉新反馈。
 - 不修改官方 bundle、不使用 Vue 私有状态、不复制官方会话或文件状态，不接管内容 loader 或重放点击。
-- 开发验证已确认 lint、typecheck、55 文件／644 项 UT 和 6 文件／61 项 IT 通过；
+- lint、typecheck、55 文件／644 项 UT、6 文件／61 项 IT、test:pack 与实际包安装启动通过，PR #22 CI 已绿；
   UT 行／分支覆盖率为 85.80%／77.37%，IT 为 89.90%／77.02%，未修改覆盖率门槛。
 - 当前 GitHub 查询确认 `r1` 的 Release 已无，`r2`–`r4` 的 Release 资产均为空；
   保留历史 tag 与 Release，不再计划删除资产，本版不改 `r5` 或其它 Release。
@@ -32,9 +32,12 @@
   校验 MIME、原 size／content-length 与实际字节，完整内容不超过 32 MiB；失败明确，不能退回半图。
   显式部分读取不变，沿用授权、credentials 和 signal；不记录或持久化图片、路径与 token。
 - 回归验证：定向 UT 覆盖 Request/init、透传、安全边界、失败、取消和大文件；IT 核对资产和 module 前顺序。
-  Chrome 开发自检覆盖 opaque、transparent 和 >10 MiB 图片，正常透明棋盘保留；实际 r6 tgz 验收尚在进行。
+  实际 r6 tgz 等价图片 Chrome 矩阵完成 115 项断言、110 张截图；opaque 2.69 MB、transparent 1.57 MB、
+  >10 MiB、失败与 Fit／Actual 的全部主题检查通过，完整 RGBA 正确。这是等价像素矩阵，不是完整 app 验收。
+  另以完整官方 `2.1.1` app 动态 import 实际解包的 officialPresentation 资源，4 张 PNG 使用原生 `.fp-image`；
+  默认 read 1 MiB 后 download 完整 opaque 3,148,932 bytes、透明 1,833,306 bytes，底部 RGBA 与 Fit→Actual→Fit 通过。
 - 运维动作：升级后重启 launcher 并刷新或重新打开页面；无需删除官方缓存、图片或会话数据。
-- 剩余边界：未读取用户图片或公开用户截图；完整下载超过 32 MiB 明确失败，未声称实际发布包已通过。
+- 剩余边界：未读取用户图片或公开用户截图，实体设备未验证；完整下载超过 32 MiB 明确失败。
 
 ### 事件：tab 点击后缺少及时反馈，加载或渲染期间显得不跟手
 
@@ -50,9 +53,11 @@
   不修改 bundle、读取 Vue 私有状态或复制内容状态，继续让官方 generation 处理内容竞态。
 - 回归验证：真实 app 中慢 B、快 C、分类错误／重试、快速点击和关闭均无残留，旧响应没有覆盖 C。
   tab UT 9 项、注入 IT 5 项通过，与图片 guard 合跑 88 项通过；完整 UT 644 项、IT 61 项及 lint/typecheck 通过。
+  实际解包资源另经完整官方 app 验证：原始桌面与夜幕手机两组共 8 次点击，绘制机会为 9.8–34.5 ms；
+  slow B→fast C、失败及关闭通过，此验证独立于上述等价图片像素矩阵。
 - 运维动作：升级后重启 launcher 并刷新页面；无需清缓存或迁移会话，旧页面不会热加载新增资源。
 - 剩余边界：约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，均存在主线程阻塞。
-  安全外层没有拆分官方同步渲染的公开 hook，不宣称所有 tab 卡顿已修复；实际 tgz 与实体设备验收不在上述结论内。
+  安全外层没有拆分官方同步渲染的公开 hook，不宣称所有 tab 卡顿已修复；实体设备与用户实际数据未验证。
 
 ## [open-kimi-web v2.1.1-r5] - 2026-09-29
 
