@@ -11,9 +11,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r6][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 新增图片完整预览与 tab 及时 Loading 反馈；保留 r5 的价格自动匹配、批量确认和刷新连续性修复。
-> 实际 r6 tgz 已完成隔离安装、启动和浏览器验收；完整验证边界见下方说明。
+> **当前版本：[v2.1.1-r7][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 新增桌面聊天自适应宽度、当前会话体积与可靠消息时间戳补显；保留图片预览、tab 反馈和价格刷新修复。
+> 发布前源码已完成完整测试及虚构数据下的官方页面验收；完整验证边界见下方说明。
 > 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
@@ -80,10 +80,12 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **移动页面适配**：改善首页、会话设置、模型菜单、工作区列表、输入区和 composer dock
   在小屏设备上的布局；提问卡片支持拖动调高并记住档位，超高题干与选项共同滚动，
   并修复桌面侧栏收起后的空白。
-- **当前会话体积（develop，尚未发布）**：手机标题下显示当前会话日志的 B / KB / MB 体积，
+- **桌面聊天自适应宽度**：正文列和输入卡片随主聊天窗格宽度调整，
+  大窗格正文可用列约占 60%，窄窗格保留必要边距；不按整个屏幕计算，手机与 Side Chat 保持原布局。
+- **当前会话体积**：手机标题下显示当前会话日志的 B / KB / MB 体积，
   包含子代理、不含图片附件；每 10 秒轻量刷新，切换会话时不会沿用旧值。
   仅受管本机模式可计量，不可用显示“会话 —”；这不是模型上下文 token 占用。
-- **消息时间戳（develop，尚未发布）**：主会话中，正式 transcript 提供可靠时间并能精确对应消息时，
+- **消息时间戳**：主会话中，正式 transcript 提供可靠时间并能精确对应消息时，
   补显示缺失时间，支持点击或键盘展开完整日期；不伪造未知历史时间。
   Side Chat、仅从实时 WS 到达的消息，以及超过 1,048,576 字符的 transcript 响应保留官方时间显示，
   不为增强另行读取或解析大正文。
@@ -196,10 +198,10 @@ lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包安装启动�
 
 **安装发布包：**
 
-实际 r6 tgz 的隔离验收通过；GitHub 资产可用性以对应 Release 页面为准。
+使用固定版本 tgz 安装；更新后必须重启旧 launcher，再刷新页面。GitHub 资产以对应 Release 页面为准。
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r6/open-kimi-web-2.1.1-r6.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r7/open-kimi-web-2.1.1-r7.tgz
 open-kimi-web integrate install
 ```
 
@@ -272,7 +274,7 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r6`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r7`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -412,4 +414,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r6
+[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r7
