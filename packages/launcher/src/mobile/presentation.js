@@ -77,11 +77,11 @@ const mobile = window.matchMedia('(max-width: 640px)');
 
     const status = ensureHeaderNode(main, 'okw-workspace-status');
     const parts = headerParts(topbar, session, git, listing, workspace);
-    const statusText = parts.join(' · ');
-    setText(status, statusText);
-    if (status.hidden !== (parts.length === 0)) status.hidden = parts.length === 0;
+    const summary = ensureHeaderNode(status, 'okw-workspace-summary');
+    setText(summary, parts.join(' · '));
+    const empty = parts.length === 0 && !status.querySelector('.okw-session-size');
+    if (status.hidden !== empty) status.hidden = empty;
   };
-
   const renderObservedHeaderState = () => {
     const sessionId = currentSessionId();
     const name = textOf(document.querySelector('.app.mobile .topbar .dir'));

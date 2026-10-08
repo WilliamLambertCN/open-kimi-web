@@ -15,6 +15,10 @@ const FILES = new Map([
   ['completionModal.js', 'text/javascript; charset=utf-8'],
   ['questionCardLayout.js', 'text/javascript; charset=utf-8'],
   ['presentation.js', 'text/javascript; charset=utf-8'],
+  ['sessionSize.js', 'text/javascript; charset=utf-8'],
+  ['sessionSize.css', 'text/css; charset=utf-8'],
+  ['messageTimestamps.js', 'text/javascript; charset=utf-8'],
+  ['messageTimestamps.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
   ['providerSorting.js', 'text/javascript; charset=utf-8'],
@@ -55,6 +59,8 @@ const SCRIPTS = [
   'usageBundle.js',
   'questionCardLayout.js',
   'presentation.js',
+  'sessionSize.js',
+  'messageTimestamps.js',
 ];
 const STYLES = [
   'presentation.css',
@@ -64,6 +70,8 @@ const STYLES = [
   'completionModal.css',
   'usage.css',
   'tabFeedback.css',
+  'sessionSize.css',
+  'messageTimestamps.css',
 ];
 
 // Serve the presentation layer from the installed launcher, so existing

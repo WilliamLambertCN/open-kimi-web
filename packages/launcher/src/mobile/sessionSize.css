@@ -1,0 +1,28 @@
+@media (max-width: 640px) {
+  .app.mobile .topbar .okw-workspace-status {
+    display: flex;
+    align-items: center;
+  }
+
+  .app.mobile .topbar .okw-workspace-status[hidden] {
+    display: none;
+  }
+
+  .app.mobile .topbar .okw-workspace-status::before {
+    flex-shrink: 0;
+  }
+
+  .app.mobile .topbar .okw-workspace-summary {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app.mobile .topbar .okw-session-size {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
