@@ -7,6 +7,7 @@ import { createAccessUrls } from './accessUrls.mjs';
 import { proxyRequest } from './httpProxy.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
+import { serveSessionSize } from './sessionSize.mjs';
 import { serveStatic } from './staticFiles.mjs';
 import { createUsageService, serveUsage } from './usage/routes.mjs';
 import { createWsProxy } from './wsProxy.mjs';
@@ -16,6 +17,7 @@ const DEFAULT_CLOSE_GRACE_MS = 1_000;
 
 async function serveOfficialExtension(req, res, context) {
   if (!context.officialPresentation) return false;
+  if (await serveSessionSize(req, res, context)) return true;
   if (await serveUsage(req, res, context.target, context.usageService, context.fetchImpl)) return true;
   return serveModelDiscovery(req, res, context.target);
 }
@@ -72,7 +74,7 @@ export async function createLauncher({
 }) {
   const { wss, handleUpgrade, closeConnections } = createWsProxy();
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
-  const context = { target, publicDir, officialPresentation, usageService, fetchImpl: usageFetch };
+  const context = { target, publicDir, officialPresentation, usageHome, usageService, fetchImpl: usageFetch };
   const listener = (req, res) => {
     route(req, res, context).catch(() => {
       if (!res.headersSent) res.writeHead(500);
