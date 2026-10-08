@@ -19,6 +19,7 @@ const FILES = new Map([
   ['sessionSize.css', 'text/css; charset=utf-8'],
   ['messageTimestamps.js', 'text/javascript; charset=utf-8'],
   ['messageTimestamps.css', 'text/css; charset=utf-8'],
+  ['chatWidth.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.css', 'text/css; charset=utf-8'],
   ['archivedSessionDelete.js', 'text/javascript; charset=utf-8'],
   ['providerSorting.js', 'text/javascript; charset=utf-8'],
@@ -72,6 +73,7 @@ const STYLES = [
   'tabFeedback.css',
   'sessionSize.css',
   'messageTimestamps.css',
+  'chatWidth.css',
 ];
 
 // Serve the presentation layer from the installed launcher, so existing

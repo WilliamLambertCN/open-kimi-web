@@ -1,0 +1,12 @@
+@media (min-width: 641px) {
+  .app:not(.mobile) > .con {
+    --read-max: min(100cqi, max(760px, calc(60cqi + 40px)));
+  }
+
+  .app:not(.mobile) > .con > .conversation-toc {
+    --toc-content-max: min(
+      var(--read-max),
+      calc(100cqi - var(--space-5) - var(--space-5))
+    );
+  }
+}
