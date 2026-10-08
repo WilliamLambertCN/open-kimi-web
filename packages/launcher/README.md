@@ -6,15 +6,15 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.1.1-r6` 实际 tgz 的隔离安装、启动及浏览器验收通过。
+本项目当前不发布到 npm registry。`v2.1.1-r7` 发布前源码的完整测试及官方页面隔离验收通过。
 通过 GitHub Release 固定版本 URL 安装：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r6/open-kimi-web-2.1.1-r6.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r7/open-kimi-web-2.1.1-r7.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r6` 仍兼容 Kimi Code `2.1.1`。新增图片完整预览与 tab 及时 Loading 反馈。
+`2.1.1-r7` 仍兼容 Kimi Code `2.1.1`。新增聊天自适应宽度、会话体积及消息时间戳补显。
 手机提问卡片支持长题干与选项共同滚动，也可拖动高度并保存当前浏览器和站点的档位；
 包含模型用量统计、归档删除与长会话性能增强。
 保留 r5 的价格修复：离线快照、联网刷新、真实模型 ID 自动建议和批量确认，模糊建议不直接计费。
@@ -30,6 +30,20 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
 已有接管时，切换安装方式或目录还需要按下方“升级”说明更新入口。
+
+## r7 聊天增强
+
+桌面正文列和输入卡片随主聊天窗格自身宽度调整，大窗格正文可用列约占 60%，窄窗格保留边距。
+侧栏、右面板和分隔条改变窗格尺寸时自动重排，目录保持在正文外侧；手机及 Side Chat 保持原布局。
+
+手机标题下显示当前会话各 agent 的 wire 日志 B / KB / MB 体积，每 10 秒轻量刷新，不读取日志全文。
+不含图片附件，不代表上下文 token 上限；仅受管本机模式可用，独立 target 或计量失败显示“会话 —”。
+
+主会话 transcript 提供可靠时间且能精确对应消息时，补显示缺失时间，支持点击或键盘展开完整日期。
+不伪造未知时间；Side Chat、仅实时 WS 消息和超过 1,048,576 字符的 transcript 响应保留官方时间显示。
+
+发布前源码通过 lint、typecheck、862 项 UT、77 项 IT 与 test:pack。
+官方完整 app 使用虚构数据完成宽度前后实图和真实分栏交互验收；不代表实体设备或用户真实后端验证。
 
 ## 图片完整预览与 tab 反馈
 
