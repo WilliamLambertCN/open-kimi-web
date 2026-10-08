@@ -152,6 +152,23 @@ const verifyUsageBundle = (name, body, sourceAssets) => {
   }
 };
 
+function verifyThemeSelectors(body) {
+  for (const theme of ['aurora', 'twilight', 'ember', 'mineral', 'nocturne']) {
+    expect(body).toContain(`html[data-okw-theme='${theme}']`);
+  }
+}
+
+function verifyChatEnhancementOrder(indexText) {
+  for (const name of ['sessionSize', 'messageTimestamps']) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}.css`);
+    expect(indexText.indexOf(`${name}.js`)).toBeGreaterThan(indexText.indexOf('usageBundle.js'));
+    expect(indexText.indexOf(`${name}.js`)).toBeLessThan(indexText.indexOf('<script type="module"'));
+  }
+  expect(indexText.indexOf('sessionSize.js')).toBeGreaterThan(indexText.indexOf('presentation.js'));
+  expect(indexText).toContain('/__open-kimi-mobile/chatWidth.css');
+  expect(indexText.indexOf('chatWidth.css')).toBeGreaterThan(indexText.indexOf('themes.css'));
+}
+
 async function expectPresentationAssets(baseUrl) {
   const sourceAssets = new Map();
   for (const name of [
@@ -168,6 +185,11 @@ async function expectPresentationAssets(baseUrl) {
     'completionModal.js',
     'questionCardLayout.js',
     'presentation.js',
+    'sessionSize.js',
+    'sessionSize.css',
+    'messageTimestamps.js',
+    'messageTimestamps.css',
+    'chatWidth.css',
     'archivedSessionDelete.css',
     'archivedSessionDelete.js',
     'providerSorting.js',
@@ -217,11 +239,7 @@ async function expectPresentationAssets(baseUrl) {
       expect(body).toContain("const pendingSelector = '.dock-approval, .dock-question'");
       expect(body).toContain("frame?.type === 'client_hello'");
     }
-    if (name === 'themes.css') {
-      for (const theme of ['aurora', 'twilight', 'ember', 'mineral', 'nocturne']) {
-        expect(body).toContain(`html[data-okw-theme='${theme}']`);
-      }
-    }
+    if (name === 'themes.css') verifyThemeSelectors(body);
     const head = await fetch(url, { method: 'HEAD' });
     expect(head.headers.get('content-length')).toBe(response.headers.get('content-length'));
     expect(await head.text()).toBe('');
@@ -288,6 +306,7 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('providerEnhancements.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      verifyChatEnhancementOrder(indexText);
       expect(Number(index.headers.get('content-length'))).toBe(Buffer.byteLength(indexText));
 
       const boot = await fetch(`${launcher.url}/boot.js`);

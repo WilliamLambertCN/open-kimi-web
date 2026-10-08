@@ -12,13 +12,25 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r6`, still based on `2.1.1`.
-  `r6` adds complete image previews and timely tab Loading feedback, retaining the `r5` pricing fixes.
-  Actual `r6` tgz installation, startup and browser acceptance passed; use the fixed GitHub Release URL.
+- Open Kimi Web version: `2.1.1-r7`, still based on `2.1.1`.
+  `r7` adds pane-responsive desktop chat width, current session log size and reliable missing message timestamps.
+  The `r6` complete-image/tab-feedback and `r5` pricing fixes remain; use the fixed GitHub Release URL.
+  Pre-release source passed lint, typecheck, 862 unit tests, 77 integration tests and pack smoke.
+  Chrome checks used the complete official app with fictional REST/WS, not physical devices or real user data.
   The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
   The current GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
 - Machine-readable upstream version and historical contract records: `upstream.json`.
+
+`r7` scopes container-query width rules to the main desktop pane, sharing the official reading-width variable
+with the composer and synchronizing the conversation index. It retains the 760px baseline, gutters and scrollbar
+compensation. The 3840px Nocturne fixture measured a 3536px pane and a net text column growing from 720px to
+2121.59px, approximately 60%. Six before/after cases and real sidebar/panel/divider interactions passed 131
+selected layout assertions. Mobile and a natively opened empty Side Chat kept identical geometry.
+Session size measures current-session agent wire bytes without parsing logs or including image attachments;
+only managed local mode is supported. Missing main-message timestamps require official transcript time and
+exact message identity. Unknown history, Side Chat, WS-only messages and responses over 1,048,576 characters
+are not enhanced. These features do not replace official session state or define a token context limit.
 
 `r5` keeps manual mappings and rates ahead of automatic defaults. Each model's original default catalog key
 is preserved separately from manual mappings: the same key uses the updated price after refresh; if absent,

@@ -170,3 +170,30 @@ describe('mobile question choices and actions', () => {
     expect(presentationCss).toMatch(/\.qopts\s*>\s*\.qopt\s*\{[^}]*flex-shrink:\s*0/s);
   });
 });
+
+const chatWidthCss = readFileSync(new URL('../src/mobile/chatWidth.css', import.meta.url), 'utf8');
+
+describe('desktop chat pane responsive width', () => {
+  it('uses the main pane container size with the official baseline and text gutters', () => {
+    expect(chatWidthCss).toMatch(/@media\s*\(min-width:\s*641px\)/);
+    expect(chatWidthCss).toMatch(/\.app:not\(\.mobile\)\s*>\s*\.con\s*\{/);
+    expect(chatWidthCss).toContain('--read-max: min(100cqi, max(760px, calc(60cqi + 40px)))');
+    expect(chatWidthCss).not.toMatch(/(?:\d(?:vw|vh)|[{;]\s*min-width\s*:|!important)/);
+  });
+
+  it('keeps the conversation index outside the responsive reading column', () => {
+    expect(chatWidthCss).toMatch(/\.app:not\(\.mobile\)\s*>\s*\.con\s*>\s*\.conversation-toc\s*\{/);
+    expect(chatWidthCss).toContain('--toc-content-max: min(');
+    expect(chatWidthCss).toContain('var(--read-max)');
+    expect(chatWidthCss).toContain('calc(100cqi - var(--space-5) - var(--space-5))');
+  });
+
+  it('does not override mobile, Side Chat, image or composer geometry', () => {
+    const selectors = Array.from(chatWidthCss.matchAll(/([^{}]+)\{/g), (match) => match[1].trim());
+    expect(selectors).toEqual([
+      '@media (min-width: 641px)', '.app:not(.mobile) > .con',
+      '.app:not(.mobile) > .con > .conversation-toc',
+    ]);
+    expect(chatWidthCss).not.toMatch(/--p-content-max\s*:|scrollbar|\.sc\b|\.chat\b|\.composer\b|img\b/);
+  });
+});
