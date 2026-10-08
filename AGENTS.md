@@ -27,6 +27,11 @@
 [`docs/plans/mobile-question-height-v1-plan.md`](docs/plans/mobile-question-height-v1-plan.md)
 执行；保持既有外观，验证真实题干、拖动档位及选项可达性后发布。
 
+当前会话体积提示按
+[`docs/plans/session-size-v1-plan.md`](docs/plans/session-size-v1-plan.md)
+执行；只计当前会话各 agent 的 wire 日志体积，不解析全文、不当作 token 上限，保持切换和失败边界。
+追加消息时间戳沿用官方精确 ID 和正式时间数据，不以当前时间或会话创建时间伪造历史消息时间。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
