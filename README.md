@@ -11,9 +11,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r7][latest-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 新增桌面聊天自适应宽度、当前会话体积与可靠消息时间戳补显；保留图片预览、tab 反馈和价格刷新修复。
-> 发布前源码已完成完整测试及虚构数据下的官方页面验收；完整验证边界见下方说明。
+> **当前版本：[v2.1.1-r8][r8-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 补齐桌面会话体积、手机平铺与三种工作区展示排序，新增安全自更新；保留此前聊天、图片及价格增强。
+> Windows 完整测试、Ubuntu CI 与虚构数据下的官方页面验收通过；完整验证边界见下方说明。
 > 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
@@ -75,6 +75,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   页面挂载前移除 fragment。
 - **可逆命令接管**：`integrate install` 可接管 `kimi web`，其它 `kimi` 命令原样透传；
   `status`、`repair` 和 `uninstall` 用于检查、修复和撤销接管。
+- **安全安装自更新（r8 起）**：`update --check` 只检查实际执行安装，`update` 更新同一源码／npm 安装；
+  源码只允许干净 main 快进，npm 使用 GitHub 最新正式 Release 的精确 tgz，不改官方 Kimi、接管或用户数据。
+  不自动重启、回滚或切分支，不支持模糊安装；旧 r7 须先手动升级，详见[升级](#升级)。
 - **稳定启动与诊断**：受管模式固定后端和入口端口，等待官方服务就绪，并清楚报告端口、
   工作区、后端、依赖和官方 bundle 错误。
 - **移动页面适配**：改善首页、会话设置、模型菜单、工作区列表、输入区和 composer dock
@@ -82,9 +85,10 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   并修复桌面侧栏收起后的空白。
 - **桌面聊天自适应宽度**：正文列和输入卡片随主聊天窗格宽度调整，
   大窗格正文可用列约占 60%，窄窗格保留必要边距；不按整个屏幕计算，手机与 Side Chat 保持原布局。
-- **当前会话体积**：手机标题下显示当前会话日志的 B / KB / MB 体积，
+- **当前会话体积**：手机标题下、桌面主会话标题旁及空会话顶部显示当前会话日志的 B / KB / MB 体积，
   包含子代理、不含图片附件；每 10 秒轻量刷新，切换会话时不会沿用旧值。
-  仅受管本机模式可计量，不可用显示“会话 —”；这不是模型上下文 token 占用。
+  手机与桌面共用请求状态及刷新计时器；仅受管本机模式可计量，不可用显示“会话 —”。
+  这不是模型上下文 token 占用，不读取日志全文。
 - **消息时间戳**：主会话中，正式 transcript 提供可靠时间并能精确对应消息时，
   补显示缺失时间，支持点击或键盘展开完整日期；不伪造未知历史时间。
   Side Chat、仅从实时 WS 到达的消息，以及超过 1,048,576 字符的 transcript 响应保留官方时间显示，
@@ -95,8 +99,12 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   可恢复官方外观，选择只保存在当前浏览器和站点。
 - **供应商编辑增强**：供应商标签支持触摸、拖动、滚轮和键盘导航；模型可配置多模态、
   工具、思考能力与思考档位，可从 `/models` 发现并添加模型，也可用鼠标或触摸排序。
-- **工作区最近活动排序与置顶**：首次使用默认按最近活动排列，也可切回官方手动顺序；
+- **工作区最近活动排序与置顶**：桌面首次使用默认按最近活动排列，也可切回官方手动顺序；
   置顶项始终在前，多个置顶项按操作顺序排列。本地仅为置顶保存工作区 ID。
+  手机会话抽屉支持原生“平铺／按工作区”，分别记住各端的视图选择。
+  分组时可选“最近会话／工作区名称／桌面保存顺序”；平铺及组内会话仍按官方更新时间排列。
+  身份能够唯一确认时沿用置顶；缺数据或缩写路径冲突时禁用桌面保存顺序，不猜 ID。
+  排序只改变视觉顺序，不搬动 Vue 节点，因此键盘／读屏的 DOM 阅读顺序仍为官方顺序。
 - **fork 标题保护**：官方 Web 在回合结束后自动生成标题时，若当前会话仍显示 `Fork: ` 前缀，
   保留该标题；手动重命名与主动重新生成标题继续使用官方接口。
 - **归档会话删除**：已归档设置页和首页“已完成”列表提供永久删除；仅为唯一匹配项显示入口，
@@ -117,16 +125,25 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
   `open Kimi-Code web`；`--web-dir` 提供用户构建时不注入这些增强。
 
-实际 r6 tgz 的等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图：opaque 2.69 MB、transparent 1.57 MB、
->10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确，不隐藏正常透明棋盘。
+**r8 验收：** Windows lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT 与 test:pack 通过。
+Windows UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
+[PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 通过 lint、typecheck 与 test:pack。
+Ubuntu UT 65 文件、1006 项通过＋1 项 Windows-only 跳过（共 1007）；IT 10 文件通过＋1 文件跳过，
+87 项通过＋2 项 Windows-only 跳过（共 89）。Ubuntu UT 行／分支覆盖率 87.31%／79.79%，IT 86.11%／73.95%。
+官方完整 app 使用虚构数据完成 42 组手机外观矩阵及分页、折叠、选择、偏好和断点定向补验。
+自更新已完成隔离源码／npm 安装与测试 tgz 的真实替换，Ubuntu CI 另验证 npm Config／Pacote 反证和
+POSIX TERM／process-group 收尾；未更新用户实际安装。线上资产安装与已最新检查在发布后单独核验。
+实体手机与用户实际数据未验证，不公开用户截图。
+
+**保留的 r6 图片与 tab 验收：** 实际 r6 tgz 的等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图：
+opaque 2.69 MB、transparent 1.57 MB、>10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确。
 此矩阵不同于完整 app 验收：另以官方 `2.1.1` 完整 app 动态 import 实际解包的 officialPresentation 资源，
 4 张 PNG 的原生 `.fp-image` 完成 read 1 MiB→download；opaque 3,148,932 bytes、透明 1,833,306 bytes，
 底部 RGBA 及原生 Fit→Actual→Fit 正确。原始桌面、夜幕手机两组 8 次点击绘制机会为 9.8–34.5 ms，
 慢 B→快 C、失败及关闭通过。此前 14 组／56 次点击的 4.6–31.1 ms 与清理验证仍保留。
 这些指标是绘制机会，不是系统显示延迟。约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，
 两者仍阻塞主线程；安全外层没有拆分官方同步渲染的公开 hook，不能宣称所有 tab 卡顿都已修复。
-lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包安装启动通过，PR #22 CI 已绿。
-未读取用户实际数据或公开用户截图，实体设备上的实际操作尚未验证。
+r6 当时的 lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包安装启动通过，PR #22 CI 已绿。
 
 ## 界面预览
 
@@ -198,14 +215,15 @@ lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包安装启动�
 
 **安装发布包：**
 
-使用固定版本 tgz 安装；更新后必须重启旧 launcher，再刷新页面。GitHub 资产以对应 Release 页面为准。
+使用 r8 的固定 tgz URL 安装；更新后必须重启旧 launcher，再刷新页面。
+GitHub 资产以对应 Release 页面为准。
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r7/open-kimi-web-2.1.1-r7.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
 open-kimi-web integrate install
 ```
 
-**或从源码安装：**
+**或从 main 源码安装：**
 
 ```sh
 git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
@@ -274,7 +292,29 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 
 ### 升级
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，安装 `v2.1.1-r7`。
+**安全自更新（r8 起可用）：** 提供 `open-kimi-web update --check` 和 `open-kimi-web update`。
+旧 `r7` 发布包没有该命令，须先用下方手动方式升级至 r8 或更高版本。
+
+```sh
+open-kimi-web update --check   # 只检查当前执行安装和更新目标，不写入
+open-kimi-web update           # 更新该安装，不更新官方 Kimi、不自动重启
+open-kimi-web update --help
+```
+
+命令从自身入口识别安装，不依据当前目录或默认 npm prefix 猜测。源码仅接受官方仓库中干净、
+跟踪 `origin/main` 的 `main`，快进后按 frozen lockfile 安装依赖；有修改、领先、分叉或开发分支时拒绝，
+不会 stash、reset 或切分支。npm 全局安装更新到 GitHub 最新正式 Release 的固定 tgz，支持自定义 prefix；
+简单 npm 本地直接依赖会保留生产／开发依赖类别，同时更新所属项目的 package.json 和 package-lock.json。
+不支持临时 npx、任意解压目录、链接、workspace、混合包管理器或无法确认身份的安装，也不会改另一份全局包。
+
+检查／成功退出 0，安全拒绝、网络、安装或验证失败退出 1，参数错误退出 2。
+更新不是原子操作；源码已快进但安装失败、或 npm 部分完成时会说明失败阶段及恢复方式，不自动回滚。
+接管入口位置不变时无需 repair；更新不会修改 PATH、接管状态、证书、官方 Web 缓存或会话数据。
+包管理器自己的下载缓存可能正常变化；npm 本地更新仍会解析所属项目的依赖树，不承诺无关依赖逐字节不变。
+若工具后代的退出无法确认，会保留安装锁并拒绝再次更新；先核实原 updater 及其后代已停止，再按错误提示解除锁。
+仍需自行停止旧 launcher 后重启，再刷新页面；切换安装位置则继续按下方说明 repair。
+
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，手动安装 `v2.1.1-r8`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -414,4 +454,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[latest-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r7
+[r8-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r8
