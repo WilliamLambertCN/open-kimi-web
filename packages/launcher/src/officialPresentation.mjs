@@ -5,6 +5,8 @@ const FILES = new Map([
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['workspaceSortDefault.js', 'text/javascript; charset=utf-8'],
+  ['mobileWorkspaceSort.js', 'text/javascript; charset=utf-8'],
+  ['mobileWorkspaceSort.css', 'text/css; charset=utf-8'],
   ['forkTitleGuard.js', 'text/javascript; charset=utf-8'],
   ['imagePreviewGuard.js', 'text/javascript; charset=utf-8'],
   ['tabFeedback.js', 'text/javascript; charset=utf-8'],
@@ -46,6 +48,7 @@ const USAGE_SCRIPTS = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageCon
 const SCRIPTS = [
   'foldingDefaults.js',
   'workspaceSortDefault.js',
+  'mobileWorkspaceSort.js',
   'forkTitleGuard.js',
   'imagePreviewGuard.js',
   'tabFeedback.js',
@@ -66,6 +69,7 @@ const SCRIPTS = [
 const STYLES = [
   'presentation.css',
   'themes.css',
+  'mobileWorkspaceSort.css',
   'workspacePins.css',
   'archivedSessionDelete.css',
   'completionModal.css',

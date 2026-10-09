@@ -12,25 +12,55 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r7`, still based on `2.1.1`.
-  `r7` adds pane-responsive desktop chat width, current session log size and reliable missing message timestamps.
-  The `r6` complete-image/tab-feedback and `r5` pricing fixes remain; use the fixed GitHub Release URL.
-  Pre-release source passed lint, typecheck, 862 unit tests, 77 integration tests and pack smoke.
+- Open Kimi Web version: `2.1.1-r8` release candidate, still based on `2.1.1`.
+  `r8` adds desktop session size, native mobile flat/grouped views, three workspace display orders and safe self-update.
+  The `r7` chat width/timestamp, `r6` complete-image/tab-feedback and `r5` pricing fixes remain.
+  Pre-release source passed lint, typecheck, 1007 unit tests, 89 integration tests and test:pack.
+  Unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%, with unchanged gates.
   Chrome checks used the complete official app with fictional REST/WS, not physical devices or real user data.
+  The `r8` Release and assets are not yet published; the latest formal Release remains `r7`.
+  Current-version remote CI and production Release upgrades have not been verified.
   The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
-  The current GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
+  The historical GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
 - Machine-readable upstream version and historical contract records: `upstream.json`.
 
-`r7` scopes container-query width rules to the main desktop pane, sharing the official reading-width variable
+`r8` shows current-session wire size beside the desktop main title and above an empty session, as well as below
+mobile titles. Desktop and mobile share request state and the 10-second refresh timer. It includes agent wires,
+not image attachments, and does not parse log contents. Only managed local mode is supported; unavailable size
+is shown as `会话 —`. This is not a token context limit and does not replace official session state.
+
+The mobile session sheet restores the official flat/grouped controls and each device view preference.
+Grouped workspaces offer recent-session, workspace-name and desktop-saved display order; flat and in-group
+sessions keep official update-time order. Existing pins require uniquely confirmed workspace identity.
+Missing data or conflicting shortened paths disable desktop-saved order rather than guessing IDs.
+CSS display order never moves Vue nodes; keyboard and screen-reader DOM order remains upstream order.
+The complete official app passed the 42-case mobile appearance matrix and targeted pagination, collapse,
+selection, persistence and breakpoint checks. This is isolated Chrome acceptance, not physical-phone testing.
+
+`r8` provides `update`, `update --check` and `update --help`; the `r7` package has no update command and must first
+be upgraded manually. Updates identify the executing installation, not the current directory or default npm prefix.
+Source updates require a clean official-repository main tracking origin/main, fast-forward and frozen-lockfile install.
+Dirty, ahead, diverged or development branches are rejected without stash, reset or branch switching.
+Recognized global/custom-prefix npm installs and simple local direct dependencies use the exact latest formal
+GitHub Release tgz, retaining local production/development dependency type and updating the owner manifest/lock.
+Temporary npx, links, workspaces, mixed package managers and ambiguous installations are rejected.
+Updates do not change official Kimi, another installation, PATH, integration state, certificates, Web cache or sessions.
+They are non-atomic: failures report the completed stage and recovery steps, without automatic rollback or restart.
+Package-manager caches can change; local npm resolves the owner's dependency tree, not byte-identical unrelated packages.
+Unconfirmed descendant termination retains the installation lock until the updater and descendants are confirmed stopped.
+Isolated source/npm replacement with test tgz passed; Windows spaces, &, % paths and timeout/cancellation were checked.
+POSIX TERM/process-group behavior has unit coverage only; POSIX runtime and production Release upgrades remain unverified.
+
+Historically, `r7` added pane-responsive desktop width, mobile session size and reliable missing message timestamps.
+Its source passed lint, typecheck, 862 unit tests, 77 integration tests and test:pack before release.
+It scopes container-query width rules to the main desktop pane, sharing the official reading-width variable
 with the composer and synchronizing the conversation index. It retains the 760px baseline, gutters and scrollbar
 compensation. The 3840px Nocturne fixture measured a 3536px pane and a net text column growing from 720px to
 2121.59px, approximately 60%. Six before/after cases and real sidebar/panel/divider interactions passed 131
 selected layout assertions. Mobile and a natively opened empty Side Chat kept identical geometry.
-Session size measures current-session agent wire bytes without parsing logs or including image attachments;
-only managed local mode is supported. Missing main-message timestamps require official transcript time and
-exact message identity. Unknown history, Side Chat, WS-only messages and responses over 1,048,576 characters
-are not enhanced. These features do not replace official session state or define a token context limit.
+Missing main-message timestamps require official transcript time and exact message identity. Unknown history,
+Side Chat, WS-only messages and responses over 1,048,576 characters are not enhanced.
 
 `r5` keeps manual mappings and rates ahead of automatic defaults. Each model's original default catalog key
 is preserved separately from manual mappings: the same key uses the updated price after refresh; if absent,
@@ -65,8 +95,8 @@ clicks had 9.8–34.5 ms paint opportunities; slow B/fast C, failure and closing
 These measure paint opportunities, not operating-system display latency or physical-device acceptance.
 About 2.1 MB of inline text still took 453.6 ms, and a cached 45-turn session took 152 ms; both remain blocking.
 There is no public outer-layer hook to split upstream synchronous rendering, so not all tab stalls are fixed.
-lint, typecheck, 644 unit tests, 61 integration tests, test:pack and actual package installation/startup passed;
-PR #22 CI is green. Physical devices and users' actual data were not tested.
+For the historical r6 release, lint, typecheck, 644 unit tests, 61 integration tests, test:pack and actual
+package installation/startup passed; PR #22 CI was green. Physical devices and users' actual data were not tested.
 
 The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
 the integrity comes from npm package metadata. Static inspection of the
