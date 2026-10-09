@@ -30,11 +30,17 @@
 当前会话体积提示按
 [`docs/plans/session-size-v1-plan.md`](docs/plans/session-size-v1-plan.md)
 执行；只计当前会话各 agent 的 wire 日志体积，不解析全文、不当作 token 上限，保持切换和失败边界。
+桌面补齐按 [`docs/plans/session-size-desktop-v2-plan.md`](docs/plans/session-size-desktop-v2-plan.md) 执行，
+覆盖 v1 的仅手机版范围；桌面与手机共享请求状态及刷新计时器，保留官方标题结构和空会话入口。
 追加消息时间戳沿用官方精确 ID 和正式时间数据，不以当前时间或会话创建时间伪造历史消息时间。
 
 主聊天窗格自适应宽度按
 [`docs/plans/chat-width-responsive-v1-plan.md`](docs/plans/chat-width-responsive-v1-plan.md)
 执行；按窗格自身宽度计算，不使用 viewport 比例，保留官方滚动条补偿与手机、Side Chat 边界。
+
+手机原生平铺入口与展示排序、源码及 npm 安装自更新按
+[`docs/plans/mobile-list-and-self-update-v1-plan.md`](docs/plans/mobile-list-and-self-update-v1-plan.md) 执行。
+恢复原生视图偏好，排序只改变展示；更新必须识别实际执行安装，不改另一份安装、官方 Kimi 或接管状态。
 
 ## 项目边界
 

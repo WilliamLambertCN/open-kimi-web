@@ -18,6 +18,14 @@ const archivedItemV2 = (id, { archived = true } = {}) => ({
   meta: { title: 'Archived title', archived, archived_at: new Date('2026-09-08T12:34:00').getTime() },
 });
 const archivedResponseV2 = (items) => new Response(JSON.stringify({ data: { items } }), { status: 200 });
+const sizeCss = readFileSync(resolve('packages/launcher/src/mobile/sessionSize.css'), 'utf8');
+const desktopHeader = `<div class="chat-header" style="height:48px;padding:0 52px 0 78px">
+  <div class="ch-id"><span class="ch-ws">Demo</span><span class="ch-sep">/</span>
+    <span class="ui-tip"><span class="ch-ses">${'Long title '.repeat(20)}</span></span></div>
+  <button class="ch-more">More</button><div class="ui-menu"></div><div class="ch-spacer"></div>
+  <button class="ch-git">Branch</button><button class="ch-pr">PR</button>
+  <div class="ch-toggles"><button>Panel</button></div></div>`;
+const emptyMount = '<div class="empty-drag"></div><div class="empty-toggles"><button>Panel</button></div>';
 
 const sidebarMarkup = `
   <div class="sessions"><div class="se">
@@ -34,14 +42,17 @@ const archiveMarkup = (rowScope) => (
   `${rowScope === 'settings' ? '' : sidebarMarkup}${rowScope === 'sidebar' ? '' : settingsMarkup}`
 );
 
-function install({ items = [archivedItemV2('session_archived')], allScripts = false, extraMessages = 0,
-  deleteResponse, rowScope = 'combined' } = {}) {
+function install(options = {}) {
+  const { items = [archivedItemV2('session_archived')], allScripts = false, extraMessages = 0,
+    deleteResponse, rowScope = 'combined', desktopMount = '', path = '/settings' } = options;
   const messages = Array.from({ length: extraMessages }, (_, index) => `<div class="a-msg">Message ${index}</div>`).join('');
   const frame = document.createElement('iframe');
   document.body.append(frame);
   documents.push(frame);
   const view = frame.contentWindow;
-  view.document.body.innerHTML = `<div id="app" class="app">${messages}</div>${archiveMarkup(rowScope)}`;
+  view.__okwTestLocation = { href: `http://localhost${path}`, origin: 'http://localhost', pathname: path };
+  view.document.body.innerHTML = `<div id="app"><div class="app"><div class="con">${desktopMount}
+    <div class="chat-scroll">${messages}</div></div></div></div>${archiveMarkup(rowScope)}`;
   view.Request = Request;
   view.Response = Response;
   view.Headers = Headers;
@@ -49,8 +60,11 @@ function install({ items = [archivedItemV2('session_archived')], allScripts = fa
   view.localStorage.setItem('kimi-locale', 'en');
   view.localStorage.setItem('open-kimi-web.atmospheric-theme', 'original');
   view.confirm = vi.fn(() => true);
-  view.fetch = vi.fn(async (url) => String(url).includes('meta.archived=true')
-    ? archivedResponseV2(items) : deleteResponse ?? new Response('{}', { status: 200 }));
+  view.fetch = vi.fn(async (url) => {
+    if (String(url).includes('meta.archived=true')) return archivedResponseV2(items);
+    if (String(url).includes('/session-size?')) return new Response(JSON.stringify({ available: true, bytes: 1234 }));
+    return deleteResponse ?? new Response('{}', { status: 200 });
+  });
 
   const NativeMutationObserver = view.MutationObserver;
   const state = { callbacks: 0, exceededLimit: false, observers: [] };
@@ -77,9 +91,7 @@ function install({ items = [archivedItemV2('session_archived')], allScripts = fa
     ? [...addMobilePresentation('<html><head><script type="module" src="/official.js"></script></head></html>')
       .matchAll(/<script src="\/__open-kimi-mobile\/([^"]+)"/g)].map((match) => match[1])
     : ['archivedSessionDelete.js'];
-  names.forEach((name) => view.eval(`((location) => { ${mobileSource(name)}\n})({
-    href: 'http://localhost/settings', origin: 'http://localhost', pathname: '/settings'
-  })`));
+  names.forEach((name) => view.eval(`((location) => { ${mobileSource(name)}\n})(window.__okwTestLocation)`));
   const archiveButton = () => view.document.querySelector('.archive-row .okw-archive-delete');
   const sidebarButton = () => view.document.querySelector('.se .okw-sidebar-archive-delete');
   return { view, state, names, archiveButton, sidebarButton };
@@ -101,7 +113,10 @@ async function expectSettled(ui) {
 
 afterEach(() => {
   observerStates.splice(0).flatMap((state) => state.observers).forEach((observer) => observer.disconnect());
-  documents.splice(0).forEach((frame) => frame.remove());
+  documents.splice(0).forEach((frame) => {
+    frame.contentWindow.dispatchEvent(new frame.contentWindow.Event('pagehide'));
+    frame.remove();
+  });
 });
 
 describe('archived delete observer streaming scope', () => {
@@ -212,7 +227,8 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(18);
+    expect(ui.names).toHaveLength(19);
+    expect(ui.names).toContain('mobileWorkspaceSort.js');
     expect(ui.names).toContain('imagePreviewGuard.js');
     expect(ui.names).toContain('tabFeedback.js');
     expect(ui.names.slice(-5)).toEqual([
@@ -226,5 +242,84 @@ describe('archived delete observer convergence', () => {
     await expectSettled(ui);
     ui.view.document.body.append(ui.view.document.createElement('div'));
     await expectSettled(ui);
+  });
+});
+
+describe('session size desktop all-script coexistence', () => {
+  it('preserves native title, tooltip, rename, controls and reserved padding', async () => {
+    const ui = install({ allScripts: true, desktopMount: desktopHeader, path: '/sessions/fixture' });
+    const doc = ui.view.document;
+    const header = doc.querySelector('.chat-header');
+    const id = header.querySelector('.ch-id');
+    const originalTitle = id.outerHTML;
+    const controls = Array.from(header.children).filter((node) => !node.matches('.okw-session-size'));
+    const padding = header.getAttribute('style');
+    await loadArchived(ui);
+    ui.view.dispatchEvent(new ui.view.Event('pagehide'));
+    ui.view.dispatchEvent(new ui.view.Event('pageshow'));
+    await expectSettled(ui);
+    const size = header.querySelector('.okw-desktop-session-size');
+    expect(size.textContent).toBe('会话 1.2 KB');
+    expect(size.parentElement).toBe(header);
+    expect(size.nextElementSibling.className).toBe('ch-spacer');
+    expect(id.outerHTML).toBe(originalTitle);
+    expect(header.getAttribute('style')).toBe(padding);
+    expect(Array.from(header.children).filter((node) => node !== size)).toEqual(controls);
+    expect(doc.querySelector('.okw-workspace-status')).toBeNull();
+    id.querySelector('.ui-tip').outerHTML = '<input class="ch-rename" value="Renaming">';
+    await expectSettled(ui);
+    expect(id.querySelector('.ch-rename').value).toBe('Renaming');
+    expect(header.querySelector('.okw-session-size')).toBe(size);
+    expect(doc.querySelectorAll('.okw-session-size')).toHaveLength(1);
+  });
+
+  it('uses the native empty drag area, stops for an expanded panel and never fabricates a home header', async () => {
+    const ui = install({ allScripts: true, desktopMount: emptyMount, path: '/sessions/fixture' });
+    const doc = ui.view.document;
+    const app = doc.querySelector('.app');
+    const drag = doc.querySelector('.empty-drag');
+    await loadArchived(ui);
+    ui.view.dispatchEvent(new ui.view.Event('pagehide'));
+    ui.view.dispatchEvent(new ui.view.Event('pageshow'));
+    await expectSettled(ui);
+    expect(drag.querySelector('.okw-session-size').textContent).toBe('会话 1.2 KB');
+    expect(doc.querySelector('.chat-header')).toBeNull();
+    expect(doc.querySelector('.empty-toggles button').textContent).toBe('Panel');
+    app.classList.add('panel-expanded');
+    await expectSettled(ui);
+    expect(doc.querySelector('.okw-session-size')).toBeNull();
+    app.classList.remove('panel-expanded');
+    await expectSettled(ui);
+    expect(drag.querySelector('.okw-desktop-session-size')).not.toBeNull();
+    drag.outerHTML = desktopHeader;
+    await expectSettled(ui);
+    expect(doc.querySelector('.chat-header > .okw-session-size').textContent).toBe('会话 1.2 KB');
+    doc.querySelector('.chat-header').outerHTML = emptyMount;
+    await expectSettled(ui);
+    expect(doc.querySelector('.empty-drag > .okw-session-size').textContent).toBe('会话 1.2 KB');
+    ui.view.__okwTestLocation.pathname = '/';
+    ui.view.dispatchEvent(new ui.view.PopStateEvent('popstate'));
+    await expectSettled(ui);
+    expect(doc.querySelector('.okw-session-size')).toBeNull();
+    expect(doc.querySelector('.chat-header')).toBeNull();
+  });
+
+  it('limits desktop CSS to direct main mounts without changing native header height or padding', () => {
+    const desktop = sizeCss.slice(sizeCss.indexOf('@media (min-width: 641px)'));
+    const rules = [...desktop.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    expect(rules).toHaveLength(4);
+    for (const [, selector] of rules) {
+      expect(selector).toContain('.app:not(.mobile)');
+      expect(selector).toContain('> .con >');
+      expect(selector).toContain('.okw-desktop-session-size');
+    }
+    expect(desktop).not.toMatch(/(?:^|[;{])\s*(?:height|padding(?:-[\w-]+)?|overflow|text-overflow|gap)\s*:/);
+    expect(rules[0][2]).toContain('font-size: var(--text-xs)');
+    expect(rules[0][2]).toContain('color: var(--color-text-muted)');
+    expect(rules[0][2]).toContain('white-space: nowrap');
+    expect(rules[0][2]).toContain('font-variant-numeric: tabular-nums');
+    expect(rules[1][2]).toMatch(/flex-shrink:\s*1/);
+    expect(rules[2][2]).toContain('inset-inline: 78px');
+    expect(rules[3][2]).toContain('inset-inline-start: 146px');
   });
 });
