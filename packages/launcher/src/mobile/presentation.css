@@ -641,17 +641,13 @@
   .sheet-root.okw-workspaces .actions .newrow {
     min-height: 41px;
     padding: 6px 3px;
-    color: rgba(255, 255, 255, .58);
+    color: var(--color-text-muted);
     font-size: 14px;
     font-weight: 400;
   }
 
   .sheet-root.okw-workspaces .actions .newrow:first-child {
     color: var(--color-accent);
-  }
-
-  .sheet-root.okw-workspaces .view-tabs {
-    display: none;
   }
 
   .sheet-root.okw-workspaces .mlist {
@@ -758,7 +754,7 @@
   }
 
   .sheet-root.okw-workspaces .srow-flat.cur {
-    background: rgba(255, 255, 255, .05);
+    background: var(--color-accent-soft);
   }
 
   .sheet-root.okw-workspaces .srow-flat .t {
@@ -768,13 +764,13 @@
 
   .sheet-root.okw-workspaces .srow-flat .srow-sub,
   .sheet-root.okw-workspaces .srow-flat .time {
-    color: rgba(255, 255, 255, .43);
+    color: var(--color-text-faint);
     font-size: 12.5px;
     font-weight: 400;
   }
 
   .sheet-root.okw-workspaces .srow-flat .kb {
-    color: rgba(255, 255, 255, .48);
+    color: var(--color-text-muted);
   }
 
   .app.mobile .qcard:not(.minimized) {

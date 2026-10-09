@@ -6,21 +6,22 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。`v2.1.1-r7` 发布前源码的完整测试及官方页面隔离验收通过。
-通过 GitHub Release 固定版本 URL 安装：
+本项目当前不发布到 npm registry。当前版本 `v2.1.1-r8` 兼容 Kimi Code `2.1.1`。
+Windows 完整测试、Ubuntu CI 与官方页面隔离验收通过；使用以下 GitHub Release 固定版本 URL 安装：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r7/open-kimi-web-2.1.1-r7.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r7` 仍兼容 Kimi Code `2.1.1`。新增聊天自适应宽度、会话体积及消息时间戳补显。
+`2.1.1-r8` 仍兼容 Kimi Code `2.1.1`。补齐桌面会话体积、手机平铺与三种工作区展示排序，新增安全自更新。
+保留聊天自适应宽度、消息时间戳补显、图片完整预览和 tab 反馈。
 手机提问卡片支持长题干与选项共同滚动，也可拖动高度并保存当前浏览器和站点的档位；
 包含模型用量统计、归档删除与长会话性能增强。
 保留 r5 的价格修复：离线快照、联网刷新、真实模型 ID 自动建议和批量确认，模糊建议不直接计费。
 手动映射和单价优先；目录刷新沿用各模型原默认键，缺失键保留上次有效价格并标出旧价。
 
-也可从源码安装：
+也可从 main 源码安装：
 
 ```sh
 git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
@@ -31,19 +32,26 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 
 已有接管时，切换安装方式或目录还需要按下方“升级”说明更新入口。
 
-## r7 聊天增强
+## 聊天增强与 r8 验收
 
 桌面正文列和输入卡片随主聊天窗格自身宽度调整，大窗格正文可用列约占 60%，窄窗格保留边距。
 侧栏、右面板和分隔条改变窗格尺寸时自动重排，目录保持在正文外侧；手机及 Side Chat 保持原布局。
 
-手机标题下显示当前会话各 agent 的 wire 日志 B / KB / MB 体积，每 10 秒轻量刷新，不读取日志全文。
+手机标题下、桌面主会话标题旁及空会话顶部显示当前会话各 agent 的 wire 日志 B / KB / MB 体积。
+每 10 秒轻量刷新，不读取日志全文；手机与桌面共用计量和刷新状态。
 不含图片附件，不代表上下文 token 上限；仅受管本机模式可用，独立 target 或计量失败显示“会话 —”。
 
 主会话 transcript 提供可靠时间且能精确对应消息时，补显示缺失时间，支持点击或键盘展开完整日期。
 不伪造未知时间；Side Chat、仅实时 WS 消息和超过 1,048,576 字符的 transcript 响应保留官方时间显示。
 
-发布前源码通过 lint、typecheck、862 项 UT、77 项 IT 与 test:pack。
-官方完整 app 使用虚构数据完成宽度前后实图和真实分栏交互验收；不代表实体设备或用户真实后端验证。
+r8 Windows lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT 与 test:pack 通过。
+Windows UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
+[PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 通过 lint、typecheck 与 test:pack。
+Ubuntu UT 65 文件、1006 项通过＋1 项 Windows-only 跳过（共 1007）；IT 10 文件通过＋1 文件跳过，
+87 项通过＋2 项 Windows-only 跳过（共 89）。Ubuntu UT 行／分支覆盖率 87.31%／79.79%，IT 86.11%／73.95%。
+官方完整 app 使用虚构数据完成 42 组手机外观矩阵及分页、折叠、选择、偏好和断点定向补验。
+自更新已完成隔离源码／npm 安装与测试 tgz 的真实替换，Ubuntu CI 另验证 npm Config／Pacote 反证和
+POSIX TERM／process-group 收尾；线上资产安装与已最新检查在发布后单独核验，生产用户升级与实体手机操作未验证。
 
 ## 图片完整预览与 tab 反馈
 
@@ -62,7 +70,7 @@ read 1 MiB→download 完整 opaque 3,148,932 bytes、透明 1,833,306 bytes，�
 原始桌面、夜幕手机两组共 8 次点击的绘制机会为 9.8–34.5 ms，slow B→fast C、失败及关闭通过。
 此前 14 组／56 次网络路径点击的 4.6–31.1 ms 与清理验证保留；指标是绘制机会，不是系统显示延迟。
 约 2.1 MB 内联文本仍需 453.6 ms，45 turn 缓存会话仍需 152 ms，仍会阻塞；不宣称所有 tab 卡顿已消除。
-lint、typecheck、644 项 UT、61 项 IT、test:pack 与实际包安装启动通过，PR #22 CI 已绿。
+r6 当时的 lint、typecheck、644 项 UT、61 项 IT、test:pack 与实际包安装启动通过，PR #22 CI 已绿。
 实体设备与用户实际数据未验证，不公开用户截图。
 
 ## 模型用量与 API 成本统计
@@ -116,8 +124,12 @@ open-kimi-web serve --no-token-link
 调用、思考、始终思考和全部思考档位，新模型与缺失字段默认全选，已有显式配置保持不变。
 供应商表单还可用当前 Base URL 和可选 API Key 拉取 `/models`，从下拉框选中并添加，也可
 通过专用手柄用鼠标或触摸调整模型顺序；请求由当前页面 token 保护的 launcher 同源端点
-转发，不记录或回显 API Key，不跟随重定向。工作区首次使用默认按最近活动排序，
+转发，不记录或回显 API Key，不跟随重定向。桌面工作区首次使用默认按最近活动排序，
 也可切回官方手动顺序；更多菜单支持置顶与取消置顶，置顶仅在本地保存工作区 ID。
+手机会话抽屉支持原生“平铺／按工作区”，保留官方各端独立的视图偏好。
+分组新增“最近会话／工作区名称／桌面保存顺序”，平铺和组内会话仍按官方更新时间排序。
+能唯一确认工作区身份时沿用已有置顶；缺数据或路径缩写冲突时禁用桌面保存顺序，不猜 ID。
+只改 CSS 视觉顺序，不搬 Vue 节点，因此键盘／读屏顺序仍为官方 DOM 顺序。
 已归档会话可在二次确认后通过 Kimi Code 官方接口永久删除。
 fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍存在的 `Fork: ` 标记；
 手动重新生成标题仍走官方接口。直接使用官方 CLI 的请求不经过这一页面增强。
@@ -160,7 +172,27 @@ Kimi 插件是否安装无关。
 
 ## 升级
 
-全局 tgz 安装更新时，再次安装上面的版本化 URL。源码安装更新时，在仓库目录运行
+**安全自更新（r8 起可用）：** 旧 r7 包没有该命令，须先按下方方式手动升级至 r8 或更高版本。
+
+```sh
+open-kimi-web update --check   # 只检查实际执行安装
+open-kimi-web update           # 更新同一安装，不自动重启
+open-kimi-web update --help
+```
+
+源码只接受官方仓库的干净 main，跟踪 origin/main、无领先或分叉，使用快进和 frozen lockfile；
+不替用户 stash、reset 或切分支。npm 安装从 GitHub 最新正式 Release 获取精确版本 tgz，
+不使用 npm registry 的 @latest；支持可确认的全局／自定义 prefix，以及简单 npm 本地直接依赖。
+本地更新保留生产／开发依赖类别并修改 owner 的 package.json 和 package-lock.json。
+临时 npx、workspace、链接、混合包管理器和身份不明目录拒绝，不去更新另一份全局安装。
+成功／检查退出 0，网络、安装、安全或验证失败退出 1，参数错误退出 2。
+更新非原子，失败说明已完成阶段与恢复方式，不自动回滚；不改官方 Kimi、PATH、接管、证书或会话。
+同路径更新无需 repair；完成后仍需自行停止旧 launcher，重启并刷新页面。
+包管理器缓存可能正常变化，本地 npm 会解析所属项目依赖树，不保证无关依赖逐字节不变。
+若后代进程退出无法确认，会保留安装锁；先核实原 updater 及其后代已停止，再按错误提示手工解除锁。
+
+手动升级全局 tgz 安装时，再次安装上面的版本化 URL。
+手动升级源码安装时，在仓库目录运行
 `git pull --ff-only origin main` 和 `corepack pnpm install --frozen-lockfile`，确保使用 main 分支。
 切换安装方式或目录时，`integrate install` 可能保留已有入口，需显式使用目标安装位置执行 `repair`：
 
