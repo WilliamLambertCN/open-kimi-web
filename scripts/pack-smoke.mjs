@@ -87,6 +87,26 @@ function assertVersionFlag(pkgDir) {
   console.log(`--version ok (${version})`);
 }
 
+function assertUpdateCommand(pkgDir) {
+  const invoke = (args) => spawnSync(process.execPath, ['bin/open-kimi-web.mjs', 'update', ...args], {
+    cwd: pkgDir,
+    encoding: 'utf8',
+    shell: false,
+    timeout: 15_000,
+  });
+  const help = invoke(['--help']);
+  if (help.error || help.status !== 0 || !help.stdout.includes('--check')) {
+    throw new Error('installed update --help failed before runtime dependency installation');
+  }
+  const invalid = invoke(['--force']);
+  if (invalid.error || invalid.status !== 2) throw new Error('installed update did not reject unknown arguments');
+  const check = invoke(['--check']);
+  if (check.error || check.status !== 1) {
+    throw new Error('update --check must reject an unregistered unpacked directory without changing another install');
+  }
+  console.log('update command ok: help works without runtime deps; unsafe layout and arguments refused');
+}
+
 async function main() {
   const scratch = mkdtempSync(join(tmpdir(), 'pack-smoke-'));
   const target = await startFakeTarget();
@@ -106,6 +126,9 @@ async function main() {
     const required = [
       'bin/open-kimi-web.mjs',
       'src/serve.mjs',
+      'src/update/updateMain.mjs',
+      'src/mobile/mobileWorkspaceSort.js',
+      'src/mobile/mobileWorkspaceSort.css',
       'README.md',
       'LICENSE',
       'THIRD_PARTY_NOTICES.md',
@@ -114,9 +137,15 @@ async function main() {
       if (!existsSync(join(pkgDir, p))) throw new Error(`tarball missing ${p}`);
     }
     const allFiles = readdirSync(pkgDir, { recursive: true });
-    const leaked = allFiles.filter((f) => String(f).endsWith('.test.mjs'));
-    if (leaked.length > 0) throw new Error(`tarball leaks test files: ${leaked.join(', ')}`);
+    const leaked = allFiles.filter((file) => {
+      const name = String(file).replaceAll('\\', '/');
+      return /(?:^|\/)(?:\.git|\.cache|\.tmp|coverage|tests|node_modules)(?:\/|$)/.test(name) ||
+        /(?:^|\/)(?:\.env(?:\..*)?|\.npmrc|id_rsa|id_ed25519)$/.test(name) ||
+        /\.(?:test\.mjs|map|log|bak|old|key|pem|p12|pfx)$/.test(name);
+    });
+    if (leaked.length > 0) throw new Error(`tarball contains unexpected private or debug files: ${leaked.join(', ')}`);
     console.log(`tarball contents ok (${required.join(', ')}; no test files)`);
+    assertUpdateCommand(pkgDir);
 
     // 3. Install like a user (prod deps only) and boot the bin.
     run('npm install --omit=dev --no-audit --no-fund', { cwd: pkgDir });
