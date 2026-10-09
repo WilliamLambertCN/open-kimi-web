@@ -26,8 +26,8 @@ cd open-kimi-web
 corepack pnpm install --frozen-lockfile
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 
-# 或在 GitHub Release 提供版本化 tgz 后，下载附件并安装本地文件
-npm install -g ./open-kimi-web-<version>.tgz
+# 或使用 GitHub Release 固定版本 URL
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
 ```
 
 ## 安装接管（系统级修改，必须先确认）
@@ -65,7 +65,7 @@ open-kimi-web integrate status   # 安装后自动体检，确认全绿
 
 ## 安装自更新（r8 起可用）
 
-`v2.1.1-r8` 起提供 update；当前 r8 为发布候选，先核对 Release 与资产是否已发布。
+`v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
 旧 r7 发布包不含 update，须先手动升级至 r8 或更高版本，不能直接在 r7 上运行该命令。
 用户要求更新已具备该命令的 launcher 时，先运行：
 
