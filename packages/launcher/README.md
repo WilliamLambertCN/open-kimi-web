@@ -6,8 +6,8 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。当前版本 `v2.1.1-r8` 为发布候选，源码完整测试及官方页面隔离验收通过。
-`r8` Release 与资产尚未发布，最新正式 Release 仍为 `r7`；待发布后使用以下固定版本 URL 安装：
+本项目当前不发布到 npm registry。当前版本 `v2.1.1-r8` 兼容 Kimi Code `2.1.1`。
+Windows 完整测试、Ubuntu CI 与官方页面隔离验收通过；使用以下 GitHub Release 固定版本 URL 安装：
 
 ```sh
 npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
@@ -21,7 +21,7 @@ open-kimi-web integrate install
 保留 r5 的价格修复：离线快照、联网刷新、真实模型 ID 自动建议和批量确认，模糊建议不直接计费。
 手动映射和单价优先；目录刷新沿用各模型原默认键，缺失键保留上次有效价格并标出旧价。
 
-也可从 main 源码安装；r8 功能须待发布候选合入 main 后才会包含：
+也可从 main 源码安装：
 
 ```sh
 git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
@@ -44,11 +44,14 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 主会话 transcript 提供可靠时间且能精确对应消息时，补显示缺失时间，支持点击或键盘展开完整日期。
 不伪造未知时间；Side Chat、仅实时 WS 消息和超过 1,048,576 字符的 transcript 响应保留官方时间显示。
 
-r8 发布候选源码通过 lint、typecheck、1007 项 UT、89 项 IT 与 test:pack。
-UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
+r8 Windows lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT 与 test:pack 通过。
+Windows UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
+[PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 通过 lint、typecheck 与 test:pack。
+Ubuntu UT 65 文件、1006 项通过＋1 项 Windows-only 跳过（共 1007）；IT 10 文件通过＋1 文件跳过，
+87 项通过＋2 项 Windows-only 跳过（共 89）。Ubuntu UT 行／分支覆盖率 87.31%／79.79%，IT 86.11%／73.95%。
 官方完整 app 使用虚构数据完成 42 组手机外观矩阵及分页、折叠、选择、偏好和断点定向补验。
-自更新已完成隔离源码／npm 安装与测试 tgz 的真实替换，不更新用户实际安装。
-POSIX TERM／process group 目前仅有 UT 覆盖，POSIX 实机、实体手机、当前版本远端 CI 与生产 Release 升级未验证。
+自更新已完成隔离源码／npm 安装与测试 tgz 的真实替换，Ubuntu CI 另验证 npm Config／Pacote 反证和
+POSIX TERM／process-group 收尾；线上资产安装与已最新检查在发布后单独核验，生产用户升级与实体手机操作未验证。
 
 ## 图片完整预览与 tab 反馈
 
@@ -169,7 +172,7 @@ Kimi 插件是否安装无关。
 
 ## 升级
 
-**安全自更新（r8 起可用）：** 旧 r7 包没有该命令，须在 r8 发布后先按下方方式手动升级至 r8 或更高版本。
+**安全自更新（r8 起可用）：** 旧 r7 包没有该命令，须先按下方方式手动升级至 r8 或更高版本。
 
 ```sh
 open-kimi-web update --check   # 只检查实际执行安装
@@ -188,8 +191,8 @@ open-kimi-web update --help
 包管理器缓存可能正常变化，本地 npm 会解析所属项目依赖树，不保证无关依赖逐字节不变。
 若后代进程退出无法确认，会保留安装锁；先核实原 updater 及其后代已停止，再按错误提示手工解除锁。
 
-手动升级全局 tgz 安装时，待 r8 发布后再次安装上面的版本化 URL。
-手动升级源码安装时，待 r8 合入 main 后在仓库目录运行
+手动升级全局 tgz 安装时，再次安装上面的版本化 URL。
+手动升级源码安装时，在仓库目录运行
 `git pull --ff-only origin main` 和 `corepack pnpm install --frozen-lockfile`，确保使用 main 分支。
 切换安装方式或目录时，`integrate install` 可能保留已有入口，需显式使用目标安装位置执行 `repair`：
 
