@@ -11,11 +11,10 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r8][r8-release]（发布候选），兼容基线为 Kimi Code `2.1.1`。**
+> **当前版本：[v2.1.1-r8][r8-release]，兼容基线为 Kimi Code `2.1.1`。**
 > 补齐桌面会话体积、手机平铺与三种工作区展示排序，新增安全自更新；保留此前聊天、图片及价格增强。
-> 发布前源码已完成完整测试及虚构数据下的官方页面验收；完整验证边界见下方说明。
-> `r8` Release 与资产尚未发布，最新正式 Release 仍为 `r7`；安装见[快速上手](#快速上手)。
-> `v2.1.1-r1` 已撤回。
+> Windows 完整测试、Ubuntu CI 与虚构数据下的官方页面验收通过；完整验证边界见下方说明。
+> 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
 
@@ -126,11 +125,14 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
   `open Kimi-Code web`；`--web-dir` 提供用户构建时不注入这些增强。
 
-**r8 发布候选验收：** 源码 lint、typecheck、1007 项 UT、89 项 IT 与 test:pack 通过。
-UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
+**r8 验收：** Windows lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT 与 test:pack 通过。
+Windows UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
+[PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 通过 lint、typecheck 与 test:pack。
+Ubuntu UT 65 文件、1006 项通过＋1 项 Windows-only 跳过（共 1007）；IT 10 文件通过＋1 文件跳过，
+87 项通过＋2 项 Windows-only 跳过（共 89）。Ubuntu UT 行／分支覆盖率 87.31%／79.79%，IT 86.11%／73.95%。
 官方完整 app 使用虚构数据完成 42 组手机外观矩阵及分页、折叠、选择、偏好和断点定向补验。
-自更新已完成隔离源码／npm 安装与测试 tgz 的真实替换，不更新用户实际安装。
-POSIX TERM／process group 目前仅有 UT 覆盖，POSIX 实机、当前版本远端 CI 与生产 Release 升级未验证。
+自更新已完成隔离源码／npm 安装与测试 tgz 的真实替换，Ubuntu CI 另验证 npm Config／Pacote 反证和
+POSIX TERM／process-group 收尾；未更新用户实际安装。线上资产安装与已最新检查在发布后单独核验。
 实体手机与用户实际数据未验证，不公开用户截图。
 
 **保留的 r6 图片与 tab 验收：** 实际 r6 tgz 的等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图：
@@ -213,15 +215,15 @@ r6 当时的 lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包�
 
 **安装发布包：**
 
-r8 当前为发布候选，以下固定 tgz URL 待对应 Release 与资产发布后可用；发布前最新正式包仍为 r7。
-更新后必须重启旧 launcher，再刷新页面；GitHub 资产以对应 Release 页面为准。
+使用 r8 的固定 tgz URL 安装；更新后必须重启旧 launcher，再刷新页面。
+GitHub 资产以对应 Release 页面为准。
 
 ```sh
 npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
 open-kimi-web integrate install
 ```
 
-**或从源码安装：** 以下使用 main；r8 功能须待发布候选合入 main 后才会包含。
+**或从 main 源码安装：**
 
 ```sh
 git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
@@ -291,7 +293,7 @@ open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 ### 升级
 
 **安全自更新（r8 起可用）：** 提供 `open-kimi-web update --check` 和 `open-kimi-web update`。
-旧 `r7` 发布包没有该命令，须在 r8 发布后先用下方手动方式升级至 r8 或更高版本。
+旧 `r7` 发布包没有该命令，须先用下方手动方式升级至 r8 或更高版本。
 
 ```sh
 open-kimi-web update --check   # 只检查当前执行安装和更新目标，不写入
@@ -312,9 +314,9 @@ open-kimi-web update --help
 若工具后代的退出无法确认，会保留安装锁并拒绝再次更新；先核实原 updater 及其后代已停止，再按错误提示解除锁。
 仍需自行停止旧 launcher 后重启，再刷新页面；切换安装位置则继续按下方说明 repair。
 
-**已有全局 tgz 安装：** 待 r8 发布后再次运行上面的 `npm install -g` 命令，手动安装 `v2.1.1-r8`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，手动安装 `v2.1.1-r8`。
 
-**已有 main 源码安装：** 待 r8 合入 main 后，在原仓库的 main 分支执行：
+**已有 main 源码安装：** 在原仓库的 main 分支执行：
 
 ```sh
 git pull --ff-only origin main

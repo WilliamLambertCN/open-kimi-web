@@ -61,4 +61,6 @@
   早期 helper 的换行比较和原生 selector 错误记录仍为失败；修正 helper 后补验，无产品源码额外修改。
 - QA 归档于忽略的 `.cache/session-size-desktop-qa/`；Chrome 树、launcher、API/WS 和测试端口均已关闭。
 - 未在真实手机、用户真实会话或外部 target 上验收；浏览器未实测 document hidden、展开面板后恢复按钮及 rename 保存。
-  相关隐藏/恢复逻辑有 UT 覆盖，不能据此宣称所有原生交互均完成浏览器验证。当前源码尚未提交、推送或发布。
+  相关隐藏/恢复逻辑有 UT 覆盖，不能据此宣称所有原生交互均完成浏览器验证。当时源码尚未提交、推送或发布。
+- 用户后续授权发布 r8；本项随该版本交付，发布步骤及 Windows／Ubuntu 标准链证据见
+  [r8 发布验收记录](mobile-list-and-self-update-v1-plan.md#r8-发布验收记录2026-10-09)。

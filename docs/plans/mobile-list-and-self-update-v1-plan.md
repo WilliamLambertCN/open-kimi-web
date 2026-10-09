@@ -165,5 +165,20 @@
 - 修正仅涉及该 IT 后，标准 lint、typecheck、11 文件／89 项 IT、test:pack 通过，IT 行／分支 87.43%／74.87%。
   UT 对应源码未再变化；未降低门槛或增加覆盖率排除。实际包包含排序及 update 资源，缺服务依赖仍可 help，
   未知参数和任意解压目录拒绝，安装后 REST／静态冒烟通过；隔离安装、临时服务和目录均已收尾。
-- README、launcher README、skill 与 CHANGELOG 已说明未发布、安装识别、非原子失败及收尾未确认时保留锁的边界。
-  本地实现、审查及标准验收完成；尚未提交、推送、发布或执行用户安装的真实更新。
+- 实现阶段 README、launcher README、skill 与 CHANGELOG 已说明未发布、安装识别、非原子失败及收尾未确认时保留锁的边界。
+  当时本地实现、审查及标准验收完成，尚未提交、推送或发布；后续发布记录见下方。
+
+## r8 发布验收记录（2026-10-09）
+
+- launcher 和 plugin 版本已整理为 `2.1.1-r8`，兼容基线继续为官方 `2.1.1`。
+  Windows 发布候选完整标准链通过：lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT、test:pack。
+  UT 行／分支 87.58%／79.64%，IT 87.43%／74.87%，门槛保持不变。
+- 实现提交 `196bc3a313f1f138bd80178c275e1f8b0c4618e9` 已推送 develop，使用 GitHub noreply 身份。
+  [PR #24](https://github.com/WilliamLambertCN/open-kimi-web/pull/24) 按 main 保护流程验收，不绕过 gate。
+- [Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 完整标准链通过。
+  UT 65 文件、1006 项通过／1 项 Windows-only 跳过；IT 10 文件通过／1 文件跳过，87 项通过／2 项 Windows-only 跳过。
+  UT 行／分支 87.31%／79.79%，IT 86.11%／73.95%；源码／npm 隔离替换、Config／Pacote 反证及 POSIX process-group 收尾通过。
+  此记录补齐此前仅有 POSIX UT 的边界，不等于生产用户升级已验证。
+- 实际提交及 100 文件候选 tgz 已定向检查：不带真实配置、凭据、个人路径、调试 sourcemap 或 QA 产物。
+  既有 `.tmp/` 保留并排除；未变化的历史媒体不重复扫描。最终发布包从 main 重打包并核对线上下载资产。
+- 当前版本不自动升级用户安装、不 repair 或重启服务；实体手机、物理系统 picker 和生产用户升级仍未验证。

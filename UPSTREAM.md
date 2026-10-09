@@ -12,14 +12,18 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r8` release candidate, still based on `2.1.1`.
+- Open Kimi Web version: `2.1.1-r8`, still based on `2.1.1`; use the fixed GitHub Release URL.
   `r8` adds desktop session size, native mobile flat/grouped views, three workspace display orders and safe self-update.
   The `r7` chat width/timestamp, `r6` complete-image/tab-feedback and `r5` pricing fixes remain.
-  Pre-release source passed lint, typecheck, 1007 unit tests, 89 integration tests and test:pack.
-  Unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%, with unchanged gates.
+  Windows passed lint, typecheck, 65 unit-test files/1007 tests, 11 integration-test files/89 tests and test:pack.
+  Windows unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%.
+  [PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) succeeded.
+  Ubuntu passed lint, typecheck and test:pack; 65 unit-test files had 1006 passes and one Windows-only skip (1007 total).
+  Integration tests had 10 passing files/one skipped file, 87 passes and two Windows-only skips (89 total).
+  Ubuntu unit line/branch coverage was 87.31%/79.79%; integration coverage was 86.11%/73.95%, with unchanged gates.
   Chrome checks used the complete official app with fictional REST/WS, not physical devices or real user data.
-  The `r8` Release and assets are not yet published; the latest formal Release remains `r7`.
-  Current-version remote CI and production Release upgrades have not been verified.
+  Online asset installation and already-current checks are verified separately after publication.
+  Production-user upgrades are outside this isolated acceptance.
   The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
   The historical GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
@@ -50,7 +54,8 @@ They are non-atomic: failures report the completed stage and recovery steps, wit
 Package-manager caches can change; local npm resolves the owner's dependency tree, not byte-identical unrelated packages.
 Unconfirmed descendant termination retains the installation lock until the updater and descendants are confirmed stopped.
 Isolated source/npm replacement with test tgz passed; Windows spaces, &, % paths and timeout/cancellation were checked.
-POSIX TERM/process-group behavior has unit coverage only; POSIX runtime and production Release upgrades remain unverified.
+Ubuntu CI passed real isolated source/npm replacement, npm Config/Pacote negative checks and POSIX TERM/process-group cleanup.
+These checks did not update a production-user installation or install online Release assets for acceptance.
 
 Historically, `r7` added pane-responsive desktop width, mobile session size and reliable missing message timestamps.
 Its source passed lint, typecheck, 862 unit tests, 77 integration tests and test:pack before release.
