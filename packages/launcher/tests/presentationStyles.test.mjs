@@ -54,6 +54,21 @@ describe('presentation theme layout boundaries', () => {
     }
   });
 
+  it('keeps restored flat workspace metadata and selection visible in official light and dark appearances', () => {
+    expect(presentationCss).toMatch(
+      /\.sheet-root\.okw-workspaces\s+\.actions\s+\.newrow\s*\{[^}]*color:\s*var\(--color-text-muted\)/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.sheet-root\.okw-workspaces\s+\.srow-flat\.cur\s*\{[^}]*background:\s*var\(--color-accent-soft\)/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.srow-flat\s+\.srow-sub\s*,[^{}]*\.srow-flat\s+\.time\s*\{[^}]*color:\s*var\(--color-text-faint\)/s,
+    );
+    expect(presentationCss).toMatch(
+      /\.sheet-root\.okw-workspaces\s+\.srow-flat\s+\.kb\s*\{[^}]*color:\s*var\(--color-text-muted\)/s,
+    );
+  });
+
   it('caps the mobile settings sheet below full height so the scrim stays tappable', () => {
     expect(presentationCss).toMatch(
       /\.sheet-root\.okw-settings\s+\.sheet-panel\s*\{[^}]*max-height:\s*85dvh/s,

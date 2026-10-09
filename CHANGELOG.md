@@ -4,6 +4,42 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.1.1-r8] - 2026-10-09
+
+继续兼容 Kimi Code `2.1.1`；补齐桌面会话体积、手机平铺与工作区展示排序，新增安全安装自更新。
+保留 `r7` 的聊天自适应宽度与消息时间戳，以及 `r6` 的图片完整预览、tab 反馈和 `r5` 的价格修复。
+本条为发布候选记录；`r8` Release 与资产尚未发布，对应远端 CI 与生产升级尚未验证。
+
+- 补齐桌面主会话标题旁和空会话顶部的 B / KB / MB 体积，与手机共享请求及刷新计时器。
+- 恢复手机会话抽屉原生“平铺／按工作区”入口，不再强制分组或在桌面断点重放旧选择。
+  分组视图新增“最近会话／工作区名称／桌面保存顺序”展示排序；身份不能唯一确认时禁用桌面保存顺序。
+  会话仍由官方更新时间排列，新增排序不移动 Vue 节点，也不改变 DOM 键盘／阅读顺序。
+- 新增 `update`、`update --check`、`update --help`：识别实际执行安装，源码 main 安全快进，
+  npm 使用 GitHub 最新正式 Release 的精确 tgz；不改官方 Kimi、另一份安装、接管或用户数据，不自动重启。
+  本地 npm 仅支持证据一致的直接依赖并保留类别；临时 npx、模糊安装、开发分支及不干净源码树拒绝。
+- 当前源码标准 lint、typecheck、1007 项 UT、89 项 IT 与 test:pack 通过。
+  UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；未降低门槛或增加覆盖率排除。
+  全套曾因 Windows npm 配置大小写别名影响两项 IT 反证失败，修正隔离后复跑通过，原断言保留。
+  自更新真实替换测试使用隔离源码仓库、npm 临时 prefix／本地 owner 和测试 tgz，不更新用户实际安装。
+  Windows 空格、&、% 路径及超时／取消自有子树通过；父先退出、无法确认后代收尾时保留锁，提示核实后解除。
+  npm 配置不能改写目标资产 host 或 local 安装／保存模式，替换前与 fresh 验证复核实际安装及依赖类别。
+  POSIX TERM／process group 有 UT 覆盖，但 POSIX 实机与生产 tgz 升级尚未验证。
+
+### 事件：手机只能按工作区，无法切换平铺
+
+- 影响：手机会话抽屉没有平铺入口，不能选择分组展示的排序方式。
+- 触发条件：增强层在手机宽度识别到官方会话切换 sheet。
+- 根因：展示脚本合成点击“按工作区”，CSS 隐藏原生 view-tabs，桌面断点还重放打开前的选择。
+  旧测试没有渲染真实手机 switcher sheet，因此没有覆盖入口可达性。
+- 证据：官方 2.1.1 原本有两种视图及独立手机偏好；本地源码的强制点击与隐藏规则直接覆盖了该入口。
+- 修复：删除三处强制行为，沿用原生视图记忆；分组排序放独立控件，不重建官方会话状态或移动节点。
+- 回归验证：真实 DOM 定向 UT 覆盖初始零合成点击、原生切换、断点、排序记忆、唯一身份及 observer 收敛。
+  官方完整 app 的 42 组矩阵完成，原生分页、折叠、会话选择、持久化与断点控制另作定向补验。
+  helper 关闭按钮、保存顺序 setup 和颜色字符串比较的失败报告保留，修正后仅补未完成段，不称首次全绿。
+  中文／英文偏好、浅色 flat 元信息及原生工作区动作三组修后实图通过；最后动作定向检查 19/19。
+- 运维动作：待 r8 发布后安装并重启旧 launcher，再刷新页面；无需清缓存、重置视图偏好或迁移数据。
+- 剩余边界：r8 仍为发布候选；实体设备未验证，视觉排序不改变键盘／读屏的 DOM 顺序。
+
 ## [open-kimi-web v2.1.1-r7] - 2026-10-08
 
 继续兼容 Kimi Code `2.1.1`；新增桌面聊天自适应宽度、当前会话体积及可靠消息时间戳补显。
@@ -480,3 +516,5 @@
 [open-kimi-web v2.1.1-r4]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r4
 [open-kimi-web v2.1.1-r5]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r5
 [open-kimi-web v2.1.1-r6]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r6
+[open-kimi-web v2.1.1-r7]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r7
+[open-kimi-web v2.1.1-r8]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r8

@@ -1,14 +1,17 @@
 ---
 name: open-kimi-web
 description: |
-  Open Kimi Web launcher 是围绕 Kimi Code 官方 Web 与后端的轻量增强层，提供局域网 HTTPS、token 直达链接和移动页面修复。当用户要管理或恢复 launcher 的 `kimi web` 接管（integrate install/status/repair/uninstall）、在手机上访问或排查异常时使用本 skill。安装本 Kimi 插件本身不会安装或启动 launcher。
+  Open Kimi Web launcher 是围绕 Kimi Code 官方 Web 与后端的轻量增强层，提供局域网 HTTPS、token 直达链接和移动页面修复。
+  当用户要管理或恢复 launcher 的 kimi web 接管（integrate install/status/repair/uninstall）、检查或更新 launcher，
+  或在手机上访问、排查异常时使用本 skill。安装本 Kimi 插件本身不会安装或启动 launcher。
 ---
 
 # OpenWeb for Kimi Code（官方 Web 的轻量增强层）
 
 Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
-本 skill 只是已独立安装的 `open-kimi-web` 命令行工具的管理入口，驱动 `integrate install|status|repair|uninstall`。安装或移除 Kimi 插件都不会安装、启动或卸载 launcher，也不会自动修改或撤销 PATH 接管。
+本 skill 是已独立安装的 `open-kimi-web` 工具管理入口，驱动 `integrate install|status|repair|uninstall` 和 `update`。
+安装或移除 Kimi 插件都不会安装、启动或卸载 launcher，也不会自动修改或撤销 PATH 接管。
 
 ## 前置检查（每次必做）
 
@@ -45,7 +48,8 @@ open-kimi-web integrate status   # 安装后自动体检，确认全绿
 ## 日常使用
 
 - 用户照旧运行 `kimi web`：官方服务器在 loopback 后台启动，launcher 在官方 Web 前增加增强层并打印带 token 的直达链接。其它所有 `kimi` 子命令原样委托给官方二进制。
-- `kimi web --host 0.0.0.0` 会启用自签名 HTTPS；独立启动 launcher 时使用 `open-kimi-web serve --lan`。**提醒用户在浏览器核对 launcher 打印的 SHA-256 指纹后再接受证书警告**。
+- `kimi web --host 0.0.0.0` 会启用自签名 HTTPS；独立启动 launcher 时使用 `open-kimi-web serve --lan`。
+  **提醒用户在浏览器核对 launcher 打印的 SHA-256 指纹后再接受证书警告**。
 
 ## 撤销接管
 
@@ -58,6 +62,28 @@ open-kimi-web integrate status   # 安装后自动体检，确认全绿
 
 - `open-kimi-web integrate status`：检查 wrapper 完好性、PATH 顺序、真实 kimi 解析、TLS 指纹。退出码 0 = 健康。
 - 官方 CLI 重装/升级后 wrapper 可能丢失真实路径：运行 `open-kimi-web integrate repair`（会重写 wrapper 与 PATH 项，属于系统级修改，同样先解释再确认）。
+
+## 安装自更新（r8 起可用）
+
+`v2.1.1-r8` 起提供 update；当前 r8 为发布候选，先核对 Release 与资产是否已发布。
+旧 r7 发布包不含 update，须先手动升级至 r8 或更高版本，不能直接在 r7 上运行该命令。
+用户要求更新已具备该命令的 launcher 时，先运行：
+
+```sh
+open-kimi-web update --check
+```
+
+核对输出中实际执行安装、源码／npm 渠道及目标。获得用户更新授权后再运行 `open-kimi-web update`；
+不要把只要求检查当成更新授权，不使用不存在的 npm registry @latest。
+源码仅支持官方仓库的干净 main 跟踪 origin/main；开发分支、修改、领先或分叉必须明确拒绝，
+不能替用户 stash、reset、clean、切分支。npm 仅更新已识别的同一全局／自定义 prefix 或简单本地直接依赖；
+本地更新会修改 owner manifest／lock 并保留生产／开发依赖类别。
+临时 npx、链接、workspace、混合管理器或身份不明时，说明限制，不去更新另一份全局安装。
+更新非原子，失败时按输出解释实际阶段，不宣称原安装未变；不自动回滚、repair 或重启。
+成功后提醒停止旧 launcher、重新启动并刷新页面；同路径更新不需要 repair，切换位置才需要。
+该命令不更新官方 Kimi、不修改 PATH、接管状态、证书、官方 Web 缓存或会话数据。
+包管理器缓存可能正常变化；本地 npm 会解析 owner 依赖树，不保证无关依赖逐字节不变。
+若后代进程退出无法确认，安装锁会保留；先核实原 updater 及其后代已停止，再按错误提示手工解除锁。
 
 ## 安全边界
 

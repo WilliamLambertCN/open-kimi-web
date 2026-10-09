@@ -2,8 +2,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
 
 {
   const enhancedProviderStrips = new WeakSet();
-  const enhancedWorkspaceSheets = new WeakSet();
-  const workspaceSheetViews = new WeakMap();
   const sessions = new Map();
   const gitBySession = new Map();
   let workspaces = [];
@@ -305,13 +303,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const enhanceWorkspaceSheet = (root) => {
     if (!root.querySelector('.actions .newrow') || !root.querySelector('.view-tabs')) return;
     root.classList.add('okw-workspaces');
-    if (enhancedWorkspaceSheets.has(root)) return;
-    enhancedWorkspaceSheets.add(root);
-    const selected = root.querySelector('.view-tabs [role="tab"][aria-selected="true"]');
-    workspaceSheetViews.set(root, selected?.textContent?.trim() ?? '');
-    const grouped = Array.from(root.querySelectorAll('.view-tabs [role="tab"]'))
-      .find((button) => button.textContent?.trim() === '按工作区');
-    if (grouped && grouped.getAttribute('aria-selected') !== 'true') grouped.click();
   };
 
   const enhanceBrand = () => {
@@ -472,11 +463,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
     });
     document.querySelectorAll('.sheet-root.okw-workspaces').forEach((root) => {
       root.classList.remove('okw-workspaces');
-      const previous = workspaceSheetViews.get(root);
-      const tab = Array.from(root.querySelectorAll('.view-tabs [role="tab"]'))
-        .find((button) => button.textContent?.trim() === previous);
-      if (tab && tab.getAttribute('aria-selected') !== 'true') tab.click();
-      enhancedWorkspaceSheets.delete(root);
     });
   };
 

@@ -167,6 +167,9 @@ function verifyChatEnhancementOrder(indexText) {
   expect(indexText.indexOf('sessionSize.js')).toBeGreaterThan(indexText.indexOf('presentation.js'));
   expect(indexText).toContain('/__open-kimi-mobile/chatWidth.css');
   expect(indexText.indexOf('chatWidth.css')).toBeGreaterThan(indexText.indexOf('themes.css'));
+  expect(indexText).toContain('/__open-kimi-mobile/mobileWorkspaceSort.css');
+  expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeGreaterThan(indexText.indexOf('workspaceSortDefault.js'));
+  expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
 }
 
 async function expectPresentationAssets(baseUrl) {
@@ -175,6 +178,8 @@ async function expectPresentationAssets(baseUrl) {
     'presentation.css',
     'foldingDefaults.js',
     'workspaceSortDefault.js',
+    'mobileWorkspaceSort.js',
+    'mobileWorkspaceSort.css',
     'forkTitleGuard.js',
     'imagePreviewGuard.js',
     'tabFeedback.js',

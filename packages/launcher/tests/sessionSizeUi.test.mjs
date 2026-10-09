@@ -2,7 +2,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
 const source = readFileSync(resolve('packages/launcher/src/mobile/sessionSize.js'), 'utf8');
 const presentation = readFileSync(resolve('packages/launcher/src/mobile/presentation.js'), 'utf8');
 const css = readFileSync(resolve('packages/launcher/src/mobile/sessionSize.css'), 'utf8');
@@ -19,7 +18,22 @@ const deferred = () => {
 const topbar = (withStatus = true) => `<div class="topbar"><div class="tb-main"><span class="dir">Demo</span>
   <span class="okw-workspace-status"><span class="okw-workspace-summary">空闲</span></span></div>
   ${withStatus ? '<span class="st">空闲</span>' : ''}</div>`;
-
+const desktopHeader = () => `<div class="chat-header" style="height:48px;padding:0 52px 0 78px">
+  <div class="ch-id"><span class="ch-ws">Demo</span><span class="ch-sep">/</span>
+    <span class="ui-tip"><span class="ch-ses">${'Long title '.repeat(20)}</span></span></div>
+  <button class="ch-more">More</button><div class="ui-menu"></div><div class="ch-spacer"></div>
+  <button class="ch-git">Branch</button><button class="ch-pr">PR</button>
+  <div class="ch-toggles"><button>Terminal</button></div></div>`;
+const nativeMount = (mobile, empty, withStatus) => mobile ? topbar(withStatus)
+  : empty ? '<div class="empty-drag"></div><div class="empty-toggles"><button>Panel</button></div>' : desktopHeader();
+function switchDom(doc, mobile, empty, withStatus) {
+  const app = doc.querySelector('.app');
+  const con = app.querySelector(':scope > .con');
+  app.classList.toggle('mobile', mobile);
+  app.querySelector(':scope > .topbar')?.remove();
+  con.querySelectorAll(':scope > .chat-header, :scope > .empty-drag, :scope > .empty-toggles').forEach((node) => node.remove());
+  (mobile ? app : con).insertAdjacentHTML('afterbegin', nativeMount(mobile, empty, withStatus));
+}
 function protectObservers(view) {
   const state = { callbacks: 0, exceeded: false, observers: [] };
   const Native = view.MutationObserver;
@@ -40,18 +54,22 @@ function protectObservers(view) {
   };
   return state;
 }
-
-function install({ fetch = vi.fn(async () => measured(1024)), mobile = true, hidden = false,
-  header = true, integrate = false, withStatus, path = '/sessions/A' } = {}) {
+function install(options = {}) {
+  const { fetch = vi.fn(async () => measured(1024)), mobile = true, empty, integrate,
+    withStatus, path = '/sessions/A' } = options;
+  const header = options.header !== false;
+  let hidden = options.hidden === true;
   vi.useFakeTimers();
   window.history.replaceState(null, '', path);
   const frame = document.createElement('iframe');
   document.body.append(frame);
   const view = frame.contentWindow;
   const doc = view.document;
-  doc.body.innerHTML = `<div id="app"><div class="app mobile">${header ? topbar(withStatus) : ''}
-    <div class="history">${'<div class="a-msg"><span>Earlier</span></div>'.repeat(500)}</div>
-    <div class="sc-body"></div></div></div>`;
+  const mount = header ? nativeMount(mobile, empty, withStatus) : '';
+  doc.body.innerHTML = `<div id="app"><div class="app${mobile ? ' mobile' : ''}">${mobile ? mount : ''}
+    <div class="con">${mobile ? '' : mount}
+      <div class="panes chat-scroll history">${'<div class="a-msg"><span>Earlier</span></div>'.repeat(500)}</div>
+      <div class="composer"><textarea></textarea></div></div><div class="sc"><div class="sc-body"></div></div></div></div>`;
   Object.defineProperty(doc, 'hidden', { configurable: true, get: () => hidden });
   const media = { matches: mobile, listeners: [], addEventListener: vi.fn((_name, callback) => {
     media.listeners.push(callback);
@@ -86,12 +104,15 @@ function install({ fetch = vi.fn(async () => measured(1024)), mobile = true, hid
     } else history[method](null, '', next);
   };
   const setHidden = (value) => { hidden = value; doc.dispatchEvent(new view.Event('visibilitychange')); };
-  const setMobile = (value) => { media.matches = value; media.listeners.forEach((callback) => callback()); };
+  const setMobile = (value) => {
+    switchDom(doc, value, empty, withStatus);
+    media.matches = value;
+    media.listeners.forEach((callback) => callback());
+  };
   const ui = { api, doc, evaluate, fetch, frame, history, media, navigate, setHidden, setMobile, state, view };
   instances.push(ui);
   return ui;
 }
-
 const size = (ui) => ui.doc.querySelector('.okw-session-size');
 async function expectConverged(ui) {
   await settle();
@@ -100,14 +121,18 @@ async function expectConverged(ui) {
   expect(ui.state.exceeded).toBe(false);
   expect(ui.state.callbacks).toBe(count);
 }
-
+const label = (ui, value) => `${ui.media.matches ? ' · ' : ''}会话 ${value}`;
+function expectMounted(ui, value = '1 KB', calls = 1) {
+  expect(size(ui).textContent).toBe(label(ui, value));
+  expect(ui.doc.querySelectorAll('.okw-session-size')).toHaveLength(1);
+  expect(ui.api).toHaveBeenCalledTimes(calls);
+  expect(vi.getTimerCount()).toBe(1);
+}
 function suspend(ui, reason, value) {
   if (reason === 'hidden') ui.setHidden(value);
-  else if (reason === 'desktop') ui.setMobile(!value);
-  else if (value) ui.view.dispatchEvent(new ui.view.Event('pagehide'));
-  else ui.setHidden(false);
+  else if (reason === 'panel') ui.doc.querySelector('.app').classList.toggle('panel-expanded', value);
+  else ui.view.dispatchEvent(new ui.view.Event(value ? 'pagehide' : 'pageshow'));
 }
-
 afterEach(() => {
   const completed = instances.splice(0);
   completed.forEach((ui) => {
@@ -119,7 +144,6 @@ afterEach(() => {
   vi.useRealTimers();
   expect(completed.every((ui) => !ui.state.exceeded)).toBe(true);
 });
-
 describe('session size units and unavailable values', () => {
   it.each([
     [0, '0 B'], [1, '1 B'], [1023, '1023 B'], [1024, '1 KB'], [1234, '1.2 KB'],
@@ -127,16 +151,12 @@ describe('session size units and unavailable values', () => {
     [1024 ** 2, '1 MB'], [Math.round(1.2 * 1024 ** 2), '1.2 MB'],
     [1024 ** 3 - 52429, '1023.9 MB'], [1024 ** 3 - 52428, '1 GB'], [1024 ** 3 - 1, '1 GB'],
     [1024 ** 3, '1 GB'], [1.5 * 1024 ** 3, '1.5 GB'],
-  ])('renders %s bytes as %s at binary and rounding boundaries', async (bytes, label) => {
-    const ui = install({ fetch: vi.fn(async () => measured(bytes)) });
+  ])('renders %s bytes as %s at binary and rounding boundaries', async (bytes, value) => {
+    const ui = install({ mobile: bytes < 1024 ** 2, fetch: vi.fn(async () => measured(bytes)) });
     await expectConverged(ui);
-    expect(size(ui).textContent).toBe(` · 会话 ${label}`);
-    expect(ui.api).toHaveBeenCalledWith('/__open-kimi-mobile/session-size?session_id=A', {
-      signal: expect.any(ui.view.AbortSignal),
-    });
-    expect(ui.doc.querySelector('.okw-workspace-summary').textContent).toBe('空闲');
+    expectMounted(ui, value);
+    if (ui.media.matches) expect(ui.doc.querySelector('.okw-workspace-summary').textContent).toBe('空闲');
   });
-
   it.each([
     ['missing', undefined], ['null', null], ['negative', -1], ['fractional', 1.5], ['string', '1024'],
     ['NaN', NaN], ['infinite', Infinity], ['unsafe', Number.MAX_SAFE_INTEGER + 1],
@@ -146,7 +166,6 @@ describe('session size units and unavailable values', () => {
     expect(size(ui).textContent).toBe(' · 会话 —');
     expect(size(ui).title).toContain('暂时无法计量');
   });
-
   it.each([
     ['unmanaged', { available: false, bytes: 0, reason: 'unmanaged_target' }, '不是受管本机后端'],
     ['unavailable', { available: false, bytes: 0 }, '暂时无法计量'],
@@ -154,70 +173,66 @@ describe('session size units and unavailable values', () => {
     ['nonboolean flag', { available: 'true', bytes: 0 }, '暂时无法计量'],
     ['empty response', null, '暂时无法计量'],
   ])('shows an explicit unknown state for %s responses', async (_label, body, note) => {
-    const ui = install({ fetch: vi.fn(async () => response(body)) });
+    const ui = install({ mobile: _label !== 'unmanaged', fetch: vi.fn(async () => response(body)) });
     await settle();
-    expect(size(ui).textContent).toBe(' · 会话 —');
+    expect(size(ui).textContent).toBe(label(ui, '—'));
     expect(size(ui).title).toContain(note);
   });
-
-  it.each(['http', 'network'])('clears a previous value on %s failure and retries without exposing errors', async (kind) => {
+  it.each([['http', true], ['network', false]])('retries a %s failure with mobile=%s', async (kind, mobile) => {
     const fetch = vi.fn().mockResolvedValueOnce(measured(2048));
     if (kind === 'http') fetch.mockResolvedValueOnce(response({ error: 'private fixture detail' }, false));
     else fetch.mockRejectedValueOnce(new Error('private fixture detail'));
     fetch.mockResolvedValue(measured(4096));
-    const ui = install({ fetch });
+    const ui = install({ fetch, mobile });
     await settle();
     await vi.advanceTimersByTimeAsync(10_000);
-    expect(size(ui).textContent).toBe(' · 会话 —');
+    expect(size(ui).textContent).toBe(label(ui, '—'));
     expect(size(ui).title).toContain('读取失败或页面授权未就绪');
     expect(size(ui).title).not.toContain('private fixture detail');
     await vi.advanceTimersByTimeAsync(10_000);
-    expect(size(ui).textContent).toBe(' · 会话 4 KB');
+    expect(size(ui).textContent).toBe(label(ui, '4 KB'));
     expect(fetch).toHaveBeenCalledTimes(3);
     await expectConverged(ui);
   });
-
-  it('marks loading as unknown and describes logs, subagents, attachments and context separately', async () => {
+  it.each([true, false])('describes loading and zero logs with mobile=%s', async (mobile) => {
     const pending = deferred();
-    const ui = install({ fetch: vi.fn(() => pending.promise) });
-    expect(size(ui).textContent).toBe(' · 会话 —');
+    const ui = install({ mobile, fetch: vi.fn(() => pending.promise) });
+    expect(size(ui).textContent).toBe(label(ui, '—'));
     expect(size(ui).title).toContain('正在读取');
     pending.resolve(measured(0));
     await settle();
-    expect(size(ui).textContent).toBe(' · 会话 0 B');
-    expect(size(ui).title).toContain('日志体积');
-    expect(size(ui).title).toContain('含子代理');
-    expect(size(ui).title).toContain('不含图片附件');
-    expect(size(ui).title).toContain('不是模型上下文 token 占用');
+    expect(size(ui).textContent).toBe(label(ui, '0 B'));
+    for (const note of ['日志体积', '含子代理', '不含图片附件', '不是模型上下文 token 占用']) {
+      expect(size(ui).title).toContain(note);
+    }
     expect(size(ui).getAttribute('aria-label')).toBe(size(ui).title);
     expect(size(ui).title).not.toContain('正在读取');
   });
 });
-
 describe('session size navigation and response races', () => {
-  it.each(['pushState', 'replaceState', 'popstate'])('clears old sizes and ignores late %s responses', async (method) => {
-    const old = deferred();
-    const next = deferred();
-    const fetch = vi.fn().mockResolvedValueOnce(measured(2048)).mockReturnValueOnce(old.promise)
-      .mockReturnValueOnce(next.promise);
-    const ui = install({ fetch });
-    await settle();
-    expect(size(ui).textContent).toBe(' · 会话 2 KB');
-    await vi.advanceTimersByTimeAsync(10_000);
-    const oldSignal = ui.api.mock.calls[1][1].signal;
-    ui.navigate('/sessions/B', method);
-    expect(oldSignal.aborted).toBe(true);
-    expect(size(ui).textContent).toBe(' · 会话 —');
-    expect(ui.api.mock.calls[2][0]).toBe('/__open-kimi-mobile/session-size?session_id=B');
-    next.resolve(measured(3 * 1024 ** 2));
-    await settle();
-    old.resolve(measured(999 * 1024 ** 2));
-    await expectConverged(ui);
-    expect(size(ui).textContent).toBe(' · 会话 3 MB');
-    expect(fetch).toHaveBeenCalledTimes(3);
-    expect(vi.getTimerCount()).toBe(1);
-  });
-
+  it.each([['pushState', true], ['replaceState', false], ['popstate', false]])
+    ('ignores late %s responses with mobile=%s', async (method, mobile) => {
+      const old = deferred();
+      const next = deferred();
+      const fetch = vi.fn().mockResolvedValueOnce(measured(2048)).mockReturnValueOnce(old.promise)
+        .mockReturnValueOnce(next.promise);
+      const ui = install({ fetch, mobile });
+      await settle();
+      expect(size(ui).textContent).toBe(label(ui, '2 KB'));
+      await vi.advanceTimersByTimeAsync(10_000);
+      const oldSignal = ui.api.mock.calls[1][1].signal;
+      ui.navigate('/sessions/B', method);
+      expect(oldSignal.aborted).toBe(true);
+      expect(size(ui).textContent).toBe(label(ui, '—'));
+      expect(ui.api.mock.calls[2][0]).toBe('/__open-kimi-mobile/session-size?session_id=B');
+      next.resolve(measured(3 * 1024 ** 2));
+      await settle();
+      old.resolve(measured(999 * 1024 ** 2));
+      await expectConverged(ui);
+      expect(size(ui).textContent).toBe(label(ui, '3 MB'));
+      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(vi.getTimerCount()).toBe(1);
+    });
   it('ignores a late rejected request even when navigation returns to the same session ID', async () => {
     const old = deferred();
     const fetch = vi.fn().mockReturnValueOnce(old.promise).mockResolvedValue(measured(4096));
@@ -232,7 +247,6 @@ describe('session size navigation and response races', () => {
     expect(size(ui).title).not.toContain('读取失败');
     expect(fetch).toHaveBeenCalledTimes(3);
   });
-
   it.each(['/workspaces/demo', '/settings', '/sessions/', '/sessions/A/files', '/sessions/%E0%A4%A'])
     ('removes size and aborts pending work outside a valid session route: %s', async (path) => {
       const pending = deferred();
@@ -246,7 +260,6 @@ describe('session size navigation and response races', () => {
       expect(size(ui)).toBeNull();
       expect(ui.fetch).toHaveBeenCalledTimes(1);
     });
-
   it('encodes a decoded session ID and does not refetch for same-session history updates', async () => {
     const ui = install({ path: '/sessions/demo%20id?view=chat' });
     await settle();
@@ -257,62 +270,71 @@ describe('session size navigation and response races', () => {
     expect(size(ui).textContent).toBe(' · 会话 1 KB');
   });
 });
-
 describe('session size request lifecycle', () => {
-  it.each(['hidden', 'desktop'])('does not start %s requests and refreshes once when eligible', async (reason) => {
-    const ui = install({ hidden: reason === 'hidden', mobile: reason !== 'desktop' });
+  it.each([true, false])('waits for visibility with mobile=%s then refreshes once', async (mobile) => {
+    const ui = install({ hidden: true, mobile });
     await vi.advanceTimersByTimeAsync(30_000);
     expect(ui.fetch).not.toHaveBeenCalled();
-    suspend(ui, reason, false);
+    ui.setHidden(false);
     await expectConverged(ui);
     expect(ui.fetch).toHaveBeenCalledTimes(1);
-    expect(size(ui).textContent).toBe(' · 会话 1 KB');
+    expect(size(ui).textContent).toBe(label(ui, '1 KB'));
   });
-
-  it.each(['hidden', 'desktop', 'pagehide'])('stops the periodic timer on %s and refreshes on recovery', async (reason) => {
-    const ui = install();
-    await settle();
-    suspend(ui, reason, true);
-    await vi.advanceTimersByTimeAsync(30_000);
-    expect(ui.fetch).toHaveBeenCalledTimes(1);
-    expect(vi.getTimerCount()).toBe(0);
-    suspend(ui, reason, false);
-    await expectConverged(ui);
-    expect(ui.fetch).toHaveBeenCalledTimes(2);
-    expect(vi.getTimerCount()).toBe(1);
-  });
-
-  it.each(['hidden', 'desktop'])('ignores an aborted %s response after a same-session recovery', async (reason) => {
-    const old = deferred();
-    const next = deferred();
-    const ui = install({ fetch: vi.fn().mockReturnValueOnce(old.promise).mockReturnValueOnce(next.promise) });
-    const oldSignal = ui.api.mock.calls[0][1].signal;
-    suspend(ui, reason, true);
-    expect(oldSignal.aborted).toBe(true);
-    await vi.advanceTimersByTimeAsync(30_000);
-    expect(ui.fetch).toHaveBeenCalledTimes(1);
-    suspend(ui, reason, false);
-    next.resolve(measured(2048));
-    await settle();
-    old.resolve(measured(4096));
-    await expectConverged(ui);
-    expect(size(ui).textContent).toBe(' · 会话 2 KB');
-    expect(ui.fetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('uses one 10s timer, does not poll while in flight and ignores header churn for request scheduling', async () => {
+  it.each([['hidden', true], ['hidden', false], ['panel', false], ['pagehide', false]])
+    ('stops on %s with mobile=%s and recovers once', async (reason, mobile) => {
+      const ui = install({ mobile });
+      await settle();
+      suspend(ui, reason, true);
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(ui.fetch).toHaveBeenCalledTimes(1);
+      expect(vi.getTimerCount()).toBe(0);
+      if (reason === 'pagehide') { size(ui).remove(); await settle(); }
+      expect(ui.fetch).toHaveBeenCalledTimes(1);
+      suspend(ui, reason, false);
+      await expectConverged(ui);
+      expect(ui.fetch).toHaveBeenCalledTimes(2);
+      expect(vi.getTimerCount()).toBe(1);
+    });
+  it.each([['hidden', true], ['hidden', false], ['panel', false], ['pagehide', false]])
+    ('ignores an aborted %s response with mobile=%s', async (reason, mobile) => {
+      const old = deferred();
+      const next = deferred();
+      const ui = install({ mobile, fetch: vi.fn().mockReturnValueOnce(old.promise).mockReturnValueOnce(next.promise) });
+      const oldSignal = ui.api.mock.calls[0][1].signal;
+      suspend(ui, reason, true);
+      await settle();
+      expect(oldSignal.aborted).toBe(true);
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(ui.fetch).toHaveBeenCalledTimes(1);
+      suspend(ui, reason, false);
+      await settle();
+      next.resolve(measured(2048));
+      await settle();
+      old.resolve(measured(4096));
+      await expectConverged(ui);
+      expect(size(ui).textContent).toBe(label(ui, '2 KB'));
+      expect(ui.fetch).toHaveBeenCalledTimes(2);
+    });
+  it('shares one in-flight request and one 10s timer across actual 640/641 DOM switches', async () => {
     const slow = deferred();
     const fetch = vi.fn().mockReturnValueOnce(slow.promise).mockResolvedValue(measured(1024));
     const ui = install({ fetch });
-    const status = ui.doc.querySelector('.st');
+    const node = size(ui);
+    const signal = ui.api.mock.calls[0][1].signal;
+    for (const mobile of [false, true, false]) { ui.setMobile(mobile); await expectConverged(ui); }
+    expect(size(ui)).toBe(node);
+    expect(signal.aborted).toBe(false);
     await vi.advanceTimersByTimeAsync(60_000);
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
     slow.resolve(measured(1024));
     await settle();
-    for (let batch = 0; batch < 20; batch += 1) { status.textContent = `Running ${batch}`; await settle(); }
+    const title = ui.doc.querySelector('.ch-ses');
+    for (let batch = 0; batch < 20; batch += 1) { title.textContent = `Title ${batch}`; await settle(); }
+    ui.setMobile(true);
+    await expectConverged(ui);
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(vi.getTimerCount()).toBe(1);
+    expect(ui.doc.querySelectorAll('.okw-session-size')).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(9999);
     expect(fetch).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(1);
@@ -320,12 +342,10 @@ describe('session size request lifecycle', () => {
     await vi.advanceTimersByTimeAsync(30_000);
     expect(fetch).toHaveBeenCalledTimes(5);
     expect(vi.getTimerCount()).toBe(1);
-    await expectConverged(ui);
   });
 });
-
-describe('session size observer and presentation integration', () => {
-  it('waits for the native official topbar, then lets presentation create the summary and size mount', async () => {
+describe('session size native mounts and observer scope', () => {
+  it('lets presentation supply a mount only after the official mobile topbar appears', async () => {
     const ui = install({ header: false, integrate: true });
     await vi.advanceTimersByTimeAsync(20_000);
     expect(ui.fetch).not.toHaveBeenCalled();
@@ -334,68 +354,68 @@ describe('session size observer and presentation integration', () => {
     await expectConverged(ui);
     expect(ui.doc.querySelector('.okw-workspace-summary').textContent).toBe('空闲');
     expect(size(ui).textContent).toBe(' · 会话 1 KB');
-    expect(ui.fetch).toHaveBeenCalledTimes(1);
   });
-
-  it('stops periodic requests without a status bar and resumes when the official topbar remounts', async () => {
-    const ui = install();
+  it.each([true, false])('cancels a missing native header request and remounts with mobile=%s', async (mobile) => {
+    const pending = deferred();
+    const ui = install({ mobile, fetch: vi.fn().mockReturnValueOnce(pending.promise).mockResolvedValue(measured(1024)) });
+    size(ui).parentElement.closest('.topbar, .chat-header').remove();
     await settle();
-    ui.doc.querySelector('.topbar').remove();
-    await settle();
+    expect(ui.api.mock.calls[0][1].signal.aborted).toBe(true);
     await vi.advanceTimersByTimeAsync(30_000);
-    expect(ui.fetch).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
-    ui.doc.querySelector('.app').insertAdjacentHTML('afterbegin', topbar());
+    switchDom(ui.doc, mobile);
+    pending.resolve(measured(9999));
     await expectConverged(ui);
-    expect(size(ui).textContent).toBe(' · 会话 1 KB');
-    expect(ui.fetch).toHaveBeenCalledTimes(2);
-    expect(vi.getTimerCount()).toBe(1);
+    expectMounted(ui, '1 KB', 2);
   });
-
-  it('waits for the official header mount and restores values after topbar and size-node replacement', async () => {
-    const ui = install({ header: false });
-    await vi.advanceTimersByTimeAsync(20_000);
-    expect(ui.fetch).not.toHaveBeenCalled();
-    const app = ui.doc.querySelector('.app');
-    app.insertAdjacentHTML('afterbegin', topbar());
-    await expectConverged(ui);
-    expect(size(ui).textContent).toBe(' · 会话 1 KB');
-    size(ui).remove();
-    await expectConverged(ui);
-    expect(size(ui).textContent).toBe(' · 会话 1 KB');
-    app.querySelector('.topbar').outerHTML = topbar();
-    await expectConverged(ui);
-    expect(size(ui).textContent).toBe(' · 会话 1 KB');
-    expect(ui.doc.querySelectorAll('.okw-session-size')).toHaveLength(1);
-    expect(ui.fetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores streamed history and Side Chat without any document-wide query, but repairs topbar changes', async () => {
-    const ui = install();
+  it.each([[true, false], [false, false], [false, true]])
+    ('waits and repairs native mounts with mobile=%s empty=%s', async (mobile, empty) => {
+      const ui = install({ mobile, empty, header: false });
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(ui.fetch).not.toHaveBeenCalled();
+      switchDom(ui.doc, mobile, empty);
+      await expectConverged(ui);
+      size(ui).remove();
+      await expectConverged(ui);
+      size(ui).parentElement.closest('.topbar, .chat-header, .empty-drag').outerHTML = nativeMount(mobile, empty);
+      await expectConverged(ui);
+      expectMounted(ui);
+    });
+  it.each([true, false])('ignores history, Side Chat and composer streaming with mobile=%s', async (mobile) => {
+    const ui = install({ mobile });
     await expectConverged(ui);
     const tail = ui.doc.querySelector('.history .a-msg:last-child');
-    const side = ui.doc.querySelector('.sc-body');
-    side.innerHTML = '<div class="topbar"></div>';
-    const sideTopbar = side.firstElementChild;
-    await settle();
-    const status = ui.doc.querySelector('.okw-workspace-status');
+    const side = ui.doc.querySelector('.sc');
+    const composer = ui.doc.querySelector('.composer');
+    const app = ui.doc.querySelector('.app');
+    const node = size(ui);
     const query = vi.spyOn(ui.doc, 'querySelector');
     const queryAll = vi.spyOn(ui.doc, 'querySelectorAll');
+    const elementQuery = vi.spyOn(ui.view.Element.prototype, 'querySelector');
+    const elementQueryAll = vi.spyOn(ui.view.Element.prototype, 'querySelectorAll');
     for (let batch = 0; batch < 20; batch += 1) {
-      tail.append(ui.doc.createElement('span'));
-      sideTopbar.append(ui.doc.createElement('span'));
+      tail.innerHTML = '<div class="chat-header"><span>Stream</span></div>';
+      side.innerHTML = `<div class="con">${desktopHeader()}${topbar()}</div>`;
+      composer.append(ui.doc.createElement('span'));
+      app.classList.toggle('sidebar-collapsed');
       await settle();
     }
-    expect(query).not.toHaveBeenCalled();
-    expect(queryAll).not.toHaveBeenCalled();
-    status.querySelector('.okw-session-size').remove();
+    for (const spy of [query, queryAll, elementQuery, elementQueryAll]) expect(spy).not.toHaveBeenCalled();
+    node.remove();
     await expectConverged(ui);
     expect(query).toHaveBeenCalled();
-    expect(status.querySelector('.okw-session-size').textContent).toBe(' · 会话 1 KB');
-    expect(ui.fetch).toHaveBeenCalledTimes(1);
+    expectMounted(ui);
+  });
+  it.each(['.con', '.app', '#app'])('retains state after nested desktop %s structure replacement', async (selector) => {
+    const ui = install({ mobile: false });
+    await expectConverged(ui);
+    const old = ui.doc.querySelector(selector);
+    old.outerHTML = `<section class="replacement">${old.outerHTML}</section>`;
+    if (selector === '.con') ui.doc.querySelector('.replacement').replaceWith(ui.doc.querySelector('.replacement .con'));
+    await expectConverged(ui);
+    expectMounted(ui);
   });
 });
-
 describe('session size presentation coexistence', () => {
   it('retains live status, branch and session counts when presentation updates beside size', async () => {
     const fetch = vi.fn(async (url) => {
@@ -415,17 +435,19 @@ describe('session size presentation coexistence', () => {
     await expectConverged(ui);
     expect(ui.doc.querySelector('.okw-workspace-summary').textContent).toBe('运行中 · feature/demo · 5 个会话');
     expect(size(ui)).toBe(original);
-    expect(size(ui).textContent).toBe(' · 会话 1.2 KB');
-    expect(ui.api).toHaveBeenCalledTimes(1);
+    expectMounted(ui, '1.2 KB');
     ui.setMobile(false);
-    await settle();
+    await expectConverged(ui);
     expect(ui.doc.querySelector('.okw-workspace-status')).toBeNull();
+    expect(size(ui)).toBe(original);
+    expect(size(ui).parentElement.className).toBe('chat-header');
+    expect(size(ui).textContent).toBe('会话 1.2 KB');
     ui.setMobile(true);
+    ui.doc.querySelector('.st').textContent = '运行中';
     await expectConverged(ui);
     expect(ui.doc.querySelector('.okw-workspace-summary').textContent).toBe('运行中 · feature/demo · 5 个会话');
-    expect(size(ui).textContent).toBe(' · 会话 1.2 KB');
+    expectMounted(ui, '1.2 KB');
   });
-
   it('shows size beside an empty summary but hides the empty status again on workspace navigation', async () => {
     const ui = install({ integrate: true, withStatus: false });
     await expectConverged(ui);
@@ -440,7 +462,6 @@ describe('session size presentation coexistence', () => {
     await vi.advanceTimersByTimeAsync(30_000);
     expect(ui.api).toHaveBeenCalledTimes(1);
   });
-
   it('installs only once without stacking history wrappers, observers, nodes or timers', async () => {
     const ui = install();
     await settle();
@@ -458,8 +479,7 @@ describe('session size presentation coexistence', () => {
     expect(ui.api).toHaveBeenCalledTimes(2);
     expect(vi.getTimerCount()).toBe(1);
   });
-
-  it('limits style overrides to mobile and truncates only the summary, never the size', () => {
+  it('retains the mobile style boundary and truncates only its summary, never the size', () => {
     expect(css.trim().startsWith('@media (max-width: 640px) {')).toBe(true);
     expect(css).toMatch(/\.okw-workspace-status\[hidden\]\s*\{\s*display:\s*none/s);
     expect(css).toMatch(/\.okw-workspace-summary\s*\{[^}]*min-width:\s*0[^}]*text-overflow:\s*ellipsis/s);
