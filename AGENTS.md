@@ -42,6 +42,10 @@
 [`docs/plans/mobile-list-and-self-update-v1-plan.md`](docs/plans/mobile-list-and-self-update-v1-plan.md) 执行。
 恢复原生视图偏好，排序只改变展示；更新必须识别实际执行安装，不改另一份安装、官方 Kimi 或接管状态。
 
+大会话局域网加载性能修复与 r9 发布按
+[`docs/plans/large-session-lan-performance-v1-plan.md`](docs/plans/large-session-lan-performance-v1-plan.md) 执行。
+先分层对比官方基线与增强版；保留原生最近页、历史分页和增量语义，不以截断日志或另一套会话状态代替优化。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。

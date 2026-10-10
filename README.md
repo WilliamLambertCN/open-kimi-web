@@ -11,9 +11,10 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r8][r8-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 补齐桌面会话体积、手机平铺与三种工作区展示排序，新增安全自更新；保留此前聊天、图片及价格增强。
-> Windows 完整测试、Ubuntu CI 与虚构数据下的官方页面验收通过；完整验证边界见下方说明。
+> **当前版本：[v2.1.1-r9][r9-release]，兼容基线为 Kimi Code `2.1.1`。**
+> 新增无依赖的 Node 流式 gzip，减少可压缩的大会话响应与静态资源传输；保留既有增强与用户偏好。
+> Windows 标准检查及源码官方 app 实测通过；交付包浏览器、CI 与线上验证按发布流程单独记录在
+> [大会话局域网性能计划](docs/plans/large-session-lan-performance-v1-plan.md)。
 > 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
 
 ## 模型用量与 API 成本统计
@@ -71,6 +72,8 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   API 等值费用；历史回补、fork 去重、离线价格、自动匹配、批量确认和手动覆盖，详见上方主功能展示。
 - **局域网 HTTPS**：让官方 server 保持回环监听，由 launcher 提供局域网 HTTPS、
   自签名证书和 SHA-256 指纹。
+- **流式 gzip（r9）**：协商压缩较大的可压缩 HTTP 响应、官方／自定义静态和注入资源，使用 Node 内置流，
+  无额外依赖、不缓存会话内容；保留正文、分页、鉴权、WS 与原有缓存策略，不重复压缩已编码响应。
 - **token 直达链接**：在启动输出中提供带 `#token=...` 的 Local 与 Network 链接，
   页面挂载前移除 fragment。
 - **可逆命令接管**：`integrate install` 可接管 `kimi web`，其它 `kimi` 命令原样透传；
@@ -125,7 +128,27 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
   `open Kimi-Code web`；`--web-dir` 提供用户构建时不注入这些增强。
 
-**r8 验收：** Windows lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT 与 test:pack 通过。
+**r9 大会话传输与剩余边界：** 新增流式 gzip，不缓存会话内容、不收集完整正文后压缩。
+HTTP 代理、官方／自定义静态与注入资源均可协商压缩；`--web-dir` 仍不注入展示层。
+准确官方 `2.1.1` 原本只取最近 10 turn、以 `before_turn` 加载旧页，并保留最多 4 个 resident 会话，
+因此问题不是全历史下载。后端先完整 reduce 再分页，每页带 tasks 等实体，单 turn 仍可能很大。
+官方 Remote Control 会协商 gzip，本地入口及 r8 代理 raw 传输；本轮只修已确认的可压缩传输差异。
+完整官方 app 的 r9 源码实测通过：10 个样本／217 项断言及 27 项边界断言，无页面错误。
+25 ms＋1 MiB/s、桌面 Original、显式工具折叠，n=3 中位数：工具／正文／entity 可见时间由 r8 的
+2885／2761／4546 ms 降至 109／257／145 ms。使用虚构高度重复 fixture，不代表普遍压缩倍数或真实 tunnel／LAN。
+输入验证在正文可见后执行，不是输入框最早可用时刻；旧页、resident 切换、响应竞态及合法 WS 恢复通过。
+工具展开的共同 render／layout 仍有 400–900 ms 长任务；不改默认展开、显式偏好、observer 或主题。
+代表实图已核对；Original 手机顶部 badge／subtitle 的既有对比问题不变，不宣称全面视觉通过。
+压缩不能消除后端恢复、JSON 解析与同步渲染；实体手机、真实家庭 Wi-Fi 和生产安装未验证。
+
+**r9 Windows 标准检查：** lint、typecheck、66 文件／1146 项 UT、13 文件／154 项 IT 与 test:pack 通过。
+UT 行／分支覆盖率 88.14%／80.76%，IT 87.98%／75.91%；覆盖率门槛不变。
+补齐条件请求变体 metadata、既有响应头、205 长度及首 gzip 段后的空闲超时回归。
+打包冒烟确认 r9 版本、压缩模块随包及静态／API 实际调用；源码 app 实测不等于交付包浏览器验收。
+交付包浏览器、CI 与线上验证按发布流程单独记录在[计划](docs/plans/large-session-lan-performance-v1-plan.md)。
+
+**保留的 r8 历史验收（非 r9 结果）：** Windows lint、typecheck、65 文件／1007 项 UT、
+11 文件／89 项 IT 与 test:pack 通过。
 Windows UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
 [PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 通过 lint、typecheck 与 test:pack。
 Ubuntu UT 65 文件、1006 项通过＋1 项 Windows-only 跳过（共 1007）；IT 10 文件通过＋1 文件跳过，
@@ -215,11 +238,11 @@ r6 当时的 lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包�
 
 **安装发布包：**
 
-使用 r8 的固定 tgz URL 安装；更新后必须重启旧 launcher，再刷新页面。
+使用 r9 的固定 tgz URL 安装；更新后必须重启旧 launcher，再刷新页面。
 GitHub 资产以对应 Release 页面为准。
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r9/open-kimi-web-2.1.1-r9.tgz
 open-kimi-web integrate install
 ```
 
@@ -314,7 +337,7 @@ open-kimi-web update --help
 若工具后代的退出无法确认，会保留安装锁并拒绝再次更新；先核实原 updater 及其后代已停止，再按错误提示解除锁。
 仍需自行停止旧 launcher 后重启，再刷新页面；切换安装位置则继续按下方说明 repair。
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，手动安装 `v2.1.1-r8`。
+**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，手动安装 `v2.1.1-r9`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -454,4 +477,4 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[r8-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r8
+[r9-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r9
