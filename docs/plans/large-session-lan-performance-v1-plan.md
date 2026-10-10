@@ -125,3 +125,9 @@
   25ms/1MiB/s、fold=1、n=1：工具119ms/正文258ms/entity138ms/resident20ms，传输11710/11053/25839 bytes、decoded不变。
   最近191–200、真实wheel旧181–190、resident无新正文下载与所有核心trusted输入保持；未将此候选QA称线上验证。
   两张必要旧页/正文实图核对；自有Chrome/node子树、4入口listener、home/profile宿主机定向复核无残留。
+- develop修复已推送并建PR25；首次Ubuntu required gate在新增launcher-compression三项IT超时，未合入、未发布。
+  raw module及其余IT通过，正在定位大Buffer深度断言与清理成本；保留大响应与精确字节要求，不跳过或升全局超时。
+- 该CI问题定位为Vitest大Buffer深度断言开销：1,507,359-byte正文toEqual约2005ms，原生equals约0.245ms，JSON深比较约3ms。
+  真实gzip/identity传输与解码18.7/11.8ms、关闭0.46/0.28ms，未见cleanup hang。
+  仅6行大Buffer断言改精确equals，保留大数据、JSON深度相等、所有timeout和生命周期要求；本地13项IT951ms通过。
+  此修补不改变发布正文/资产或生产代码，候选包性能证据仍适用；待全IT与Ubuntu重验。
