@@ -103,7 +103,7 @@ async function expectRepresentations(url, expected, cacheControl) {
   expect(identity.headers['content-encoding']).toBeUndefined();
   expect(identity.headers['content-length']).toBe(String(expected.length));
   expect(identity.headers['cache-control']).toBe(cacheControl);
-  expect(identity.body).toEqual(expected);
+  expect(identity.body.equals(expected)).toBe(true);
 
   const gzip = await rawRequest(url, { headers: { 'accept-encoding': 'gzip' } });
   expect(gzip.status).toBe(200);
@@ -113,7 +113,7 @@ async function expectRepresentations(url, expected, cacheControl) {
   expect(gzip.headers['cache-control']).toBe(cacheControl);
   expect(gzip.body.subarray(0, 2)).toEqual(Buffer.from([0x1f, 0x8b]));
   expect(gzip.body.length).toBeLessThan(expected.length);
-  expect(gunzipSync(gzip.body)).toEqual(expected);
+  expect(gunzipSync(gzip.body).equals(expected)).toBe(true);
 
   const head = await rawRequest(url, { method: 'HEAD', headers: { 'accept-encoding': 'gzip' } });
   expect(head.status).toBe(200);
@@ -165,7 +165,7 @@ describe('createLauncher compression wiring', () => {
       expect(response.headers['content-encoding']).toBe(encoding === 'gzip' ? 'gzip' : undefined);
       expect(response.headers['content-length']).toBe(encoding === 'gzip' ? undefined : String(JSON_BODY.length));
       const decoded = encoding === 'gzip' ? gunzipSync(response.body) : response.body;
-      expect(decoded).toEqual(JSON_BODY);
+      expect(decoded.equals(JSON_BODY)).toBe(true);
       expect(JSON.parse(decoded)).toEqual(JSON.parse(JSON_BODY));
       expect(seen).toEqual({ url: REST_PATH, method: 'GET', authorization: 'Bearer fictional-compression-test' });
     }, { handler });
@@ -186,8 +186,8 @@ describe('createLauncher compression wiring', () => {
       expect(response.headers['content-encoding']).toBe('gzip');
       expect(response.headers['content-length']).toBe(String(encoded.length));
       expect(response.headers.etag).toBe('"upstream-fixture"');
-      expect(response.body).toEqual(encoded);
-      expect(gunzipSync(response.body)).toEqual(JSON_BODY);
+      expect(response.body.equals(encoded)).toBe(true);
+      expect(gunzipSync(response.body).equals(JSON_BODY)).toBe(true);
     }, { handler });
   });
 });
@@ -214,7 +214,7 @@ describe('createLauncher gzip conditional metadata', () => {
       expect(gzip.headers['content-encoding']).toBe('gzip');
       expect(gzip.headers.etag).toBe('W/"fixture"');
       expect(gzip.headers.vary).toBe('Origin, Accept-Encoding');
-      expect(gunzipSync(gzip.body)).toEqual(JSON_BODY);
+      expect(gunzipSync(gzip.body).equals(JSON_BODY)).toBe(true);
       const conditional = await rawRequest(`${url}${REST_PATH}`, {
         headers: { 'accept-encoding': 'gzip', 'if-none-match': gzip.headers.etag },
       });
