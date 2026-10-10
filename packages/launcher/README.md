@@ -6,16 +6,18 @@
 
 ## 安装
 
-本项目当前不发布到 npm registry。当前版本 `v2.1.1-r8` 兼容 Kimi Code `2.1.1`。
-Windows 完整测试、Ubuntu CI 与官方页面隔离验收通过；使用以下 GitHub Release 固定版本 URL 安装：
+本项目当前不发布到 npm registry。当前版本 `v2.1.1-r9` 兼容 Kimi Code `2.1.1`。
+Windows 标准检查及源码官方 app 实测通过；交付包浏览器、CI 与线上验证按发布流程单独记录在[计划][lan-plan]。
+使用 GitHub Release 的固定版本 tgz URL 安装：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r9/open-kimi-web-2.1.1-r9.tgz
 open-kimi-web integrate install
 ```
 
-`2.1.1-r8` 仍兼容 Kimi Code `2.1.1`。补齐桌面会话体积、手机平铺与三种工作区展示排序，新增安全自更新。
-保留聊天自适应宽度、消息时间戳补显、图片完整预览和 tab 反馈。
+`2.1.1-r9` 新增无依赖的 Node 流式 gzip，覆盖 HTTP 代理、官方／自定义静态资源及注入资源。
+保留桌面会话体积、手机平铺与三种工作区展示排序，以及 r8 起提供的安全自更新。
+聊天自适应宽度、消息时间戳补显、图片完整预览和 tab 反馈继续保留。
 手机提问卡片支持长题干与选项共同滚动，也可拖动高度并保存当前浏览器和站点的档位；
 包含模型用量统计、归档删除与长会话性能增强。
 保留 r5 的价格修复：离线快照、联网刷新、真实模型 ID 自动建议和批量确认，模糊建议不直接计费。
@@ -32,7 +34,31 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 
 已有接管时，切换安装方式或目录还需要按下方“升级”说明更新入口。
 
-## 聊天增强与 r8 验收
+## r9 流式 gzip 与验证边界
+
+`src/responseCompression.mjs` 仅使用 Node 内置 zlib／stream，不增加运行时依赖。
+按 Accept-Encoding 为可压缩 MIME 协商 gzip；已知长度至少 1024 bytes 或长度未知的流可压缩。
+使用 level 1、`Z_SYNC_FLUSH` 与 `pipeline`，保持背压，错误、取消和断线时清理上游与压缩器。
+不为压缩收集完整正文、不缓存会话内容；不改变正文、分页、鉴权、WS、工具展开默认及显式偏好、observer 或主题。
+合并 Vary，压缩后删除原 Content-Length／digest 等编码相关头，并弱化合法强 ETag。
+identity 优先、gzip q=0、已编码、HEAD、无正文状态、Range／206、SSE 与 no-transform 不转码。
+
+准确官方 `2.1.1` 已有最近 10 turn、before_turn 分页及最多 4 个 resident 会话，并非全历史下载。
+后端先完整 reduce 再分页，每页仍带 tasks 等实体，单 turn 可很大；官方 Remote Control 会协商 gzip，本地入口 raw。
+本轮只修可压缩传输差异；共同的后端恢复、JSON 解析和工具展开 render／layout 仍可能慢，后者有 400–900 ms 长任务。
+完整官方 app 源码实测 10 个样本／217 项断言及 27 项边界断言通过，无页面错误；旧页、resident 与 WS 恢复保持正常。
+工具响应解码后仍为 1,340,243 bytes，gzip 编码为 11,710 bytes；主 JS 的 3,906,433 bytes 编码为 1,436,290 bytes。
+受控网络、虚构高度重复 fixture 不代表普遍压缩倍数或实际 tunnel／LAN；输入验证在正文可见后执行，不是最早可用时刻。
+代表实图已核对，Original 手机顶部 badge／subtitle 的既有对比问题不变，不宣称全面视觉通过。
+实体手机、真实家庭 Wi-Fi 与生产安装未验证；升级后须重启旧 launcher 并刷新页面。
+
+r9 Windows lint、typecheck、66 文件／1146 项 UT、13 文件／154 项 IT 与 test:pack 通过。
+UT 行／分支覆盖率 88.14%／80.76%，IT 87.98%／75.91%；覆盖率门槛不变。
+审查后补齐条件请求变体 metadata、既有响应头、205 长度及首 gzip 段后的空闲超时回归。
+打包冒烟确认 r9 版本、压缩模块随包及静态／API 实际调用；源码 app 实测不等于交付包浏览器验收。
+交付包浏览器、CI 与线上验证按发布流程单独记录在[计划][lan-plan]。
+
+## 聊天增强与保留的 r8 历史验收
 
 桌面正文列和输入卡片随主聊天窗格自身宽度调整，大窗格正文可用列约占 60%，窄窗格保留边距。
 侧栏、右面板和分隔条改变窗格尺寸时自动重排，目录保持在正文外侧；手机及 Side Chat 保持原布局。
@@ -44,6 +70,7 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 主会话 transcript 提供可靠时间且能精确对应消息时，补显示缺失时间，支持点击或键盘展开完整日期。
 不伪造未知时间；Side Chat、仅实时 WS 消息和超过 1,048,576 字符的 transcript 响应保留官方时间显示。
 
+以下仅为保留的 r8 历史验收，不代表 r9 结果：
 r8 Windows lint、typecheck、65 文件／1007 项 UT、11 文件／89 项 IT 与 test:pack 通过。
 Windows UT 行／分支覆盖率 87.58%／79.64%，IT 87.43%／74.87%；覆盖率门槛不变。
 [PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) 通过 lint、typecheck 与 test:pack。
@@ -63,7 +90,8 @@ POSIX TERM／process-group 收尾；线上资产安装与已最新检查在发�
 快速点击只保留当前反馈，慢 B→快 C 的旧响应、错误和关闭均会正确收尾；内容竞态仍由官方 generation 处理。
 不改官方 bundle，不用 Vue 私有状态，不复制官方会话／文件状态或接管内容 loader。
 
-最终验收：实际 r6 tgz 等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图；opaque 2.69 MB、transparent 1.57 MB、
+保留的 r6 历史验收：实际 tgz 等价图片 Chrome 像素矩阵完成 115 项断言、110 张截图；
+opaque 2.69 MB、transparent 1.57 MB、
 >10 MiB、失败及 Fit／Actual 的全部主题检查通过，完整 RGBA 正确；这不是完整 app 验收。
 另以完整官方 `2.1.1` app 动态 import 实际解包的 officialPresentation 资源，4 张 PNG 使用原生 `.fp-image`，
 read 1 MiB→download 完整 opaque 3,148,932 bytes、透明 1,833,306 bytes，底部 RGBA 与 Fit→Actual→Fit 通过。
@@ -142,8 +170,8 @@ Side Chat 运行中，向上滚动后会保持阅读位置；滚回底部后继�
 （包括原始外观）保存在当前浏览器、当前站点的本地存储中，不修改官方浅色/深色设置。
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后必须结束旧进程并重新启动，
-再刷新或重新打开页面。`--web-dir` 不注入展示层及主题功能。已检查的官方组件版本为
-`2.1.1`（静态审计、自动化回归及实际 tgz 资源在虚构 API 下的完整官方 app 隔离验收）。
+再刷新或重新打开页面。`--web-dir` 不注入展示层及主题功能。已检查的官方组件版本为 `2.1.1`；
+r9 完整官方 app 源码实测使用虚构 API；交付包浏览器与线上验证单独记录在[计划][lan-plan]。
 
 ## 接管（可选）
 
@@ -233,3 +261,5 @@ node packages/launcher/bin/open-kimi-web.mjs integrate repair
 
 MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 MIT
 许可代码，原始声明完整保留。
+
+[lan-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-lan-performance-v1-plan.md

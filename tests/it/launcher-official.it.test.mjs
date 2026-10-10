@@ -172,6 +172,29 @@ function verifyChatEnhancementOrder(indexText) {
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
 }
 
+async function verifyRepresentation(url, response, length, compressible) {
+  if (compressible && length >= 1024) {
+    expect(response.headers.get('content-encoding')).toBe('gzip');
+    expect(response.headers.get('content-length')).toBeNull();
+    expect(response.headers.get('vary')).toContain('Accept-Encoding');
+  } else {
+    expect(response.headers.get('content-encoding')).toBeNull();
+    expect(Number(response.headers.get('content-length'))).toBe(length);
+  }
+  const head = await fetch(url, { method: 'HEAD' });
+  expect(head.headers.get('content-encoding')).toBeNull();
+  expect(Number(head.headers.get('content-length'))).toBe(length);
+  expect(await head.text()).toBe('');
+}
+
+async function verifyIndexRepresentation(url, response, text) {
+  await verifyRepresentation(url, response, Buffer.byteLength(text), true);
+  const identity = await fetch(url, { headers: { 'accept-encoding': 'identity' } });
+  expect(identity.headers.get('content-encoding')).toBeNull();
+  expect(Number(identity.headers.get('content-length'))).toBe(Buffer.byteLength(text));
+  expect(await identity.text()).toBe(text);
+}
+
 async function expectPresentationAssets(baseUrl) {
   const sourceAssets = new Map();
   for (const name of [
@@ -245,9 +268,8 @@ async function expectPresentationAssets(baseUrl) {
       expect(body).toContain("frame?.type === 'client_hello'");
     }
     if (name === 'themes.css') verifyThemeSelectors(body);
-    const head = await fetch(url, { method: 'HEAD' });
-    expect(head.headers.get('content-length')).toBe(response.headers.get('content-length'));
-    expect(await head.text()).toBe('');
+    const length = name.endsWith('.png') ? body.byteLength : Buffer.byteLength(body);
+    await verifyRepresentation(url, response, length, !name.endsWith('.png'));
   }
   const missing = await fetch(`${baseUrl}/__open-kimi-mobile/missing.js`);
   expect(missing.status).toBe(404);
@@ -312,7 +334,7 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('providerEnhancements.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       verifyChatEnhancementOrder(indexText);
-      expect(Number(index.headers.get('content-length'))).toBe(Buffer.byteLength(indexText));
+      await verifyIndexRepresentation(`${launcher.url}/`, index, indexText);
 
       const boot = await fetch(`${launcher.url}/boot.js`);
       expect(boot.status).toBe(200);

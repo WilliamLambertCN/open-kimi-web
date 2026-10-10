@@ -1,4 +1,5 @@
-import { createServer } from 'node:http';
+import { createServer, request } from 'node:http';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildProxyHeaders, filterHeaders, proxyRequest } from '../src/httpProxy.mjs';
@@ -88,6 +89,76 @@ describe('buildProxyHeaders', () => {
       accept: 'application/json',
       host: 'example.test',
     });
+  });
+});
+
+describe('proxyRequest body delivery', () => {
+  it('passes upstream gzip bytes and representation headers through without decoding', async () => {
+    const text = JSON.stringify({ items: ['Fictional transcript output. '.repeat(5000)] });
+    const encoded = gzipSync(text);
+    let encoding;
+    const upstream = await listen((req, res) => {
+      encoding = req.headers['accept-encoding'];
+      res.writeHead(200, {
+        'content-type': 'application/json',
+        'content-encoding': 'gzip',
+        'content-length': encoded.length,
+        vary: 'Accept-Encoding',
+        etag: '"fixture-gzip"',
+      });
+      res.end(encoded);
+    });
+    const proxy = await listen((req, res) => proxyRequest(req, res, upstream));
+    const result = await new Promise((resolve, reject) => {
+      const req = request(`${proxy}/api/v1/sessions/fixture/transcript?agent_id=main&page_size=10`, {
+        headers: { 'accept-encoding': 'gzip' },
+      }, (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.once('error', reject);
+        res.once('end', () => resolve({ headers: res.headers, body: Buffer.concat(chunks) }));
+      });
+      req.once('error', reject);
+      req.end();
+    });
+    expect(encoding).toBe('gzip');
+    expect(result.headers['content-encoding']).toBe('gzip');
+    expect(Number(result.headers['content-length'])).toBe(encoded.length);
+    expect(result.headers.vary).toBe('Accept-Encoding');
+    expect(result.headers.etag).toBe('"fixture-gzip"');
+    expect(result.body).toEqual(encoded);
+    expect(gunzipSync(result.body).toString()).toBe(text);
+  });
+
+  it('delivers the first upstream chunk before the remaining body is produced', async () => {
+    let finish;
+    const waiting = new Promise((resolve) => { finish = resolve; });
+    const upstream = await listen(async (_req, res) => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.write('{"items":[');
+      await waiting;
+      res.end('"Fictional output"]}');
+    });
+    const proxy = await listen((req, res) => proxyRequest(req, res, upstream));
+    const response = await fetch(`${proxy}/api/v1/sessions/fixture/transcript`);
+    const reader = response.body.getReader();
+    try {
+      const first = await reader.read();
+      expect(new TextDecoder().decode(first.value)).toBe('{"items":[');
+      expect(first.done).toBe(false);
+      finish();
+      const chunks = [first.value];
+      for (;;) {
+        const next = await reader.read();
+        if (next.done) break;
+        chunks.push(next.value);
+      }
+      expect(Buffer.concat(chunks).toString()).toBe('{"items":["Fictional output"]}');
+    } finally {
+      finish();
+      await reader.cancel();
+      reader.releaseLock();
+    }
   });
 });
 
