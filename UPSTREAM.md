@@ -12,9 +12,12 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r8`, still based on `2.1.1`; use the fixed GitHub Release URL.
-  `r8` adds desktop session size, native mobile flat/grouped views, three workspace display orders and safe self-update.
-  The `r7` chat width/timestamp, `r6` complete-image/tab-feedback and `r5` pricing fixes remain.
+- Open Kimi Web version: `2.1.1-r9`, still based on `2.1.1`; use the fixed GitHub Release tgz URL.
+  `r9` adds dependency-free Node streaming gzip for HTTP proxy responses, official/custom static and injected resources.
+  Earlier presentation features and safe self-update since `r8` remain unchanged.
+  Windows standard checks and complete official-app source checks passed.
+  Package-browser, CI and online verification are separately [recorded in the release plan][lan-plan].
+- Historical `r8` acceptance, not an r9 CI or release result:
   Windows passed lint, typecheck, 65 unit-test files/1007 tests, 11 integration-test files/89 tests and test:pack.
   Windows unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%.
   [PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) succeeded.
@@ -22,14 +25,57 @@ or a vendored transcript implementation.
   Integration tests had 10 passing files/one skipped file, 87 passes and two Windows-only skips (89 total).
   Ubuntu unit line/branch coverage was 87.31%/79.79%; integration coverage was 86.11%/73.95%, with unchanged gates.
   Chrome checks used the complete official app with fictional REST/WS, not physical devices or real user data.
-  Online asset installation and already-current checks are verified separately after publication.
+  The r8 record lists online asset installation and already-current checks as separate post-publication verification.
   Production-user upgrades are outside this isolated acceptance.
-  The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
+- The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
   The historical GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
 - Machine-readable upstream version and historical contract records: `upstream.json`.
 
-`r8` shows current-session wire size beside the desktop main title and above an empty session, as well as below
+## r9 streaming gzip and remaining boundaries
+
+`packages/launcher/src/responseCompression.mjs` uses only Node zlib and stream, adding no runtime dependency.
+It serves HTTP proxy responses, official/custom static files and injected resources. Compressible MIME types
+negotiate gzip via Accept-Encoding when known length is at least 1024 bytes or the stream length is unknown.
+Level 1 and `Z_SYNC_FLUSH` keep the transfer streaming; no whole-body compression buffer or session cache is added.
+Vary is merged; transformed responses drop original Content-Length and encoding-related digest headers,
+and valid strong ETags become weak. Pipeline preserves backpressure and cleans up on errors, cancellation and disconnects.
+Identity preference, gzip q=0, existing encoding, HEAD, no-body statuses, Range/206, SSE and no-transform skip transcoding.
+Payload, pagination, authorization and WS semantics remain intact.
+Folding defaults/preferences, observers and themes do not change.
+Custom `--web-dir` builds still receive no presentation injection, although eligible static responses can be compressed.
+
+The exact official `2.1.1` main view already requests page_size=10, uses before_turn for history and keeps four resident sessions.
+The problem is not downloading all history. The backend fully reduces agent history before paging and includes tasks and other
+associated entities on each page; a single turn can also be large. Wire log size is not response size.
+Official Remote Control negotiates gzip, whereas the local entry and r8 proxy send raw responses.
+The isolated real-backend check passed 48 requests/147 assertions for recent pages, exclusive cursors and entity boundaries.
+The complete official app using r9 source passed 10 samples/217 assertions plus 27 edge assertions, with no page errors.
+Desktop Original checks used explicit folded tools, n=3 medians, 25 ms latency and 1 MiB/s.
+Tool content became visible at 109 ms versus 2885 ms in r8; decoded response size stayed 1,340,243 bytes.
+The gzip transfer was 11,710 bytes. Fictional, highly repetitive fixtures do not establish general compression gains,
+actual Remote Control tunnel or user LAN performance. Trusted input was tested after content visibility,
+not at its earliest availability.
+Wheel pagination, zero-download resident switching and slow-B/fast-C stale-response protection passed; B was not aborted.
+HTTP 500 triggered official automatic retry. Valid WS append, duplicate and reset, plus missing-sequence REST recovery passed;
+the resumed subscribe_v2 used transcript_since.main=9. Raw HTTP integration separately verified upstream closure after client
+ disconnect for gzip and identity; the browser race check is not cancellation proof. Representative images were reviewed,
+not a full visual acceptance: the existing Original mobile top badge/subtitle contrast issue remains unchanged.
+
+Windows passed lint, typecheck, 66 unit-test files/1146 tests, 13 integration-test files/154 tests and test:pack.
+Unit line/branch coverage was 88.14%/80.76%; integration coverage was 87.98%/75.91%, with unchanged gates.
+Review follow-ups cover conditional variant metadata, preset response headers, 205 framing and idle timeout after a gzip chunk.
+Package smoke verified r9 version, the included compression module and live static/API calls.
+Source-app acceptance is not package-browser acceptance; package-browser, PR/main CI and online verification
+are separately recorded in the [release plan][lan-plan]. No CI or online-install result is inferred from local checks.
+Shared expanded-tool render/layout still has 400–900 ms long tasks and is not fixed by this revision.
+Gzip does not remove full-history reduction, JSON parsing or synchronous rendering. Physical phones, real home Wi-Fi
+and production installation are unverified. After upgrading, restart the old launcher and refresh the page;
+no session migration or official-cache clearing is needed.
+
+## Retained r8 enhancements and historical acceptance
+
+`r8` added current-session wire size beside the desktop main title and above an empty session, as well as below
 mobile titles. Desktop and mobile share request state and the 10-second refresh timer. It includes agent wires,
 not image attachments, and does not parse log contents. Only managed local mode is supported; unavailable size
 is shown as `会话 —`. This is not a token context limit and does not replace official session state.
@@ -39,11 +85,11 @@ Grouped workspaces offer recent-session, workspace-name and desktop-saved displa
 sessions keep official update-time order. Existing pins require uniquely confirmed workspace identity.
 Missing data or conflicting shortened paths disable desktop-saved order rather than guessing IDs.
 CSS display order never moves Vue nodes; keyboard and screen-reader DOM order remains upstream order.
-The complete official app passed the 42-case mobile appearance matrix and targeted pagination, collapse,
-selection, persistence and breakpoint checks. This is isolated Chrome acceptance, not physical-phone testing.
+For r8, the complete official app passed the 42-case mobile appearance matrix and targeted pagination, collapse,
+selection, persistence and breakpoint checks. This is historical isolated Chrome acceptance, not physical-phone testing.
 
-`r8` provides `update`, `update --check` and `update --help`; the `r7` package has no update command and must first
-be upgraded manually. Updates identify the executing installation, not the current directory or default npm prefix.
+Since `r8`, the launcher provides `update`, `update --check` and `update --help`; the `r7` package has no update command
+and must first be upgraded manually. Updates identify the executing installation, not the current directory or default npm prefix.
 Source updates require a clean official-repository main tracking origin/main, fast-forward and frozen-lockfile install.
 Dirty, ahead, diverged or development branches are rejected without stash, reset or branch switching.
 Recognized global/custom-prefix npm installs and simple local direct dependencies use the exact latest formal
@@ -213,3 +259,5 @@ the retired standalone-client contract tests and capture workflow no longer
 run. The `0.43.1` archive, deletion, and steer behavior was checked separately,
 but the full artifacts were not recaptured, so these snapshots do not claim
 `0.43.1`, `2.0.2`, or `2.1.1` coverage.
+
+[lan-plan]: docs/plans/large-session-lan-performance-v1-plan.md

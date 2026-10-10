@@ -8,7 +8,11 @@ description: |
 
 # OpenWeb for Kimi Code（官方 Web 的轻量增强层）
 
-Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
+Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，
+在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
+
+当前版本 `v2.1.1-r9` 兼容官方 `2.1.1`，新增无依赖的 Node 流式 gzip；既有增强与偏好不变。
+Windows 标准检查及源码官方 app 实测通过；交付包浏览器、CI 与线上验证按发布流程单独记录在[计划][lan-plan]。
 
 本 skill 是已独立安装的 `open-kimi-web` 工具管理入口，驱动 `integrate install|status|repair|uninstall` 和 `update`。
 安装或移除 Kimi 插件都不会安装、启动或卸载 launcher，也不会自动修改或撤销 PATH 接管。
@@ -27,7 +31,7 @@ corepack pnpm install --frozen-lockfile
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 
 # 或使用 GitHub Release 固定版本 URL
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r8/open-kimi-web-2.1.1-r8.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r9/open-kimi-web-2.1.1-r9.tgz
 ```
 
 ## 安装接管（系统级修改，必须先确认）
@@ -85,9 +89,27 @@ open-kimi-web update --check
 包管理器缓存可能正常变化；本地 npm 会解析 owner 依赖树，不保证无关依赖逐字节不变。
 若后代进程退出无法确认，安装锁会保留；先核实原 updater 及其后代已停止，再按错误提示手工解除锁。
 
+## 大会话加载诊断（r9）
+
+- r9 在 HTTP 代理、官方／自定义静态和注入资源层协商流式 gzip，不新增依赖，不缓存会话或收集全文后压缩。
+  已知长度至少 1024 bytes 或长度未知的可压缩流可用 gzip，采用 level 1 与 `Z_SYNC_FLUSH`；背压和取消继续沿用。
+  identity 优先、gzip q=0、已编码、HEAD、无正文、Range／206、SSE 与 no-transform 不转码。
+- 准确官方 `2.1.1` 已有最近 10 turn、before_turn 与最多 4 个 resident 会话，不要把加载慢解释成全历史下载。
+  后端先完整 reduce 再分页，每页仍带 tasks 等实体，单 turn 可能巨大；官方 Remote Control 压缩，本地入口 raw。
+- 不修改正文、分页、鉴权、WS、工具默认展开或显式偏好、observer、主题，也不以截断工具输出伪造提速。
+  共同 render／layout 仍可能有 400–900 ms 长任务，本轮不修；gzip 不能消除后端恢复、解析和同步渲染。
+- r9 Windows 标准检查和完整官方 app 源码实测通过；虚构高度重复 fixture 的受控网络结果不代表普遍倍数或真实 LAN。
+  不将正文可见后的输入测试称为最早输入可用，也不把慢 B→快 C 的竞态验证当取消证明。
+  代表实图不等于全面视觉验收；实体手机、真实家庭 Wi-Fi 与生产安装未验证，详细发布记录见[计划][lan-plan]。
+- 升级后提醒重启旧 launcher，再刷新或重新打开页面；无需清官方缓存或迁移会话数据。
+  排查时核对实际版本与运行进程，不读取用户会话、凭据或 wire 来制作测试数据。
+
 ## 安全边界
 
 - 绝不读取、打印或保存 `server.token` 的内容；token 直达链接本身等同于完整凭证，提醒用户不要分享。
 - 不替用户接受 HTTPS 证书——指纹核对必须由用户完成。
 - 不要把插件删除描述成能恢复系统状态的操作：恢复只能靠 `integrate uninstall`。
-- `--web-dir` 只能指向隔离的前端构建目录；目录内所有可访问的静态文件都会公开给 launcher 访问者，不要在其中放日志、备份、配置或凭证。
+- `--web-dir` 只能指向隔离的前端构建目录；目录内所有可访问的静态文件都会公开给 launcher 访问者，
+  不要在其中放日志、备份、配置或凭证。
+
+[lan-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-lan-performance-v1-plan.md
