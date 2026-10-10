@@ -4,6 +4,7 @@
 import { createReadStream } from 'node:fs';
 import { lstat, readFile, realpath, stat } from 'node:fs/promises';
 import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { sendResponse } from './responseCompression.mjs';
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -144,18 +145,14 @@ async function sendStaticFile({ filePath, info, urlPath }, req, res, transformHt
   const html = transformHtml && extname(filePath) === '.html'
     ? Buffer.from(transformHtml(await readFile(filePath, 'utf8')))
     : null;
-  res.writeHead(200, {
-    'content-type': contentTypeFor(filePath),
-    'content-length': html?.length ?? info.size,
-    'cache-control': cacheControlFor(urlPath),
-    // MIME is authoritative: don't let browsers re-sniff served assets.
-    'x-content-type-options': 'nosniff',
+  await sendResponse(req, res, {
+    headers: {
+      'content-type': contentTypeFor(filePath),
+      'content-length': html?.length ?? info.size,
+      'cache-control': cacheControlFor(urlPath),
+      'x-content-type-options': 'nosniff',
+    },
+    body: html ?? (() => createReadStream(filePath)),
   });
-  if (req.method === 'HEAD') {
-    res.end();
-    return true;
-  }
-  if (html) res.end(html);
-  else createReadStream(filePath).pipe(res);
   return true;
 }
