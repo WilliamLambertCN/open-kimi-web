@@ -131,3 +131,25 @@
   真实gzip/identity传输与解码18.7/11.8ms、关闭0.46/0.28ms，未见cleanup hang。
   仅6行大Buffer断言改精确equals，保留大数据、JSON深度相等、所有timeout和生命周期要求；本地13项IT951ms通过。
   此修补不改变发布正文/资产或生产代码，候选包性能证据仍适用；待全IT与Ubuntu重验。
+- 修补后的Windows全IT13文件154项通过，行/分支87.98%/75.91%；没有修改生产代码、数据量、timeout或覆盖率门槛。
+  [PR25 gate](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/38009734365)通过后正常squash合入main。
+  已验证main提交为`e5e4de7cf7e5efa260cd26ea5ba0be6e5ad1349f`，author/committer均为GitHub noreply。
+  [main gate](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/38009839309)通过lint/typecheck/UT/IT/test:pack。
+  Ubuntu UT66文件、1145项通过+1项Windows-only跳过；IT12文件通过+1文件跳过、152项通过+2项Windows-only跳过。
+  Ubuntu UT行/分支87.88%/80.86%，IT86.71%/75.04%；保护未绕过、历史未重写。
+- 从上述main提交打annotated tag并发布正式latest
+  [v2.1.1-r9](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r9)。
+  main产物101文件的定向隐私检查通过；与已验候选逐entry比较，差异仅README内容和压缩module换行格式，生产内容相同。
+  未公开QA截图、日志、profiles或安装scratch；既有公开媒体未改变，没有删除其它版本资产。
+- 下载线上`open-kimi-web-2.1.1-r9.tgz`为8,351,977 bytes，与上传main产物整个Buffer逐字节一致。
+  隔离自定义global prefix安装通过，实际CLI与manifest为r9，update help及真实GitHub latest检查/已最新路径通过，无残留锁。
+  安装包实际静态/注入/API原始gzip解码与identity正文逐字节一致，HEAD无正文；最近页cursor及Bearer原样转发。
+  静态800,000→5,447 bytes，注入12,270→4,357 bytes，API1,380,023→9,333 bytes，仅为高度重复虚构fixture。
+  首页注入正确；debug、私有注入源码/map、隐藏配置不公开。隔离服务与安装scratch已关闭/删除，报告cleaned=true。
+- 最终只读证据复核确认browser报告r8 383/383、r9 217/217、edges27/27、package30/30通过，无未解决验收错误。
+  报告只记录network=lan；对应固定harness使用CDP设置latency=25、download/upload=1024*1024 bytes/s，另有回环控制组。
+  全文逐字节相等由raw HTTP/线上安装调用覆盖，browser仅证明解码长度、实体数量、最新标记与原生交互，不夸大全文断言。
+  小会话回访仍重取一次，只有工具resident案例为零正文下载；刻意HTTP500及正常取消事件不等于未解决错误。
+  折叠长文本仍有114ms长任务，展开手机样例实际输入约992ms；未消除官方同步渲染、JSON或后端历史恢复成本。
+- 发布后main已正常merge到本地develop；本次仅追加上述真实验收记录，不改变已发布tag或生产包。
+  该文档经PR gate合入main后，main需再次正常同步develop；最终同步CI及收尾以任务最终报告为准。
