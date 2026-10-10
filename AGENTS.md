@@ -17,6 +17,7 @@
 - [桌面会话体积](docs/plans/session-size-desktop-v2-plan.md)
 - [聊天窗格自适应](docs/plans/chat-width-responsive-v1-plan.md)
 - [手机列表与自更新](docs/plans/mobile-list-and-self-update-v1-plan.md)
+- [大会话加载](docs/plans/large-session-lan-performance-v1-plan.md)
 
 ## 项目边界
 

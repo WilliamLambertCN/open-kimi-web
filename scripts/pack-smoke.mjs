@@ -126,6 +126,7 @@ async function main() {
     const required = [
       'bin/open-kimi-web.mjs',
       'src/serve.mjs',
+      'src/responseCompression.mjs',
       'src/update/updateMain.mjs',
       'src/mobile/mobileWorkspaceSort.js',
       'src/mobile/mobileWorkspaceSort.css',

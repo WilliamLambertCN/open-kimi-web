@@ -4,6 +4,7 @@
 // Origin is rewritten to the target origin. Authorization is never logged.
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
+import { sendResponse } from './responseCompression.mjs';
 
 const HOP_BY_HOP = new Set([
   'connection',
@@ -62,9 +63,11 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
       headers: buildProxyHeaders(req.headers, target),
     },
     (upRes) => {
-      res.writeHead(upRes.statusCode ?? 502, filterHeaders(upRes.headers));
-      upRes.on('error', () => res.destroy());
-      upRes.pipe(res);
+      void sendResponse(req, res, {
+        statusCode: upRes.statusCode ?? 502,
+        headers: filterHeaders(upRes.headers),
+        body: upRes,
+      }).catch(() => upstream.destroy());
     },
   );
   let timedOut = false;

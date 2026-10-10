@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { sendResponse } from './responseCompression.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
 const FILES = new Map([
@@ -95,12 +96,14 @@ export async function servePresentationAsset(req, res) {
     ? Buffer.from((await Promise.all(USAGE_SCRIPTS.map((script) =>
       readFile(new URL(`./mobile/${script}`, import.meta.url))))).join('\n'))
     : await readFile(new URL(`./mobile/${name}`, import.meta.url));
-  res.writeHead(200, {
-    'content-type': type,
-    'content-length': body.length,
-    'cache-control': 'no-cache',
+  await sendResponse(req, res, {
+    headers: {
+      'content-type': type,
+      'content-length': body.length,
+      'cache-control': 'no-cache',
+    },
+    body,
   });
-  res.end(req.method === 'HEAD' ? undefined : body);
   return true;
 }
 
