@@ -4,6 +4,48 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.1.1-r9] - 2026-10-10
+
+继续兼容 Kimi Code `2.1.1`；为可压缩的大会话响应与资源加入流式 gzip，保留 r8 及此前增强。
+Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR／main CI 与线上验证按发布流程单独记录在
+[大会话局域网性能计划](docs/plans/large-session-lan-performance-v1-plan.md)。
+
+- 新增 `packages/launcher/src/responseCompression.mjs`，仅使用 Node 内置 zlib 与 stream，不增加运行时依赖。
+  接入 HTTP 代理、官方／自定义静态服务和注入资源；按 Accept-Encoding 为合适 MIME 协商 gzip。
+  已知长度至少 1024 bytes 或长度未知的流可压缩，使用 level 1 与 `Z_SYNC_FLUSH`，不为压缩收集完整正文。
+- 合并 `Vary: Accept-Encoding`；压缩后删除原 Content-Length 与编码相关 digest 头，将合法强 ETag 弱化。
+  `pipeline` 保持背压，错误、取消或断线时清理上游与压缩器，不缓存会话内容。
+- identity 优先、gzip q=0、已编码、HEAD、无正文状态、Range／206、SSE 和 no-transform 保持不转码。
+  不改正文、官方分页、鉴权或 WS；工具默认展开与用户显式偏好、observer 和主题均保持原状。
+- Windows lint、typecheck、66 文件／1146 项 UT、13 文件／154 项 IT 与 test:pack 通过。
+  UT 行／分支覆盖率 88.14%／80.76%，IT 87.98%／75.91%；覆盖率门槛不变。
+  审查后补齐条件请求变体 metadata、既有响应头、205 长度及首 gzip 段后的空闲超时回归。
+  打包冒烟确认 r9 版本、压缩模块随包及静态／API 实际调用，不将其描述为交付包浏览器矩阵。
+
+### 事件：大会话经局域网加载慢于压缩入口
+
+- 影响：打开工具输出、正文或关联实体较大的会话时，传输等待让最新消息与可操作输入框出现较慢。
+- 触发条件：官方 `2.1.1` 后端经 r8 launcher 的本地 raw HTTP 入口访问，网络带宽受限且响应可压缩。
+- 根因：不是下载整个历史。准确官方 `2.1.1` 主会话原本就用 page_size=10、before_turn 和 resident 上限 4。
+  后端先完整 reduce 再分页，每页仍带 tasks 等关联实体，单 turn 也可能巨大；wire 日志体积不等于传输量。
+  官方 Remote Control 会协商 gzip，本地入口和 r8 代理则 raw 传输；共同的后端恢复及渲染成本仍存在。
+  旧测试未将完整官方 app、受限带宽、巨大单 turn 与关联实体响应组合验证，不能凭分页或 observer 断言排除此瓶颈。
+- 证据：真实隔离官方后端 48 个请求／147 项断言通过；1000 turn、33,471,330-byte wire 的最近页仅 8,788 bytes。
+  8 MiB 单工具 turn 的最近页仍为 8,389,619 bytes；关联实体场景只取最新 1 turn 仍为 314,216 bytes。
+  完整官方 app 的 r9 源码、25 ms＋1 MiB/s、桌面 Original、显式工具折叠，n=3 中位数的正文可见时间：
+  冷小会话／工具／正文／entity 为 2381／109／257／145 ms，r8 为 5561／2885／2761／4546 ms；
+  200 turn／resident 工具为 105／18 ms，r8 为 129／29 ms。虚构高度重复 fixture 不代表普遍压缩倍数或真实 tunnel／LAN。
+  trusted 输入在正文可见后验证，不是输入框最早可用时刻；完整分层证据见上述计划。
+- 修复：在 launcher 传输层流式 gzip，不另建会话缓存、扩大分页或截断正文，不修改官方 bundle。
+- 回归验证：源码官方 app 10 个样本／217 项断言及 27 项边界断言通过，无页面错误。
+  wheel 旧页、resident 零下载、慢 B→快 C 不覆盖、HTTP 500 官方自动重试，以及合法 WS append／duplicate／reset、
+  缺序号 REST 恢复后以 transcript_since.main=9 重新订阅。B 未 abort，浏览器竞态不作为取消证据；原始 HTTP IT 另验
+  gzip／identity 的 client disconnect 后 upstream close。标准检查与打包冒烟通过，交付包浏览器和线上验证单独记录。
+- 运维动作：升级至 r9 后停止并重启旧 launcher，再刷新或重新打开页面；无需迁移会话或清除官方缓存。
+- 剩余边界：工具展开的共同 render／layout 仍有 400–900 ms 长任务，本轮不修，默认与用户偏好不变。
+  代表实图已核对，Original 手机顶部 badge／subtitle 的既有对比问题不变，不宣称全面视觉通过。
+  gzip 不能消除完整 reduce、JSON 解析或同步渲染；实体手机、真实家庭 Wi-Fi 与生产安装未验证。
+
 ## [open-kimi-web v2.1.1-r8] - 2026-10-09
 
 继续兼容 Kimi Code `2.1.1`；补齐桌面会话体积、手机平铺与工作区展示排序，新增安全安装自更新。
@@ -522,3 +564,4 @@
 [open-kimi-web v2.1.1-r6]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r6
 [open-kimi-web v2.1.1-r7]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r7
 [open-kimi-web v2.1.1-r8]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r8
+[open-kimi-web v2.1.1-r9]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r9

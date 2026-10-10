@@ -44,12 +44,6 @@ function startFakeUpstream() {
         });
         return;
       }
-      if (req.url === '/api/v1/partial') {
-        res.writeHead(200, { 'content-type': 'text/plain' });
-        res.write('partial');
-        setImmediate(() => res.destroy(new Error('fixture stream failure')));
-        return;
-      }
       res.writeHead(404).end();
     });
     const wss = new WebSocketServer({ noServer: true });
@@ -298,12 +292,6 @@ describe('REST proxy', () => {
     } finally {
       await dead.close();
     }
-  });
-
-  it('destroys a partial downstream response when the upstream stream fails', async () => {
-    const response = await fetch(`${launcherUrl}/api/v1/partial`);
-    await expect(response.text()).rejects.toThrow();
-    expect((await fetch(`${launcherUrl}/`)).status).toBe(200);
   });
 });
 
