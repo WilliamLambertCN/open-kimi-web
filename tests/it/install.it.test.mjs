@@ -2,9 +2,11 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { installRelease, runInstallProcess } from '../../scripts/install.mjs';
 import { identifyInstallation } from '../../packages/launcher/src/update/installation.mjs';
+import { checkedRun } from '../../packages/launcher/src/update/process.mjs';
 import { globalRoot, identityOptions, packageFixture } from './updateFixture.mjs';
 
 let directory;
@@ -26,26 +28,13 @@ afterAll(async () => {
 describe('real isolated coordinator npm installation', () => {
   it('installs genuine local tgz and verifies actual custom-prefix updater identity without PATH changes', async () => {
     const home = join(directory, 'isolated-home');
-    const bytes = await readFile(archive);
-    const name = `open-kimi-web-${version}.tgz`;
-    const lines = [];
-    const env = { ...process.env, OPEN_KIMI_WEB_HOME: home,
-      OPEN_KIMI_REAL_KIMI: join(directory, process.platform === 'win32' ? 'fakeKimi.exe' : 'fakeKimi'),
-      npm_config_ignore_scripts: 'false', npm_config_dry_run: 'true', npm_config_prefix: join(directory, 'wrong-prefix') };
-    const result = await installRelease({ integrate: false, switchInstallation: true }, {
-      env, log: (line) => lines.push(line), ensureGitBash: async () => {},
-      discoverOfficial: async () => ({ kind: 'native', path: env.OPEN_KIMI_REAL_KIMI, version: 'kimi, version 2.1.1' }),
-      run: async (command, args, options) => {
-        if (command === env.OPEN_KIMI_REAL_KIMI) return 'kimi, version 2.1.1';
-        return runInstallProcess(command, args, options);
-      },
-      releaseMetadata: async () => ({ draft: false, prerelease: false, tag_name: `v${version}`,
-        html_url: `${repo}/releases/tag/v${version}`, assets: [{ name, state: 'uploaded',
-          digest: `sha256:${createHash('sha256').update(bytes).digest('hex')}`,
-          browser_download_url: `${repo}/releases/download/v${version}/${name}` }] }),
-      download: async () => bytes,
-    });
+    const fixture = fileURLToPath(new URL('./installFixture.mjs', import.meta.url));
+    const { result, lines } = JSON.parse(await checkedRun(process.execPath, [fixture, home, archive, version], {
+      timeoutMs: 120_000,
+    }));
     expect(result.integrated).toBe(false);
+    expect(result.prefix).toBe(join(home, 'npm'));
+    expect(result.prefix).toContain('okw install & % fixture-');
     const root = globalRoot(result.prefix);
     expect(await identifyInstallation(identityOptions(root))).toMatchObject({ kind: 'global', prefix: result.prefix, version });
     expect(await runInstallProcess(process.execPath, [result.entry, '--version'])).toBe(version);

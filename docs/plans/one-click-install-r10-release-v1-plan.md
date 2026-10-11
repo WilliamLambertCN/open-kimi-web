@@ -12,6 +12,13 @@
 - 空 Linux PTY 构建仍需 Python 3、C／C++、make；macOS／arm64 与真实 Windows 注册表边界如实保留。
 - main 要求 PR、gate 和线性历史；必须遵守 required CI，不绕过保护，但不再本地重复同一全套测试。
 
+## 发布 CI 的定向修复
+
+PR #27 首轮 Linux IT 在含 `%` 的真实安装路径失败；原始 URL 含正确 `%25`，Vitest 外部模块加载将其变成裸 `%`。
+同路径原生 Node 安装、正式 update 身份、CLI 与依赖检查成功，安装器源码不需修改。
+保留特殊路径和全部断言，仅将该安装调用移入原生 Node fixture；Linux 1 项通过／1 项既有跳过，Windows 2 项通过。
+两平台定向 lint 通过；不改变 CI、覆盖率门槛或正式包，不扩大成新一轮完整安装／UI 验收。
+
 ## 收敛后的发布步骤
 
 1. README 物理第一行明确一键兼容式安装，紧跟 Windows PowerShell 与 macOS／Linux 可复制命令。
