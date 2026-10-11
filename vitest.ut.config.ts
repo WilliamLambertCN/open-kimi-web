@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config';
 
 const coverageInclude = [
   'packages/launcher/src/**/*.mjs',
+  'scripts/install.mjs',
+  'scripts/install/**/*.mjs',
 ];
 
 const coverageExclude = [

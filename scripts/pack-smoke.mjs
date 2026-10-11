@@ -107,6 +107,25 @@ function assertUpdateCommand(pkgDir) {
   console.log('update command ok: help works without runtime deps; unsafe layout and arguments refused');
 }
 
+const required = [
+  'bin/open-kimi-web.mjs',
+  'src/serve.mjs',
+  'src/responseCompression.mjs',
+  'src/update/updateMain.mjs',
+  'src/mobile/mobileWorkspaceSort.js',
+  'src/mobile/mobileWorkspaceSort.css',
+  'src/mobile/locale.js',
+  'src/mobile/providerLocale.js',
+  'src/mobile/usageLocale.js',
+  'src/mobile/mobileSubagentModelApi.js',
+  'src/mobile/mobileSubagentModelView.js',
+  'src/mobile/mobileSubagentModel.js',
+  'src/mobile/mobileSubagentModel.css',
+  'README.md',
+  'LICENSE',
+  'THIRD_PARTY_NOTICES.md',
+];
+
 async function main() {
   const scratch = mkdtempSync(join(tmpdir(), 'pack-smoke-'));
   const target = await startFakeTarget();
@@ -123,17 +142,6 @@ async function main() {
     const pkgDir = join(scratch, 'pkg');
     run(`tar -xzf "${tarball}" -C .`, { cwd: scratch });
     renameSync(join(scratch, 'package'), pkgDir);
-    const required = [
-      'bin/open-kimi-web.mjs',
-      'src/serve.mjs',
-      'src/responseCompression.mjs',
-      'src/update/updateMain.mjs',
-      'src/mobile/mobileWorkspaceSort.js',
-      'src/mobile/mobileWorkspaceSort.css',
-      'README.md',
-      'LICENSE',
-      'THIRD_PARTY_NOTICES.md',
-    ];
     for (const p of required) {
       if (!existsSync(join(pkgDir, p))) throw new Error(`tarball missing ${p}`);
     }

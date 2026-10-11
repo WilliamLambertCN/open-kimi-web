@@ -34,14 +34,16 @@ const mobile = window.matchMedia('(max-width: 640px)');
     return node;
   };
 
+  const text = (zh, en) => window.__okwLocale?.text(zh, en) ??
+    ((document.documentElement.lang || navigator.language || '').toLowerCase().startsWith('zh') ? zh : en);
   const currentStatus = (topbar, session) => {
     const live = topbar.querySelector('.st');
-    if (live?.querySelector('.ui-spinner')) return '运行中';
+    if (live?.querySelector('.ui-spinner')) return text('运行中', 'Running');
     const label = live?.textContent?.trim();
     if (label) return label;
     if (live) return null;
     if (!session) return null;
-    return '空闲';
+    return text('空闲', 'Idle');
   };
 
   const headerParts = (topbar, session, git, listing, workspace) => {
@@ -50,7 +52,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
     if (status) parts.push(status);
     if (git?.branch) parts.push(git.branch);
     const count = workspaceCount(listing, session ?? workspace);
-    if (count !== null) parts.push(`${count} 个会话`);
+    if (count !== null) parts.push(text(`${count} 个会话`, `${count} session${count === 1 ? '' : 's'}`));
     return parts;
   };
 
@@ -207,11 +209,9 @@ const mobile = window.matchMedia('(max-width: 640px)');
       return response;
     }
     if (body?.code !== 40409) return response;
-    const language = document.documentElement.lang || navigator.language || '';
-    const guidance = language.toLocaleLowerCase().startsWith('zh')
-      ? '工作区目录不存在。请恢复原目录，或返回工作区列表选择现有目录后重试。旧会话和配置仍保留。'
-      : 'The workspace directory no longer exists. Restore it, or return to the workspace list and choose an ' +
-        'existing directory before retrying. Existing sessions and configuration are preserved.';
+    const guidance = text('工作区目录不存在。请恢复原目录，或返回工作区列表选择现有目录后重试。旧会话和配置仍保留。',
+      'The workspace directory no longer exists. Restore it, or return to the workspace list and choose an ' +
+        'existing directory before retrying. Existing sessions and configuration are preserved.');
     const message = typeof body.msg === 'string' && body.msg !== '' ? `${guidance} ${body.msg}` : guidance;
     const headers = new Headers(response.headers);
     headers.delete('content-length');
@@ -280,7 +280,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
   };
 
   const enhanceSettings = (root) => {
-    const panel = root.querySelector('.sheet-panel[aria-label="设置"]');
+    const panel = root.querySelector('.sheet-panel[aria-label="设置"], .sheet-panel[aria-label="Settings"]');
     if (!panel) return;
     root.classList.add('okw-settings');
     const title = panel.querySelector('.sheet-title');
@@ -292,7 +292,9 @@ const mobile = window.matchMedia('(max-width: 640px)');
     const card = panel.querySelector('.group-title + .card');
     const thinking = card && Array.from(card.querySelectorAll('.srow')).find((row) => row.dataset.okwRow === '思考强度');
     const note = panel.querySelector('.cache-note');
-    if (card && thinking && note && !card.querySelector('.okw-cache-note-inline')) {
+    const existingNote = panel.querySelector('.okw-cache-note-inline');
+    if (existingNote) { if (note) setText(existingNote, note.textContent); return; }
+    if (card && thinking && note) {
       const inline = document.createElement('div');
       inline.className = 'okw-cache-note-inline';
       inline.textContent = note.textContent;
@@ -383,12 +385,14 @@ const mobile = window.matchMedia('(max-width: 640px)');
     revealProvider(strip.querySelector('.chip.is-active'));
   };
 
-  const steerCopy = () => {
-    const language = document.documentElement.lang || navigator.language || '';
-    if (language.toLocaleLowerCase().startsWith('zh')) {
-      return { label: '插队', title: '插队：优先发送到当前回合' };
-    }
-    return { label: 'Send now', title: 'Priority send into the running turn' };
+  const steerCopy = () => ({
+    label: text('插队', 'Send now'), title: text('插队：优先发送到当前回合', 'Priority send into the running turn'),
+  });
+  const syncSteerCopy = (button) => {
+    const { label, title } = steerCopy();
+    setText(button, label);
+    if (button.title !== title) button.title = title;
+    if (button.getAttribute?.('aria-label') !== title) button.setAttribute('aria-label', title);
   };
 
   const directChild = (container, node) => {
@@ -406,7 +410,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
       if (existing) existing.remove();
       return;
     }
-    if (existing) return;
+    if (existing) { syncSteerCopy(existing); return; }
 
     const toolbar = composer.querySelector('.toolbar-right');
     if (!toolbar) return;
@@ -478,6 +482,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
     attributeFilter: ['disabled'],
   });
   window.addEventListener('popstate', enhance);
+  window.__okwLocale?.observe(enhance);
   mobile.addEventListener('change', () => {
     if (mobile.matches) enhance();
     else restoreDesktop();

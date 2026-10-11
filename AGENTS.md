@@ -46,6 +46,56 @@
 [`docs/plans/large-session-lan-performance-v1-plan.md`](docs/plans/large-session-lan-performance-v1-plan.md) 执行。
 先分层对比官方基线与增强版；保留原生最近页、历史分页和增量语义，不以截断日志或另一套会话状态代替优化。
 
+一键安装脚本的实施基线与阶段证据见
+[`docs/plans/one-click-install-v1-plan.md`](docs/plans/one-click-install-v1-plan.md)。
+用户已授权 r10 发布；按[收敛发布计划](docs/plans/one-click-install-r10-release-v1-plan.md) 执行，
+沿用已有验收，不重复本地全套测试、UI 矩阵或跨平台组合；保留实际包检查、隐私检查及 required CI。
+以本地入口和同一不可变提交的完整脚本为交付边界；目标不要求预装 Node／npm／Corepack／pnpm／Git 或官方 Kimi。
+已实现缺官方时 npm 优先准备固定 `@moonshot-ai/kimi-code@2.1.1`，兼容已有 native／npm，不升级或覆盖可用安装。
+官方 npm 需要 Node ≥ 22.19.0；专用 `home/official` 与 launcher prefix／runtime／wrapper 分开。
+固定真实 tarball／SHA-512、默认 ignore-scripts，避免官方 postinstall 迁移用户旧 Python 命令；归属不明／partial 不自动续装。
+Windows 完整场景已验证真实官方 2.1.1、实际 r9 cmd wrapper／managed Web、重复复用和 uninstall；接管仍用注册表 seams。
+最新 Windows User／Machine raw PATH 字节值前后相等；真实 Git Bash PTY 与 x64 portable 下载／校验／初始化分别通过，
+缺 Git portable 与完整 coordinator 不是同一次组合验收。Linux 现有 Docker bookworm 标准工具环境完整 sh／r9／新 bash、
+真实 PTY／managed Web／重复复用／uninstall 通过；WSL 缺 make／C++ 明确失败，不记 full 通过。
+新自有官方安装先真实 PTY probe；Linux 缺 binding 时只审计固定 node-pty 1.1.0／node-addon-api 7.1.1，
+限定审计后的绝对 node-pty 目录 npm rebuild，只跑其 install／postinstall，不跑根 kimi 旧 Python 迁移或其它包脚本。
+审计补齐 noexcept.gypi，构建环境过滤所有 MAKE 前缀及 FLAGS 控制变量；真实 make／audit 窄验证通过，不冒充重跑 PTY。
+需标准 Python 3、C／C++ 编译器和 make；空 Linux 仍非零编译依赖一键，不 sudo／apt 或自动准备完整工具链。
+PTY 成功才写 ownership record；owned 重复安装再 probe，损坏拒绝且不自动 rebuild；non-owned 安装保留不重建。
+Linux 使用 forkpty，spawn-helper 为 macOS 目标；早期缺 binding 与 native fallback 失败保留为历史，不能以 Web 200 代替 PTY。
+不自动登录、启动生产服务、读取真实会话或发付费调用；此前仅本地实现的范围现纳入已授权 r10 发布，r9 不包含它们。
+旧 fixture 与 expanded2 保留为历史；PTY／UI／i18n 改动后的 final3 标准门禁已完成，父级确认五项命令均 exit 0。
+lint／typecheck 通过；UT 79 文件／1412 项通过，Lines 88.77%／Branch 80.21%；IT 19 文件通过／1 跳过，
+308 项通过／2 个 Windows 上的 native POSIX tests 跳过，Lines 84.94%／Branch 71.07%，70% 门槛未降低。
+本地 pack 的 version／静态资源／API 代理通过，IT 另验证实际更新身份；仍非发布，根安装脚本不在 launcher tgz。
+日志与范围集中见安装计划 final3 记录；macOS／arm64、Windows 真注册表／新终端接管仍未全面验证。
+bash 登录 profile 以 `.bash_profile` 优先、仅缺失时选 `.bash_login`；除空行／整行注释外只接受无条件加载
+`.bashrc` 的简单 source／`.` 行，空文件、仅注释、条件或未知脚本在接管 preflight 拒绝，不改 profile。
+用户可选 `--no-integrate` 或手动安排加载后重试；标准门禁通过不等于所有平台或场景已验收。
+
+手机子代理默认模型与思考强度补充及同轮英文夹中文反馈按
+[`docs/plans/mobile-subagent-model-v1-plan.md`](docs/plans/mobile-subagent-model-v1-plan.md) 实施，现纳入已授权 r10 发布。
+官方 `2.1.1` MobileSettingsSheet 不含该字段，且无已确认的完整 Settings 公开打开动作；使用最小独立手机控件。
+读取官方 config／models，仅 POST `/api/v1/config` 的 `secondary_model`，合并 models 池，不覆盖主模型／其它配置。
+Auto 合法提交 `defaultEffort: ''`，按全局思考设置／模型默认；已配置模型仍无 API 清除为跟随主模型的能力。
+空模型／null 无效，merge 省略字段不能清除；不使用 Vue 私有状态、切换 breakpoint 或另存 localStorage。
+用户新增要求沿用主模型选择 UI，实施范围已增补同一计划：官方 ModelPicker 未公开导出，
+复用 sheet／搜索／供应商 chips／两行模型列表及分段思考的结构与 token，不用 Vue 私有实例或主模型写入回滚。
+旧原生 SELECT／编号／常驻详情及 focused 108 断言／28 图仅属历史；新 UI 实图发现碰撞身份与分段密度问题后已修。
+同供应商同名长 alias 前置真实唯一差异，完整值用于保存；分段密度与准确官方 Settings 对齐。
+最新定向 64 项 UT、完整官方 app 199／199 断言／23 图通过，父级查看七张代表图；七外观样例覆盖 320／390／640。
+修后标准 lint／typecheck／UT 79 文件 1430 项／IT 308 项及 pack 通过，IT 两项 Windows native POSIX 跳过；详情见手机计划。
+实体手机、OS 软键盘与真实磁盘持久化仍未验证；发布不会自动重启生产，实际发布状态见 r10 计划。
+共享 locale 以官方 kimi-locale 为准，不以根 lang 代替；themes／presentation／session／usage／provider 等增强已适配。
+本次覆盖的英文系统 text／title／aria／placeholder 单语言，用户模型／provider 中文保留；同 tab 切换保留草稿、不新增请求。
+准确官方 app i18n 主矩阵 41 断言／25 图与 provider 2 断言／1 图通过；父级代表英文主题图已查看。
+13 文件／176 项定向 UT、5 项 asset IT 和此前子代理 46 项 UT 是阶段结果；新选择器最新为上方 64 项。
+子代理完整官方 app 原生六次切语言为 38／44 断言通过、3 图；系统文案、草稿、错误、回读与无额外请求通过。
+6 项 strict 绝对 scrollTop 失败原报告保留；另行裸官方对照 21／21、6 图通过，子代理可视锚定 <0.6px，无需产品补丁。
+父级已看英文错误草稿／缺供应商两图；不把该报告写成全 44 项通过，也不把原 focused 108 当作动态语言证据。
+现有计划增补请求，不声称用户另行确认新计划；本地标准通过不扩大为全英文、全平台或已发布验收。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。

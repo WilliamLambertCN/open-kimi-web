@@ -1,4 +1,5 @@
 {
+  const text = (value) => window.__okwUsageText?.(value) ?? value;
   const MODEL_BATCH_SIZE = 40;
   const SUGGESTION_BATCH_SIZE = 40;
   const suggestionRateText = (suggestion, tokenKeys, tokenLabels) => {
@@ -12,8 +13,8 @@
     };
     const confidence = `${Math.round((suggestion.confidence ?? 0) * 100)}%`;
     const prices = tokenKeys.map((key, index) =>
-      `${tokenLabels[index]} ${suggestion.rates?.[key] ?? '未提供'}`).join(' / ');
-    return `${kinds[suggestion.matchKind] ?? '自动匹配'} ${confidence} · ${prices}`;
+      `${text(tokenLabels[index])} ${suggestion.rates?.[key] ?? text('未提供')}`).join(' / ');
+    return `${text(kinds[suggestion.matchKind] ?? '自动匹配')} ${confidence} · ${prices}`;
   };
 
   window.__okwUsageCreateModelPager = ({ by, fmt, getModels, renderModels }) => {
@@ -25,7 +26,7 @@
       window.__okwUsageSetCountHints(by, fmt, visible.length, models.length);
       const more = by('models-more');
       more.hidden = visible.length >= models.length;
-      more.textContent = `继续显示 ${fmt(Math.min(MODEL_BATCH_SIZE, models.length - visible.length))} 项`;
+      more.textContent = text(`继续显示 ${fmt(Math.min(MODEL_BATCH_SIZE, models.length - visible.length))} 项`);
     };
     return {
       render,
@@ -47,7 +48,7 @@
     const updateSummary = (models) => {
       const selected = models.filter((item) => selection.has(item.modelId)).length;
       by('suggestions-summary').textContent =
-        `已为 ${fmt(models.length)} 个真实模型 ID 生成建议，当前选择 ${fmt(selected)} 项。`;
+        text(`已为 ${fmt(models.length)} 个真实模型 ID 生成建议，当前选择 ${fmt(selected)} 项。`);
       by('suggestions-save').disabled = selected === 0;
     };
 
@@ -76,8 +77,7 @@
       });
       const more = by('suggestions-more');
       more.hidden = visible.length >= models.length;
-      more.textContent =
-        `继续查看 ${fmt(Math.min(SUGGESTION_BATCH_SIZE, models.length - visible.length))} 项建议`;
+      more.textContent = text(`继续查看 ${fmt(Math.min(SUGGESTION_BATCH_SIZE, models.length - visible.length))} 项建议`);
       updateSummary(models);
     };
 
