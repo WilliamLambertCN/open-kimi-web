@@ -227,7 +227,13 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(19);
+    expect(ui.names).toHaveLength(25);
+    expect(ui.names).toContain('locale.js');
+    expect(ui.names).toContain('usageLocale.js');
+    expect(ui.names).toContain('providerLocale.js');
+    expect(ui.names).toContain('mobileSubagentModelApi.js');
+    expect(ui.names).toContain('mobileSubagentModelView.js');
+    expect(ui.names).toContain('mobileSubagentModel.js');
     expect(ui.names).toContain('mobileWorkspaceSort.js');
     expect(ui.names).toContain('imagePreviewGuard.js');
     expect(ui.names).toContain('tabFeedback.js');
@@ -259,7 +265,7 @@ describe('session size desktop all-script coexistence', () => {
     ui.view.dispatchEvent(new ui.view.Event('pageshow'));
     await expectSettled(ui);
     const size = header.querySelector('.okw-desktop-session-size');
-    expect(size.textContent).toBe('会话 1.2 KB');
+    expect(size.textContent).toBe('Session 1.2 KB');
     expect(size.parentElement).toBe(header);
     expect(size.nextElementSibling.className).toBe('ch-spacer');
     expect(id.outerHTML).toBe(originalTitle);
@@ -282,7 +288,7 @@ describe('session size desktop all-script coexistence', () => {
     ui.view.dispatchEvent(new ui.view.Event('pagehide'));
     ui.view.dispatchEvent(new ui.view.Event('pageshow'));
     await expectSettled(ui);
-    expect(drag.querySelector('.okw-session-size').textContent).toBe('会话 1.2 KB');
+    expect(drag.querySelector('.okw-session-size').textContent).toBe('Session 1.2 KB');
     expect(doc.querySelector('.chat-header')).toBeNull();
     expect(doc.querySelector('.empty-toggles button').textContent).toBe('Panel');
     app.classList.add('panel-expanded');
@@ -293,10 +299,10 @@ describe('session size desktop all-script coexistence', () => {
     expect(drag.querySelector('.okw-desktop-session-size')).not.toBeNull();
     drag.outerHTML = desktopHeader;
     await expectSettled(ui);
-    expect(doc.querySelector('.chat-header > .okw-session-size').textContent).toBe('会话 1.2 KB');
+    expect(doc.querySelector('.chat-header > .okw-session-size').textContent).toBe('Session 1.2 KB');
     doc.querySelector('.chat-header').outerHTML = emptyMount;
     await expectSettled(ui);
-    expect(doc.querySelector('.empty-drag > .okw-session-size').textContent).toBe('会话 1.2 KB');
+    expect(doc.querySelector('.empty-drag > .okw-session-size').textContent).toBe('Session 1.2 KB');
     ui.view.__okwTestLocation.pathname = '/';
     ui.view.dispatchEvent(new ui.view.PopStateEvent('popstate'));
     await expectSettled(ui);

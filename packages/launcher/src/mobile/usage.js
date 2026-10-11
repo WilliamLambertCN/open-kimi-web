@@ -18,12 +18,14 @@ if (!window.__okwUsageInstalled) {
   let opened = false;
   let appWasInert = false;
   const api = window.__okwUsageCreateApi();
-  const node = (tag, className, content) => {
+  const translate = (value) => window.__okwUsageText?.(value) ?? value;
+  const bind = window.__okwUsageBind;
+  const node = window.__okwUsageCreateNode ?? ((tag, className, content) => {
     const element = document.createElement(tag);
     if (className) element.className = className;
     if (content !== undefined) element.textContent = content;
     return element;
-  };
+  });
   const button = (className, content, action) => {
     const element = node('button', className, content);
     element.type = 'button';
@@ -36,7 +38,7 @@ if (!window.__okwUsageInstalled) {
   const rate = (value) => value == null ? '—' : `${(value * 100).toFixed(1)}%`;
   const { setStatus, priceStatus, renderSummary, renderBars, showQuality } =
     window.__okwUsageCreateRenderers({ by, node, fmt, rate, usd });
-  const shortDate = (value) => new Date(value).toLocaleString(undefined, {
+  const shortDate = (value) => new Date(value).toLocaleString(window.__okwLocale?.current() === 'en' ? 'en-US' : undefined, {
     month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
   const localInput = (value) => {
@@ -52,7 +54,8 @@ if (!window.__okwUsageInstalled) {
     all.value = '';
     control.append(all);
     for (const choice of choices ?? []) {
-      const option = node('option', '', choice.label ?? choice.id);
+      const unresolved = choice.id === 'unresolved' && choice.modelId == null;
+      const option = node('option', '', unresolved ? '模型 ID 未确认' : choice.label ?? choice.id, unresolved);
       option.value = choice.id;
       control.append(option);
     }
@@ -177,9 +180,8 @@ if (!window.__okwUsageInstalled) {
     priceStatus(`价格来源：${pricing.source ?? '内置快照'} · 更新：${updated}${error}`,
       pricing.lastRefreshError ? 'error' : '');
     const ignored = Number(pricing.legacyMappingsIgnored) || 0;
-    by('legacy-warning').textContent = ignored
-      ? `旧版别名映射 ${fmt(ignored)} 项已隔离，未用于真实模型 ID。请按实际模型 ID 重新选择价格。`
-      : '';
+    bind(by('legacy-warning'), ignored
+      ? `旧版别名映射 ${fmt(ignored)} 项已隔离，未用于真实模型 ID。请按实际模型 ID 重新选择价格。` : '');
     by('legacy-warning').hidden = ignored === 0;
   };
 
@@ -213,21 +215,20 @@ if (!window.__okwUsageInstalled) {
     const currentItem = (pricing?.catalog ?? []).find((item) => item.key === current);
     const choices = currentItem ? [currentItem, ...entries.filter((item) => item !== currentItem)] : entries;
     for (const item of choices) {
-      const option = node('option', '', `${item.providerName} / ${item.name} · ${item.modelId}`);
+      const option = node('option', '', `${item.providerName} / ${item.name} · ${item.modelId}`, false);
       option.value = item.key;
       catalog.append(option);
     }
     if (Array.from(catalog.options).some((option) => option.value === current)) catalog.value = current;
     const query = by('catalog-search').value.trim();
-    by('catalog-results').textContent = catalogResultsText(query, total, large);
+    bind(by('catalog-results'), catalogResultsText(query, total, large));
     showCatalogRateHint();
   };
-
   const showCatalogRateHint = () => {
     const item = (pricing?.catalog ?? []).find((entry) => entry.key === by('catalog').value);
     by('catalog-rate').textContent = item
-      ? TOKEN_KEYS.map((key, index) => `${TOKEN_LABELS[index]} ${item.rates?.[key] ?? '未提供'}`).join(' · ')
-      : '价格单位：USD / 百万 token。手动价格留空表示使用目录价格，0 表示免费。';
+      ? TOKEN_KEYS.map((key, index) => `${translate(TOKEN_LABELS[index])} ${item.rates?.[key] ?? translate('未提供')}`).join(' · ')
+      : translate('价格单位：USD / 百万 token。手动价格留空表示使用目录价格，0 表示免费。');
   };
 
   const fillEditModels = () => {
@@ -446,7 +447,7 @@ if (!window.__okwUsageInstalled) {
     if (entry?.isConnected && entry.nextElementSibling === footer) return;
     entry?.remove();
     entry = button('okw-usage-entry', '◫  使用统计', open);
-    entry.setAttribute('aria-label', '使用统计');
+    bind(entry, '使用统计', 'aria-label');
     entry.setAttribute('aria-haspopup', 'dialog');
     footer.before(entry);
   };
@@ -458,7 +459,7 @@ if (!window.__okwUsageInstalled) {
     if (mobileEntry?.isConnected && mobileEntry.parentElement === actions) return;
     mobileEntry?.remove();
     mobileEntry = button('okw-usage-mobile-entry', '◫  使用统计', open);
-    mobileEntry.setAttribute('aria-label', '使用统计');
+    bind(mobileEntry, '使用统计', 'aria-label');
     mobileEntry.setAttribute('aria-haspopup', 'dialog');
     actions.append(mobileEntry);
   };
@@ -490,5 +491,10 @@ if (!window.__okwUsageInstalled) {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   }, true);
   window.__okwUsageObserveEntries(mountEntries);
+  window.__okwUsageObserveCopy?.(() => {
+    if (!panel) return;
+    if (result) { modelPager.render(); showQuality(result.quality); renderTrend(result.buckets ?? [], result.range?.bucket); }
+    suggestions.render(); showCatalogRateHint();
+  });
   mountEntries();
 }

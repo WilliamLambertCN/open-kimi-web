@@ -30,6 +30,7 @@
   let pageAuthorization = '';
 
   const isChinese = () => {
+    if (window.__okwLocale) return window.__okwLocale.current() === 'zh';
     const language = document.documentElement.lang || navigator.language || '';
     return language.toLocaleLowerCase().startsWith('zh');
   };
@@ -69,6 +70,9 @@
     failed: 'Could not fetch models',
     drag: 'Drag to reorder model',
   };
+
+  const { bind: bindCopy, error: discoveryError, refresh: refreshCopy, text: setCopy } =
+    window.__okwProviderCreateCopy(copy, isChinese);
 
   const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   const valueOf = (value, camel, snake) => own(value, camel) ? value[camel] : value[snake];
@@ -164,7 +168,7 @@
   const checkbox = ({ value, label, checked, disabled, title, onChange }) => {
     const wrapper = document.createElement('label');
     wrapper.className = 'okw-model-option';
-    if (title) wrapper.title = title;
+    if (title) bindCopy(wrapper, title, 'title');
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.value = value;
@@ -172,16 +176,16 @@
     input.disabled = disabled;
     input.addEventListener('change', () => onChange(input.checked));
     const text = document.createElement('span');
-    text.textContent = label;
+    bindCopy(text, label);
     wrapper.append(input, text);
     return wrapper;
   };
 
-  const optionGroup = (title) => {
+  const optionGroup = (key) => {
     const fieldset = document.createElement('fieldset');
     fieldset.className = 'okw-model-option-group';
     const legend = document.createElement('legend');
-    legend.textContent = title;
+    setCopy(legend, key);
     const list = document.createElement('div');
     list.className = 'okw-model-option-list';
     fieldset.append(legend, list);
@@ -192,20 +196,22 @@
     const inputs = textInputs(row);
     if (inputs.length < 2) return;
     sorting.enhanceRow(form, row, inputs[0].disabled, copy().drag);
+    const handle = row.querySelector('.okw-model-drag-handle');
+    bindCopy(handle, () => copy().drag, 'title');
+    bindCopy(handle, () => copy().drag, 'aria-label');
     if (row.querySelector('.okw-model-options')) return;
     const model = inputs[0].value.trim();
     if (model && !configLoaded) return;
     const disabled = inputs[0].disabled;
     const state = stateFor(row, provider);
-    const labels = copy();
     const options = document.createElement('div');
     options.className = 'okw-model-options';
 
-    const capabilities = optionGroup(labels.capabilities);
+    const capabilities = optionGroup('capabilities');
     for (const [value, zh, en] of CAPABILITIES) {
       capabilities.list.append(checkbox({
         value,
-        label: isChinese() ? zh : en,
+        label: () => isChinese() ? zh : en,
         checked: state.capabilities.has(value),
         disabled,
         onChange: (checked) => {
@@ -216,11 +222,11 @@
       }));
     }
 
-    const efforts = optionGroup(labels.efforts);
+    const efforts = optionGroup('efforts');
     for (const [value, zh, en] of EFFORTS) {
       efforts.list.append(checkbox({
         value,
-        label: isChinese() ? zh : en,
+        label: () => isChinese() ? zh : en,
         checked: state.supportEfforts.has(value),
         disabled,
         onChange: (checked) => {
@@ -232,8 +238,8 @@
     }
     efforts.list.append(checkbox({
       value: 'adaptive_thinking',
-      label: labels.adaptive,
-      title: labels.adaptiveTitle,
+      label: () => copy().adaptive,
+      title: () => copy().adaptiveTitle,
       checked: state.adaptiveThinking,
       disabled,
       onChange: (checked) => {
@@ -271,11 +277,10 @@
   };
 
   const addDiscoveredModel = (form, id, status) => {
-    const labels = copy();
     const rows = modelRows(form);
     if (rows.some((row) => textInputs(row)[0]?.value?.trim() === id)) {
       status.dataset.state = 'error';
-      status.textContent = labels.duplicate;
+      setCopy(status, 'duplicate');
       return;
     }
     const fill = () => {
@@ -285,7 +290,7 @@
       dispatchInput(input, id);
       enhanceModelRow(row, form, inputValue(form, ['名称', 'Name']));
       status.dataset.state = 'success';
-      status.textContent = labels.added(id);
+      setCopy(status, 'added', id);
       return true;
     };
     if (fill()) return;
@@ -297,24 +302,24 @@
     queueMicrotask(() => fill());
   };
 
-  const createDiscoveryControls = (labels) => {
+  const createDiscoveryControls = () => {
     const panel = document.createElement('div');
     panel.className = 'okw-model-discovery';
     const fetchButton = document.createElement('button');
     fetchButton.type = 'button';
     fetchButton.className = 'okw-discovery-button';
-    fetchButton.textContent = labels.discover;
+    setCopy(fetchButton, 'discover');
     const select = document.createElement('select');
     select.className = 'okw-discovery-select';
     select.disabled = true;
     const placeholder = document.createElement('option');
     placeholder.value = '';
-    placeholder.textContent = labels.choose;
+    setCopy(placeholder, 'choose');
     select.append(placeholder);
     const addButton = document.createElement('button');
     addButton.type = 'button';
     addButton.className = 'okw-discovery-add';
-    addButton.textContent = labels.add;
+    setCopy(addButton, 'add');
     addButton.disabled = true;
     const status = document.createElement('div');
     status.className = 'okw-discovery-status';
@@ -324,12 +329,12 @@
     return { addButton, fetchButton, panel, placeholder, select, status };
   };
 
-  const setDiscoveryStatus = (status, state, message) => {
+  const setDiscoveryStatus = (status, state, key, ...args) => {
     status.dataset.state = state;
-    status.textContent = message;
+    setCopy(status, key, ...args);
   };
 
-  const renderDiscoveredModels = (controls, models, labels) => {
+  const renderDiscoveredModels = (controls, models) => {
     controls.select.replaceChildren(controls.placeholder);
     for (const id of models) {
       const option = document.createElement('option');
@@ -339,23 +344,21 @@
     }
     controls.select.disabled = models.length === 0;
     controls.addButton.disabled = true;
-    setDiscoveryStatus(
-      controls.status,
-      models.length === 0 ? 'error' : 'success',
-      models.length === 0 ? labels.none : labels.found(models.length),
-    );
+    setDiscoveryStatus(controls.status, models.length === 0 ? 'error' : 'success',
+      models.length === 0 ? 'none' : 'found', models.length);
   };
 
-  const loadDiscoveredModels = async (form, controls, disabled, labels) => {
+  const loadDiscoveredModels = async (form, controls, disabled) => {
     const baseUrl = inputValue(form, ['Base URL']);
-    const message = !baseUrl ? labels.baseRequired : !pageAuthorization ? labels.authPending : '';
-    if (message) {
-      setDiscoveryStatus(controls.status, 'error', message);
+    const key = !baseUrl ? 'baseRequired' : !pageAuthorization ? 'authPending' : '';
+    if (key) {
+      setDiscoveryStatus(controls.status, 'error', key);
       return;
     }
     controls.fetchButton.disabled = true;
-    controls.fetchButton.textContent = labels.discovering;
-    setDiscoveryStatus(controls.status, '', '');
+    setCopy(controls.fetchButton, 'discovering');
+    controls.status.dataset.state = '';
+    bindCopy(controls.status, () => '');
     try {
       const response = await window.fetch(DISCOVERY_PATH, {
         method: 'POST',
@@ -367,15 +370,16 @@
         }),
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof body.error === 'string' ? body.error : labels.failed);
-      renderDiscoveredModels(controls, Array.isArray(body.models) ? body.models : [], labels);
+      if (!response.ok) throw new Error(typeof body.error === 'string' ? body.error : '模型拉取失败');
+      renderDiscoveredModels(controls, Array.isArray(body.models) ? body.models : []);
     } catch (error) {
       controls.select.disabled = true;
       controls.addButton.disabled = true;
-      setDiscoveryStatus(controls.status, 'error', error instanceof Error ? error.message : labels.failed);
+      controls.status.dataset.state = 'error';
+      bindCopy(controls.status, () => discoveryError(error instanceof Error ? error.message : '模型拉取失败'));
     } finally {
       controls.fetchButton.disabled = disabled;
-      controls.fetchButton.textContent = labels.discover;
+      setCopy(controls.fetchButton, 'discover');
     }
   };
 
@@ -384,8 +388,7 @@
     const baseField = fieldByLabel(form, ['Base URL']);
     const modelsField = fieldByLabel(form, ['模型', 'Models']);
     if (!baseField || !modelsField) return;
-    const labels = copy();
-    const controls = createDiscoveryControls(labels);
+    const controls = createDiscoveryControls();
     modelsField.before(controls.panel);
     const disabled = baseField.querySelector('input')?.disabled === true;
     controls.fetchButton.disabled = disabled;
@@ -396,7 +399,7 @@
       if (controls.select.value) addDiscoveredModel(form, controls.select.value, controls.status);
     });
     controls.fetchButton.addEventListener('click', () => {
-      void loadDiscoveredModels(form, controls, disabled, labels);
+      void loadDiscoveredModels(form, controls, disabled);
     });
   };
 
@@ -491,5 +494,6 @@
     if (formChanged(records)) enhance();
   }).observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('popstate', enhance);
+  window.__okwLocale?.observe(refreshCopy);
   enhance();
 }
