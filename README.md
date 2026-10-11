@@ -1,4 +1,81 @@
-# OpenWeb for Kimi Code
+# Open Kimi Web：一键兼容式安装，自动补齐缺失 Node/npm/Git/Kimi，复用已有 native/npm Kimi
+
+复制对应平台的整段命令运行，默认安装并接管 `kimi web`。**无需预装 Node、npm、Corepack、pnpm、Git 或官方 Kimi。**
+需联网及 PATH 中可用的标准 `curl`／`tar`；Linux 的编译工具前提见下方。
+**版本 `v2.1.1-r10`**；Release 发布状态／CI 以 [Release 页面][r10-release]、[CI][ci-workflow]及[发布计划][r10-plan]的真实记录为准。
+
+**Windows PowerShell ≥ 5.1：**
+
+```powershell
+& {
+    $ErrorActionPreference = 'Stop'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor
+        [Net.SecurityProtocolType]::Tls12
+    $repo = 'WilliamLambertCN/open-kimi-web'
+    $version = '2.1.1-r10'
+    $headers = @{ 'User-Agent' = 'open-kimi-web-installer'; 'Accept' = 'application/vnd.github+json' }
+    $tmp = $null
+    $code = 1
+    try {
+        $commit = Invoke-RestMethod "https://api.github.com/repos/$repo/commits/v$version" `
+            -Headers $headers -TimeoutSec 180 -MaximumRedirection 0
+        $sha = [string] $commit.sha
+        if ($sha.Length -ne 40 -or $sha -notmatch '^[0-9a-fA-F]{40}$') {
+            throw 'GitHub returned an invalid commit SHA.'
+        }
+        $tmp = Join-Path ([IO.Path]::GetTempPath()) ('open-kimi-web-' + [Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $tmp | Out-Null
+        $file = Join-Path $tmp 'install.ps1'
+        Invoke-WebRequest "https://raw.githubusercontent.com/$repo/$sha/scripts/install.ps1" `
+            -OutFile $file -UseBasicParsing -Headers $headers -TimeoutSec 180 -MaximumRedirection 0
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $file --revision $sha --version $version
+        $code = $LASTEXITCODE
+    } catch {
+        Write-Error $_ -ErrorAction Continue
+    } finally {
+        if ($tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+    exit $code
+}
+```
+
+**macOS／Linux sh：**
+
+```sh
+(
+    set -eu
+    repo=WilliamLambertCN/open-kimi-web
+    version=2.1.1-r10
+    sha=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
+        --header 'Accept: application/vnd.github.sha' --header 'User-Agent: open-kimi-web-installer' \
+        "https://api.github.com/repos/$repo/commits/v$version")
+    case "$sha" in ''|*[!0-9a-fA-F]*) printf '%s\n' 'Invalid commit SHA.' >&2; exit 1 ;; esac
+    [ "${#sha}" -eq 40 ] || { printf '%s\n' 'Invalid commit SHA length.' >&2; exit 1; }
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/open-kimi-web.XXXXXXXX")
+    trap 'code=$?; trap - 0; rm -rf "$tmp"; exit "$code"' 0
+    trap 'exit 129' HUP
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    curl --fail --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
+        --output "$tmp/install.sh" "https://raw.githubusercontent.com/$repo/$sha/scripts/install.sh"
+    code=0
+    sh "$tmp/install.sh" --revision "$sha" --version "$version" || code=$?
+    exit "$code"
+)
+```
+
+两段命令从 GitHub `/commits/v2.1.1-r10` 解析真实 commit `.sha`（sh 请求直接返回 SHA），校验完整 40 位十六进制值，
+再下载该 SHA 的薄入口，并传同一 `--revision` 与固定 `--version 2.1.1-r10`；不使用 `curl | sh`／`irm | iex`。
+下载／校验失败即停，清理临时文件并保留安装退出码；PowerShell 的 Bypass 只作用于此次子进程。
+HTTPS 下载和同提交配对不是脚本签名验证；可先审阅该提交的完整安装脚本。
+
+默认接管会写用户 PATH／受支持 shell 的 rc；已有其它源码／npm prefix 须明确加 `--switch-installation` 才切换，
+未知／部分安装及降级仍拒绝，不删除旧安装。仅装包时在 `--version` 参数后加 `--no-integrate`（sh 中放在 `|| code=$?` 前）；
+**已有用户日常升级用 `open-kimi-web update --check`／`update`，不要用重装或切换绕过身份检查。**
+缺官方时准备固定 Kimi Code `2.1.1`，可用 native／npm 安装优先复用，不自动升级或覆盖；Windows 缺 Git Bash 才准备 portable Git。
+**空 Linux 仍需标准 Python 3、C／C++ 编译器与 make**（需 glibc），不自动 sudo／apt 或安装完整工具链。
+macOS／arm64、Windows 真注册表／新终端接管未全面验收；安装器不自动登录、启动生产服务、读取真实会话或发付费调用。
+安装细节、首次启动和升级见[快速上手](#快速上手)。
 
 **把手机变成 Kimi Code 的第二块屏幕，也能看清模型用量与 API 等值费用。**
 Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域网 HTTPS、移动页面适配和交互增强；
@@ -11,11 +88,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **当前版本：[v2.1.1-r9][r9-release]，兼容基线为 Kimi Code `2.1.1`。**
-> 新增无依赖的 Node 流式 gzip，减少可压缩的大会话响应与静态资源传输；保留既有增强与用户偏好。
-> Windows 标准检查及源码官方 app 实测通过；交付包浏览器、CI 与线上验证按发布流程单独记录在
-> [大会话局域网性能计划](docs/plans/large-session-lan-performance-v1-plan.md)。
-> 安装见[快速上手](#快速上手)；`v2.1.1-r1` 已撤回。
+> **版本：`v2.1.1-r10`，兼容基线仍为 Kimi Code `2.1.1`。**
+> 新增一键兼容式安装、主模型选择器风格的手机子代理控件及增强层英文修复，保留 r9 流式 gzip 和既有偏好。
+> 发布与资产核对见[发布计划][r10-plan]的真实记录；`v2.1.1-r1` 的撤回历史不变。
 
 ## 模型用量与 API 成本统计
 
@@ -230,23 +305,79 @@ r6 当时的 lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包�
 
 这些主题分别使用随 launcher 附带的星云纹理，配合半透明面板、细描边、六边形标记与紧凑的手机布局。只加载当前主题的背景，无需访问外部图片服务。素材来源与生成提示见 [主题素材说明](docs/THEME-ASSETS.md)。
 
+## 手机子代理模型与英文界面（r10）
+
+手机端子代理默认模型和思考强度沿用主模型选择器风格：底部面板、搜索、供应商标签、两行模型列表、勾选与分段思考。
+同供应商同名长 alias 前置真实唯一差异，完整身份按需展开并保存完整 alias；保留桌面原入口和官方外观。
+官方 `2.1.1` 未导出 ModelPicker 或完整 Settings 的手机打开动作；独立控件复用语义结构、必要样式和 token，
+不调用 Vue 私有实例或主模型选择动作。读取官方 config／models，仅 POST `/api/v1/config` 的 `secondary_model` 并合并模型池，
+不覆盖主模型、权限或其它配置，不另存 localStorage。
+Auto 可提交 `defaultEffort: ''`，按全局思考设置／模型默认；已配置模型仍不能通过官方 API 清除为跟随主模型，
+空模型／null 无效，merge 省略字段不清除。
+
+增强层以官方 `kimi-locale` 为准，修复本轮覆盖的主题、手机状态、会话、usage／provider 等英文系统文案，
+包括 text／title／aria／placeholder；用户填写的中文模型／供应商名仍保留。同 tab 切换刷新已挂载文案，保留草稿和输入，不新增请求。
+实体手机、软键盘与真实磁盘持久化未验收；历史本地检查和原 strict scrollTop 失败见
+[手机计划](docs/plans/mobile-subagent-model-v1-plan.md)。发布与资产核对见[发布计划][r10-plan]，沿用已有阶段结果。
+
 ## 快速上手
 
-前提：已安装官方 [Kimi Code](https://github.com/MoonshotAI/kimi-code)（`kimi web` 可用）和 Node ≥ 22。
-下载官方界面还需 PATH 中有 `curl` 和 `tar`；源码安装另外需要 Git 和 Corepack。
-本项目当前不发布到 npm registry，请使用 GitHub Release 的固定版本 tgz，或从 main 源码安装。
+### 一键兼容式安装与选项
 
-**安装发布包：**
+普通用户使用 README 顶部的完整在线命令，不必克隆仓库或安装开发依赖；本项目不发布到 npm registry。
+命令固定 r10 的脚本提交与 launcher 包版本；下载失败即停，不回退其它版本。
+从同一提交的完整源码目录运行时，本地入口默认使用相邻协调器；不要混用不同提交的入口与 helpers：
 
-使用 r9 的固定 tgz URL 安装；更新后必须重启旧 launcher，再刷新页面。
-GitHub 资产以对应 Release 页面为准。
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10
+# 仅装包，不建立、修改或撤销接管
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10 --no-integrate
+# 本地帮助不联网、不写安装目录，也不要求 Node
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --help
+```
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r9/open-kimi-web-2.1.1-r9.tgz
+sh scripts/install.sh --version 2.1.1-r10
+sh scripts/install.sh --version 2.1.1-r10 --no-integrate
+sh scripts/install.sh --help
+```
+
+- **运行时隔离**：优先选 Node ≥ 22.19.0 与配套 npm，缺合适版本才下载固定 Node `22.23.3`，校验 SHA-256。
+  存于 `${OPEN_KIMI_WEB_HOME:-~/.open-kimi-web}/runtime/node-v22.23.3-<平台>`；自定义 home 须是安全的绝对目录。
+  launcher 专用 `npm` prefix、官方 `official` prefix、runtime 与 wrapper `bin` 分开，不覆盖系统 Node 或默认全局包。
+- **官方 Kimi 兼容**：按实际顺序复用可用 native／标准 npm 安装，不升级或覆盖；坏 override／partial／未知归属拒绝，不自动续装。
+  缺官方时准备固定真实 `2.1.1` tarball／SHA-512，ignore-scripts 避免 postinstall 迁移旧 Python 命令。
+  新自有安装先真实 PTY，成功才写 record；owned 重复安装再 probe，损坏拒绝，不自动重建已有／未知安装。
+  Linux 缺 binding 时仅审计固定 node-pty 1.1.0／node-addon-api 7.1.1，并对绝对 node-pty 目录限定 rebuild，
+  只跑其 install／postinstall，不跑根 Kimi 迁移或其它包脚本；包含 noexcept.gypi 审计和 MAKE 前缀／FLAGS 过滤。
+- **Windows Git Bash**：验证并复用已有 Git Bash（含 `KIMI_SHELL_PATH`）；缺失才严格校验官方 portable asset 的 size／SHA-256。
+  在用户目录解包，不改系统 Git；保留 exe module／7z payload，仅替换 SFX RunProgram 为 payload 中的 true.exe，
+  不运行默认 git-bash.exe／post-install.bat，随后显式执行审计过的白名单初始化。
+- **接管和升级**：默认接管；已有其它已识别源码／prefix 需显式 `--switch-installation`，未知／部分接管及降级仍拒绝。
+  不删除旧安装；`--no-integrate` 不建立、修改或撤销接管。已有用户日常升级用下方 `update`，不重跑安装器。
+  `--version` 固定 launcher Release，不改变官方固定 `2.1.1`；`--revision` 仅薄入口处理，获取该 SHA 的完整源码归档。
+- **外部前提和权限**：联网下载运行时、官方依赖、Release tgz 和 npm 依赖，PATH 中仍需标准 curl／tar，**不是离线安装**。
+  不需要管理员权限；空 Linux（glibc）仍需 Python 3、C／C++ 编译器和 make，不自动 sudo／apt 或补齐完整工具链。
+  不自动登录、读取真实会话、发付费调用或启动生产服务；shell 不支持接管或 PATH 被遮挡时按输出处理，不假报接管成功。
+
+**验证边界：** 既有 Windows x64／Linux 标准工具环境真实入口场景用 r9 包；Windows 接管用注册表 seams，
+portable Git 与缺 Git 的完整 coordinator 不在同一次组合场景。缺 make／C++ 的 WSL 明确失败，不能以 Web 200 代替 PTY。
+macOS／arm64、Windows 真注册表／新终端接管仍未全面验收；历史 fixture／失败与本地检查见
+[安装计划](docs/plans/one-click-install-v1-plan.md)。根安装脚本不在 launcher tgz；发布与资产核对见[发布计划][r10-plan]的真实记录。
+
+### 手动 npm 安装（已有 Node ≥ 22／npm 的用户）
+
+此路线只安装 launcher，需自行准备可运行的官方 Kimi；官方 npm `2.1.1` 需 Node ≥ 22.19.0，Windows 还需 Git Bash。
+不需要 Corepack／pnpm。首次安装且尚未接管时可用 r10 Release 的固定 tgz URL：
+
+```sh
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz
 open-kimi-web integrate install
 ```
 
-**或从 main 源码安装：**
+### 开发者源码安装
+
+仅开发／维护源码时才需要 Node ≥ 22、Git 和 Corepack／pnpm；普通用户无需走此路线。
 
 ```sh
 git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
@@ -257,8 +388,9 @@ corepack pnpm install --frozen-lockfile
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
-已经接管过 `kimi web` 且切换安装方式或目录时，还需按[升级](#升级)中的说明更新接管入口。
+已经接管过 `kimi web` 且手动切换安装方式或目录时，还需按[升级](#升级)中的说明更新接管入口。
 源码接管会引用此仓库中的 launcher，安装后请保留仓库目录。
+下面的 Corepack 网络排查仅适用于源码路线，不是使用一键安装器的前提。
 
 如果 Windows 在 `corepack pnpm install` 下载 `pnpm-10.33.0.tgz` 时出现
 `ECONNRESET`，先解决 Corepack 的下载链路，再运行 `integrate install`；直接跳过依赖安装
@@ -285,11 +417,23 @@ corepack pnpm install --frozen-lockfile
 [Corepack 官方文档](https://github.com/nodejs/corepack/blob/main/README.md#environment-variables)。安装成功后再执行上面的
 `integrate install`。
 
-然后**开一个新终端**：
+### 首次启动（确认接管后）
+
+安装器不自动启动服务。默认安装或手动接管完成、输出确认接管生效后，**开一个新终端**：
 
 ```sh
+open-kimi-web integrate status
 kimi web --host
 ```
+
+先核对状态输出和 PATH／wrapper 目标，再启动；无接管时 status 也可能退出 0，旧 shell 可能仅显示 note。
+r9 status 按首个已有 rc 文件诊断，多 rc 的 zsh 场景可能错误警告；安装器另行验证实际 shell 的 rc 与 wrapper，
+应结合新终端的实际命令判断，不因该警告盲目 repair 或切换安装。
+bash 接管预检在 Release／npm 前检查 `.bash_profile`，仅它缺失时检查 `.bash_login`，不修改该 profile。
+只接受空行／整行注释加无条件 `source ~/.bashrc`、`. ~/.bashrc` 或加载 `"$HOME/.bashrc"`／`"${HOME}/.bashrc"` 的行；
+空文件、仅注释、条件或未知复杂脚本明确拒绝，不宣称接管成功。可选 `--no-integrate`，或手动安排简单加载后重试。
+原生 WSL 的已知简单加载 profile 已通过 bash `--login -ic` 补验，无新增下载。
+使用 `--no-integrate` 仅安装包时，本节接管启动流程不适用；需要之后明确授权接管或自行启动独立代理。
 
 终端会打印：
 
@@ -313,6 +457,10 @@ open-kimi-web integrate repair      # 官方 kimi 升级后修一下
 open-kimi-web integrate uninstall   # 撤销接管，恢复官方命令路径
 ```
 
+`integrate uninstall` 只撤销 wrapper／PATH 接管，不卸载专用 npm prefix 或私有 Node runtime。
+Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保留；无需时按安装输出的路径手动移除。
+不要把它当作删除旧源码、其它安装或官方 Kimi 的清理命令。
+
 ### 升级
 
 **安全自更新（r8 起可用）：** 提供 `open-kimi-web update --check` 和 `open-kimi-web update`。
@@ -323,6 +471,16 @@ open-kimi-web update --check   # 只检查当前执行安装和更新目标，�
 open-kimi-web update           # 更新该安装，不更新官方 Kimi、不自动重启
 open-kimi-web update --help
 ```
+
+一键安装的专用 prefix 是标准 npm 全局布局，仍用 `update` 更新同一安装，不需要重跑安装器或追加切换参数。
+已接管 wrapper 使用记录的 Node，更新器优先解析该 Node 旁的 npm；不需要先给系统安装 Node 或 Corepack／pnpm。
+使用 `--no-integrate` 后没有新 wrapper／PATH 入口，不能假定 `open-kimi-web` 命令已经可用：
+用安装时选定 Node 的**绝对路径**执行专用 prefix 中的 launcher 入口，再加 `update --check`／`update`。
+安装结束会打印绝对路径的 `Update:` 命令；先加 `--check` 核对目标，PowerShell 中须保留命令开头的 `&`。
+默认 Windows 入口是 `~/.open-kimi-web/npm/node_modules/open-kimi-web/bin/open-kimi-web.mjs`，
+POSIX 是 `~/.open-kimi-web/npm/lib/node_modules/open-kimi-web/bin/open-kimi-web.mjs`；
+采用自定义 home 时以实际目录为准，不要用 `npm root -g` 猜这个专用 prefix，也不要把裸 `node` 当成私有运行时。
+仅安装包未撤销旧接管时，PATH 上的命令可能仍指向旧安装，必须先确认实际入口。
 
 命令从自身入口识别安装，不依据当前目录或默认 npm prefix 猜测。源码仅接受官方仓库中干净、
 跟踪 `origin/main` 的 `main`，快进后按 frozen lockfile 安装依赖；有修改、领先、分叉或开发分支时拒绝，
@@ -337,7 +495,7 @@ open-kimi-web update --help
 若工具后代的退出无法确认，会保留安装锁并拒绝再次更新；先核实原 updater 及其后代已停止，再按错误提示解除锁。
 仍需自行停止旧 launcher 后重启，再刷新页面；切换安装位置则继续按下方说明 repair。
 
-**已有全局 tgz 安装：** 再次运行上面的 `npm install -g` 命令，手动安装 `v2.1.1-r9`。
+**已有全局 tgz 安装：** 优先使用 `update`；手动升级时，再次运行上面的版本化 `npm install -g`。
 
 **已有 main 源码安装：** 在原仓库的 main 分支执行：
 
@@ -366,7 +524,8 @@ node "$(npm root -g)/open-kimi-web/bin/open-kimi-web.mjs" integrate repair
 open-kimi-web integrate status
 ```
 
-若检查报告 wrapper、PATH 或真实 `kimi` 路径异常，使用目标安装位置的入口执行 `integrate repair`。
+结合目标与新 shell 的实际命令确认 wrapper、PATH 或真实 `kimi` 异常后，才使用目标入口执行 `integrate repair`；
+多 rc 的 zsh 仅有上述 r9 status 警告时，不盲目 repair。
 最后停止原终端中运行的旧 `kimi web` / launcher，在新终端重新执行 `kimi web --host`，
 再刷新或重新打开浏览器页面。拉取源码不会热替换运行中的服务与已加载的页面脚本，无需迁移会话数据。
 
@@ -477,4 +636,5 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[r9-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r9
+[r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
+[r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10

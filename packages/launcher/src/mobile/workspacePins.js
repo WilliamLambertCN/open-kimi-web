@@ -26,6 +26,7 @@
   };
 
   const isChinese = () => {
+    if (window.__okwLocale) return window.__okwLocale.current() === 'zh';
     const language = document.documentElement.lang || navigator.language || '';
     return language.toLocaleLowerCase().startsWith('zh');
   };
@@ -233,5 +234,6 @@
   new MutationObserver((records) => {
     if (records.some(affectsWorkspaces)) enhance();
   }).observe(document.documentElement, { childList: true, subtree: true });
+  window.__okwLocale?.observe(enhance);
   enhance();
 }

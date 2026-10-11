@@ -53,7 +53,7 @@ function install() {
   const nativeFetch = vi.fn(async (url) => String(url).includes('/api/v1/config') ? config() : Response.json({}));
   view.fetch = nativeFetch;
   const location = { href: 'http://localhost/settings', origin: 'http://localhost' };
-  const scripts = `${source('providerSorting.js')}\n${source('providerEnhancements.js')}`;
+  const scripts = `${source('providerLocale.js')}\n${source('providerSorting.js')}\n${source('providerEnhancements.js')}`;
   view.eval(`((location) => { ${scripts}\n})(${JSON.stringify(location)})`);
   return { view, nativeFetch, state };
 }

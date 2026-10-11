@@ -12,11 +12,11 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
 - Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r9`, still based on `2.1.1`; use the fixed GitHub Release tgz URL.
-  `r9` adds dependency-free Node streaming gzip for HTTP proxy responses, official/custom static and injected resources.
-  Earlier presentation features and safe self-update since `r8` remain unchanged.
-  Windows standard checks and complete official-app source checks passed.
-  Package-browser, CI and online verification are separately [recorded in the release plan][lan-plan].
+- Open Kimi Web version: `2.1.1-r10`, still based on official `2.1.1`.
+  It includes compatibility-first installers, the primary-picker-style mobile subagent control and English fixes.
+  Streaming gzip from `r9`, earlier presentation features and safe self-update since `r8` are retained.
+  Existing source, complete-app and standard checks are retained. Release status, CI and asset verification follow the actual
+  records on [the Release page][r10-release] and in [the r10 release plan][r10-plan].
 - Historical `r8` acceptance, not an r9 CI or release result:
   Windows passed lint, typecheck, 65 unit-test files/1007 tests, 11 integration-test files/89 tests and test:pack.
   Windows unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%.
@@ -31,6 +31,145 @@ or a vendored transcript implementation.
   The historical GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
 - Machine-readable upstream version and historical contract records: `upstream.json`.
+
+## Compatibility-first installation (r10)
+
+The installers are included in `2.1.1-r10`; official Kimi compatibility remains fixed at `2.1.1`.
+Implementation evidence follows [the one-click installation plan](docs/plans/one-click-install-v1-plan.md).
+Existing source, complete-app and standard checks are retained; publication and asset checks follow
+[the r10 release plan][r10-plan], without repeating installation combinations or UI matrices.
+
+The README starts with complete Windows PowerShell >=5.1 and macOS/Linux sh commands. They resolve the actual commit `.sha`
+from `/commits/v2.1.1-r10`; sh requests `Accept: application/vnd.github.sha` for a plain SHA, not JSON parsing.
+Both validate 40 hexadecimal digits, download `raw/<sha>/scripts/install.ps1` or `install.sh` to temporary storage and
+pass the same `--revision <sha>` with `--version 2.1.1-r10`. TLS 1.2, fail-stop downloads, cleanup and exit codes are preserved;
+no bare pipe/eval, independently fetched mutable main files or automatic fallback is used.
+HTTPS downloads are not signature verification.
+
+A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
+Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.
+A standalone entry without a revision resolves main once, which does not establish matching thin-entry provenance.
+These entries install a formal GitHub Release tgz, not development dependencies, without requiring preinstalled Node, npm,
+Corepack, pnpm, Git or official Kimi. Network access and standard PATH curl/tar remain prerequisites.
+Prefer Node >=22.19.0 with adjacent npm; otherwise SHA-256 check fixed official Node `22.23.3` before extraction into
+`runtime/node-v22.23.3-<platform>`. The executable is `node.exe` on Windows and `bin/node` on POSIX.
+Custom OPEN_KIMI_WEB_HOME must be absolute and unlinked. Its `official` prefix is separate from launcher `npm`, runtime and bin.
+Working native or standard npm Kimi installations are reused in actual PATH order without upgrade or overwrite.
+When absent, fixed `@moonshot-ai/kimi-code@2.1.1` uses the verified official tarball and fixed SHA-512 integrity.
+Default ignore-scripts avoids official postinstall migration of old Python commands. Unknown overrides, broken installs and
+unowned/partial dedicated prefixes reject without automatic resume. Owned entry/shim digests and exact versions are checked.
+Windows canonical npm shims validate JS targets for selected-Node checks and retain the cmd-aware runtime/takeover path;
+Windows PATH environment keys are normalized. CLI/Web health alone does not validate native shell dependencies.
+Official Kimi still requires Git Bash on Windows, including npm installs. Existing working Git Bash is reused;
+missing Git uses official user-directory portable assets with strict repository/URL/checksum checks, not system Git replacement.
+Windows x64 real download, digest, SFX extraction, explicit initialization and owned repeat reuse passed targeted native QA.
+The corrected SFX first verifies the entire original asset, preserves the executable module and 7z payload, and replaces only
+its configuration with `RunProgram=usr\bin\true.exe`, using supported `-y`/`-o` flags. true.exe is a launched child;
+default git-bash.exe/post-install.bat do not run. Audited allowlisted initialization runs explicitly afterward in isolated Bash.
+Unknown KIMI_SHELL_PATH rejects. No administrator/sudo, login, real-session access or model calls are required/performed.
+No production service starts automatically. PATH-accessible curl/tar and network access remain necessary, not offline operation.
+Release assets retain matching SHA-256 checks. A new owned install probes real PTY before recording ownership.
+Linux missing bindings permit only an audited rebuild of fixed node-pty 1.1.0 with node-addon-api 7.1.1 build inputs.
+The exact absolute node-pty directory limits npm rebuild to its install/postinstall;
+root Kimi migration and other packages do not run.
+Standard Python 3, C/C++ compiler and make are required; no sudo/apt or complete toolchain installation is attempted.
+Existing Docker bookworm tools passed actual npm preparation, audit/rebuild, PTY, Web 200, record and owned reuse.
+An empty Linux machine is still not a zero-build-dependency one-click install; local WSL without make/C++ correctly fails.
+Owned repeats probe again and reject broken PTY without automatic rebuild; non-owned npm/native installs remain untouched.
+Linux uses forkpty; spawn-helper is a macOS build target, not an independent Linux readiness requirement.
+
+PowerShell forwards the coordinator's double-dash options unchanged, for example:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10 --no-integrate
+```
+
+`--version` selects the formal launcher Release, not the script revision or official Kimi version.
+`--no-integrate` installs the package without establishing, changing or removing takeover.
+`--switch-installation` opts into switching a recognized source/prefix, without deleting it; unknown/partial
+integration and version downgrade still reject. Existing users should normally use the launcher's `update`.
+Both thin entries handle `--help`, including a valid optional revision, before bootstrap: no Node, network or install writes.
+Invalid arguments also fail before runtime preparation. Coordinator `--help` only prints usage.
+Wrapper ownership and persistent PATH must be checked, not inferred from package installation or status exit alone.
+The installer verifies the actual shell rc independently. r9 status still diagnoses the first existing rc and may warn
+incorrectly for zsh with multiple rc files; verify the target and real new-shell commands before repairing or switching.
+Bash preflight checks `.bash_profile` first, or `.bash_login` only if the former is absent, before Release/npm work.
+The existing profile must contain only blank lines, full-line comments and unconditional `source` or `.` lines loading `.bashrc`.
+Accepted targets are `~/.bashrc`, `"$HOME/.bashrc"` or `"${HOME}/.bashrc"`. The profile is preserved, never rewritten.
+Empty, comment-only, conditional or unknown complex profiles reject; use `--no-integrate` or arrange manual sourcing and retry.
+This rejection never reports successful takeover. Native WSL bash `--login -ic` passed with a supported source-only profile.
+Unsupported shell persistence or System PATH shadowing must be reported without claiming integration succeeded.
+An installed wrapper may use its recorded private Node even if the shell's `node` command is absent or outdated.
+On Windows, the installer's private Node User PATH entry remains after r9 integrate uninstall; remove it manually when unused.
+Uninstalling takeover does not remove the private runtime or dedicated npm prefix, official Kimi or other installations.
+The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
+Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
+default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
+Regular upgrades do not require rerunning the installer or switching locations.
+
+Previous acceptance covers the old scope only: real Node 22.23.3 download/digest checks and r9 package-only installation on
+native Windows x64 PowerShell 5.1 and WSL Ubuntu 22.04 x64 glibc, plus Linux bash/zsh takeover, new shells, repeat and uninstall.
+Official Kimi was a fixture; Windows takeover used User PATH mocks. This is not new official-npm or portable-Git acceptance.
+The first Windows installation lacked a raw User PATH baseline, so full raw before/after equality is not claimed.
+Machine PATH was unchanged and no QA path was persisted. macOS/arm64 and real Windows registry/new-shell takeover
+remain unverified. The older standard suite and IT gate closure remain in the installation plan; coverage keeps its 70% gates.
+New-scope stage evidence is recorded separately: real official 2.1.1 installation and actual r9 wrappers on Windows x64 and
+native WSL Ubuntu 22.04 x64 passed CLI/Web health checks. Windows takeover uses registry seams, not real registry/new terminals.
+Windows real Git Bash PTY and x64 portable QA passed. The early unchanged Linux ignore-scripts install lacked a native binding
+and failed real PTY; a verified same-version native fallback also failed with missing pty.node. These failures remain historical.
+The audited targeted rebuild now passes actual PTY with existing standard tools, not on tool-free Linux.
+Read `.cache/one-click-official-qa/pty-rebuild-real-report.json`: Node 22.23.3, real preparation/rebuild, PTY, Web, record, owned
+reuse and cleanup all passed in existing Docker golang 1.26 bookworm tools. This helper QA is not a complete r9 coordinator rerun.
+Windows actual PTY and repeated ownership-loss rejection IT passed.
+The latest `.cache/one-click-official-qa/final-scenario-report.json` separately records full actual entry scenarios:
+Windows x64 installed verified official 2.1.1 and online r9, exercised actual cmd wrappers/managed Web, reuse and uninstall.
+User/Machine raw PATH byte-value equality passed; integration still uses registry seams, not persistent real-registry takeover.
+Linux x64 in existing golang 1.26 bookworm tools passed full paired sh/r9, audited rebuild, real PTY, new login bash,
+actual wrapper/managed Web, reuse and uninstall. Bare WSL exits 1 for missing make; C++ is also absent, so full did not pass.
+Portable Git artifact QA and full Windows coordinator QA are separate, not a combined missing-Git scenario.
+The review fix audits noexcept.gypi and filters all MAKE-prefix and FLAGS build controls.
+The pty-review-boundary report passes real audit/tamper/missing/link rejection and GNU make isolation;
+this narrow check uses simulated PTY state, not a new full PTY/coordinator run. Empty-Linux delivery remains unresolved.
+The expanded2 suite is historical. Final3 lint/typecheck/UT/IT/pack passed after the PTY/UI/i18n edits, without lowering
+70% coverage gates; results are centralized in [the install plan](docs/plans/one-click-install-v1-plan.md).
+The local r9 pack is not a release and excludes root installer scripts. Git Bash is not native POSIX or macOS acceptance.
+
+## Mobile subagent model and locale (r10)
+
+Follow [the mobile subagent model plan](docs/plans/mobile-subagent-model-v1-plan.md), including the mixed-language request.
+The independent API/View/control/CSS are included in r10.
+Existing source, complete-app and standard checks are retained without repetition, not across all platforms;
+publication and asset verification follow the actual records in [the release plan][r10-plan].
+The exact official 2.1.1 MobileSettingsSheet lacks Subagent fields and has no confirmed public action opening full Settings.
+The control reads official config/models and POSTs only `secondary_model` to `/api/v1/config`, merging the existing model pool.
+Main model, permissions and other configuration are preserved, without Vue private state, breakpoint tricks or localStorage.
+Auto legitimately submits `defaultEffort: ''`, following global thinking settings/model default. A configured model still
+cannot be cleared to follow-main through this API: empty/null models are invalid and omitted merge fields do not clear values.
+The new UI follows official ModelPicker semantics: a bottom sheet, search, provider chips, two-line model rows/check marks
+and segmented thinking controls, with identity details collapsed by default rather than numbered native selects.
+Official 2.1.1 does not export ModelPicker or a secondary-target mount action; scoped declarations/tokens are reused,
+not a private Vue instance or a temporary main-model write. Same-provider/name collisions show a front-loaded unique
+fragment of the real alias while saving its full value. Segmented density now matches official Settings.
+The 64 targeted UT and followup complete-app 199/199 assertions passed, with 23 images; the parent inspected seven.
+Seven appearance samples cover 320/390/640. Standard lint/typecheck/1430 UT/308 IT/pack passed, with two native POSIX
+IT tests skipped on Windows. These are local checks, not publication, physical-phone or delivery-package UI acceptance.
+The old native-select focused 108 assertions/28 images and explicit Auto/pool/readback checks remain historical evidence,
+not acceptance of the replacement UI. Their representative screenshots were inspected before this replacement.
+The earlier full command failed in its harness after 98 passing assertions, followed by a 51-pass interaction supplement;
+retain those and the earlier seven-theme matrix as history, not a current all-theme rerun.
+Physical phones/disk persistence remain unverified. The 108 focused assertions do not cover dynamic subagent locale switching.
+
+Shared locale now follows official kimi-locale, with navigator fallback, rather than treating root lang as authoritative.
+Fixed bilingual theme labels, mounted-copy staleness and Chinese-only usage copy are corrected for English mode;
+themes/presentation/session/usage/provider and related enhancement system text/title/aria/placeholder use English.
+Chinese user model/provider content is preserved. Shared same-tab refresh preserves input/drafts without new backend requests.
+Exact official-app locale QA passed 41 assertions/25 images plus provider 2 assertions/1 image using fictional REST/WS.
+The parent inspected 320 Original and 390 Nocturne English theme images. Earlier scoped checks passed 13 files/176 UT,
+5 asset IT, lint and typecheck. Subagent native same-tab language switches now verify copy, drafts, errors/readback and no extra
+requests. The bare-official comparison confirms no visual-anchor regression, without a product patch; the original six
+strict absolute-scrollTop failures remain unchanged, not an all-pass report. Details are in the mobile plan;
+final standard counts/coverage/pack are in the install plan.
+Neither complete English/all-platform acceptance nor publication is inferred from these results.
 
 ## r9 streaming gzip and remaining boundaries
 
@@ -261,3 +400,5 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 `0.43.1`, `2.0.2`, or `2.1.1` coverage.
 
 [lan-plan]: docs/plans/large-session-lan-performance-v1-plan.md
+[r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
+[r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10

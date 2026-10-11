@@ -4,6 +4,41 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.1.1-r10] - 2026-10-12
+
+继续兼容 Kimi Code `2.1.1`；本条目整理本轮安装器、手机子代理选择器和增强层英文修复。
+发布状态、CI 与资产核对见[发布计划](docs/plans/one-click-install-r10-release-v1-plan.md)的真实记录；
+沿用已有源码、完整官方 app 与标准阶段结果，不重复安装组合／UI 矩阵验收。历史 r9 发布及测试记录不变。
+
+- README 物理第一行说明一键兼容式安装，顶部提供 Windows PowerShell ≥ 5.1 与 macOS／Linux sh 的完整命令。
+  从 GitHub r10 tag 的 commits API 解析真实 `.sha`、校验 40 位十六进制值，下载同 SHA 的薄入口并传同 `--revision`；
+  launcher 固定 `--version 2.1.1-r10`。下载失败即停、清理临时文件并保留退出码，不裸 pipe／eval。
+- 安装器无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi；复用可用 native／npm，不升级或覆盖已有安装。
+  缺合适 Node／npm 时准备固定 Node `22.23.3`、校验 SHA-256；缺官方时准备固定官方 npm `2.1.1`，校验 SHA-512。
+  `home/official`、launcher prefix、runtime 和 wrapper 分离，ignore-scripts 避免官方 postinstall 迁移旧 Python 命令。
+  Windows 缺 Git Bash 才校验并准备用户目录 portable Git；SFX 不运行默认 post-install.bat，显式执行审计过的初始化。
+- 默认安装并接管，已有其它已识别源码／prefix 需显式 `--switch-installation`；未知／部分安装及降级拒绝，不删除旧安装。
+  `--no-integrate` 不建立、修改或撤销接管；已有用户日常升级仍用 `update`。
+  两薄入口在准备运行时前处理帮助和非法参数；本地 `--help` 不联网、不写安装目录、不要求 Node。
+  bash 先检查 `.bash_profile`，仅缺失时检查 `.bash_login`；只允许空行／整行注释及无条件加载 `.bashrc`，不改 profile。
+- 新自有官方安装先真实 PTY probe，成功才写 ownership record；owned 重复安装再 probe，损坏拒绝且不自动 rebuild。
+  Linux 缺 binding 时只审计固定 node-pty 1.1.0／node-addon-api 7.1.1，并对绝对 node-pty 目录限定 rebuild。
+  补齐 noexcept.gypi 审计，过滤全部 MAKE 前缀及 FLAGS；不跑根 Kimi 迁移或其它包脚本，不重建 non-owned 安装。
+  仍需联网与标准 curl／tar；空 Linux（glibc）需 Python 3、C／C++ 编译器和 make，不自动 sudo／apt 或安装工具链。
+  macOS／arm64、Windows 真注册表／新终端接管未全面验证；不自动登录、启动生产服务、读取真实会话或发付费调用。
+- 手机子代理模型控件沿用主模型选择器风格：底部 sheet、搜索、供应商标签、两行列表、勾选和分段思考，身份按需展开。
+  同供应商同名长 alias 前置真实唯一差异，保存完整值；不使用 Vue 私有实例或主模型写入回滚。
+  读取官方 config／models，仅 POST `secondary_model` 并合并池，不覆盖主模型／其它配置，不另存 localStorage。
+  Auto 可提交 `defaultEffort: ''`；已配置模型仍不能通过官方 API 清除为跟随主模型，空／null 或省略字段不能清除。
+- 增强层 locale 以官方 `kimi-locale` 为准，修复主题、手机状态、会话、usage／provider 等本轮覆盖的英文系统文案。
+  text／title／aria／placeholder 随同 tab 语言切换刷新，保留用户中文模型／供应商名、草稿和输入，不新增后端请求。
+- **沿用的既有阶段结果：** lint／typecheck、1430 项 UT、308 项 IT 与 pack 通过；CI／发布状态以发布计划真实记录为准，
+  IT 另有两项 Windows native POSIX 跳过；手机控件定向 64 项 UT、完整官方 app 199／199 断言通过。
+  既有真实 Windows／Linux 入口场景使用 r9 包；portable Git 与缺 Git 的完整 coordinator 并非同一次组合验收。
+  旧 fixture、expanded2、早期 PTY 失败及六项 strict scrollTop 失败保留于安装／手机计划，不写成全通过。
+  实体手机、软键盘与真实磁盘持久化未验证；详细阶段证据见
+  [安装计划](docs/plans/one-click-install-v1-plan.md)和[手机计划](docs/plans/mobile-subagent-model-v1-plan.md)。
+
 ## [open-kimi-web v2.1.1-r9] - 2026-10-10
 
 继续兼容 Kimi Code `2.1.1`；为可压缩的大会话响应与资源加入流式 gzip，保留 r8 及此前增强。
@@ -565,3 +600,4 @@ Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR�
 [open-kimi-web v2.1.1-r7]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r7
 [open-kimi-web v2.1.1-r8]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r8
 [open-kimi-web v2.1.1-r9]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r9
+[open-kimi-web v2.1.1-r10]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
