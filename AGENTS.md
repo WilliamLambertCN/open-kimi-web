@@ -18,6 +18,9 @@
 - [聊天窗格自适应](docs/plans/chat-width-responsive-v1-plan.md)
 - [手机列表与自更新](docs/plans/mobile-list-and-self-update-v1-plan.md)
 - [大会话加载](docs/plans/large-session-lan-performance-v1-plan.md)
+- [一键安装](docs/plans/one-click-install-v1-plan.md)
+- [一键安装发布](docs/plans/one-click-install-r10-release-v1-plan.md)
+- [手机子模型](docs/plans/mobile-subagent-model-v1-plan.md)
 
 ## 项目边界
 
