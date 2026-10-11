@@ -2,7 +2,12 @@ import { readFile } from 'node:fs/promises';
 import { sendResponse } from './responseCompression.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
+const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
+const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
 const FILES = new Map([
+  ...LOCALE_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ...SUBAGENT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['mobileSubagentModel.css', 'text/css; charset=utf-8'],
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['workspaceSortDefault.js', 'text/javascript; charset=utf-8'],
@@ -47,6 +52,8 @@ const FILES = new Map([
 
 const USAGE_SCRIPTS = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js'];
 const SCRIPTS = [
+  ...LOCALE_SCRIPTS,
+  ...SUBAGENT_SCRIPTS,
   'foldingDefaults.js',
   'workspaceSortDefault.js',
   'mobileWorkspaceSort.js',
@@ -71,6 +78,7 @@ const STYLES = [
   'presentation.css',
   'themes.css',
   'mobileWorkspaceSort.css',
+  'mobileSubagentModel.css',
   'workspacePins.css',
   'archivedSessionDelete.css',
   'completionModal.css',

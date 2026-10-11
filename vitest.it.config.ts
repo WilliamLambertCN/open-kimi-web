@@ -10,7 +10,7 @@ export default defineConfig({
     coverage: {
       ...sharedCoverage,
       reportsDirectory: 'coverage/it',
-      include: ['packages/launcher/src/**/*.mjs'],
+      include: ['packages/launcher/src/**/*.mjs', 'scripts/install.mjs', 'scripts/install/**/*.mjs'],
       // Pure CLI/bootstrap helpers are owned by focused unit tests.
       // cli.mjs stays excluded repo-wide as entry glue.
       // The integrate install/status machinery is likewise UT-owned (temp-HOME

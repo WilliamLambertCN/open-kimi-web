@@ -329,6 +329,7 @@ function install({ current = false } = {}) {
     window,
   };
   runInNewContext(sortingSource, context);
+  runInNewContext(readFileSync(new URL('../src/mobile/providerLocale.js', import.meta.url), 'utf8'), context);
   runInNewContext(enhancementSource, context);
   const mutate = () => observerCallback([{ target: form, addedNodes: [], removedNodes: [] }]);
   return { added, calls, document, existing, form, observerCallback: mutate, window };
