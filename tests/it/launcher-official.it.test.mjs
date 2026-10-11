@@ -159,6 +159,11 @@ function verifyThemeSelectors(body) {
 }
 
 function verifyChatEnhancementOrder(indexText) {
+  for (const name of ['locale.js', 'usageLocale.js', 'providerLocale.js']) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
+    expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('themes.js'));
+    expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('usageBundle.js'));
+  }
   for (const name of ['sessionSize', 'messageTimestamps']) {
     expect(indexText).toContain(`/__open-kimi-mobile/${name}.css`);
     expect(indexText.indexOf(`${name}.js`)).toBeGreaterThan(indexText.indexOf('usageBundle.js'));
@@ -170,6 +175,14 @@ function verifyChatEnhancementOrder(indexText) {
   expect(indexText).toContain('/__open-kimi-mobile/mobileWorkspaceSort.css');
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeGreaterThan(indexText.indexOf('workspaceSortDefault.js'));
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+  const subagentScripts = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
+  for (const name of subagentScripts) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
+    expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
+  }
+  expect(indexText.indexOf(subagentScripts[0])).toBeLessThan(indexText.indexOf(subagentScripts[1]));
+  expect(indexText.indexOf(subagentScripts[1])).toBeLessThan(indexText.indexOf(subagentScripts[2]));
+  expect(indexText).toContain('/__open-kimi-mobile/mobileSubagentModel.css');
 }
 
 async function verifyRepresentation(url, response, length, compressible) {
@@ -198,11 +211,12 @@ async function verifyIndexRepresentation(url, response, text) {
 async function expectPresentationAssets(baseUrl) {
   const sourceAssets = new Map();
   for (const name of [
-    'presentation.css',
+    'locale.js', 'usageLocale.js', 'providerLocale.js', 'presentation.css',
     'foldingDefaults.js',
     'workspaceSortDefault.js',
     'mobileWorkspaceSort.js',
     'mobileWorkspaceSort.css',
+    'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
     'forkTitleGuard.js',
     'imagePreviewGuard.js',
     'tabFeedback.js',

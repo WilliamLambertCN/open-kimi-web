@@ -39,7 +39,8 @@
       const yesterday = new Date(now);
       yesterday.setDate(now.getDate() - 1);
       if (date.toDateString() === yesterday.toDateString()) {
-        const chinese = (document.documentElement.lang || navigator.language).toLowerCase().startsWith('zh');
+        const chinese = window.__okwLocale ? window.__okwLocale.current() === 'zh'
+          : (document.documentElement.lang || navigator.language).toLowerCase().startsWith('zh');
         return `${chinese ? '昨天' : 'Yesterday'} ${clock}`;
       }
       const day = `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${clock}`;
@@ -373,6 +374,10 @@
       };
     }
     window.addEventListener('popstate', checkRoute);
+    window.__okwLocale?.observe(() => {
+      chats.forEach((state) => state.anchors.forEach((anchor) => state.dirty.add(anchor)));
+      schedule();
+    });
     checkRoute();
     const cleanChats = () => {
       for (const [root, state] of chats) {

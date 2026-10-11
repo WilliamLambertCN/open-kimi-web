@@ -57,7 +57,8 @@
       spinner.className = 'okw-tab-feedback-spinner';
       spinner.setAttribute('aria-hidden', 'true');
       const text = document.createElement('span');
-      const chinese = (document.documentElement.lang || navigator.language).toLowerCase().startsWith('zh');
+      const chinese = window.__okwLocale ? window.__okwLocale.current() === 'zh'
+        : (document.documentElement.lang || navigator.language).toLowerCase().startsWith('zh');
       text.textContent = chinese ? '载入中…' : 'Loading…';
       node.append(spinner, text);
       const entry = { kind, target, node, requests: 0, painted: false, route: sessionId() };
@@ -139,5 +140,10 @@
     window.addEventListener('popstate', () => { for (const kind of pending.keys()) clear(kind); });
     window.addEventListener('pagehide', () => { for (const kind of pending.keys()) clear(kind); });
     window.addEventListener('resize', () => { for (const entry of pending.values()) position(entry); });
+    window.__okwLocale?.observe(() => {
+      for (const entry of pending.values()) {
+        entry.node.lastElementChild.textContent = window.__okwLocale.text('载入中…', 'Loading…');
+      }
+    });
   }
 }

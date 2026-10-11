@@ -65,6 +65,7 @@ function install(options = {}) {
   document.body.append(frame);
   const view = frame.contentWindow;
   const doc = view.document;
+  doc.documentElement.lang = 'zh';
   const mount = header ? nativeMount(mobile, empty, withStatus) : '';
   doc.body.innerHTML = `<div id="app"><div class="app${mobile ? ' mobile' : ''}">${mobile ? mount : ''}
     <div class="con">${mobile ? '' : mount}

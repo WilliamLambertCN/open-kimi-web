@@ -33,18 +33,42 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     }
   };
 
-  const themeLabel = (theme) => OKW_THEMES.find(({ id }) => id === theme)?.label ?? OKW_THEMES[0].label;
-  const shortThemeLabel = (theme) => OKW_THEMES.find(({ id }) => id === theme)?.shortLabel ?? OKW_THEMES[0].shortLabel;
-
+  const text = (zh, en) => window.__okwLocale?.text(zh, en) ?? zh;
+  const themeLabel = (theme, short = false) => {
+    const item = OKW_THEMES.find(({ id }) => id === theme) ?? OKW_THEMES[0];
+    return text(short ? item.shortLabel : item.label, item.label.split(' · ')[1]);
+  };
+  const shortThemeLabel = (theme) => themeLabel(theme, true);
+  const setText = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
+  const setLabel = (node, value) => {
+    if (node.getAttribute('aria-label') !== value) node.setAttribute('aria-label', value);
+  };
+  const syncCopy = () => {
+    const labels = [
+      ['.okw-theme-heading', '氛围主题 · Atmospheric theme', 'Atmospheric theme'],
+      ['.okw-theme-trigger-label', '当前主题 · Current theme', 'Current theme'],
+      ['.okw-theme-intro', '选择后立即应用；Original 恢复官方外观。',
+        'Applies immediately; Original restores the official appearance.'],
+      ['.okw-theme-menu-trigger .user-menu-item-label', '氛围主题', 'Atmospheric theme'],
+    ];
+    labels.forEach(([selector, zh, en]) => document.querySelectorAll(selector).forEach((node) => setText(node, text(zh, en))));
+    const aria = [
+      ['.okw-theme-dialog', '氛围主题 · Atmospheric themes', 'Atmospheric themes'],
+      ['.okw-theme-options', '主题选项 · Theme options', 'Theme options'],
+      ['.okw-theme-trigger', '选择氛围主题 · Choose atmospheric theme', 'Choose atmospheric theme'],
+      ['.okw-theme-menu-trigger', '氛围主题', 'Atmospheric theme'],
+    ];
+    aria.forEach(([selector, zh, en]) => document.querySelectorAll(selector).forEach((node) => setLabel(node, text(zh, en))));
+  };
   const syncControls = () => {
+    syncCopy();
     document.querySelectorAll('.okw-theme-current').forEach((current) => {
-      current.textContent = current.closest('.okw-theme-menu-trigger')
-        ? shortThemeLabel(currentTheme)
-        : themeLabel(currentTheme);
+      setText(current, themeLabel(currentTheme, !!current.closest('.okw-theme-menu-trigger')));
     });
     document.querySelectorAll('.okw-theme-option').forEach((option) => {
       const selected = option.dataset.theme === currentTheme;
-      option.setAttribute('aria-pressed', String(selected));
+      setText(option.querySelector('.okw-theme-option-label'), themeLabel(option.dataset.theme));
+      if (option.getAttribute('aria-pressed') !== String(selected)) option.setAttribute('aria-pressed', String(selected));
       option.classList.toggle('selected', selected);
     });
   };
@@ -352,5 +376,6 @@ const OKW_THEME_IDS = new Set(OKW_THEMES.map(({ id }) => id));
     if (openPicker) positionMenuDialog(openPicker.trigger, openPicker.dialog);
   });
   mobile.addEventListener('change', enhance);
+  window.__okwLocale?.observe(syncControls);
   enhance();
 }

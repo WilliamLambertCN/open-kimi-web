@@ -13,7 +13,8 @@
     svg.setAttribute('viewBox', `0 0 ${width} 140`);
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', `${items.length} 个时间段的 token 用量趋势`);
+    const text = (value) => window.__okwUsageText?.(value) ?? value;
+    svg.setAttribute('aria-label', text(`${items.length} 个时间段的 token 用量趋势`));
     items.forEach((item, index) => {
       const value = Math.max(0, Number(item.totalTokens) || 0);
       const barHeight = value / maximum * 115;
@@ -34,9 +35,10 @@
     for (let index = 0; index < count; index += 1) {
       const item = items[Math.round(index * (items.length - 1) / Math.max(1, count - 1))];
       const date = new Date(item.time);
+      const locale = window.__okwLocale?.current() === 'en' ? 'en-US' : undefined;
       const text = bucket === 'hour'
-        ? date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-        : date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+        ? date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+        : date.toLocaleDateString(locale, { month: 'numeric', day: 'numeric' });
       const label = node('span', '', text);
       label.title = shortDate(item.time);
       labels.append(label);

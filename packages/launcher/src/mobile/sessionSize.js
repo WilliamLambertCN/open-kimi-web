@@ -5,7 +5,15 @@
     const media = window.matchMedia('(max-width: 640px)');
     const api = window.__okwUsageCreateApi();
     const interval = 10_000;
-    const explanation = '当前会话的日志体积（含子代理，不含图片附件），不是模型上下文 token 占用。';
+    const text = (zh, en) => window.__okwLocale?.text(zh, en) ?? zh;
+    const copy = () => ({
+      explanation: text('当前会话的日志体积（含子代理，不含图片附件），不是模型上下文 token 占用。',
+        'Current session log size (includes subagents, excludes image attachments), not model context token usage.'),
+      session: text('会话', 'Session'), reading: text('正在读取。', 'Reading…'),
+      unmanaged: text('当前不是受管本机后端，无法计量。', 'Not a managed local backend; size is unavailable.'),
+      unavailable: text('当前会话日志暂时无法计量。', 'Current session log size is temporarily unavailable.'),
+      retry: text('读取失败或页面授权未就绪，将自动重试。', 'Read failed or authorization is not ready; retrying automatically.'),
+    });
     let current = null;
     let timer = null;
     let sizeNode = null;
@@ -51,8 +59,10 @@
 
     const updateNode = (node) => {
       const value = current.bytes === null ? '—' : formatBytes(current.bytes);
-      const text = `${media.matches ? ' · ' : ''}会话 ${value}`;
-      const title = `${explanation}${current.note}`;
+      const labels = copy();
+      const text = `${media.matches ? ' · ' : ''}${labels.session} ${value}`;
+      const note = labels[current.note] ?? '';
+      const title = `${labels.explanation}${note ? ` ${note}` : ''}`;
       if (node.textContent !== text) node.textContent = text;
       if (node.title !== title) node.title = title;
       if (node.getAttribute('aria-label') !== title) node.setAttribute('aria-label', title);
@@ -93,8 +103,7 @@
     const applyResult = (state, result) => {
       const valid = result?.available === true && Number.isSafeInteger(result.bytes) && result.bytes >= 0;
       state.bytes = valid ? result.bytes : null;
-      state.note = valid ? '' : result?.reason === 'unmanaged_target'
-        ? '当前不是受管本机后端，无法计量。' : '当前会话日志暂时无法计量。';
+      state.note = valid ? '' : result?.reason === 'unmanaged_target' ? 'unmanaged' : 'unavailable';
     };
     const activeRequest = (state, controller) => current === state && state.controller === controller;
 
@@ -111,7 +120,7 @@
       } catch {
         if (!activeRequest(state, controller)) return;
         state.bytes = null;
-        state.note = '读取失败或页面授权未就绪，将自动重试。';
+        state.note = 'retry';
       } finally {
         if (activeRequest(state, controller)) {
           state.controller = null;
@@ -125,7 +134,7 @@
       const id = sessionId();
       if (current?.id !== id) {
         stop();
-        current = id ? { id, bytes: null, note: '正在读取。', controller: null } : null;
+        current = id ? { id, bytes: null, note: 'reading', controller: null } : null;
         render();
         if (current) void refresh();
       } else {
@@ -148,6 +157,7 @@
     window.addEventListener('pageshow', () => { paused = false; sync(); });
     document.addEventListener('visibilitychange', sync);
     media.addEventListener('change', sync);
+    window.__okwLocale?.observe(render);
 
     const structure = '.app, #app, .con, .topbar, .tb-main, .okw-workspace-status, .chat-header, .empty-drag';
     const structureChanged = (node) => {

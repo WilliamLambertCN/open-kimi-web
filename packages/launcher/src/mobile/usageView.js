@@ -1,4 +1,11 @@
 {
+  const text = (value) => window.__okwUsageText?.(value) ?? value;
+  const bind = window.__okwUsageBind ?? ((node, value, attribute) => {
+    if (attribute) node.setAttribute(attribute, value);
+    else node.textContent = value;
+    return node;
+  });
+  window.__okwUsageBind ??= bind;
   const entryAnchors = '.side-footer, .sheet-body > .actions, .sheet-body > .view-tabs';
   const entryNodes = `${entryAnchors}, .okw-usage-entry, .okw-usage-mobile-entry`;
 
@@ -17,20 +24,20 @@
   window.__okwUsageCreateRenderers = ({ by, node, fmt, rate, usd }) => {
     const setStatus = (name, message, kind = '') => {
       const status = by(name);
-      status.textContent = message;
+      bind(status, message);
       status.dataset.kind = kind;
     };
     const renderSummary = (data) => {
       const totals = data.totals ?? {};
       by('total').textContent = fmt(totals.totalTokens);
-      by('total-sub').textContent = `总输入 ${fmt(totals.totalInput)} · ${fmt(totals.requests)} 次请求`;
+      bind(by('total-sub'), `总输入 ${fmt(totals.totalInput)} · ${fmt(totals.requests)} 次请求`);
       by('hit').textContent = rate(totals.cacheHitRate);
-      by('hit-sub').textContent = `缓存读取 ${fmt(totals.cacheRead)} / 总输入 ${fmt(totals.totalInput)}`;
+      bind(by('hit-sub'), `缓存读取 ${fmt(totals.cacheRead)} / 总输入 ${fmt(totals.totalInput)}`);
       by('cost').textContent = usd(totals.costUsd);
-      by('cost-sub').textContent = totals.costComplete
+      bind(by('cost-sub'), totals.costComplete
         ? '当前单价估算，非实际账单'
         : `${totals.costUsd == null ? '暂无可定价金额' : '已知部分小计'} · ` +
-          `${fmt(totals.unpricedRequests)} 次请求、${fmt(totals.unpricedTokens)} token 未定价`;
+          `${fmt(totals.unpricedRequests)} 次请求、${fmt(totals.unpricedTokens)} token 未定价`);
       by('cost-sub').classList.toggle('okw-usage-warning', !totals.costComplete);
     };
     const renderBars = (host, items, labelOf) => {
@@ -38,8 +45,8 @@
       const maximum = Math.max(1, ...items.map((item) => item.totalTokens ?? 0));
       for (const item of items) {
         const row = node('div', 'okw-usage-bar-row');
-        const label = node('span', 'okw-usage-bar-label', labelOf(item));
-        if (item.aliases?.length) label.title = `别名：${item.aliases.join('、')}`;
+        const label = node('span', 'okw-usage-bar-label', labelOf(item), item.modelId == null && item.id === 'unresolved');
+        if (item.aliases?.length) bind(label, `别名：${item.aliases.join('、')}`, 'title');
         const track = node('span', 'okw-usage-bar-track');
         const fill = node('span', 'okw-usage-bar-fill');
         fill.style.width = `${Math.max(0, (item.totalTokens ?? 0) / maximum * 100)}%`;
@@ -53,7 +60,7 @@
       const host = by('quality');
       host.replaceChildren();
       for (const note of quality?.notes ?? []) {
-        host.append(node('p', '', `${note.message}${note.count == null ? '' : `（${fmt(note.count)}）`}`));
+        host.append(node('p', '', `${text(note.message)}${note.count == null ? '' : ` (${fmt(note.count)})`}`));
       }
       host.hidden = host.childElementCount === 0;
     };
@@ -82,11 +89,11 @@
     const controls = node('div', 'okw-usage-controls');
     const presets = node('div', 'okw-usage-presets');
     presets.setAttribute('role', 'group');
-    presets.setAttribute('aria-label', '最近时间');
+    bind(presets, '最近时间', 'aria-label');
     for (const [name, days] of [['1d', 1], ['3d', 3], ['1w', 7], ['1m', 30], ['2m', 60], ['3m', 90]]) {
       const item = button('', name, () => setPreset(name, days));
       item.dataset.preset = name;
-      item.title = `最近 ${days} 天`;
+      bind(item, `最近 ${days} 天`, 'title');
       presets.append(item);
     }
     controls.append(presets);
@@ -99,7 +106,7 @@
     }));
     filters.append(field(node, '开始 · 本地时间', from), field(node, '结束 · 本地时间', to));
     const modelSearch = mark(input(node, 'search'), 'model-search');
-    modelSearch.placeholder = '搜索模型 ID';
+    bind(modelSearch, '搜索模型 ID', 'placeholder');
     modelSearch.addEventListener('input', fillFilterModels);
     const model = mark(node('select'), 'model');
     const workspace = mark(node('select'), 'workspace');
@@ -125,12 +132,12 @@
     const charts = node('div', 'okw-usage-charts');
     for (const [name, label] of [['trend', '用量趋势'], ['distribution', '模型分布']]) {
       const section = node('section', 'okw-usage-section');
-      section.setAttribute('aria-label', label);
+      bind(section, label, 'aria-label');
       const chart = node('div', name === 'trend' ? 'okw-usage-trend' : 'okw-usage-bars');
       if (name === 'distribution') {
         chart.tabIndex = 0;
         chart.setAttribute('role', 'region');
-        chart.setAttribute('aria-label', '模型分布，分批显示全部模型');
+        bind(chart, '模型分布，分批显示全部模型', 'aria-label');
       }
       section.append(node('h3', '', label));
       if (name === 'distribution') section.append(mark(node('p', 'okw-usage-scroll-hint'), 'distribution-count'));
@@ -144,7 +151,7 @@
       '基础单价：USD / 百万 token，依次为普通输入 / 缓存读取 / 缓存写入 / 输出。长上下文按每次请求选档。'));
     detail.append(mark(node('p', 'okw-usage-scroll-hint'), 'table-count'));
     const table = node('table', 'okw-usage-table');
-    table.setAttribute('aria-label', '模型用量明细');
+    bind(table, '模型用量明细', 'aria-label');
     const thead = node('thead');
     const row = node('tr');
     ['模型', '普通输入', '缓存读取', '缓存写入', '输出', '总 token', '命中率', '单价来源', '四类单价', '费用小计']
@@ -154,7 +161,7 @@
     const scroller = node('div', 'okw-usage-table-scroll');
     scroller.tabIndex = 0;
     scroller.setAttribute('role', 'region');
-    scroller.setAttribute('aria-label', '模型用量明细，分批显示全部模型');
+    bind(scroller, '模型用量明细，分批显示全部模型', 'aria-label');
     scroller.append(table);
     const more = mark(button('okw-usage-more', '继续显示模型', showMoreModels), 'models-more');
     more.hidden = true;
@@ -187,12 +194,12 @@
     edit.append(suggestions);
     const editor = node('div', 'okw-usage-editor');
     const editSearch = mark(input(node, 'search'), 'edit-model-search');
-    editSearch.placeholder = '搜索模型 ID';
+    bind(editSearch, '搜索模型 ID', 'placeholder');
     editSearch.addEventListener('input', fillEditModels);
     const editModel = mark(node('select'), 'edit-model');
     editModel.addEventListener('change', showMapping);
     const search = mark(input(node, 'search'), 'catalog-search');
-    search.placeholder = '搜索供应商或模型';
+    bind(search, '搜索供应商或模型', 'placeholder');
     search.addEventListener('input', fillCatalog);
     const catalog = mark(node('select'), 'catalog');
     catalog.addEventListener('change', showCatalogRateHint);
@@ -207,7 +214,7 @@
       const control = mark(input(node, 'number'), `rate-${key}`);
       control.min = '0';
       control.step = 'any';
-      control.placeholder = '目录价';
+      bind(control, '目录价', 'placeholder');
       rates.append(field(node, `${label} · USD / 百万`, control));
     }
     edit.append(rates);
@@ -233,12 +240,12 @@
         : `${usd(model.costUsd)}${model.costComplete ? '' : ' · 已知部分'}`;
       const source = model.modelId == null ? '模型 ID 未确认'
         : model.price?.source === 'manual' ? '手动单价' : model.price?.source ?? '未映射';
-      const values = [model.model, ...tokenKeys.map((key) => fmt(model[key])),
+      const values = [model.modelId == null ? '模型 ID 未确认' : model.model, ...tokenKeys.map((key) => fmt(model[key])),
         fmt(model.totalTokens), rate(model.cacheHitRate), source, prices, cost];
       const labels = ['模型', ...tokenLabels, '总 token', '命中率', '单价来源', '四类单价', '费用小计'];
       values.forEach((value, index) => {
-        const cell = node(index === 0 ? 'th' : 'td', '', value);
-        cell.dataset.label = labels[index];
+        const cell = node(index === 0 ? 'th' : 'td', '', value, index !== 0 || model.modelId == null);
+        bind(cell, labels[index], 'data-label');
         if (index === 0) {
           cell.scope = 'row';
           if (model.aliases?.length) cell.append(node('small', 'okw-usage-aliases', `别名：${model.aliases.join('、')}`));
@@ -260,8 +267,8 @@
       control.checked = selected.has(item.modelId);
       control.addEventListener('change', (event) => toggleSuggestion(item.modelId, event.target.checked));
       const content = node('span', 'okw-usage-suggestion-copy');
-      content.append(node('strong', '', item.modelId),
-        node('span', '', `→ ${suggestion.provider} / ${suggestion.name}`),
+      content.append(node('strong', '', item.modelId, false),
+        node('span', '', `→ ${suggestion.provider} / ${suggestion.name}`, false),
         node('small', '', `${rateText(suggestion)} · ${suggestion.catalogKey}`));
       row.append(control, content);
       host.append(row);
@@ -271,9 +278,8 @@
   window.__okwUsageSetCountHints = (by, fmt, shown, count) => {
     for (const [name, limit] of [['distribution', 8], ['table', 5]]) {
       const hint = by(`${name}-count`);
-      hint.textContent = shown < count
-        ? `已显示 ${fmt(shown)} / ${fmt(count)} 项，可继续加载`
-        : `${fmt(count)} 项`;
+      bind(hint, shown < count
+        ? `已显示 ${fmt(shown)} / ${fmt(count)} 项，可继续加载` : `${fmt(count)} 项`);
       hint.hidden = count <= limit;
     }
   };
