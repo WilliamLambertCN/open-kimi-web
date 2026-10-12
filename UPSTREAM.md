@@ -39,12 +39,11 @@ Implementation evidence follows [the one-click installation plan](docs/plans/one
 Existing source, complete-app and standard checks are retained; publication and asset checks follow
 [the r10 release plan][r10-plan], without repeating installation combinations or UI matrices.
 
-The README starts with complete Windows PowerShell >=5.1 and macOS/Linux sh commands. They resolve the actual commit `.sha`
-from `/commits/v2.1.1-r10`; sh requests `Accept: application/vnd.github.sha` for a plain SHA, not JSON parsing.
-Both validate 40 hexadecimal digits, download `raw/<sha>/scripts/install.ps1` or `install.sh` to temporary storage and
-pass the same `--revision <sha>` with `--version 2.1.1-r10`. TLS 1.2, fail-stop downloads, cleanup and exit codes are preserved;
-no bare pipe/eval, independently fetched mutable main files or automatic fallback is used.
-HTTPS downloads are not signature verification.
+The README starts with short online commands for Windows PowerShell >=5.1 and macOS/Linux sh.
+They pin the published r10 commit `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and execute the HTTPS response only after a
+successful download, passing the same `--revision` with `--version 2.1.1-r10`. Users do not manually download a script.
+PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe, mutable main entry or version fallback.
+The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
 
 A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
 Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.
