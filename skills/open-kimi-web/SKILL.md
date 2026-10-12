@@ -29,11 +29,10 @@ Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 
 
 ### 提供安装路线（先解释影响并确认授权）
 
-优先提供[README 顶部完整一键兼容式命令](https://github.com/WilliamLambertCN/open-kimi-web#readme)，无需克隆仓库。
-Windows PowerShell ≥ 5.1 或 macOS／Linux sh 命令解析 r10 tag 的 GitHub commits API 真实 `.sha`；
-sh 使用 `Accept: application/vnd.github.sha` 得纯 SHA，校验 40hex 后下载 `raw/<sha>/scripts/install.ps1`／`install.sh` 到临时文件。
-执行时传同一 `--revision <sha>` 和固定 `--version 2.1.1-r10`，TLS 1.2／下载失败即停／清理／退出码齐全，不裸 pipe／eval。
-下载失败即停，不回退漂移的 main 或旧包；HTTPS 和同提交配对不是脚本签名验证。
+优先提供[README 顶部短在线安装命令](https://github.com/WilliamLambertCN/open-kimi-web#readme)，无需克隆仓库或手动下载脚本。
+Windows PowerShell ≥ 5.1／macOS-Linux sh 均固定已发布 r10 SHA `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf`。
+下载成功后通过 PowerShell script block／`sh -c` 执行完整入口，传同一 `--revision` 和固定 `--version 2.1.1-r10`。
+入口取同提交完整 coordinator／helpers；不回退漂移的 main 或旧包，HTTPS 和同提交配对不是脚本签名验证。
 可先审阅该 SHA 的完整源码；本地使用时，入口、coordinator 与 helpers 必须来自同一提交：
 
 ```powershell

@@ -1,81 +1,28 @@
-# Open Kimi Web：一键兼容式安装，自动补齐缺失 Node/npm/Git/Kimi，复用已有 native/npm Kimi
+# Open Kimi Web · 一键安装
 
-复制对应平台的整段命令运行，默认安装并接管 `kimi web`。**无需预装 Node、npm、Corepack、pnpm、Git 或官方 Kimi。**
-需联网及 PATH 中可用的标准 `curl`／`tar`；Linux 的编译工具前提见下方。
-**版本 `v2.1.1-r10`**；Release 发布状态／CI 以 [Release 页面][r10-release]、[CI][ci-workflow]及[发布计划][r10-plan]的真实记录为准。
+复制对应系统的命令到终端运行，自动下载安装，无需手动下载脚本。
 
-**Windows PowerShell ≥ 5.1：**
+**Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
-& {
-    $ErrorActionPreference = 'Stop'
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor
-        [Net.SecurityProtocolType]::Tls12
-    $repo = 'WilliamLambertCN/open-kimi-web'
-    $version = '2.1.1-r10'
-    $headers = @{ 'User-Agent' = 'open-kimi-web-installer'; 'Accept' = 'application/vnd.github+json' }
-    $tmp = $null
-    $code = 1
-    try {
-        $commit = Invoke-RestMethod "https://api.github.com/repos/$repo/commits/v$version" `
-            -Headers $headers -TimeoutSec 180 -MaximumRedirection 0
-        $sha = [string] $commit.sha
-        if ($sha.Length -ne 40 -or $sha -notmatch '^[0-9a-fA-F]{40}$') {
-            throw 'GitHub returned an invalid commit SHA.'
-        }
-        $tmp = Join-Path ([IO.Path]::GetTempPath()) ('open-kimi-web-' + [Guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path $tmp | Out-Null
-        $file = Join-Path $tmp 'install.ps1'
-        Invoke-WebRequest "https://raw.githubusercontent.com/$repo/$sha/scripts/install.ps1" `
-            -OutFile $file -UseBasicParsing -Headers $headers -TimeoutSec 180 -MaximumRedirection 0
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $file --revision $sha --version $version
-        $code = $LASTEXITCODE
-    } catch {
-        Write-Error $_ -ErrorAction Continue
-    } finally {
-        if ($tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue }
-    }
-    exit $code
-}
+$sha = '97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf'
+$url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
+& ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.1.1-r10
 ```
 
-**macOS／Linux sh：**
+**macOS / Linux：打开终端，粘贴运行。**
 
 ```sh
 (
-    set -eu
-    repo=WilliamLambertCN/open-kimi-web
-    version=2.1.1-r10
-    sha=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
-        --header 'Accept: application/vnd.github.sha' --header 'User-Agent: open-kimi-web-installer' \
-        "https://api.github.com/repos/$repo/commits/v$version")
-    case "$sha" in ''|*[!0-9a-fA-F]*) printf '%s\n' 'Invalid commit SHA.' >&2; exit 1 ;; esac
-    [ "${#sha}" -eq 40 ] || { printf '%s\n' 'Invalid commit SHA length.' >&2; exit 1; }
-    tmp=$(mktemp -d "${TMPDIR:-/tmp}/open-kimi-web.XXXXXXXX")
-    trap 'code=$?; trap - 0; rm -rf "$tmp"; exit "$code"' 0
-    trap 'exit 129' HUP
-    trap 'exit 130' INT
-    trap 'exit 143' TERM
-    curl --fail --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
-        --output "$tmp/install.sh" "https://raw.githubusercontent.com/$repo/$sha/scripts/install.sh"
-    code=0
-    sh "$tmp/install.sh" --revision "$sha" --version "$version" || code=$?
-    exit "$code"
+  sha=97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf
+  url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
+  script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
+    sh -c "$script" install.sh --revision "$sha" --version 2.1.1-r10
 )
 ```
 
-两段命令从 GitHub `/commits/v2.1.1-r10` 解析真实 commit `.sha`（sh 请求直接返回 SHA），校验完整 40 位十六进制值，
-再下载该 SHA 的薄入口，并传同一 `--revision` 与固定 `--version 2.1.1-r10`；不使用 `curl | sh`／`irm | iex`。
-下载／校验失败即停，清理临时文件并保留安装退出码；PowerShell 的 Bypass 只作用于此次子进程。
-HTTPS 下载和同提交配对不是脚本签名验证；可先审阅该提交的完整安装脚本。
-
-默认接管会写用户 PATH／受支持 shell 的 rc；已有其它源码／npm prefix 须明确加 `--switch-installation` 才切换，
-未知／部分安装及降级仍拒绝，不删除旧安装。仅装包时在 `--version` 参数后加 `--no-integrate`（sh 中放在 `|| code=$?` 前）；
-**已有用户日常升级用 `open-kimi-web update --check`／`update`，不要用重装或切换绕过身份检查。**
-缺官方时准备固定 Kimi Code `2.1.1`，可用 native／npm 安装优先复用，不自动升级或覆盖；Windows 缺 Git Bash 才准备 portable Git。
-**空 Linux 仍需标准 Python 3、C／C++ 编译器与 make**（需 glibc），不自动 sudo／apt 或安装完整工具链。
-macOS／arm64、Windows 真注册表／新终端接管未全面验收；安装器不自动登录、启动生产服务、读取真实会话或发付费调用。
-安装细节、首次启动和升级见[快速上手](#快速上手)。
+自动补齐缺少的 Node/npm、Kimi 和 Windows Git Bash，已有安装优先复用。
+安装后新开终端运行 `kimi web --host`；Linux 工具前提和其它选项见[快速上手](#快速上手)。
 
 **把手机变成 Kimi Code 的第二块屏幕，也能看清模型用量与 API 等值费用。**
 Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域网 HTTPS、移动页面适配和交互增强；
@@ -88,9 +35,7 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> **版本：`v2.1.1-r10`，兼容基线仍为 Kimi Code `2.1.1`。**
-> 新增一键兼容式安装、主模型选择器风格的手机子代理控件及增强层英文修复，保留 r9 流式 gzip 和既有偏好。
-> 发布与资产核对见[发布计划][r10-plan]的真实记录；`v2.1.1-r1` 的撤回历史不变。
+> 当前版本：[v2.1.1-r10][r10-release]，兼容 Kimi Code `2.1.1`。更新记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 模型用量与 API 成本统计
 
@@ -111,18 +56,35 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 - **历史回补**：读取官方已保存的用量记录，覆盖同一数据目录的 CLI、Web 与 agent 调用，
   排除 fork 复制的历史前缀。用量留在本机，联网只下载公共价格目录。
 
-![模型用量与 API 成本统计：桌面总览](docs/images/feature-usage-desktop.png)
+使用统计总览与价格自动匹配，**点击缩略图查看原图**：
 
-<p>
-  <img src="docs/images/feature-usage-mobile.png" alt="手机端使用统计与模型明细" width="360" />
-</p>
-
-**刷新价格目录后自动匹配全部真实模型 ID，并在一张清单中批量确认：**
-
-<p>
-  <img src="docs/images/feature-usage-pricing-desktop.png" alt="桌面端自动匹配价格并批量确认" width="68%" />
-  <img src="docs/images/feature-usage-pricing-mobile.png" alt="手机端自动匹配价格并批量确认" width="28%" />
-</p>
+<table>
+  <tr><th width="65%">桌面端</th><th width="35%">手机端</th></tr>
+  <tr>
+    <td align="center" valign="top">
+      <a href="docs/images/feature-usage-desktop.png">
+        <img src="docs/images/feature-usage-desktop.png" alt="桌面端使用统计总览" width="360" />
+      </a>
+    </td>
+    <td align="center" valign="top">
+      <a href="docs/images/feature-usage-mobile.png">
+        <img src="docs/images/feature-usage-mobile.png" alt="手机端使用统计与模型明细" width="60" />
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top">
+      <a href="docs/images/feature-usage-pricing-desktop.png">
+        <img src="docs/images/feature-usage-pricing-desktop.png" alt="桌面端自动匹配价格并批量确认" width="360" />
+      </a>
+    </td>
+    <td align="center" valign="top">
+      <a href="docs/images/feature-usage-pricing-mobile.png">
+        <img src="docs/images/feature-usage-pricing-mobile.png" alt="手机端自动匹配价格并批量确认" width="138" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 截图使用虚构演示记录，不代表真实账号、消费或提供的模型服务。
 
