@@ -50,6 +50,7 @@
 [`docs/plans/one-click-install-v1-plan.md`](docs/plans/one-click-install-v1-plan.md)。
 用户已授权 r10 发布；按[收敛发布计划](docs/plans/one-click-install-r10-release-v1-plan.md) 执行，
 沿用已有验收，不重复本地全套测试、UI 矩阵或跨平台组合；保留实际包检查、隐私检查及 required CI。
+README 顶部按用户要求只留短在线安装命令，固定已发布 r10 SHA，下载成功后直接执行；用量截图两栏缩略展示并链接原图。
 以本地入口和同一不可变提交的完整脚本为交付边界；目标不要求预装 Node／npm／Corepack／pnpm／Git 或官方 Kimi。
 已实现缺官方时 npm 优先准备固定 `@moonshot-ai/kimi-code@2.1.1`，兼容已有 native／npm，不升级或覆盖可用安装。
 官方 npm 需要 Node ≥ 22.19.0；专用 `home/official` 与 launcher prefix／runtime／wrapper 分开。
