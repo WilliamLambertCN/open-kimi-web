@@ -9,78 +9,36 @@
 本项目不发布到 npm registry；版本 `v2.1.1-r10` 兼容 Kimi Code `2.1.1`。
 Release 发布状态／CI 以 [Release 页面][r10-release]与[发布计划][r10-plan]的真实记录为准。
 
-### 一键兼容式安装（推荐）
+### 一键安装（推荐）
 
-**无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi**，缺失时自动准备；可用 native／npm Kimi 优先复用，不升级或覆盖。
-默认接管 `kimi web`；需联网与标准 curl／tar。空 Linux（glibc）仍需 Python 3、C／C++ 编译器与 make，不自动 sudo／apt。
-macOS／arm64、Windows 真注册表／新终端接管未全面验收；不自动登录、启动生产服务、读取真实会话或发付费调用。
+复制对应系统的命令到终端运行，自动下载安装，无需手动下载脚本。
 
-**Windows PowerShell ≥ 5.1：**
+**Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
-& {
-    $ErrorActionPreference = 'Stop'
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor
-        [Net.SecurityProtocolType]::Tls12
-    $repo = 'WilliamLambertCN/open-kimi-web'
-    $version = '2.1.1-r10'
-    $headers = @{ 'User-Agent' = 'open-kimi-web-installer'; 'Accept' = 'application/vnd.github+json' }
-    $tmp = $null
-    $code = 1
-    try {
-        $commit = Invoke-RestMethod "https://api.github.com/repos/$repo/commits/v$version" `
-            -Headers $headers -TimeoutSec 180 -MaximumRedirection 0
-        $sha = [string] $commit.sha
-        if ($sha.Length -ne 40 -or $sha -notmatch '^[0-9a-fA-F]{40}$') {
-            throw 'GitHub returned an invalid commit SHA.'
-        }
-        $tmp = Join-Path ([IO.Path]::GetTempPath()) ('open-kimi-web-' + [Guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path $tmp | Out-Null
-        $file = Join-Path $tmp 'install.ps1'
-        Invoke-WebRequest "https://raw.githubusercontent.com/$repo/$sha/scripts/install.ps1" `
-            -OutFile $file -UseBasicParsing -Headers $headers -TimeoutSec 180 -MaximumRedirection 0
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $file --revision $sha --version $version
-        $code = $LASTEXITCODE
-    } catch {
-        Write-Error $_ -ErrorAction Continue
-    } finally {
-        if ($tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue }
-    }
-    exit $code
-}
+$sha = '97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf'
+$url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
+& ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.1.1-r10
 ```
 
-**macOS／Linux sh：**
+**macOS / Linux：打开终端，粘贴运行。**
 
 ```sh
 (
-    set -eu
-    repo=WilliamLambertCN/open-kimi-web
-    version=2.1.1-r10
-    sha=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
-        --header 'Accept: application/vnd.github.sha' --header 'User-Agent: open-kimi-web-installer' \
-        "https://api.github.com/repos/$repo/commits/v$version")
-    case "$sha" in ''|*[!0-9a-fA-F]*) printf '%s\n' 'Invalid commit SHA.' >&2; exit 1 ;; esac
-    [ "${#sha}" -eq 40 ] || { printf '%s\n' 'Invalid commit SHA length.' >&2; exit 1; }
-    tmp=$(mktemp -d "${TMPDIR:-/tmp}/open-kimi-web.XXXXXXXX")
-    trap 'code=$?; trap - 0; rm -rf "$tmp"; exit "$code"' 0
-    trap 'exit 129' HUP
-    trap 'exit 130' INT
-    trap 'exit 143' TERM
-    curl --fail --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
-        --output "$tmp/install.sh" "https://raw.githubusercontent.com/$repo/$sha/scripts/install.sh"
-    code=0
-    sh "$tmp/install.sh" --revision "$sha" --version "$version" || code=$?
-    exit "$code"
+  sha=97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf
+  url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
+  script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
+    sh -c "$script" install.sh --revision "$sha" --version 2.1.1-r10
 )
 ```
 
-命令解析 commits API 的真实 `.sha`（sh 直接请求纯 SHA）、校验 40hex；薄入口下载地址和 `--revision` 使用同一提交。
-固定 `--version 2.1.1-r10`，不裸 pipe／eval；下载失败即停、清理临时文件并保留安装退出码，HTTPS 不等于签名验证。
-PowerShell 的 Bypass 仅对本次子进程生效，`--` 参数原样传递，不改为 `-Version`／`-NoIntegrate`。
-已有其它已识别源码／prefix 需显式 `--switch-installation`；未知／部分接管及降级仍拒绝，不删除旧安装。
-仅装包时在 `--version` 参数后加 `--no-integrate`（sh 中放在 `|| code=$?` 前）；已有用户日常升级用 `update --check`／`update`。
-不建立新 wrapper／PATH 时，status／uninstall 可能不可用，应使用安装输出的绝对 Node／launcher 入口。
+自动补齐缺少的 Node/npm、Kimi 和 Windows Git Bash，已有安装优先复用。
+安装后新开终端运行 `kimi web --host`；Linux 工具前提和其它选项见
+[快速上手](https://github.com/WilliamLambertCN/open-kimi-web#快速上手)。
+
+命令固定已发布 r10 的完整提交，下载成功后执行，同一 `--revision` 获取完整安装器；HTTPS 不等于签名验证。
+已有其它源码／prefix 需显式 `--switch-installation`；仅装包加 `--no-integrate`，日常升级用 `open-kimi-web update`。
+空 Linux（glibc）仍需 Python 3、C／C++ 编译器与 make；macOS／arm64、Windows 真注册表／新终端未全面验收。
 
 运行时优先 Node ≥ 22.19.0 与配套 npm，缺失才 SHA-256 校验固定 `22.23.3`；launcher prefix、官方 prefix、runtime 与 bin 分离。
 缺官方时准备固定真实 `2.1.1` tarball／SHA-512、ignore-scripts，不迁移旧 Python 命令；坏 override／partial／未知归属拒绝。
