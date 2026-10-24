@@ -5,19 +5,28 @@
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
-$sha = '97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf'
-$url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-& ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.1.1-r10
+& {
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.3.1-r1'
+  $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
+  if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
+  $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.3.1-r1
+}
 ```
 
 **macOS / Linux：打开终端，粘贴运行。**
 
 ```sh
 (
-  sha=97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf
+  set -eu
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.3.1-r1'
+  metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
+  sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
+  case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
+  [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.1.1-r10
+    sh -c "$script" install.sh --revision "$sha" --version 2.3.1-r1
 )
 ```
 
@@ -35,7 +44,14 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > **这不是 Kimi Code 官方产品。** 独立的社区开源项目，与 Moonshot AI 无关联、不由其维护或背书。
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
-> 当前版本：[v2.1.1-r10][r10-release]，兼容 Kimi Code `2.1.1`。更新记录见 [CHANGELOG.md](CHANGELOG.md)。
+> 当前版本：[v2.3.1-r1][current-release]，兼容 Kimi Code `2.3.1`。更新记录见 [CHANGELOG.md](CHANGELOG.md)。
+> 本轮真实双端路径／原生信任与重启持久化、cron 只读及官方 npm 安装验收已通过，标准 lint／typecheck／UT／IT／pack 通过。
+> 手机预览透底、子模型文案及新增工作区排序已修，并完成受影响主题、窄屏及官方安全对话框的定向实图检查。
+> 准确证据与未验边界见[当前计划][current-plan]，CI 与发布以公开记录为准；下方旧版数字不代表新版结果。
+
+官方 [2.3.1 Release][official-231-release] 修复无 Git Bash 时的工作区信任流程、POSIX 崩溃残留会话占用，
+并改进持有客户端名称与 retry／takeover 对话框。2.3.0 已带来受云配置控制的模型切换确认、RC 压缩／100 MiB 处理及归档恢复。
+增强层保留官方信任、会话锁和确认流程，不关锁、不自动接管；本轮纳入双端路径修复、统一导航、手机搜索与 Hyper-V 软件枚举修复。
 
 ## 模型用量与 API 成本统计
 
@@ -107,8 +123,12 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 
 - **模型用量与 API 成本统计**：按时间、模型和工作区查看四类 token、缓存命中率、用量趋势和
   API 等值费用；历史回补、fork 去重、离线价格、自动匹配、批量确认和手动覆盖，详见上方主功能展示。
+- **双端统一导航与会话搜索**：左上按“新建会话 → 新建工作空间 → 定时任务 → 搜索 → 使用统计”排列。
+  手机和桌面共用官方搜索索引，支持内容／角色、匹配方式、排序与分页；结果打开所属会话，不声称定位到具体消息。
+  双端新建工作空间直接输入运行端已有目录的绝对路径，支持粘贴带外层引号的路径，不切走当前会话或清空草稿。
+  只注册已有目录、不创建文件夹或自动授信；路径属于 Kimi 运行端，而非手机／浏览器设备。
 - **局域网 HTTPS**：让官方 server 保持回环监听，由 launcher 提供局域网 HTTPS、
-  自签名证书和 SHA-256 指纹。
+  自签名证书和 SHA-256 指纹；Hyper-V／vEthernet 地址也进入访问链接与证书 SAN，不改系统网卡配置。
 - **流式 gzip（r9）**：协商压缩较大的可压缩 HTTP 响应、官方／自定义静态和注入资源，使用 Node 内置流，
   无额外依赖、不缓存会话内容；保留正文、分页、鉴权、WS 与原有缓存策略，不重复压缩已编码响应。
 - **token 直达链接**：在启动输出中提供带 `#token=...` 的 Local 与 Network 链接，
@@ -149,21 +169,37 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   保留该标题；手动重命名与主动重新生成标题继续使用官方接口。
 - **归档会话删除**：已归档设置页和首页“已完成”列表提供永久删除；仅为唯一匹配项显示入口，
   二次确认后调用 Kimi Code 官方正式删除接口。
-- **图片完整预览**：官方默认 `fs:read` 只读 1 MiB；截断 base64 图片通过官方鉴权 `fs/{path}:download`
-  获取完整内容，校验图片 MIME、原 size 与实际字节，上限 32 MiB。下载失败、超限或字节不全明确报错，
-  不把半图当成功；正常透明区域保留。显式部分读取、文本和无关请求不变，不记录或持久化图片、路径与 token。
+- **图片完整预览**：官方 `2.3.1` 的 PNG／JPG／GIF／WEBP／BMP／ICO／AVIF 与 PDF 已使用鉴权 download／Blob 预览。
+  SVG 与旧版仍可能走 `fs:read`；保留增强 fallback，将截断 base64 图片转为官方鉴权 `fs/{path}:download`。
+  fallback 校验图片 MIME、原 size 与实际字节，上限 32 MiB；此上限不是新版全部原生预览的限制。
+  失败、超限或字节不全明确报错，不把半图当成功；部分读取、文本和无关请求不变，不持久化图片、路径与 token。
 - **tab 及时反馈**：切换会话、分类和右侧文件 tab 时显示不挡操作的 Loading 与滚圈；关联响应交付
   让出一次绘制机会，原生 loading 出现后交回。快速点击只保留当前反馈，慢 B→快 C、错误和关闭均会清理。
   不改官方 bundle、不用 Vue 私有状态、不复制官方会话／文件状态，内容竞态仍由官方 generation 处理。
 - **发送与阅读体验**：会话运行中可在桌面和手机使用“插队”按钮；按钮通过官方 `.send`
   创建当前 queued prompt，再按精确 `prompt_id` 调用 `prompts:steer`。官方快捷键仍由上游处理。
-  工具调用完成后默认保持展开，已有手动偏好继续生效。Side Chat 流式输出仅在阅读位置仍在底部时
-  自动跟随；向上滚动后不再抢走阅读位置，回到底部后恢复跟随。
+  工具调用完成后默认保持展开，已有手动偏好继续生效。实际选用的官方 UI ≥ `2.3.0` 时保留原生 Side Chat 滚动，
+  不再注入旧 scrollTop guard；旧 `2.1.1`／`2.2.0` 仍保留向上阅读不抢位、回到底部恢复跟随的补丁。
 - **流式更新开销控制**：增强层只处理相关区域变化，减少长历史扫描、无关响应解析与侧聊布局读取。
 - **通知权限整流**：保留官方首次自动申请行为，合并并发请求；关闭提示后后台事件不会反复
   申请，设置中的主动重试仍可用。
 - **官方界面轻量注入**：继续使用官方会话、模型和设置，将标签页及共用标题改为
   `open Kimi-Code web`；`--web-dir` 提供用户构建时不注入这些增强。
+
+**定时任务轻量接入（版本受限）：** 双端“定时任务”入口可分页查看原会话中的任务、内容、计划、
+模型来源及真实保存的触发记录；沿用原版后端与原数据目录，不加引擎、不改任务日志。
+受管入口显式运行 `kimi web --scheduled-tasks` 才启用，默认关闭；未知后端版本拒绝。
+精确 `2.1.1`／`2.2.0` 保留显式恢复确认后的新建、删除；本轮精确 `2.3.1` 适配限定只读任务／历史。
+实测 `2.3.1` debug 写入可绕过会话锁和 stale gate，且可能延迟落盘，缺少兼顾归属、新鲜度与持久化回执的原子入口。
+已实现服务端 transport／route 双 gate，在 debug mutation 前拒绝写入；UI 中英提示只读、隐藏恢复／新建、禁用删除。
+定向测试及真实 launcher 验收确认创建／删除 409 且无 mutation，冷会话与 wire 不变；不为只读唤醒冷会话。
+用户仍可主动打开原会话；定向 UI、CI 与发布记录见[当前计划][current-plan]。
+不能与同实例官方 Remote Control 同用，外部 `serve --target` 不开放该能力；浏览器不能访问通用 debug。
+只读列表不会恢复冷会话；旧版“恢复并管理”须确认会重新启动原任务，关闭网页不等于停止后台任务。
+冷读需要有界扫描相应日志，缺失、损坏、变化或超限显示不完整，不能当成无任务；历史只显示最近最多 100 项、不支持翻页。
+模型跟随所属会话，有证据才显示历史实际请求模型；原生没有的独立任务模型、编辑、暂停不伪造，回合完成不等于业务成功。
+历史双版本公开链路通过，完整 2.2.0 UI、实体手机及其它平台仍未全面验收；历史 r10 不含本功能。
+此前实现与验收见[实施计划](docs/plans/scheduled-tasks-management-v1-plan.md)，不据此承诺新版 cron 全功能。
 
 **r9 大会话传输与剩余边界：** 新增流式 gzip，不缓存会话内容、不收集完整正文后压缩。
 HTTP 代理、官方／自定义静态与注入资源均可协商压缩；`--web-dir` 仍不注入展示层。
@@ -207,7 +243,7 @@ r6 当时的 lint、typecheck、644 项 UT、61 项 IT、test:pack 和实际包�
 
 ## 界面预览
 
-以下主题与交互截图基于官方 `0.41.0` 前端，当前 `2.1.1` 的组件细节可能不同。
+以下主题与交互截图基于官方 `0.41.0` 前端，当前 `2.3.1` 的组件细节可能不同；图片保留为历史展示。
 截图使用隔离浏览器和固定演示数据；`demo-project`、对话内容与 `Demo` 模型均为虚构示例。
 
 **主推：夜幕 · Nocturne — 工作区、会话与对话界面**
@@ -287,20 +323,21 @@ Auto 可提交 `defaultEffort: ''`，按全局思考设置／模型默认；已�
 ### 一键兼容式安装与选项
 
 普通用户使用 README 顶部的完整在线命令，不必克隆仓库或安装开发依赖；本项目不发布到 npm registry。
-命令固定 r10 的脚本提交与 launcher 包版本；下载失败即停，不回退其它版本。
+命令从 `v2.3.1-r1` commit API 解析并校验 40 位 SHA，下载同 SHA 入口，传同一 `--revision` 获取完整安装器。
+固定 `--version 2.3.1-r1`；tag、入口或资产不可用即停，不回退旧版、不直接执行可变名称入口；HTTPS 不等于签名验证。
 从同一提交的完整源码目录运行时，本地入口默认使用相邻协调器；不要混用不同提交的入口与 helpers：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r1
 # 仅装包，不建立、修改或撤销接管
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r1 --no-integrate
 # 本地帮助不联网、不写安装目录，也不要求 Node
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --help
 ```
 
 ```sh
-sh scripts/install.sh --version 2.1.1-r10
-sh scripts/install.sh --version 2.1.1-r10 --no-integrate
+sh scripts/install.sh --version 2.3.1-r1
+sh scripts/install.sh --version 2.3.1-r1 --no-integrate
 sh scripts/install.sh --help
 ```
 
@@ -308,7 +345,8 @@ sh scripts/install.sh --help
   存于 `${OPEN_KIMI_WEB_HOME:-~/.open-kimi-web}/runtime/node-v22.23.3-<平台>`；自定义 home 须是安全的绝对目录。
   launcher 专用 `npm` prefix、官方 `official` prefix、runtime 与 wrapper `bin` 分开，不覆盖系统 Node 或默认全局包。
 - **官方 Kimi 兼容**：按实际顺序复用可用 native／标准 npm 安装，不升级或覆盖；坏 override／partial／未知归属拒绝，不自动续装。
-  缺官方时准备固定真实 `2.1.1` tarball／SHA-512，ignore-scripts 避免 postinstall 迁移旧 Python 命令。
+  缺官方时准备固定真实 `2.3.1` tarball／SHA-512，ignore-scripts 避免 postinstall 迁移旧 Python 命令。
+  已知 owned `2.1.1` 须验证 version／integrity、package 身份及 entry／shim digests 后复用，不自动升级。
   新自有安装先真实 PTY，成功才写 record；owned 重复安装再 probe，损坏拒绝，不自动重建已有／未知安装。
   Linux 缺 binding 时仅审计固定 node-pty 1.1.0／node-addon-api 7.1.1，并对绝对 node-pty 目录限定 rebuild，
   只跑其 install／postinstall，不跑根 Kimi 迁移或其它包脚本；包含 noexcept.gypi 审计和 MAKE 前缀／FLAGS 过滤。
@@ -317,7 +355,7 @@ sh scripts/install.sh --help
   不运行默认 git-bash.exe／post-install.bat，随后显式执行审计过的白名单初始化。
 - **接管和升级**：默认接管；已有其它已识别源码／prefix 需显式 `--switch-installation`，未知／部分接管及降级仍拒绝。
   不删除旧安装；`--no-integrate` 不建立、修改或撤销接管。已有用户日常升级用下方 `update`，不重跑安装器。
-  `--version` 固定 launcher Release，不改变官方固定 `2.1.1`；`--revision` 仅薄入口处理，获取该 SHA 的完整源码归档。
+  `--version` 固定 launcher Release，不改变缺官方时固定的 `2.3.1`；`--revision` 仅薄入口处理，获取该 SHA 的完整源码归档。
 - **外部前提和权限**：联网下载运行时、官方依赖、Release tgz 和 npm 依赖，PATH 中仍需标准 curl／tar，**不是离线安装**。
   不需要管理员权限；空 Linux（glibc）仍需 Python 3、C／C++ 编译器和 make，不自动 sudo／apt 或补齐完整工具链。
   不自动登录、读取真实会话、发付费调用或启动生产服务；shell 不支持接管或 PATH 被遮挡时按输出处理，不假报接管成功。
@@ -325,15 +363,16 @@ sh scripts/install.sh --help
 **验证边界：** 既有 Windows x64／Linux 标准工具环境真实入口场景用 r9 包；Windows 接管用注册表 seams，
 portable Git 与缺 Git 的完整 coordinator 不在同一次组合场景。缺 make／C++ 的 WSL 明确失败，不能以 Web 200 代替 PTY。
 macOS／arm64、Windows 真注册表／新终端接管仍未全面验收；历史 fixture／失败与本地检查见
-[安装计划](docs/plans/one-click-install-v1-plan.md)。根安装脚本不在 launcher tgz；发布与资产核对见[发布计划][r10-plan]的真实记录。
+[安装计划](docs/plans/one-click-install-v1-plan.md)。根安装脚本不在 launcher tgz。
+历史发布记录见 [r10 计划][r10-plan]，本轮安装、CI 与资产结果见[当前计划][current-plan]，不以旧版记录代替。
 
 ### 手动 npm 安装（已有 Node ≥ 22／npm 的用户）
 
-此路线只安装 launcher，需自行准备可运行的官方 Kimi；官方 npm `2.1.1` 需 Node ≥ 22.19.0，Windows 还需 Git Bash。
-不需要 Corepack／pnpm。首次安装且尚未接管时可用 r10 Release 的固定 tgz URL：
+此路线只安装 launcher，需自行准备可运行的官方 Kimi；官方 npm `2.3.1` 需 Node ≥ 22.19.0，Windows 还需 Git Bash。
+不需要 Corepack／pnpm。首次安装且尚未接管时可用 `v2.3.1-r1` Release 的固定 tgz URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.3.1-r1/open-kimi-web-2.3.1-r1.tgz
 open-kimi-web integrate install
 ```
 
@@ -523,18 +562,19 @@ launcher **默认服务官方 `kimi-code` npm 包里的 `dist-web` 构建产物*
 "open Kimi-Code web"。手机端另加独立展示层，对齐首页、会话设置、模型菜单和工作区列表。
 
 - **首次启动需联网**：launcher 会从 npm registry 下载对应版本的包（约 20 MB，仅一次），
-  自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到已审计版本 `2.1.1`）；先试
+  自动探测版本（问 target 的 `/api/v1/meta`，失败则回落到 `2.3.1`）；先试
   npmjs，再试 npmmirror 镜像，尊重 `HTTPS_PROXY`/`HTTP_PROXY`。
 - **下载校验范围**：有 registry 的 sha512 integrity 元数据时校验下载包；元数据缺失时警告。
   仍会检查解包和必需文件是否完整；不会在每次启动时对缓存逐文件计算哈希。
-- **缓存**：解包后缓存在 `~/.open-kimi-web/official-web/<版本>/`，之后离线可用；title 补丁只在缓存时打一次，`boot.js`（官方原样）与上游 `LICENSE` 一并落盘。
+- **缓存**：解包后缓存在 `~/.open-kimi-web/official-web/<版本>/`，之后离线可用；title 补丁只在缓存时打一次，
+  `boot.js`（官方原样）与上游 `LICENSE` 一并落盘。
 - **展示层与主题**：由 launcher 在官方页面响应中加载 `src/mobile/` 的独立样式与脚本；
   既有缓存也会生效，无需重下载或修改上游缓存。资源使用 `no-cache`；布局调整仅在手机
   宽度启用，主题支持桌面与手机，侧栏品牌文字统一显示为 `OPEN-KIMI-WEB`。供应商模型
   能力通过官方 `POST/PUT /api/v1/providers` 字段保存；模型发现请求由受当前页面 bearer
   token 保护的 launcher 同源端点转发，限制为 http(s)、短超时、1 MiB 响应且不跟随
-  重定向，API Key 不写日志、不回显。`--web-dir` 不注入该展示层及主题功能。已对照的
-  上游构建为 `2.1.1`，未来版本若改变组件结构，需要重新检查这些选择器。
+  重定向，API Key 不写日志、不回显。`--web-dir` 不注入该展示层及主题功能。
+  当前对照官方构建为 `2.3.1`；实际选用的 UI 版本控制兼容注入，未来组件变化仍需重新核对。
 - **失败行为（兼容性变更）**：官方 bundle 不可用时 launcher 现在会明确中止启动，不再静默改用不同的界面。恢复 npm 网络与 `curl` / `tar` 后重试，或用 `--web-dir` 指向隔离且已准备好的官方前端构建目录。
 - **显式指定**：`open-kimi-web serve --web-dir <path>` 直接公开并服务现成构建目录。
   不要在目录中放日志、备份、配置或凭证；静态服务会拒绝通过符号链接越过该目录。
@@ -559,7 +599,8 @@ skill/命令，不会安装 npm launcher、启动服务或修改 PATH。** 使�
 - 官方 UI 的 token 存储行为由上游负责；带 token 的直达链接仍等同完整编程代理权限。
 - 回环默认 HTTP；`--lan` / 非回环 `--host` 自动 HTTPS；`--insecure-http` 是显式降级（会打印警告）。
 - 自签名证书存于 `~/.open-kimi-web/tls/`，启动时若临近过期或 SAN 缺失会自动轮换。
-  监听所有网卡时，证书包含启动时探测到的非虚拟网卡地址；IP 变化后需重启 launcher。
+  监听所有网卡时，访问链接与证书包含启动时探测到的物理网卡和 Hyper-V／vEthernet 地址；IP 变化后需重启 launcher。
+  回环、内部标记与 IPv6 link-local 地址仍排除；列出地址不代表防火墙和路由一定可达。
 - 只代理 `/api/*`；`Authorization` 原样转发、绝不落日志；`index.html` no-cache，带 hash 的 `/assets/*` immutable。
 
 ## 开发
@@ -585,10 +626,10 @@ wrapper，应调用它所记录的真实二进制，再运行 `pnpm dev`。
 结构：`packages/launcher` 包含 HTTPS、REST/WS 代理、官方资源加载和手机展示层；
 `contracts/upstream` 保留历史协议快照作为参考。上游版本与维护边界见 [`UPSTREAM.md`](UPSTREAM.md)。
 
-兼容性基线：CLI `2.1.1`（官方发布标签指向
-[`f67e6398`](https://github.com/MoonshotAI/kimi-code/commit/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f)）；
-已审计受影响的页面结构和请求路径；价格刷新已做定向测试与公共源验证，
-未读取用户实际现场数据，也未在实体设备上验证。
+当前兼容目标：CLI `2.3.1`（官方发布标签指向
+[`684bae9e`](https://github.com/MoonshotAI/kimi-code/commit/684bae9ea6a437f3bae98bba1dcb797a917d500b)）；
+本轮静态适配、真实 UI／native、标准门禁与发布结果分别见[当前计划][current-plan]。
+历史价格刷新等验收不代表新版完整通过；未读取用户实际现场数据，也未在实体设备上验证。
 
 ## License
 
@@ -600,3 +641,6 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
 [r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
+[current-plan]: docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
+[official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

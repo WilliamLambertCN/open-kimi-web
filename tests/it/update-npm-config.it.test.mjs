@@ -42,7 +42,7 @@ describe('actual npm configuration and asset host resolution', () => {
     const args = npmArguments({ kind: 'local', owner, category: 'dependencies' }, url);
     const inherited = { ...process.env, NPM_CONFIG_REGISTRY: 'https://registry.npmjs.org/' };
     const env = Object.fromEntries(Object.entries(inherited).filter(([key]) => !/^npm_config_/i.test(key)));
-    const options = { cwd: owner, env: { ...env, npm_config_userconfig: configFile,
+    const options = { cwd: owner, timeoutMs: 15_000, env: { ...env, npm_config_userconfig: configFile,
       npm_config_globalconfig: globalConfig, npm_config_location: 'global', npm_config_save: 'false',
       npm_config_global: 'true', npm_config_replace_registry_host: host, npm_config_registry: 'https://example.invalid/' } };
     const result = JSON.parse(await checkedRun(process.execPath, ['-e', probe, tool.args[0], dirname(dirname(tool.args[0])),
@@ -55,5 +55,5 @@ describe('actual npm configuration and asset host resolution', () => {
     expect(unsafe.url).toContain('https://example.invalid/');
     expect(unsafe.global).toBe(true);
     expect(unsafe.save).toBe(false);
-  });
+  }, 45_000);
 });

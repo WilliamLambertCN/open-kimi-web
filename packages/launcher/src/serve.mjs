@@ -4,6 +4,8 @@ import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 
 import { createAccessUrls } from './accessUrls.mjs';
+import { isDebugApiPath, isRemoteControlApiPath } from './apiPathPolicy.mjs';
+import { createCronRouteService, serveCron } from './cron/routes.mjs';
 import { proxyRequest } from './httpProxy.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
@@ -17,19 +19,32 @@ const DEFAULT_CLOSE_GRACE_MS = 1_000;
 
 async function serveOfficialExtension(req, res, context) {
   if (!context.officialPresentation) return false;
+  if (await serveCron(req, res, context.cronService)) return true;
   if (await serveSessionSize(req, res, context)) return true;
   if (await serveUsage(req, res, context.target, context.usageService, context.fetchImpl)) return true;
   return serveModelDiscovery(req, res, context.target);
 }
 
+function isForbiddenPath(url, scheduledTasks) {
+  return isDebugApiPath(url) || (scheduledTasks && isRemoteControlApiPath(url));
+}
+
+function assertCronPresentation(scheduledTasks, officialPresentation) {
+  if (scheduledTasks && !officialPresentation) throw new Error('--scheduled-tasks requires the enhanced official web UI');
+}
+
+async function closeCronService(service) {
+  await service?.close?.();
+}
+
 async function route(req, res, context) {
   const url = req.url ?? '/';
-  const pathname = url.split('?')[0];
-  if (await serveOfficialExtension(req, res, context)) return;
-  if (pathname === '/api/v1/debug' || pathname.startsWith('/api/v1/debug/')) {
+  if (isForbiddenPath(url, context.scheduledTasks)) {
     res.writeHead(404).end('Not Found');
     return;
   }
+  if (await serveOfficialExtension(req, res, context)) return;
+  const pathname = url.split('?')[0];
   if (pathname === '/api' || pathname.startsWith('/api/')) {
     proxyRequest(req, res, context.target);
     return;
@@ -39,13 +54,14 @@ async function route(req, res, context) {
       .end('Method Not Allowed');
     return;
   }
-  const served = await serveFrontendFiles(req, res, context.publicDir, context.officialPresentation);
+  const served = await serveFrontendFiles(req, res, context);
   if (!served) res.writeHead(404).end('Not Found');
 }
 
-async function serveFrontendFiles(req, res, publicDir, officialPresentation) {
+async function serveFrontendFiles(req, res, { publicDir, officialPresentation, officialWebVersion }) {
   if (officialPresentation && await servePresentationAsset(req, res)) return true;
-  return serveStatic(publicDir, req, res, officialPresentation ? addMobilePresentation : undefined);
+  const transformHtml = officialPresentation ? (html) => addMobilePresentation(html, { officialWebVersion }) : undefined;
+  return serveStatic(publicDir, req, res, transformHtml);
 }
 
 function closeServer(server, graceMs) {
@@ -59,6 +75,16 @@ function closeServer(server, graceMs) {
   });
 }
 
+function tlsSummary(tls) {
+  if (!tls) return null;
+  const { fingerprint, expiresAt, source, created, rotated, reason } = tls;
+  return { fingerprint, expiresAt, source, created, rotated, reason };
+}
+
+function cronBackendOptions(enabled, home, onUnsafeBackend) {
+  return { home: enabled ? home : null, onUnsafeBackend: enabled ? onUnsafeBackend : undefined };
+}
+
 export async function createLauncher({
   target,
   publicDir,
@@ -68,13 +94,22 @@ export async function createLauncher({
   tls = null,
   closeGraceMs = DEFAULT_CLOSE_GRACE_MS,
   officialPresentation = false,
+  officialWebVersion,
+  scheduledTasks = false,
+  onUnsafeBackend,
   usageHome = null,
   usageStorageDir = null,
   usageFetch = fetch,
 }) {
+  assertCronPresentation(scheduledTasks, officialPresentation);
+  const cronService = createCronRouteService({
+    target, enabled: scheduledTasks, fetchImpl: usageFetch,
+    ...cronBackendOptions(scheduledTasks, usageHome, onUnsafeBackend),
+  });
   const { wss, handleUpgrade, closeConnections } = createWsProxy();
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
-  const context = { target, publicDir, officialPresentation, usageHome, usageService, fetchImpl: usageFetch };
+  const context = { target, publicDir, officialPresentation, officialWebVersion, scheduledTasks, usageHome,
+    usageService, cronService, fetchImpl: usageFetch };
   const listener = (req, res) => {
     route(req, res, context).catch(() => {
       if (!res.headersSent) res.writeHead(500);
@@ -106,6 +141,7 @@ export async function createLauncher({
     closeConnections();
     for (const client of wss.clients) client.terminate();
     await closeServer(server, closeGraceMs);
+    await closeCronService(cronService);
   }
 
   return {
@@ -113,14 +149,7 @@ export async function createLauncher({
     wss,
     url,
     accessUrls,
-    tls: tls ? {
-      fingerprint: tls.fingerprint,
-      expiresAt: tls.expiresAt,
-      source: tls.source,
-      created: tls.created,
-      rotated: tls.rotated,
-      reason: tls.reason,
-    } : null,
+    tls: tlsSummary(tls),
     close,
   };
 }

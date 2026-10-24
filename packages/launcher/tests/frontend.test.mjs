@@ -1,10 +1,20 @@
 import { createServer } from 'node:http';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 
+vi.mock('../src/cron/routes.mjs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, createCronRouteService: vi.fn(actual.createCronRouteService) };
+});
+vi.mock('../src/officialBundle.mjs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, ensureOfficialBundle: vi.fn(actual.ensureOfficialBundle) };
+});
+import { createCronRouteService } from '../src/cron/routes.mjs';
 import { createLauncherWithRetry, PORT_RETRY_ATTEMPTS, startFrontend } from '../src/frontend.mjs';
+import { ensureOfficialBundle } from '../src/officialBundle.mjs';
 
 const baseOpts = (over = {}) => ({
   target: 'http://127.0.0.1:1',
@@ -226,6 +236,52 @@ describe('startFrontend web directory resolution', () => {
   });
 });
 
+describe('startFrontend official presentation version', () => {
+  it.each([
+    ['2.1.1', undefined, '2.1.1', true],
+    ['2.2.0', undefined, '2.2.0', true],
+    ['2.3.1', undefined, '2.3.1', false],
+    [undefined, undefined, '2.3.1', false],
+    ['2.3.1', '2.2.0', '2.2.0', true],
+    ['2.1.1', '2.3.1', '2.3.1', false],
+  ])('resolves backend %s with pin %s as bundle %s, legacy guard=%s', async (
+    backendVersion, webVersion, expectedVersion, legacy,
+  ) => {
+    const webDir = mkdtempSync(join(tmpdir(), 'frontend-bundle-version-'));
+    writeFileSync(join(webDir, 'index.html'), '<head><script type="module" src="/official.js"></script></head>');
+    const paths = [];
+    const backend = createServer((req, res) => {
+      paths.push(req.url);
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ code: 0, data: { server_version: backendVersion } }));
+    });
+    await new Promise((resolve) => backend.listen(0, '127.0.0.1', resolve));
+    ensureOfficialBundle.mockResolvedValueOnce({ dir: webDir, cached: true });
+    let launcher;
+    try {
+      const result = await startFrontend({
+        target: `http://127.0.0.1:${backend.address().port}`, host: '127.0.0.1', port: 0, interfaces: {},
+        noTokenLink: true, targetFetch: reachableTarget, log: vi.fn(), warn: vi.fn(), webVersion,
+      });
+      launcher = result.launcher;
+      expect(result.publicDir).toBe(webDir);
+      expect(ensureOfficialBundle).toHaveBeenLastCalledWith(expect.objectContaining({ version: expectedVersion }));
+      for (const path of ['/', '/sessions/demo']) {
+        const response = await fetch(`${launcher.url}${path}`);
+        expect(response.status).toBe(200);
+        const html = await response.text();
+        expect(html.includes('/__open-kimi-mobile/sideChatScroll.js')).toBe(legacy);
+        expect(html).toContain('/__open-kimi-mobile/cron.js');
+      }
+      expect(paths).toEqual(webVersion ? [] : ['/api/v1/meta']);
+    } finally {
+      await launcher?.close();
+      await new Promise((resolve) => backend.close(resolve));
+      rmSync(webDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('startFrontend managed TLS', () => {
   it('uses a managed certificate for the default HTTPS path', async () => {
     const managedHome = mkdtempSync(join(tmpdir(), 'frontend-managed-tls-'));
@@ -364,5 +420,37 @@ describe('startFrontend wildcard access safety', () => {
     expect(launcher.accessUrls[0].url).toBe(
       `http://127.0.0.1:${launcher.server.address().port}`,
     );
+  });
+});
+
+describe('startFrontend scheduled-task capability boundary', () => {
+  it.each([{ publicDir: 'custom' }, { webDir: 'custom' }])('rejects custom web before any network probe: %j', async (web) => {
+    const targetFetch = vi.fn();
+    await expect(startFrontend({ ...baseOpts(), ...web, scheduledTasks: true, targetFetch }))
+      .rejects.toThrow(/requires the enhanced official web UI/);
+    expect(targetFetch).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])('passes controlled home and unsafe callback to the service only when enabled=%s', async (enabled) => {
+    const home = mkdtempSync(join(tmpdir(), 'frontend-cron-home-'));
+    const onUnsafeBackend = vi.fn();
+    const usageFetch = vi.fn();
+    ensureOfficialBundle.mockResolvedValueOnce({ dir: 'fixture-official', cached: true });
+    createCronRouteService.mockClear();
+    let launcher;
+    try {
+      ({ launcher } = await startFrontend({
+        target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0, interfaces: {}, noTokenLink: true,
+        webVersion: '2.1.1', targetFetch: reachableTarget, log: vi.fn(), warn: vi.fn(),
+        scheduledTasks: enabled, usageHome: home, usageFetch, onUnsafeBackend,
+      }));
+      expect(createCronRouteService).toHaveBeenCalledExactlyOnceWith({
+        target: 'http://127.0.0.1:1', enabled, fetchImpl: usageFetch,
+        home: enabled ? home : null, onUnsafeBackend: enabled ? onUnsafeBackend : undefined,
+      });
+    } finally {
+      await launcher?.close();
+      rmSync(home, { recursive: true, force: true });
+    }
   });
 });

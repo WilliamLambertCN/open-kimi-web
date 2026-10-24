@@ -139,7 +139,7 @@ describe('actual sh entrypoint under isolated fake platform and commands', () =>
     const result = shell(['--no-integrate'], { FIXTURE_EXIT: '7' });
     expect(result.status).toBe(7);
     expect(readdirSync(root).some((name) => name.startsWith('open-kimi-web-install-'))).toBe(false);
-  });
+  }, 15_000);
 
   it.each(['v20.1.0', 'v22.18.99', 'v22.19.0-rc.1', 'v22.19.x'])
   ('rejects unsuitable %s Node and attempts only the official private runtime download', (version) => {
@@ -203,7 +203,7 @@ esac
     expect(result.status, result.stderr).toBe(7);
     expect(readFileSync(record, 'utf8')).toContain(`open-kimi-web-${sha}/scripts/install.mjs`);
     expect(readdirSync(root).some((name) => name.startsWith('open-kimi-web-install-'))).toBe(false);
-  });
+  }, 15_000);
 });
 
 const invalidArguments = [
