@@ -188,6 +188,10 @@ html[data-okw-theme] .con {
   background: transparent !important;
 }
 
+html[data-okw-theme] .global-preview.mobile {
+  background: linear-gradient(var(--okw-bg), var(--okw-bg)), Canvas !important;
+}
+
 html[data-okw-theme] .okw-hex-mark {
   display: block;
   flex: none;

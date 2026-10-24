@@ -158,7 +158,23 @@ function verifyThemeSelectors(body) {
   }
 }
 
+const NAVIGATION_ASSETS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
+  'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js', 'navigation.css', 'cron.css'];
+
+function verifyNavigationAssetOrder(indexText) {
+  const scripts = NAVIGATION_ASSETS.filter((name) => name.endsWith('.js'));
+  for (const [index, name] of scripts.entries()) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
+    expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
+    if (index) expect(indexText.indexOf(name)).toBeGreaterThan(indexText.indexOf(scripts[index - 1]));
+  }
+  expect(indexText.indexOf('navigation.js')).toBeLessThan(indexText.indexOf('usageBundle.js'));
+  expect(indexText).toContain('/__open-kimi-mobile/navigation.css');
+  expect(indexText).not.toContain('/__open-kimi-mobile/schedules');
+}
+
 function verifyChatEnhancementOrder(indexText) {
+  verifyNavigationAssetOrder(indexText);
   for (const name of ['locale.js', 'usageLocale.js', 'providerLocale.js']) {
     expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
     expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('themes.js'));
@@ -208,51 +224,23 @@ async function verifyIndexRepresentation(url, response, text) {
   expect(await identity.text()).toBe(text);
 }
 
+const PRESENTATION_ASSETS = [
+  ...NAVIGATION_ASSETS,
+  'locale.js', 'usageLocale.js', 'providerLocale.js', 'presentation.css',
+  'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
+  'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
+  'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',
+  'notificationPermission.js', 'completionModal.css', 'completionModal.js', 'questionCardLayout.js', 'presentation.js',
+  'sessionSize.js', 'sessionSize.css', 'messageTimestamps.js', 'messageTimestamps.css', 'chatWidth.css',
+  'archivedSessionDelete.css', 'archivedSessionDelete.js', 'providerSorting.js', 'providerEnhancements.js',
+  'workspacePins.css', 'workspacePins.js', 'usage.css', 'usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js',
+  'usage.js', 'usageBundle.js', 'themes.css', 'themes.js', 'backgrounds/aurora.png', 'backgrounds/twilight.png',
+  'backgrounds/ember.png', 'backgrounds/mineral.png', 'backgrounds/nocturne.png',
+];
+
 async function expectPresentationAssets(baseUrl) {
   const sourceAssets = new Map();
-  for (const name of [
-    'locale.js', 'usageLocale.js', 'providerLocale.js', 'presentation.css',
-    'foldingDefaults.js',
-    'workspaceSortDefault.js',
-    'mobileWorkspaceSort.js',
-    'mobileWorkspaceSort.css',
-    'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
-    'forkTitleGuard.js',
-    'imagePreviewGuard.js',
-    'tabFeedback.js',
-    'tabFeedback.css',
-    'sideChatScroll.js',
-    'notificationPermission.js',
-    'completionModal.css',
-    'completionModal.js',
-    'questionCardLayout.js',
-    'presentation.js',
-    'sessionSize.js',
-    'sessionSize.css',
-    'messageTimestamps.js',
-    'messageTimestamps.css',
-    'chatWidth.css',
-    'archivedSessionDelete.css',
-    'archivedSessionDelete.js',
-    'providerSorting.js',
-    'providerEnhancements.js',
-    'workspacePins.css',
-    'workspacePins.js',
-    'usage.css',
-    'usageApi.js',
-    'usageView.js',
-    'usageTrend.js',
-    'usageControllers.js',
-    'usage.js',
-    'usageBundle.js',
-    'themes.css',
-    'themes.js',
-    'backgrounds/aurora.png',
-    'backgrounds/twilight.png',
-    'backgrounds/ember.png',
-    'backgrounds/mineral.png',
-    'backgrounds/nocturne.png',
-  ]) {
+  for (const name of PRESENTATION_ASSETS) {
     const url = `${baseUrl}/__open-kimi-mobile/${name}`;
     const response = await fetch(url);
     expect(response.status).toBe(200);
@@ -285,8 +273,10 @@ async function expectPresentationAssets(baseUrl) {
     const length = name.endsWith('.png') ? body.byteLength : Buffer.byteLength(body);
     await verifyRepresentation(url, response, length, !name.endsWith('.png'));
   }
-  const missing = await fetch(`${baseUrl}/__open-kimi-mobile/missing.js`);
-  expect(missing.status).toBe(404);
+  await Promise.all(['missing.js', 'schedules.js', 'schedulesApi.js', 'schedules.css'].map(async (name) => {
+    const missing = await fetch(`${baseUrl}/__open-kimi-mobile/${name}`);
+    expect(missing.status).toBe(404);
+  }));
 }
 
 describe('official mode end-to-end', () => {
@@ -309,7 +299,6 @@ describe('official mode end-to-end', () => {
       expect(indexText).not.toContain('Kimi Code Web');
       for (const name of [
         'presentation.css', 'foldingDefaults.js', 'workspaceSortDefault.js', 'forkTitleGuard.js',
-        'sideChatScroll.js',
         'notificationPermission.js',
         'completionModal.css', 'completionModal.js',
         'questionCardLayout.js',
@@ -338,7 +327,7 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('tabFeedback.js')).toBeGreaterThan(-1);
       expect(indexText.indexOf('tabFeedback.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText).toContain('/__open-kimi-mobile/tabFeedback.css');
-      expect(indexText.indexOf('sideChatScroll.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+      expect(indexText).not.toContain('/__open-kimi-mobile/sideChatScroll.js');
       expect(indexText.indexOf('notificationPermission.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('completionModal.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('questionCardLayout.js')).toBeLessThan(indexText.indexOf('<script type="module"'));

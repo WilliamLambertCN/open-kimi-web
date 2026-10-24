@@ -220,7 +220,7 @@ okw_validate_arguments() (
         case "$argument" in
             --version)
                 [ "$#" -gt 0 ] && okw_version "$1" ||
-                    okw_argument_error '--version requires a formal version, e.g. 2.1.1-r9'
+                    okw_argument_error '--version requires a formal version, e.g. 2.3.1-r1'
                 shift ;;
             --no-integrate|--switch-installation) ;;
             *) okw_argument_error 'unknown installation option; use --help' ;;

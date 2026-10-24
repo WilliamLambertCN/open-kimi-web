@@ -121,6 +121,21 @@ const required = [
   'src/mobile/mobileSubagentModelView.js',
   'src/mobile/mobileSubagentModel.js',
   'src/mobile/mobileSubagentModel.css',
+  'src/mobile/navigationApi.js',
+  'src/mobile/navigationSearchView.js',
+  'src/mobile/navigationSearch.js',
+  'src/mobile/navigationWorkspace.js',
+  'src/mobile/navigation.js',
+  'src/mobile/navigation.css',
+  'src/mobile/cronApi.js',
+  'src/mobile/cronView.js',
+  'src/mobile/cron.js',
+  'src/mobile/cron.css',
+  'src/apiPathPolicy.mjs',
+  'src/cron/client.mjs',
+  'src/cron/routes.mjs',
+  'src/cron/guard.mjs',
+  'src/cron/inventory.mjs',
   'README.md',
   'LICENSE',
   'THIRD_PARTY_NOTICES.md',
@@ -148,7 +163,10 @@ async function main() {
     const allFiles = readdirSync(pkgDir, { recursive: true });
     const leaked = allFiles.filter((file) => {
       const name = String(file).replaceAll('\\', '/');
-      return /(?:^|\/)(?:\.git|\.cache|\.tmp|coverage|tests|node_modules)(?:\/|$)/.test(name) ||
+      return /(?:^|\/)(?:\.git|\.cache|\.tmp|coverage|tests|node_modules|upstream|cron-backend)(?:\/|$)/.test(name) ||
+        /^src\/(?:schedules(?:\/|$)|mobile\/schedules[^/]*)/.test(name) ||
+        /(?:^|\/)(?:build-cron-backend\.mjs|backend-entry\.mjs|owned-home\.mjs)$/.test(name) ||
+        /\.(?:patch|diff)$/.test(name) ||
         /(?:^|\/)(?:\.env(?:\..*)?|\.npmrc|id_rsa|id_ed25519)$/.test(name) ||
         /\.(?:test\.mjs|map|log|bak|old|key|pem|p12|pfx)$/.test(name);
     });
