@@ -166,10 +166,10 @@ function Get-OkwArguments {
             if (-not $seen.Add($argument)) { throw 'duplicate installation option' }
             switch -CaseSensitive ($argument) {
                 '--version' {
-                    if (++$i -ge $forward.Count) { throw '--version requires a formal version, e.g. 2.1.1-r9' }
+                    if (++$i -ge $forward.Count) { throw '--version requires a formal version, e.g. 2.3.1-r1' }
                     $version = $forward[$i] -creplace '^v', ''
                     $pattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-r([1-9]\d*))?$'
-                    if ($version -cnotmatch $pattern) { throw '--version requires a formal version, e.g. 2.1.1-r9' }
+                    if ($version -cnotmatch $pattern) { throw '--version requires a formal version, e.g. 2.3.1-r1' }
                 }
                 '--no-integrate' { }
                 '--switch-installation' { }

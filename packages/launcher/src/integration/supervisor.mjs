@@ -7,6 +7,7 @@ import { dirname } from 'node:path';
 
 import { isLoopbackHost, withTokenFragment } from '../accessUrls.mjs';
 import { assertOfficialWebUi } from '../args.mjs';
+import { assertCronBackend } from '../cron/guard.mjs';
 import { startFrontend } from '../frontend.mjs';
 import { defaultTokenFile, resolveLaunchToken } from '../launchToken.mjs';
 import { openUrl } from './browserOpen.mjs';
@@ -31,6 +32,10 @@ export const managedBackendWebArgs = [
   'web', '--no-open', '--host', '127.0.0.1',
   '--port', String(MANAGED_BACKEND_DEFAULT_PORT),
 ];
+
+function backendWebArgs(web) {
+  return web.scheduledTasks === true ? [...managedBackendWebArgs, '--debug-endpoints'] : managedBackendWebArgs;
+}
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -101,33 +106,44 @@ async function requestShutdown(ctx) {
   }
 }
 
-/** Wait for either backend exit or a termination signal. Listeners are
- *  always removed before resolving. */
-function waitForStop(exited) {
+/** Wait for backend exit, a termination signal or an unsafe-backend abort.
+ *  Listeners are always removed before resolving. */
+export function waitForStop(exited, signal) {
   return new Promise((resolve) => {
+    let settled = false;
     const done = (value) => {
+      if (settled) return;
+      settled = true;
       process.removeListener('SIGINT', onSigint);
       process.removeListener('SIGTERM', onSigterm);
+      signal?.removeEventListener('abort', onAbort);
       resolve(value);
     };
     const onSigint = () => done({ kind: 'signal' });
     const onSigterm = () => done({ kind: 'signal' });
+    const onAbort = () => done({ kind: 'unsafe-backend' });
     process.once('SIGINT', onSigint);
     process.once('SIGTERM', onSigterm);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    if (signal?.aborted) onAbort();
     exited.then((result) => done({ kind: 'exit', result }), () => done({ kind: 'exit', result: { code: 1 } }));
   });
 }
 
 async function supervise(child, exited, launcher, ctx) {
-  const stop = await (ctx.waitStop ?? waitForStop)(exited);
-  if (stop.kind === 'exit') {
+  const stop = await (ctx.waitStop ?? waitForStop)(exited, ctx.stopSignal);
+  if (stop.kind === 'exit' && !ctx.stopSignal?.aborted) {
     await closeLauncher(launcher, ctx);
     return stop.result.code ?? 1;
   }
   await requestShutdown(ctx).catch(() => undefined);
-  await Promise.race([exited.catch(() => undefined), sleep(SHUTDOWN_TIMEOUT_MS)]);
+  await exitedWithin(exited, SHUTDOWN_TIMEOUT_MS);
   await killBackend(child, exited, ctx);
   await closeLauncher(launcher, ctx);
+  if (ctx.stopSignal?.aborted || stop.kind === 'unsafe-backend') {
+    ctx.warn('scheduled-task backend became unsafe; shutting down the managed backend');
+    return 1;
+  }
   return 0;
 }
 
@@ -141,6 +157,24 @@ async function closeLauncher(launcher, ctx) {
 function assertWebUiCompatibility(web, env) {
   const legacyWebUi = web.webUi ?? env.OPEN_KIMI_WEB_UI;
   if (legacyWebUi !== undefined) assertOfficialWebUi(legacyWebUi, 'OPEN_KIMI_WEB_UI');
+}
+
+export function assertScheduledTasksOptions(web, env, publicDir) {
+  if (web.scheduledTasks !== true) return;
+  if ([web.webDir, env.OPEN_KIMI_WEB_DIR, publicDir].some(Boolean)) {
+    throw new IntegrateError('--scheduled-tasks requires the enhanced official web UI; custom web directories are not supported');
+  }
+  const overrides = new Set([
+    'NODE_OPTIONS', 'NODE_PATH', 'LD_PRELOAD', 'LD_LIBRARY_PATH',
+    'DYLD_INSERT_LIBRARIES', 'DYLD_LIBRARY_PATH', 'DYLD_FRAMEWORK_PATH',
+    'KIMI_CODE_ALLOWED_HOSTS', 'KIMI_CODE_CORS_ORIGINS',
+  ]);
+  for (const [key, value] of Object.entries(env)) {
+    const name = key.toUpperCase();
+    if ((name === 'KIMI_CODE_DISABLE_HOST_CHECK' && value === '1') || (overrides.has(name) && value?.length > 0)) {
+      throw new IntegrateError(`--scheduled-tasks is incompatible with ${name}; remove the environment override first`);
+    }
+  }
 }
 
 export function frontendOptions(web, instancePort, env) {
@@ -161,7 +195,31 @@ export function frontendOptions(web, instancePort, env) {
     tokenFile: null,
     webDir: web.webDir ?? env.OPEN_KIMI_WEB_DIR ?? null,
     webVersion: web.webVersion ?? env.OPEN_KIMI_WEB_VERSION ?? null,
+    scheduledTasks: web.scheduledTasks === true,
   };
+}
+
+function unsafeBackendStop(web) {
+  if (web.scheduledTasks !== true) return {};
+  const controller = new AbortController();
+  return {
+    signal: controller.signal,
+    onUnsafeBackend: () => {
+      if (!controller.signal.aborted) controller.abort('unsafe-backend');
+    },
+  };
+}
+
+function managedTreeKill(realKimi, web, platform = process.platform) {
+  if (web.scheduledTasks === true && platform === 'win32') return true;
+  return isWindowsCmdScript(realKimi, platform);
+}
+
+async function openFrontend(frontend, web, stopSignal, deps, warn) {
+  if (web.noOpen || stopSignal?.aborted) return;
+  const first = frontend.launcher.accessUrls[0].url;
+  const url = frontend.token === null ? first : withTokenFragment(first, frontend.token);
+  await (deps.openUrl ?? openUrl)(url, { warn });
 }
 
 /**
@@ -173,6 +231,7 @@ export async function superviseWeb(options) {
   const env = options.env ?? process.env;
   assertWebUiCompatibility(options.web, env);
   const deps = options.deps ?? {};
+  assertScheduledTasksOptions(options.web, env, deps.publicDir);
   const log = deps.log ?? console.log;
   const warn = deps.warn ?? console.error;
   const dir = instancesDir(env);
@@ -183,7 +242,7 @@ export async function superviseWeb(options) {
   // spawned directly — route through cmd.exe exactly like the wrappers do.
   const target = resolveSpawnTarget(
     options.realKimi,
-    managedBackendWebArgs,
+    backendWebArgs(options.web),
     deps.platform,
   );
   const child = spawnImpl(target.cmd, target.args, {
@@ -196,30 +255,28 @@ export async function superviseWeb(options) {
     child.on('exit', (code, signal) => resolve({ code, signal }));
   });
 
+  const stop = unsafeBackendStop(options.web);
   const frontend = await startBackendAndFrontend({
     child, exited, env, dir, previousIds, sinceMs, realKimi: options.realKimi,
-    web: options.web, deps, log, warn,
+    web: options.web, deps, log, warn, onUnsafeBackend: stop.onUnsafeBackend,
   });
-  if (!options.web.noOpen) {
-    const first = frontend.launcher.accessUrls[0].url;
-    const url = frontend.token === null ? first : withTokenFragment(first, frontend.token);
-    await (deps.openUrl ?? openUrl)(url, { warn });
-  }
+  await openFrontend(frontend, options.web, stop.signal, deps, warn);
   return supervise(child, exited, frontend.launcher, {
     port: frontend.instancePort,
     token: frontend.backendToken,
     fetchImpl: deps.fetch ?? fetch,
     waitStop: deps.waitStop,
-    treeKill: isWindowsCmdScript(options.realKimi, deps.platform),
+    stopSignal: stop.signal,
+    treeKill: managedTreeKill(options.realKimi, options.web, deps.platform),
     killTree: deps.killTree,
     warn,
     forceExit: deps.forceExit,
-    backendPid: frontend.backendPid,
+    backendPid: child.pid,
   });
 }
 
 async function startBackendAndFrontend(ctx) {
-  const { child, exited, env, deps, log, warn } = ctx;
+  const { exited, env, deps, log, warn } = ctx;
   const earlyExit = exited.then((result) => {
     throw new IntegrateError(
       `kimi web exited during startup (code ${result.code ?? 'signal ' + result.signal})`,
@@ -249,13 +306,15 @@ async function startBackendAndFrontend(ctx) {
       fetchImpl: deps.fetch,
     });
     ctx.token = token;
+    if (ctx.web.scheduledTasks === true) {
+      await (deps.assertCronBackend ?? assertCronBackend)({
+        target: `http://127.0.0.1:${instance.port}`,
+        authorization: `Bearer ${token}`,
+        fetchImpl: deps.fetch ?? fetch,
+      });
+    }
   } catch (error) {
-    await killBackend(child, exited, {
-      treeKill: isWindowsCmdScript(ctx.realKimi, deps.platform),
-      killTree: deps.killTree,
-      backendPid: ctx.backendPid,
-      warn,
-    });
+    await stopFailedStartup(ctx, instance);
     throw error;
   }
   log(`kimi web backend ready on 127.0.0.1:${instance.port}`);
@@ -264,6 +323,7 @@ async function startBackendAndFrontend(ctx) {
       ...frontendOptions(ctx.web, instance.port, env),
       env,
       usageHome: dirname(defaultTokenFile(env)),
+      onUnsafeBackend: ctx.onUnsafeBackend,
       log,
       warn,
       publicDir: deps.publicDir,
@@ -277,12 +337,21 @@ async function startBackendAndFrontend(ctx) {
       instancePort: instance.port,
     };
   } catch (error) {
-    await killBackend(child, exited, {
-      treeKill: isWindowsCmdScript(ctx.realKimi, deps.platform),
-      killTree: deps.killTree,
-      backendPid: ctx.backendPid,
-      warn,
-    });
+    await stopFailedStartup(ctx, instance);
     throw error;
   }
+}
+
+async function stopFailedStartup(ctx, instance) {
+  if (ctx.token && instance) {
+    await requestShutdown({ port: instance.port, token: ctx.token, fetchImpl: ctx.deps.fetch ?? fetch })
+      .catch(() => undefined);
+    await exitedWithin(ctx.exited, SHUTDOWN_TIMEOUT_MS);
+  }
+  await killBackend(ctx.child, ctx.exited, {
+    treeKill: (ctx.deps.platform ?? process.platform) === 'win32',
+    killTree: ctx.deps.killTree,
+    backendPid: ctx.child.pid,
+    warn: ctx.warn,
+  });
 }

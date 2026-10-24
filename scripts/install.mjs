@@ -45,7 +45,7 @@ export function parseInstallArgs(args) {
     seen.add(arg);
     if (arg === '--version') {
       const version = args[++index]?.replace(/^v/, '');
-      if (!versionParts(version)) throw new Error('--version requires a formal version, e.g. 2.1.1-r9');
+      if (!versionParts(version)) throw new Error('--version requires a formal version, e.g. 2.3.1-r1');
       options.version = version;
     } else if (arg === '--no-integrate') options.integrate = false;
     else if (arg === '--switch-installation') options.switchInstallation = true;

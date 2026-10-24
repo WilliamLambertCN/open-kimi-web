@@ -14,14 +14,38 @@ import { discoverOfficial, officialPaths, prepareOfficial } from '../../scripts/
 let directory;
 let ctx;
 let stage;
+
+function isolatedEnv(root, source = process.env) {
+  const env = {};
+  for (const name of ['PATH', 'SystemRoot', 'WINDIR', 'ComSpec', 'PATHEXT', 'ProgramFiles', 'ProgramFiles(x86)',
+    'PROCESSOR_ARCHITECTURE', 'PROCESSOR_ARCHITEW6432', 'KIMI_SHELL_PATH']) {
+    const key = Object.keys(source).find((key) => key.toLowerCase() === name.toLowerCase());
+    if (key) env[name] = source[key];
+  }
+  const stage = join(root, 'stage');
+  const home = join(stage, 'home');
+  return { ...env, HOME: home, USERPROFILE: home,
+    APPDATA: join(home, 'AppData/Roaming'), LOCALAPPDATA: join(home, 'AppData/Local'),
+    XDG_CONFIG_HOME: join(home, '.config'), XDG_DATA_HOME: join(home, '.local/share'),
+    XDG_CACHE_HOME: join(home, '.cache'), XDG_STATE_HOME: join(home, '.local/state'),
+    XDG_RUNTIME_DIR: join(stage, 'runtime'), TEMP: join(stage, 'tmp'), TMP: join(stage, 'tmp'), TMPDIR: join(stage, 'tmp'),
+    OPEN_KIMI_WEB_HOME: root, KIMI_CODE_HOME: join(stage, 'kimi-code'),
+    npm_config_userconfig: join(stage, 'user.npmrc'), npm_config_globalconfig: join(stage, 'global.npmrc'),
+    npm_config_cache: join(stage, 'cache'), GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: join(stage, 'gitconfig'),
+    BASH_ENV: '', ENV: '' };
+}
+
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), 'okw-official-real-'));
   stage = join(directory, 'stage');
-  await mkdir(stage);
-  for (const name of ['user.npmrc', 'global.npmrc']) await writeFile(join(stage, name), '');
-  ctx = makeInstallContext({ env: { ...process.env, OPEN_KIMI_WEB_HOME: directory,
-    KIMI_CODE_HOME: join(directory, 'user-config'), OPEN_KIMI_REAL_KIMI: undefined }, log: () => {} });
-  delete ctx.env.OPEN_KIMI_REAL_KIMI;
+  const env = isolatedEnv(directory);
+  for (const key of ['HOME', 'APPDATA', 'LOCALAPPDATA', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME',
+    'XDG_STATE_HOME', 'XDG_RUNTIME_DIR', 'TEMP', 'KIMI_CODE_HOME']) {
+    await mkdir(env[key], { recursive: true, mode: 0o700 });
+  }
+  for (const name of ['user.npmrc', 'global.npmrc', 'gitconfig']) await writeFile(join(stage, name), '', { mode: 0o600 });
+  ctx = makeInstallContext({ env, log: () => {},
+    run: (command, args, settings) => runInstallProcess(command, args, { cwd: directory, ...settings }) });
   ctx.npm = await adjacentNpm(ctx.node);
   await ensureGitBash(ctx);
 }, 30000);
@@ -34,31 +58,44 @@ async function freePort() {
   await once(server, 'listening');
   const port = server.address().port;
   await new Promise((done) => server.close(done));
-  return port;
+  return port === 58627 ? freePort() : port;
+}
+
+async function authHeaders() {
+  try {
+    const token = (await readFile(join(ctx.env.KIMI_CODE_HOME, 'server.token'), 'utf8')).trim();
+    return token ? { authorization: `Bearer ${token}` } : undefined;
+  } catch (error) { if (error.code !== 'ENOENT') throw new Error('isolated official server token is unreadable'); }
 }
 
 async function ready(url, child) {
   for (let n = 0; n < 100; n++) {
     if (child.exitCode !== null) throw new Error('isolated official Web exited before health check');
-    try { const response = await fetch(`${url}/api/v1/meta`); if (response.ok) return response; } catch {}
+    const headers = await authHeaders();
+    if (headers) {
+      try {
+        const response = await fetch(`${url}/api/v1/meta`, { headers });
+        if (response.ok) return { response, headers };
+      } catch {}
+    }
     await new Promise((done) => setTimeout(done, 100));
   }
   throw new Error('isolated official Web readiness timed out');
 }
 
 describe('real pinned official npm dependency', () => {
-  it('keeps top-level scripts disabled, verifies real CLI/PTY/Web and reuses owned 2.1.1', async () => {
+  it('keeps top-level scripts disabled, verifies real CLI/PTY/Web and reuses owned 2.3.1', async () => {
     const progress = {};
     await prepareOfficial(ctx, { kind: 'missing' }, stage, progress);
     const paths = officialPaths(ctx);
     expect(ctx.kimi).toBe(paths.kimi);
     const record = JSON.parse(await readFile(paths.record, 'utf8'));
-    expect(record).toMatchObject({ schema: 1, version: '2.1.1', entry: paths.entry });
+    expect(record).toMatchObject({ schema: 1, version: '2.3.1', entry: paths.entry });
     const manifest = JSON.parse(await readFile(join(paths.root, 'package.json'), 'utf8'));
-    expect(manifest.name).toBe('@moonshot-ai/kimi-code');
+    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.3.1' });
     expect(await verifyPty(ctx, paths.root)).toBe('ok');
-    expect(await runInstallProcess(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.1.1');
-    expect(await runInstallProcess(ctx.node, [paths.entry, 'web', '--help'], { env: ctx.env })).toContain('--no-open');
+    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.3.1');
+    expect(await ctx.run(ctx.node, [paths.entry, 'web', '--help'], { env: ctx.env })).toContain('--no-open');
     const found = await discoverOfficial({ ...ctx, env: { ...ctx.env, PATH: '' }, kimi: undefined });
     expect(found).toMatchObject({ kind: 'npm', path: paths.kimi });
     const snapshot = await readFile(paths.record, 'utf8');
@@ -67,23 +104,27 @@ describe('real pinned official npm dependency', () => {
     expect((await readdir(directory)).sort()).toEqual(['bootstrap-official.json', 'official', 'stage']);
   }, 180000);
 
-  it('runs real official Web metadata/static health without lifecycle scripts, login or model calls', async () => {
+  it('runs authenticated real official Web health without lifecycle scripts, login or model calls', async () => {
     await ensureGitBash(ctx);
     const port = await freePort();
     const url = `http://127.0.0.1:${port}`;
     const child = spawn(ctx.node, [officialPaths(ctx).entry, 'web', '--host', '127.0.0.1', '--port', String(port),
-      '--no-open', '--dangerous-bypass-auth'], { cwd: directory, env: ctx.env, stdio: 'ignore' });
+      '--no-open'], { cwd: directory, env: ctx.env, stdio: 'ignore' });
     const stopped = once(child, 'exit');
+    let headers;
     try {
-      const response = await ready(url, child);
-      expect(response.status).toBe(200);
-      const meta = await response.json();
+      const readyState = await ready(url, child);
+      headers = readyState.headers;
+      expect(readyState.response.status).toBe(200);
+      const meta = await readyState.response.json();
       expect(meta).toBeTypeOf('object');
-      const page = await fetch(`${url}/`);
+      expect((await fetch(`${url}/api/v1/meta`)).status).toBe(401);
+      const page = await fetch(`${url}/`, { headers });
       expect(page.status).toBe(200);
       expect(await page.text()).toContain('<html');
     } finally {
-      await fetch(`${url}/api/v1/shutdown`, { method: 'POST' }).catch(() => {});
+      headers ??= await authHeaders().catch(() => undefined);
+      if (headers) await fetch(`${url}/api/v1/shutdown`, { method: 'POST', headers }).catch(() => {});
       if (child.exitCode === null) child.kill();
       await stopped;
     }

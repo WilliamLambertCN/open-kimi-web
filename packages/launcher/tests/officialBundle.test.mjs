@@ -80,7 +80,7 @@ describe('resolveOfficialVersion', () => {
     ['missing version', metaFetch(undefined)],
     ['path-like version', metaFetch('../../etc')],
   ])('falls back to the pinned version on %s', async (_name, fetchImpl) => {
-    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.1.1');
+    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.3.1');
     await expect(resolveOfficialVersion('http://127.0.0.1:58627', null, fetchImpl)).resolves.toBe(
       OFFICIAL_FALLBACK_VERSION,
     );

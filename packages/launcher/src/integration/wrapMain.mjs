@@ -1,7 +1,7 @@
 // Hidden `__wrap` entry: the generated wrapper execs `node <entry> __wrap
 // <original argv>` with OPEN_KIMI_REAL_KIMI pointing at the real binary.
-// Route: supervise understood `web` invocations, delegate everything else
-// with stdio/cwd/env/exit-code fidelity.
+// Route: supervise understood `web` invocations and reject invalid opt-in
+// arguments; ordinary commands delegate with stdio/cwd/env/exit-code fidelity.
 import {
   launcherDependencyMessage,
   missingLauncherDependencies,
@@ -24,14 +24,22 @@ async function delegate(argv, env, deps, error) {
   return code ?? 1;
 }
 
+function realKimiPath(env) {
+  return env.OPEN_KIMI_REAL_KIMI || null;
+}
+
 /** Returns the exit code the wrapper process should use. */
 export async function wrapMain(argv, deps = {}) {
   const env = deps.env ?? process.env;
   const error = deps.error ?? ((line) => console.error(line));
   const route = routeWrapArgv(argv);
+  if (route.action === 'error') {
+    error(`open-kimi-web: ${route.reason}`);
+    return 1;
+  }
   if (route.action === 'supervise') {
-    const realKimi = env.OPEN_KIMI_REAL_KIMI;
-    if (realKimi === undefined || realKimi === '') return missingRealKimi(error);
+    const realKimi = realKimiPath(env);
+    if (realKimi === null) return missingRealKimi(error);
     const missing = await missingLauncherDependencies(deps.loadDependency);
     if (missing.length > 0) {
       error(`open-kimi-web: ${launcherDependencyMessage(missing)}`);

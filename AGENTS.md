@@ -5,7 +5,7 @@
 
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
-为当时的实施、审查和验收基线。当前 `2.1.1` 兼容边界见 `UPSTREAM.md` 和 `upstream.json`。
+为当时的实施、审查和验收基线。当前 `2.3.1` 适配与 `2.3.1-r1` 发布边界见 `UPSTREAM.md`、`upstream.json` 和下方本轮计划。
 
 当前用量统计功能按已确认的
 [`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md)
@@ -50,9 +50,10 @@
 [`docs/plans/one-click-install-v1-plan.md`](docs/plans/one-click-install-v1-plan.md)。
 用户已授权 r10 发布；按[收敛发布计划](docs/plans/one-click-install-r10-release-v1-plan.md) 执行，
 沿用已有验收，不重复本地全套测试、UI 矩阵或跨平台组合；保留实际包检查、隐私检查及 required CI。
-README 顶部按用户要求只留短在线安装命令，固定已发布 r10 SHA，下载成功后直接执行；用量截图两栏缩略展示并链接原图。
+r10 时 README 顶部只留短在线安装命令，固定已发布 r10 SHA；此为历史约定，当前入口来源按下方 2.3.1-r1 计划。
+用量截图继续两栏缩略展示并链接原图，不因版本适配替换既有图片。
 以本地入口和同一不可变提交的完整脚本为交付边界；目标不要求预装 Node／npm／Corepack／pnpm／Git 或官方 Kimi。
-已实现缺官方时 npm 优先准备固定 `@moonshot-ai/kimi-code@2.1.1`，兼容已有 native／npm，不升级或覆盖可用安装。
+r10 历史实现缺官方时 npm 优先准备固定 `@moonshot-ai/kimi-code@2.1.1`；本轮新装 pin 见下方，已有可用安装不升级。
 官方 npm 需要 Node ≥ 22.19.0；专用 `home/official` 与 launcher prefix／runtime／wrapper 分开。
 固定真实 tarball／SHA-512、默认 ignore-scripts，避免官方 postinstall 迁移用户旧 Python 命令；归属不明／partial 不自动续装。
 Windows 完整场景已验证真实官方 2.1.1、实际 r9 cmd wrapper／managed Web、重复复用和 uninstall；接管仍用注册表 seams。
@@ -97,6 +98,61 @@ Auto 合法提交 `defaultEffort: ''`，按全局思考设置／模型默认；�
 父级已看英文错误草稿／缺供应商两图；不把该报告写成全 44 项通过，也不把原 focused 108 当作动态语言证据。
 现有计划增补请求，不声称用户另行确认新计划；本地标准通过不扩大为全英文、全平台或已发布验收。
 
+定时任务与统一导航按用户最新收回决定及
+[`docs/plans/scheduled-tasks-management-v1-plan.md`](docs/plans/scheduled-tasks-management-v1-plan.md) 实施。
+不维护修改版 Kimi 后端、不加引擎，不改任务日志、不向浏览器／局域网开放通用 debug、不让 AI 代执行假管理。
+原版精确 2.1.1／2.2.0 的受控 supervisor→公开 HTTP 链已隔离实测，每版 58 公开请求、27 native 辅助请求通过。
+真实分页 20＋2（含归档）、原 sid 冷读不恢复、显式恢复后增删、关闭再恢复同 task ID 与完整内容通过，模型调用 0。
+两版正常 shutdown、自有进程／端口残留 0；spawn seam 仅换测试端口，未碰生产 58627。
+DST、创建回包一致性、慢正文未鉴权占额、合法路径内部双点／换行标题误拒已修并有回归；证据集中在计划。
+此前阶段标准 lint／typecheck／1891 UT／512 IT＋2 Windows POSIX 跳过／pack 通过，覆盖率阈值未降低。
+UT Lines／Branch 91.38%／82.56%，IT 85.07%／72.06%；当时本地包仍 r10 仅作冒烟，不是本轮 2.3.1-r1 结果。
+2.2.0 使用 2.1.1 静态 UI 验受限协议；整体 UI／迁移／fork、真实 RC relay、实体手机及其它平台未据此宣称兼容。
+按计划新增受控同实例显式 `kimi web --scheduled-tasks` 及受限 HTTP/UI，默认不开启，不改生产；不假定多 CLI。
+该模式禁止直接 RC 入口，外部 target 不开放新增管理接口；冷会话须明确恢复确认，不为列表隐式唤醒任务。
+官方 Remote Control 直接连接 native origin，debug 与 RC 不互斥；外层拦截不能承诺同实例 RC 的调试隔离。
+完整管理仍暂缺，不能伪造原生没有的编辑、暂停和任务模型语义；未验证不挂假管理入口。
+保留手机搜索、双端导航统一与 Hyper-V 修复；此前后端实验验收不能当作原数据管理或当前交付完成。
+双端入口为新建会话、新建工作空间、定时任务、搜索、使用统计；完整 2.1.1 app 交互 53／53 断言通过。
+实图发现窄屏长标题叠字与主题透底，已用禁收缩／两行预览／主题叠加不透明基底修复，选中详情保留全文。
+320／390／1280／1440 与 Original／Nocturne／Aurora 修后图已查看；完整记录与像素 QA 的失败／修正见计划。
+原任务目录按正式 v2 全会话分页和受控 home 的有界只读 main wire 投影；历史只据真实触发／结束事件，缺证据标未知。
+搜索沿用正式官方索引，不另建会话数据库；冷读扫描成本和不完整状态必须明示。
+桌面工作区创建不切换当前会话，导航弹层隔离原生 QuestionCard 全局按键；关闭还原 inert 和焦点。
+不改写用户现有安装或自动重启生产；此前阶段撤掉修改版后端及其专属管理链路，不提交／不发布限制已由下方授权覆盖。
+
+网络访问链接与 TLS SAN 不再按 Hyper-V／vEthernet 名称排除地址；保留回环、internal 和 IPv6 link-local 过滤。
+此改动只涉及软件地址枚举，不能改用户的网卡、桥接、RSC、路由或自动重启生产。
+
+当前用户授权双端工作空间路径修复、官方 2.3.1 适配及 `2.3.1-r1` 发布，按
+[`docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md`](docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md) 执行。
+开始时间 2026-10-24T14:50:33+08:00；本次授权覆盖前述不提交／不发布的阶段边界，不覆盖生产重启或旧资产删除。
+双端统一导航、手机官方索引搜索与 Hyper-V 软件枚举修复纳入本次发布；不改系统网卡、不升级用户实际官方 CLI。
+双端共享直接路径表单；手机 capture 绑定原生第二个 newrow 的身份，保留新会话动作，不移动或克隆 Vue 节点。
+路径 trim 后去一对匹配外引号，只注册运行端已有绝对目录；不 mkdir、不自动 trust、不切路由或清空草稿。
+工作空间定向 71 UT＋lint；选中官方 UI ≥2.3.0 不注入旧 scrollTop guard，旧 2.1.1／2.2.0 保留。
+frontend 传实际 `officialWebVersion`，fallback 2.3.1；此适配定向 89 UT＋5 asset IT＋lint，不是新版完整验收。
+官方 2.3.1 常规图片及 PDF 原生走鉴权 download／Blob，SVG 仍可能 fs:read；32 MiB 仅限制增强 fallback。
+缺官方安装 pin 2.3.1；已知 owned 2.1.1 校验 version／integrity、package 身份及 entry／shim digests 后复用，未知拒绝。
+README 仍只用两段系统在线命令；从新 tag commit API 解析并校验真实 40 位 SHA，下载同 SHA 入口后传同 revision。
+不伪造待建 tag 的 SHA、不复用旧 r10 SHA、不直接执行可变名称入口；固定 launcher `--version 2.3.1-r1`。
+保留官方 trust、会话锁、retry／takeover 与模型确认，不关锁、不自动接管；cron 默认关闭且显式 opt-in，未知版本拒绝。
+精确 2.1.1／2.2.0 保留显式恢复确认后的写能力；本轮精确 2.3.1 适配限定只读任务／历史，不承诺新版完整管理。
+真实双 backend 验证：正式 prompt 遇别进程持锁返回 HTTP 200／code 40931，direct debug cron add／remove／flush 却 code 0。
+debug 先仅存内存，B 正常关闭可在 A 仍持锁时落盘，stale 40932 后 direct debug 也可落盘；不误写为关闭必丢失。
+缺少同时保证 ownership／freshness／durable receipt 的原子入口；已实现 transport／route 双 gate，在 debug mutation 前拒绝写入。
+2.3.1 UI 已有中英只读原因、隐藏 restore／new、禁用 remove；不为只读唤醒冷会话，用户仍可主动打开原会话。
+只读定向 UT／IT／lint 与真实 createLauncher 补验通过：read true／write false，创建／删除 409 read-only-version。
+无 mutation／outcomeUnknown、无冷会话恢复，wire 前后原字节相同；raw # RC GET／POST 返回 404 且不触上游。
+真实双端路径提交、原生 trust 明确确认及重启 workspace ID／信任持久化通过；路由／草稿保留，非法路径拒绝且不 mkdir。
+完整官方 app＋虚构 REST／WS 功能断言通过；手机预览透底、子模型旧文案及路径身份／locale 已最小修复并定向验收。
+预览只补 mobile 容器不透明底，保留 Original／主题 token 与几何；官方信任／retry／takeover／模型确认实图无遮挡。
+手机排序旁观成功同源 POST 单 workspace 回包及共享 locale；不新请求、不存路径、不放宽冲突身份识别。
+标准 lint／typecheck／UT／pack 与独立标准 IT 通过，UT／IT 行及分支 70% 门槛不变；准确数量、覆盖率与日志见本轮计划。
+首次并行 UT／IT／pack 的 4 项 IT 超时保留；未改代码或提高 timeout，定向单 worker 及独立标准 IT 均通过，不臆断原因。
+真实固定 npm 2.3.1 安装、CLI／PTY／鉴权 Web、owned 复用与损坏拒绝通过，未碰用户实际安装。
+交付包、required CI 与正式发布以本轮计划所链接的公开记录为准；本地检查不代替，实体手机／软键盘及全平台未全面验收。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
@@ -106,10 +162,10 @@ Auto 合法提交 `defaultEffort: ''`，按全局思考设置／模型默认；�
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.1.1 与历史 0.43.1 适配事实
+## 官方 2.3.1 与历史版本适配事实
 
-- 当前兼容基线是 Kimi Code `2.1.1`；`UPSTREAM.md` 和 `upstream.json` 区分静态审计与真实运行验收。
-  升级官方版本前，必须重新检查受影响的 API、DOM、交互和失败行为，不能把历史快照当成新版本保证。
+- 当前兼容目标是 Kimi Code `2.3.1`；`UPSTREAM.md`、`upstream.json` 和本轮计划区分静态审计与真实运行验收。
+  下列 `2.1.1`／`0.43.1` 行为保留为历史参考，不是新版保证；升级仍须重新核对受影响的 API、DOM、交互和失败行为。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
   官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、

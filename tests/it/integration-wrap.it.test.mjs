@@ -151,6 +151,7 @@ describe('supervised kimi web', () => {
       await shutdownBackend();
       await expect(supervised).resolves.toBe(0);
       expect(JSON.parse(readFileSync(record, 'utf8')).shutdown).toBe(true);
+      expect(JSON.parse(readFileSync(record, 'utf8')).argv).not.toContain('--debug-endpoints');
       await expect(fetch(`${url.origin}/api/v1/meta`)).rejects.toThrow();
     },
   );
@@ -286,6 +287,29 @@ describe('supervisor startup and Windows process trees', () => {
   );
 });
 
+describe('scheduled-task startup guard', () => {
+  it('runs after instance auth and shuts down its backend without publishing a frontend on failure', async () => {
+    const record = join(root, 'guard-failed.json');
+    let backend;
+    const guard = vi.fn(async ({ target, authorization, fetchImpl }) => {
+      backend = registryInstance();
+      expect((await fetchImpl(`${target}/api/v1/meta`, { headers: { authorization } })).status).toBe(200);
+      throw new Error('fixture guard rejected RC/version/auth');
+    });
+    await expect(superviseWeb({ realKimi: 'fake-kimi', web: { ...WEB_DEFAULTS, scheduledTasks: true },
+      env: env({ FAKE_RECORD: record, NODE_PATH: '', NODE_OPTIONS: '' }),
+      deps: deps({ publicDir: undefined, assertCronBackend: guard }),
+    })).rejects.toThrow(/fixture guard rejected/);
+    expect(guard).toHaveBeenCalledOnce();
+    const seen = JSON.parse(readFileSync(record, 'utf8'));
+    expect(seen.argv.at(-1)).toBe('--debug-endpoints');
+    expect(seen.shutdown).toBe(true);
+    expect(localLink()).toBeUndefined();
+    expect(pidAlive(backend.pid)).toBe(false);
+    await expect(fetch(`http://127.0.0.1:${backend.port}/api/v1/healthz`)).rejects.toThrow();
+  });
+});
+
 describe('supervisor environment options', () => {
   it(
     'serves the environment-selected custom directory and opens its authenticated URL',
@@ -399,6 +423,9 @@ describe('__wrap supervision routing', () => {
     const loadDependency = async () => ({});
     const cases = [
       [['web'], { port: undefined, host: undefined, hostBare: false, noOpen: false }],
+      [['web', '--scheduled-tasks'], {
+        port: undefined, host: undefined, hostBare: false, noOpen: false, scheduledTasks: true,
+      }],
       [['web', '--port', '48627', '--no-open'], {
         port: 48627, host: undefined, hostBare: false, noOpen: true,
       }],
@@ -423,6 +450,18 @@ describe('__wrap supervision routing', () => {
 });
 
 describe('__wrap startup errors', () => {
+  it.each(['--rc', '--remote-control', '--dangerous-bypass-auth', '--unknown', 'rotate-token'])(
+    'rejects scheduled-task conflicts without delegation: %s', async (flag) => {
+      const spawnMirror = vi.fn();
+      const superviseWeb = vi.fn();
+      expect(await wrapMain(['web', '--scheduled-tasks', flag], {
+        env: env(), spawnMirror, superviseWeb, error: (line) => warnings.push(line),
+      })).toBe(1);
+      expect(spawnMirror).not.toHaveBeenCalled();
+      expect(superviseWeb).not.toHaveBeenCalled();
+    },
+  );
+
   it(
     'errors clearly when the wrapper lost track of the real kimi',
     { timeout: 30_000 },
