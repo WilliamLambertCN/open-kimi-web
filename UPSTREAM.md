@@ -120,7 +120,8 @@ PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pi
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
 The historical r10 commands pinned `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and launcher `2.1.1-r10`;
 that old SHA must not supply the new official-version pin.
-The new release's resolved SHA still needs post-publication verification.
+Post-publication checks confirmed tag commit `c9a3e0ce2a71037f510d794303e84ce6bed69209`, matching online entry/helpers,
+source archive and tgz bytes; the real updater recognizes 2.3.1-r1. See [the current plan][current-plan] for public CI and assets.
 
 A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
 Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.
