@@ -48,4 +48,25 @@ describe('routeWrapArgv', () => {
       options: { host: '0.0.0.0', hostBare: false },
     });
   });
+
+  it('accepts only an explicit scheduled-tasks opt-in alongside supported web arguments', () => {
+    expect(routeWrapArgv(['web', '--scheduled-tasks', '--host', '--port', '0', '--no-open'])).toEqual({
+      action: 'supervise',
+      options: { port: 0, host: undefined, hostBare: true, noOpen: true, scheduledTasks: true },
+    });
+    expect(routeWrapArgv(['web']).options.scheduledTasks).toBeUndefined();
+  });
+
+  it.each([
+    ['web', '--rc'], ['web', '--remote-control'], ['web', '--dangerous-bypass-auth'],
+    ['web', '--debug-endpoints'], ['web', 'rotate-token'], ['web', 'rc'], ['remote'],
+    ['web', '--web-dir', 'custom'], ['web', '--allowed-host', 'example.test'],
+    ['web', '--port'], ['web', '--port', '70000'], ['web', '--unknown'],
+  ])('errors instead of delegating an incompatible opt-in: %j', (...args) => {
+    expect(routeWrapArgv([...args, '--scheduled-tasks'])).toMatchObject({ action: 'error' });
+  });
+
+  it('does not delegate a malformed opt-in value', () => {
+    expect(routeWrapArgv(['web', '--scheduled-tasks=false'])).toMatchObject({ action: 'error' });
+  });
 });

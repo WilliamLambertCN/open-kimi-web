@@ -7,16 +7,17 @@ or a vendored transcript implementation.
 ## Current baseline
 
 - Upstream: [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code).
-- Inspected published package version: `2.1.1`.
-- Official release tag commit: `f67e6398fb3210ad8ace970e2dfd5bcc984ed61f`.
+- Inspected published package version: `2.3.1`.
+- Official release tag commit: `684bae9ea6a437f3bae98bba1dcb797a917d500b`.
 - Published package integrity:
-  `sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==`.
-- Server API compatibility target: `2.1.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.1.1-r10`, still based on official `2.1.1`.
-  It includes compatibility-first installers, the primary-picker-style mobile subagent control and English fixes.
-  Streaming gzip from `r9`, earlier presentation features and safe self-update since `r8` are retained.
-  Existing source, complete-app and standard checks are retained. Release status, CI and asset verification follow the actual
-  records on [the Release page][r10-release] and in [the r10 release plan][r10-plan].
+  `sha512-Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==`.
+- Server API compatibility target: `2.3.1`; no complete live protocol recapture was performed.
+- Open Kimi Web version: `2.3.1-r1`. Publication, CI and acceptance follow [the Release page][current-release]
+  and [the current workspace/release plan][current-plan], not inferred results.
+  Both devices use the same existing-directory path form. Official workspace trust and session ownership stay upstream-owned.
+  Official UI versions >=2.3.0 no longer receive the legacy Side Chat scrollTop guard; explicit frontend pins drive this choice.
+  Existing installation, mobile model, locale, streaming gzip, statistics and safe self-update features are retained.
+  Historical 2.1.1 checks below are not substituted for the current release's native, browser or standard checks.
 - Historical `r8` acceptance, not an r9 CI or release result:
   Windows passed lint, typecheck, 65 unit-test files/1007 tests, 11 integration-test files/89 tests and test:pack.
   Windows unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%.
@@ -32,18 +33,94 @@ or a vendored transcript implementation.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
 - Machine-readable upstream version and historical contract records: `upstream.json`.
 
-## Compatibility-first installation (r10)
+## Official 2.3.1 changes and current adaptation
 
-The installers are included in `2.1.1-r10`; official Kimi compatibility remains fixed at `2.1.1`.
-Implementation evidence follows [the one-click installation plan](docs/plans/one-click-install-v1-plan.md).
-Existing source, complete-app and standard checks are retained; publication and asset checks follow
-[the r10 release plan][r10-plan], without repeating installation combinations or UI matrices.
+The exact [official 2.3.1 Release][official-231-release] and tagged source are authoritative for this patch.
+It fixes workspace trust when Git Bash is absent and stale POSIX session ownership after crashes, and improves holder-client
+names and retry/takeover dialogs. This does not remove the Windows shell prerequisite or authorize automatic takeover.
+Official 2.3.0 introduced cloud-config-controlled model-switch confirmation, Remote Control compression/100 MiB handling,
+and archive restoration. These are upstream features, not new launcher features or unconditional confirmation guarantees.
+Keep native trust, ownership locks, retry/takeover and model-confirmation flows; do not disable locks or auto-trust workspaces.
+The selected `officialWebVersion`, including explicit frontend pins, controls Side Chat compatibility, not the backend version.
+Metadata failure falls back to official UI `2.3.1`; old 2.1.1/2.2.0 UI keeps its scroll guard.
+
+Official 2.3.1 previews PNG/JPG/GIF/WEBP/BMP/ICO/AVIF and PDF using authenticated download/Blob paths.
+SVG and older UIs can still use `fs:read`, so `imagePreviewGuard.js` remains. Its 32 MiB limit applies only to the enhanced
+truncated-base64 fallback, not all native 2.3.1 previews. Partial reads and unrelated requests retain official behavior.
+Current source and runtime checks passed real dual-device workspace submission, native trust confirmation and restart persistence,
+plus exact-2.3.1 cron read-only enforcement and isolated official npm installation/CLI/PTY/authenticated Web checks.
+The complete official app passed functional assertions with fictional REST/WS; this is not all-visual acceptance.
+Mobile preview opacity, subagent wording and mobile workspace identity/locale fixes passed focused browser/visual checks.
+Original and affected atmosphere themes retain native preview geometry; trust/retry/takeover/model dialogs remain reachable.
+Standard lint/typecheck/UT/pack and a standalone standard IT run passed with unchanged 70% line/branch gates.
+The initial concurrent UT/IT/pack run had four IT timeouts; targeted single-worker and independent standard IT passed unchanged.
+Counts, coverage, retained first-failure logs and physical-device/platform limits are in [the current plan][current-plan].
+Required CI and publication must be established by their public records, not inferred from local checks.
+
+## Unified navigation and search
+
+The formerly unpublished navigation, mobile official-index search and Hyper-V fixes are now in [the current scope][current-plan].
+Earlier implementation evidence remains in [the scheduled-task/navigation plan](docs/plans/scheduled-tasks-management-v1-plan.md).
+Desktop and mobile use the same upper-left action order: new session, new workspace, scheduled tasks, search and usage.
+Both search controls call the official paginated `/api/v1/search` index.
+Results open the owning session, not a claimed turn anchor.
+Both workspace controls use the same existing-directory form and official API without leaving the current session or draft.
+Input is trimmed and one matching pair of outer quotes is removed. Paths name existing absolute directories on the Kimi host,
+not browser-local folders; the launcher neither creates directories nor grants trust.
+
+The version-limited task panel lists original sessions, saved tasks and recorded trigger history. Exact 2.1.1/2.2.0 retains
+native create/remove after explicit restoration and confirmation. It keeps the original home and backend without another engine,
+live-log edits or an AI CRUD proxy. The modified-backend experiment and its dedicated-data chain remain withdrawn.
+Managed `kimi web --scheduled-tasks` explicitly opts in; ordinary startup remains disabled. External `serve --target`
+does not expose this capability. The exact 2.3.1 adaptation is limited to read-only tasks/history; unknown versions reject.
+Real dual-backend QA found that a formal prompt returns HTTP 200/code 40931 while another process holds the session lock.
+Direct debug cron add/remove/flush instead returns code 0 with initially memory-only changes. Normal close of backend B can
+persist those pending changes while A still holds the lock; direct debug can also persist after the stale gate returns 40932.
+No atomic management entry guarantees ownership, freshness and a durable receipt together; code 0 is not such a guarantee.
+The implemented transport and route gates reject 2.3.1 create/remove before debug mutation. The UI shows English/Chinese
+read-only reasons, hides restore/new and disables remove; read-only browsing never wakes a cold session.
+Targeted tests and real createLauncher QA passed: read=true/write=false, create/remove 409 read-only-version with no mutation
+or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404 without upstream calls.
+Users may still explicitly open the original session.
+Focused UI evidence, CI and publication are tracked in [the current plan][current-plan].
+Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
+Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
+protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
+
+Inventory pages use the formal v2 index plus bounded read-only main wire projection; history uses real origin/turn events
+and separately identified server submissions. Cold browsing does not restore sessions. Missing, damaged, changed or limited
+records remain explicitly incomplete; recent history is limited to 100 entries and has no pagination. Initial cold reads
+still scan journal bytes; there is no task index or durable cache. Models show live/saved session aliases and exact historical
+request models where available, not an independent per-task setting. Native completed turns do not prove business success.
+Native edit, pause/resume and task-specific model semantics are not implemented or simulated through delete/recreate.
+
+Final public-protocol QA used actual superviseWeb/registry/token/guard/frontend with isolated homes for both versions:
+20+2 real paginated sessions including archived entries, cold reads, explicit restore, CRUD and same task ID after close/restore.
+Both shut down normally with zero model calls and no process/listener leaks. Only the spawn port was substituted to avoid
+production. The 2.2.0 backend used the 2.1.1 static UI; complete 2.2.0 UI, migration/fork, physical devices and other platforms
+are not covered. Runtime RC failure uses targeted UT/TCP IT, not a real RC enablement test. Those historical UI and standard
+results remain in the earlier plan. The current release authorization supersedes that stage's no-publication restriction,
+not its version limits. Production restart, old release/tag/asset deletion and upgrades of users' actual Kimi remain out of scope.
+
+Address advertising and certificate SAN enumeration now retain Hyper-V/vEthernet adapters while keeping existing
+internal, loopback, IPv6 link-local and other virtual-adapter filters. This does not change operating-system networking.
+
+## Compatibility-first installation
+
+The `2.3.1-r1` installer pins official Kimi `2.3.1` only when no usable installation exists; it does not upgrade existing Kimi.
+Historical implementation evidence follows [the one-click installation plan](docs/plans/one-click-install-v1-plan.md).
+The r10 scope and [release record][r10-plan] remain historical;
+current installation, CI and assets follow [this plan][current-plan].
 
 The README starts with short online commands for Windows PowerShell >=5.1 and macOS/Linux sh.
-They pin the published r10 commit `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and execute the HTTPS response only after a
-successful download, passing the same `--revision` with `--version 2.1.1-r10`. Users do not manually download a script.
-PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe, mutable main entry or version fallback.
+They resolve `v2.3.1-r1` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.3.1-r1`.
+Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
+PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
+The historical r10 commands pinned `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and launcher `2.1.1-r10`;
+that old SHA must not supply the new official-version pin.
+The new release's resolved SHA still needs post-publication verification.
 
 A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
 Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.
@@ -54,7 +131,9 @@ Prefer Node >=22.19.0 with adjacent npm; otherwise SHA-256 check fixed official 
 `runtime/node-v22.23.3-<platform>`. The executable is `node.exe` on Windows and `bin/node` on POSIX.
 Custom OPEN_KIMI_WEB_HOME must be absolute and unlinked. Its `official` prefix is separate from launcher `npm`, runtime and bin.
 Working native or standard npm Kimi installations are reused in actual PATH order without upgrade or overwrite.
-When absent, fixed `@moonshot-ai/kimi-code@2.1.1` uses the verified official tarball and fixed SHA-512 integrity.
+When absent, fixed `@moonshot-ai/kimi-code@2.3.1` uses the verified official tarball and fixed SHA-512 integrity.
+Previously owned 2.1.1 installs remain reusable only with their known version/integrity pair and unchanged ownership digests;
+they are not automatically upgraded. Unknown versions, altered records and partial installs still fail closed.
 Default ignore-scripts avoids official postinstall migration of old Python commands. Unknown overrides, broken installs and
 unowned/partial dedicated prefixes reject without automatic resume. Owned entry/shim digests and exact versions are checked.
 Windows canonical npm shims validate JS targets for selected-Node checks and retain the cmd-aware runtime/takeover path;
@@ -80,7 +159,7 @@ Linux uses forkpty; spawn-helper is a macOS build target, not an independent Lin
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r1 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -120,7 +199,7 @@ The audited targeted rebuild now passes actual PTY with existing standard tools,
 Read `.cache/one-click-official-qa/pty-rebuild-real-report.json`: Node 22.23.3, real preparation/rebuild, PTY, Web, record, owned
 reuse and cleanup all passed in existing Docker golang 1.26 bookworm tools. This helper QA is not a complete r9 coordinator rerun.
 Windows actual PTY and repeated ownership-loss rejection IT passed.
-The latest `.cache/one-click-official-qa/final-scenario-report.json` separately records full actual entry scenarios:
+The historical `.cache/one-click-official-qa/final-scenario-report.json` separately records full actual entry scenarios:
 Windows x64 installed verified official 2.1.1 and online r9, exercised actual cmd wrappers/managed Web, reuse and uninstall.
 User/Machine raw PATH byte-value equality passed; integration still uses registry seams, not persistent real-registry takeover.
 Linux x64 in existing golang 1.26 bookworm tools passed full paired sh/r9, audited rebuild, real PTY, new login bash,
@@ -287,8 +366,9 @@ There is no public outer-layer hook to split upstream synchronous rendering, so 
 For the historical r6 release, lint, typecheck, 644 unit tests, 61 integration tests, test:pack and actual
 package installation/startup passed; PR #22 CI was green. Physical devices and users' actual data were not tested.
 
-The commit resolves from the official `@moonshot-ai/kimi-code@2.1.1` Git tag;
-the integrity comes from npm package metadata. Static inspection of the
+The historical `@moonshot-ai/kimi-code@2.1.1` tag resolved to
+[`f67e6398`](https://github.com/MoonshotAI/kimi-code/commit/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f);
+its integrity came from npm package metadata. Static inspection of the
 published `dist-web` confirmed the title composer, archive selectors,
 provider model rows (`.pmt-grid`), `prompts:steer`, and the empty-state logo.
 The old `.empty-doodle` and `.empty-hint-text` elements are absent, so their
@@ -336,7 +416,7 @@ body. Scrolling back to the bottom resumes following. Other scroll containers
 and user-provided `--web-dir` builds are untouched.
 
 By default the launcher resolves the web bundle version from the target
-server, with its configured fallback when metadata is unavailable.
+server, falling back to `2.3.1` when metadata is unavailable. The selected frontend version drives compatibility injection.
 `--web-version` / `OPEN_KIMI_WEB_VERSION` pins the official frontend version;
 it does not pin or upgrade the backend. `--web-dir` / `OPEN_KIMI_WEB_DIR`
 serves a prepared build without injecting the presentation layer or theme picker.
@@ -396,8 +476,11 @@ origin and original checksums. They remain historical reference material;
 the retired standalone-client contract tests and capture workflow no longer
 run. The `0.43.1` archive, deletion, and steer behavior was checked separately,
 but the full artifacts were not recaptured, so these snapshots do not claim
-`0.43.1`, `2.0.2`, or `2.1.1` coverage.
+`0.43.1`, `2.0.2`, `2.1.1` or `2.3.1` coverage.
 
 [lan-plan]: docs/plans/large-session-lan-performance-v1-plan.md
 [r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
+[current-plan]: docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
+[official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

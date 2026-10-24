@@ -239,13 +239,20 @@ describe('mobile subagent keyboard and input composition', () => {
 });
 
 describe('mobile subagent inheritance and automatic effort', () => {
-  it('surfaces unsupported clearing instead of sending an invalid merge', async () => {
-    const ui = await install({ section: { defaultModel: 'fixture/fast', defaultEffort: 'medium' } });
+  it.each([
+    ['en', 'The official config API cannot clear a configured subagent model; restore inheritance via CLI config.'],
+    ['zh', '官方配置接口无法清除已配置的子智能体模型；请通过官方 CLI 配置恢复跟随主模型。'],
+  ])('explains unsupported clearing in %s without an obsolete version or an invalid merge', async (locale, message) => {
+    const ui = await install({ locale, section: { defaultModel: 'fixture/fast', defaultEffort: 'medium' } });
     await open(ui);
     ui.select('');
-    expect(ui.query('status').textContent).toContain('cannot clear a configured subagent model');
+    expect(ui.query('status').textContent).toBe(message);
+    expect(ui.query('overlay').textContent).not.toContain('2.1.1');
     expect(ui.query('save').disabled).toBe(true);
+    ui.query('save').click();
+    await ui.settled();
     expect(ui.posts).toEqual([]);
+    expect(ui.getConfig().secondary_model.defaultModel).toBe('fixture/fast');
   });
   it('restores Auto with an empty effort and reloads it from backend', async () => {
     const ui = await install({ section: { defaultModel: 'fixture/fast', defaultEffort: 'medium' } });

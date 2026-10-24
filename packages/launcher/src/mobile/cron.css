@@ -1,0 +1,104 @@
+.okw-cron-open { overflow: hidden; }
+.okw-cron-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--color-scrim, rgb(0 0 0 / 60%));
+}
+.okw-cron-backdrop[hidden],
+.okw-cron-panel [hidden] { display: none; }
+.okw-cron-panel {
+  box-sizing: border-box;
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg, 14px);
+  background: linear-gradient(var(--color-surface-raised, Canvas), var(--color-surface-raised, Canvas)),
+    linear-gradient(var(--color-bg, Canvas), var(--color-bg, Canvas)), Canvas;
+  color: var(--color-text, CanvasText);
+  font: inherit;
+}
+.okw-cron-panel * { box-sizing: border-box; }
+.okw-cron-panel > header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.okw-cron-panel h2 { flex: 1; margin: 0; font-size: 20px; }
+.okw-cron-panel h3 { margin: 12px 0; font-size: 16px; }
+.okw-cron-panel h4 { margin: 0; font-size: 15px; }
+.okw-cron-panel button,
+.okw-cron-panel input,
+.okw-cron-panel textarea {
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface, Canvas);
+  color: inherit;
+  font: inherit;
+}
+.okw-cron-panel button { cursor: pointer; }
+.okw-cron-panel button:hover { background: var(--color-hover); }
+.okw-cron-panel button:disabled { opacity: .55; cursor: default; }
+.okw-cron-panel :is(button, input, textarea, a):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.okw-cron-panel a { color: var(--color-accent); }
+.okw-cron-columns { display: grid; grid-template-columns: minmax(180px, 28%) minmax(0, 1fr); gap: 20px; }
+.okw-cron-inventory { min-width: 0; padding-right: 16px; border-right: 1px solid var(--color-line); }
+.okw-cron-main, .okw-cron-details, .okw-cron-tasks { min-width: 0; }
+.okw-cron-task-columns { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 16px; }
+.okw-cron-sessions, .okw-cron-tasks { display: flex; flex-direction: column; gap: 4px; }
+.okw-cron-tasks { margin: 12px 0; }
+.okw-cron-panel :is(.okw-cron-session, .okw-cron-task) {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-color: transparent;
+  border-radius: var(--radius-sm, 6px);
+  text-align: left;
+  background: transparent;
+}
+.okw-cron-panel [aria-pressed='true'] { border-color: var(--color-line); background: var(--color-hover); }
+.okw-cron-panel :is(p, h3, strong, span, small, code, dd, li, a) { overflow-wrap: anywhere; word-break: normal; }
+.okw-cron-panel :is(.okw-cron-session small, .okw-cron-task small, .okw-cron-task span) { color: var(--color-text-muted); }
+.okw-cron-session strong, .okw-cron-task strong, .okw-cron-task span {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.okw-cron-status, .okw-cron-hint, .okw-cron-quality {
+  color: var(--color-text-muted); font-size: 13px; line-height: 1.5;
+}
+.okw-cron-status[data-error='true'] { color: var(--color-danger, #c43f40); }
+.okw-cron-id { margin: 6px 0; white-space: pre-wrap; font-family: inherit; font-size: 12px; }
+.okw-cron-fields { display: grid; grid-template-columns: minmax(100px, 26%) minmax(0, 1fr); gap: 10px; font-size: 13px; }
+.okw-cron-fields dt { color: var(--color-text-muted); }
+.okw-cron-fields dd { margin: 0; white-space: pre-wrap; }
+.okw-cron-form { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.okw-cron-form label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 13px; }
+.okw-cron-form :is(input:not([type='checkbox']), textarea) { width: 100%; }
+.okw-cron-form textarea { resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
+.okw-cron-form .okw-cron-checkbox { flex-direction: row; align-items: center; }
+.okw-cron-checkbox input { min-height: 0; }
+.okw-cron-confirmation { margin-top: 14px; padding: 12px 0; border-block: 1px solid var(--color-line); }
+.okw-cron-confirmation code { display: block; }
+.okw-cron-confirmation button { margin: 8px 8px 0 0; }
+.okw-cron-history { padding-left: 20px; font-size: 13px; }
+.okw-cron-history li { margin: 8px 0; }
+.okw-cron-history small { display: block; }
+@media (max-width: 640px) {
+  .okw-cron-backdrop { padding: 8px; }
+  .okw-cron-panel { max-height: calc(100dvh - 16px); padding: 16px; }
+  .okw-cron-columns, .okw-cron-task-columns { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .okw-cron-inventory { padding: 0 0 12px; border-right: 0; border-bottom: 1px solid var(--color-line); }
+  .okw-cron-sessions { max-height: 180px; overflow: auto; }
+  .okw-cron-fields { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .okw-cron-fields dd { margin-bottom: 8px; }
+  .okw-cron-panel :is(input, textarea) { font-size: 16px; }
+}
