@@ -53,7 +53,7 @@ async function resolveOfficialPublicDir(opts, token) {
       warn,
     });
     log(`web UI: official ${version} (${cached ? 'cached' : 'downloaded'})`);
-    return dir;
+    return { publicDir: dir, officialWebVersion: version };
   } catch (err) {
     throw new Error(
       `official web UI ${version} is unavailable: ${err.message}\n` +
@@ -67,11 +67,11 @@ async function resolvePublicDir(opts, token) {
   const log = opts.log ?? console.log;
   if (opts.publicDir) {
     log('web UI: custom directory');
-    return opts.publicDir;
+    return { publicDir: opts.publicDir };
   }
   if (opts.webDir) {
     log('web UI: custom directory');
-    return opts.webDir;
+    return { publicDir: opts.webDir };
   }
   return resolveOfficialPublicDir(opts, token);
 }
@@ -165,23 +165,35 @@ export async function createLauncherWithRetry(
   return createOnEphemeralPort(opts, create, lastError);
 }
 
+function officialPresentation(opts) {
+  return !opts.publicDir && !opts.webDir;
+}
+
+function assertScheduledPresentation(enabled, opts) {
+  if (enabled && !officialPresentation(opts)) throw new Error('--scheduled-tasks requires the enhanced official web UI');
+}
+
 /**
  * Start the OpenWeb listener and print its access links.
  * opts mirrors the serve CLI options; log/warn are injectable for tests.
  * Returns { launcher, tls, tokenResult, publicDir }.
  */
-export async function startFrontend(opts) {
+export async function startFrontend({ scheduledTasks = false, ...opts }) {
+  assertScheduledPresentation(scheduledTasks, opts);
   await assertTargetReachable(opts.target, opts.targetFetch);
   const interfaces = opts.interfaces ?? networkInterfaces();
   const [tls, tokenResult] = await Promise.all([
     resolveTls(opts, interfaces),
     resolveLaunchToken(opts),
   ]);
-  const publicDir = await resolvePublicDir(opts, tokenResult.token);
+  const { publicDir, officialWebVersion } = await resolvePublicDir(opts, tokenResult.token);
   const launcher = await createLauncherWithRetry({
     target: opts.target,
     publicDir,
-    officialPresentation: !opts.publicDir && !opts.webDir,
+    officialWebVersion,
+    officialPresentation: officialPresentation(opts),
+    scheduledTasks,
+    onUnsafeBackend: scheduledTasks ? opts.onUnsafeBackend : undefined,
     ...usageOptions(opts),
     host: opts.host,
     port: opts.port,

@@ -38,6 +38,17 @@ describe('createAccessUrls', () => {
     ]);
   });
 
+  it('advertises Hyper-V bridge addresses for wildcard listeners', () => {
+    expect(createAccessUrls('0.0.0.0', 4173, {
+      'vEthernet (External Switch)': [{ address: '192.0.2.40', family: 'IPv4', internal: false }],
+      'Hyper-V Virtual Ethernet Adapter': [{ address: '2001:db8::40', family: 'IPv6', internal: false }],
+    }, 'https')).toEqual([
+      { type: 'local', url: 'https://127.0.0.1:4173' },
+      { type: 'network', url: 'https://192.0.2.40:4173' },
+      { type: 'network', url: 'https://[2001:db8::40]:4173' },
+    ]);
+  });
+
   it('uses IPv6 loopback for the IPv6 wildcard', () => {
     expect(createAccessUrls('::', 4173, interfaces)[0]).toEqual({
       type: 'local',

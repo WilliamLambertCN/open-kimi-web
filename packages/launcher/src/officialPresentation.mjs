@@ -1,12 +1,18 @@
 import { readFile } from 'node:fs/promises';
+import { isBundleVersion } from './officialBundle.mjs';
 import { sendResponse } from './responseCompression.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
 const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
 const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
+const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
+  'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
 const FILES = new Map([
   ...LOCALE_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ...SUBAGENT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ...NAVIGATION_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['navigation.css', 'text/css; charset=utf-8'],
+  ['cron.css', 'text/css; charset=utf-8'],
   ['mobileSubagentModel.css', 'text/css; charset=utf-8'],
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
@@ -54,6 +60,7 @@ const USAGE_SCRIPTS = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageCon
 const SCRIPTS = [
   ...LOCALE_SCRIPTS,
   ...SUBAGENT_SCRIPTS,
+  ...NAVIGATION_SCRIPTS,
   'foldingDefaults.js',
   'workspaceSortDefault.js',
   'mobileWorkspaceSort.js',
@@ -77,6 +84,8 @@ const SCRIPTS = [
 const STYLES = [
   'presentation.css',
   'themes.css',
+  'navigation.css',
+  'cron.css',
   'mobileWorkspaceSort.css',
   'mobileSubagentModel.css',
   'workspacePins.css',
@@ -115,8 +124,20 @@ export async function servePresentationAsset(req, res) {
   return true;
 }
 
-export function addMobilePresentation(html) {
-  const scripts = SCRIPTS.map((name) => `<script src="${PREFIX}${name}"></script>`).join('\n') + '\n';
+function hasNativeSideChatScroll(version) {
+  if (!isBundleVersion(version)) return false;
+  const [release, prerelease] = version.split('+')[0].split('-');
+  const [major, minor, patch] = release.split('.').map(Number);
+  if (major !== 2) return major > 2;
+  if (minor !== 3) return minor > 3;
+  return patch > 0 || prerelease === undefined;
+}
+
+export function addMobilePresentation(html, { officialWebVersion } = {}) {
+  const scriptNames = hasNativeSideChatScroll(officialWebVersion)
+    ? SCRIPTS.filter((name) => name !== 'sideChatScroll.js')
+    : SCRIPTS;
+  const scripts = scriptNames.map((name) => `<script src="${PREFIX}${name}"></script>`).join('\n') + '\n';
   const moduleTag = /<script\b[^>]*\btype\s*=\s*["']module["'][^>]*>/i;
   const withScript = moduleTag.test(html)
     ? html.replace(moduleTag, (tag) => `${scripts}${tag}`)

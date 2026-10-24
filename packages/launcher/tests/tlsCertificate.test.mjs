@@ -42,6 +42,18 @@ describe('requiredSanNames', () => {
 });
 
 describe('generated certificate', () => {
+  it('includes Hyper-V bridge addresses in the actual certificate', async () => {
+    const names = requiredSanNames({ hostname: 'fixture', interfaces: {
+      'vEthernet (External Switch)': [{ address: '192.0.2.40', family: 'IPv4', internal: false }],
+      'Hyper-V Virtual Ethernet Adapter': [{ address: '2001:db8::40', family: 'IPv6', internal: false }],
+    } });
+    const pair = await generateSelfSignedCertificate(names);
+    const cert = new X509Certificate(pair.cert);
+    expect(cert.checkIP('192.0.2.40')).toBe('192.0.2.40');
+    expect(cert.checkIP('2001:db8::40')).toBe('2001:db8::40');
+    expect(validateManagedCertificate(pair, names).valid).toBe(true);
+  });
+
   it('is an RSA-2048 SHA-256 leaf for server auth with every required SAN', async () => {
     const names = requiredSanNames({ interfaces, hostname: 'devbox' });
     const pair = await generateSelfSignedCertificate(names, {

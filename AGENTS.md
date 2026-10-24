@@ -21,6 +21,8 @@
 - [一键安装](docs/plans/one-click-install-v1-plan.md)
 - [一键安装发布](docs/plans/one-click-install-r10-release-v1-plan.md)
 - [手机子模型](docs/plans/mobile-subagent-model-v1-plan.md)
+- [任务与统一导航](docs/plans/scheduled-tasks-management-v1-plan.md)
+- [工作区与 2.3.1 适配](docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md)
 
 ## 项目边界
 
@@ -31,10 +33,10 @@
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.1.1 与历史 0.43.1 适配事实
+## 官方 2.3.1 与历史版本适配事实
 
-- 当前兼容基线是 Kimi Code `2.1.1`；`UPSTREAM.md` 和 `upstream.json` 区分静态审计与真实运行验收。
-  升级官方版本前，必须重新检查受影响的 API、DOM、交互和失败行为，不能把历史快照当成新版本保证。
+- 当前兼容目标是 Kimi Code `2.3.1`；`UPSTREAM.md`、`upstream.json` 和本轮计划区分静态审计与真实运行验收。
+  下列 `2.1.1`／`0.43.1` 行为保留为历史参考，不是新版保证；升级仍须重新核对受影响的 API、DOM、交互和失败行为。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
   官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、

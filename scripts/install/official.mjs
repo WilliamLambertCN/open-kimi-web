@@ -8,9 +8,14 @@ import { installerCommand, shQuote } from './wrappers.mjs';
 import { nodePathEnv, pathValue } from './environment.mjs';
 import { preparePty, verifyOwnedPty } from './pty.mjs';
 
-export const OFFICIAL_VERSION = '2.1.1';
-export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.1.1.tgz';
-export const OFFICIAL_INTEGRITY = 'xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==';
+export const OFFICIAL_VERSION = '2.3.1';
+export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.3.1.tgz';
+export const OFFICIAL_INTEGRITY = 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==';
+
+const OWNED_RELEASES = new Map([
+  [OFFICIAL_VERSION, OFFICIAL_INTEGRITY],
+  ['2.1.1', 'xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw=='],
+]);
 
 function equal(a, b, platform) {
   return platform === 'win32' ? resolve(a).toLowerCase() === resolve(b).toLowerCase() : resolve(a) === resolve(b);
@@ -104,9 +109,9 @@ export async function verifyOfficial(ctx, candidate) {
 }
 
 function assertRecord(record, paths) {
-  const fields = { schema: 1, version: OFFICIAL_VERSION, integrity: OFFICIAL_INTEGRITY,
-    prefix: paths.prefix, entry: paths.entry, kimi: paths.kimi };
-  if (!record || Object.entries(fields).some(([key, value]) => record[key] !== value)) {
+  const integrity = OWNED_RELEASES.get(record?.version);
+  const fields = { schema: 1, integrity, prefix: paths.prefix, entry: paths.entry, kimi: paths.kimi };
+  if (!integrity || Object.entries(fields).some(([key, value]) => record[key] !== value)) {
     throw new Error('official dedicated prefix is unknown or partial; no automatic resume. ' +
       'Inspect the dedicated official prefix and bootstrap-official.json; restore a verified installation or ' +
       'move the partial prefix aside manually before retrying. Do not delete unrelated data');
@@ -120,7 +125,7 @@ async function ownedOfficial(ctx) {
   const contents = await pathStat(paths.prefix) ? await readdir(paths.prefix) : [];
   if (!contents.length && !record) return null;
   assertRecord(record, paths);
-  if (await verifyNpmEntry(paths.entry) !== OFFICIAL_VERSION || await fileDigest(paths.entry) !== record.entryDigest) {
+  if (await verifyNpmEntry(paths.entry) !== record.version || await fileDigest(paths.entry) !== record.entryDigest) {
     throw new Error('official dedicated package ownership or version changed');
   }
   if (!await pathStat(paths.kimi)) throw new Error('official dedicated npm shim missing');
@@ -190,6 +195,7 @@ export async function prepareOfficial(ctx, discovery, stage, progress) {
   await ctx.run(ctx.node, installNpmArgs({ ...ctx, prefix: paths.prefix }, archive), {
     env: isolatedNpmEnv(ctx.env, stage, ctx.node, ctx.platform), cwd: stage, timeoutMs: 300000 });
   progress.label = 'official Kimi runtime verification';
+  if (await verifyNpmEntry(paths.entry) !== OFFICIAL_VERSION) throw new Error('official installed package version is not pinned');
   await verifyOfficial(ctx, paths.kimi);
   await preparePty(ctx, paths, stage, progress);
   await recordOfficial(paths, stage);
