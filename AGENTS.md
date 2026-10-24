@@ -151,7 +151,9 @@ debug 先仅存内存，B 正常关闭可在 A 仍持锁时落盘，stale 40932 
 标准 lint／typecheck／UT／pack 与独立标准 IT 通过，UT／IT 行及分支 70% 门槛不变；准确数量、覆盖率与日志见本轮计划。
 首次并行 UT／IT／pack 的 4 项 IT 超时保留；未改代码或提高 timeout，定向单 worker 及独立标准 IT 均通过，不臆断原因。
 真实固定 npm 2.3.1 安装、CLI／PTY／鉴权 Web、owned 复用与损坏拒绝通过，未碰用户实际安装。
-交付包、required CI 与正式发布以本轮计划所链接的公开记录为准；本地检查不代替，实体手机／软键盘及全平台未全面验收。
+PR #29 与 main required CI 已通过，正式 v2.3.1-r1 tag 指向 c9a3e0ce；发布包 130 文件／8,413,567 bytes。
+线上 tgz 与本地正式资产原字节相同，同 SHA 在线入口及 latestRelease 已核验；准确公开链接／digest 见本轮计划。
+发布后证据另作 docs 更新，不移动 tag 或替换资产；实体手机／软键盘及全平台未全面验收。
 
 ## 项目边界
 

@@ -123,8 +123,26 @@
   31 个 QA run 有报告且收尾无失败，122 个自有端口零监听；未触生产，未发付费模型调用，不公开这些 QA 资源。
   虚构 40931 取消流程出现旧“任务完成”通知但未遮挡原生安全弹窗；真实后端未复现，未据此宣称新版回归或已修。
   实体手机／软键盘、真实云规则／cron 执行、其它平台及所有安装组合未全面验证；虚构协议 UI 不代替真实机制验收。
-- 交付包、required CI 与正式发布仍在进行，完成后以公开 PR／CI／Release 及线上资产记录为准。
-  历史 2.1.1／2.2.0 证据不代替新版；生产不重启、不升级实际官方 CLI、不删除旧资产。
+- [PR #29](https://github.com/WilliamLambertCN/open-kimi-web/pull/29) 的 required gate 通过后正常 squash 合入 main，
+  发布提交为 `c9a3e0ce2a71037f510d794303e84ce6bed69209`，未绕过保护、强推或重写历史。
+  [PR CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40077694762) 与
+  [main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40077853592) 均通过全部标准命令。
+  main Ubuntu UT 94 文件／2010 通过＋25 平台跳过，Lines 91.97%／Branches 83.53%；
+  IT 22 文件通过／1 跳过，532 项通过＋22 平台跳过，Lines 85.57%／Branches 72.97%，门槛未变。
+- 从该准确 main 提交只打包一次正式 tgz：130 文件、8,413,567 bytes，源码／文档与 checkout 原字节一致；
+  唯一 manifest 变换是 pnpm 移除 prepack／postpack，已按实际 pack 行为核对，其它字段完全一致。
+  未发现凭据、个人路径、配置、日志、QA 截图、测试或 sourcemap；五背景 PNG 为既有公开原字节。
+  正式检查：`.cache/compat-231/release/package-audit.json`；pack 流程法律文件副本已自动清理。
+- [v2.3.1-r1 Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1)
+  于 2026-10-24T16:26:52+08:00 正式发布，非 draft／prerelease，设为 latest；不改任何旧 Release／tag／资产。
+  [正式 tgz](https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.3.1-r1/open-kimi-web-2.3.1-r1.tgz)
+  已真实重新下载，与本地正式资产原字节相同，GitHub size／digest 一致。
+  SHA-256：`219349fa92b0f3bb3b59d6283d32dfc76a9e30e419921700a665e75c5e8ec7a8`。
+- 线上 tag commit API 确认上述 main SHA；五个在线入口／coordinator／官方 pin helpers 与同 SHA 本地内容一致，
+  同 SHA 完整源码归档可下载，产品真实 latestRelease() 已识别 `2.3.1-r1` 及准确 tgz URL。
+  证据：`.cache/compat-231/release/online-verification.json`，此为来源／字节验证，不冒充完整线上安装或实体手机测试。
+  发布后证据为单独文档更新，不移动 tag、不重打或替换已发布 tgz；main 正常同步回 develop。
+  历史 2.1.1／2.2.0 证据不代替新版；生产未重启，用户实际官方 CLI 未升级，旧资产未删除。
 
 ## 完成标准
 
