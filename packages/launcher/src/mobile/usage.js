@@ -490,11 +490,11 @@ if (!window.__okwUsageInstalled) {
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   }, true);
-  window.__okwUsageObserveEntries(mountEntries);
+  if (window.__okwNavigation) window.__okwNavigation.register('usage', open);
+  else { window.__okwUsageObserveEntries(mountEntries); mountEntries(); }
   window.__okwUsageObserveCopy?.(() => {
     if (!panel) return;
     if (result) { modelPager.render(); showQuality(result.quality); renderTrend(result.buckets ?? [], result.range?.bucket); }
     suggestions.render(); showCatalogRateHint();
   });
-  mountEntries();
 }

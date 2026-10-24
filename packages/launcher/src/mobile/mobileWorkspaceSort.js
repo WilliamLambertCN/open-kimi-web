@@ -24,6 +24,8 @@
     } catch { return []; }
   };
   const currentLocale = () => {
+    const shared = window.__okwLocale?.current();
+    if (shared === 'zh' || shared === 'en') return shared;
     const persisted = readStorage(OFFICIAL_LOCALE_KEY);
     if (persisted === 'zh' || persisted === 'en') return persisted;
     const language = document.documentElement.lang || navigator.language || '';
@@ -217,9 +219,15 @@
     const root = item?.[rootKey];
     return isId(id) && typeof root === 'string' && root ? [{ id, root }] : [];
   });
+  const rememberWorkspace = (data) => {
+    project([data], 'root').forEach((item) => {
+      if (!workspaces.some(({ id, root }) => id === item.id && root === item.root)) workspaces.push(item);
+    });
+  };
   const projections = {
-    '/api/v1/workspaces': (data) => {
-      if (Array.isArray(data.items)) workspaces = project(data.items, 'root');
+    '/api/v1/workspaces': (data, method) => {
+      if (method === 'POST') rememberWorkspace(data);
+      else if (Array.isArray(data.items)) workspaces = project(data.items, 'root');
     },
     '/api/v1/fs:home': (data) => {
       if (typeof data.home === 'string') home = data.home;
@@ -228,18 +236,19 @@
       if (Array.isArray(data.groups)) groupedWorkspaces = project(data.groups.map((group) => group?.workspace), 'cwd');
     },
   };
-  const remember = (url, body) => {
+  const remember = (url, body, method) => {
     if (!body || (body.code !== undefined && body.code !== 0)) return;
     const data = body.data ?? body;
     if (!data || typeof data !== 'object') return;
-    projections[url.pathname](data);
+    projections[url.pathname](data, method);
     refresh();
   };
   const isRequest = (input) => typeof Request !== 'undefined' && input instanceof Request;
   const requestMethod = (input, init) => (init?.method ?? (isRequest(input) ? input.method : 'GET')).toUpperCase();
   const observedUrl = (input, init) => {
-    if (requestMethod(input, init) !== 'GET') return null;
+    const method = requestMethod(input, init);
     const url = new URL(isRequest(input) ? input.url : String(input), location.href);
+    if (method !== 'GET' && (method !== 'POST' || url.pathname !== '/api/v1/workspaces')) return null;
     if (url.origin !== location.origin || !projections[url.pathname]) return null;
     if (url.pathname === '/api/v2/sessions' && url.searchParams.get('view') !== 'by_workspace') return null;
     return url;
@@ -253,7 +262,7 @@
       try {
         const url = observedUrl(input, init);
         if (url && response.ok && sameOriginResponse(response)) {
-          void response.clone().json().then((body) => remember(url, body)).catch(() => {});
+          void response.clone().json().then((body) => remember(url, body, requestMethod(input, init))).catch(() => {});
         }
       } catch { /* Official requests and responses are never changed. */ }
       return response;
@@ -262,6 +271,7 @@
   const observer = new MutationObserver(discover);
   observer.observe(document.documentElement, { childList: true, subtree: true });
   document.querySelectorAll('.sheet-root').forEach(attach);
+  window.__okwLocale?.observe(refresh);
   mobile.addEventListener('change', refresh);
   window.addEventListener('storage', (event) => {
     if (event.key === STORAGE_KEY) mode = modes.includes(event.newValue) ? event.newValue : 'recent';

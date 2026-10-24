@@ -56,11 +56,33 @@ afterEach(() => {
 });
 
 describe('Side Chat streaming scroll guard', () => {
-  it('loads before the official module', () => {
-    const html = '<head><script type="module" src="/assets/index.js"></script></head>';
-    const injected = addMobilePresentation(html);
-    expect(injected.indexOf('/__open-kimi-mobile/sideChatScroll.js'))
-      .toBeLessThan(injected.indexOf('<script type="module"'));
+  it.each([undefined, null, 'invalid', '0.43.1', '2.1.1', '2.2.0', '2.2.99', '2.3.0-beta.1'])(
+    'loads before the official module for legacy or unknown bundle %s',
+    (officialWebVersion) => {
+      const html = '<head><script type="module" src="/assets/index.js"></script></head>';
+      const injected = addMobilePresentation(html, { officialWebVersion });
+      expect(injected).toContain('/__open-kimi-mobile/sideChatScroll.js');
+      expect(injected.indexOf('/__open-kimi-mobile/sideChatScroll.js'))
+        .toBeLessThan(injected.indexOf('<script type="module"'));
+      expect(injected).toBe(addMobilePresentation(html));
+    },
+  );
+
+  it.each(['2.3.0', '2.3.0+build.1', '2.3.1', '2.3.1-beta.1', '2.10.0', '3.0.0'])(
+    'leaves native Side Chat scrolling alone for official bundle %s',
+    (officialWebVersion) => {
+      const html = '<head><script type="module" src="/assets/index.js"></script></head>';
+      const injected = addMobilePresentation(html, { officialWebVersion });
+      expect(injected).not.toContain('/__open-kimi-mobile/sideChatScroll.js');
+      expect(injected).toBe(addMobilePresentation(html)
+        .replace('<script src="/__open-kimi-mobile/sideChatScroll.js"></script>\n', ''));
+    },
+  );
+
+  it('also skips the retired guard when the page has no module script', () => {
+    const injected = addMobilePresentation('<head></head>', { officialWebVersion: '2.3.1' });
+    expect(injected).not.toContain('/__open-kimi-mobile/sideChatScroll.js');
+    expect(injected).toContain('/__open-kimi-mobile/presentation.js');
   });
 
   it('follows new output until the reader scrolls up, then resumes at the bottom', async () => {

@@ -1,7 +1,7 @@
 // __wrap routing: decide whether an intercepted `kimi …` invocation is
 // delegated untouched to the real binary or supervised as an OpenWeb
-// frontend. Only losslessly understood `kimi web` argument sets are
-// supervised; everything else delegates.
+// frontend. Unsupported scheduled-task invocations fail closed; ordinary
+// invocations preserve the official delegation behavior.
 
 const DELEGATE_FLAGS = new Set([
   '--rc',
@@ -46,6 +46,14 @@ function parseWebArgs(rest) {
 }
 
 export function routeWrapArgv(argv) {
+  const scheduled = argv.some((arg) => arg === '--scheduled-tasks' || arg.startsWith('--scheduled-tasks='));
+  if (scheduled) {
+    const parsed = parseWebArgs(argv.slice(1).filter((arg) => arg !== '--scheduled-tasks'));
+    if (argv[0] !== 'web' || parsed.action !== 'supervise') {
+      return { action: 'error', reason: '--scheduled-tasks requires supported kimi web options without RC or auth overrides' };
+    }
+    return { action: 'supervise', options: { ...parsed.options, scheduledTasks: true } };
+  }
   if (argv[0] !== 'web') return { action: 'delegate', reason: null };
   const rest = argv.slice(1);
   if (rest[0] === 'rotate-token') {

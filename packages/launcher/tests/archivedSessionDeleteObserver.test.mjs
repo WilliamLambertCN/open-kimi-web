@@ -227,16 +227,14 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(25);
-    expect(ui.names).toContain('locale.js');
-    expect(ui.names).toContain('usageLocale.js');
-    expect(ui.names).toContain('providerLocale.js');
-    expect(ui.names).toContain('mobileSubagentModelApi.js');
-    expect(ui.names).toContain('mobileSubagentModelView.js');
-    expect(ui.names).toContain('mobileSubagentModel.js');
-    expect(ui.names).toContain('mobileWorkspaceSort.js');
-    expect(ui.names).toContain('imagePreviewGuard.js');
-    expect(ui.names).toContain('tabFeedback.js');
+    expect(ui.names).toHaveLength(33);
+    expect(ui.names).toEqual(expect.arrayContaining(['navigationWorkspace.js', 'navigationSearchView.js',
+      'cronApi.js', 'cronView.js', 'cron.js',
+      'locale.js', 'usageLocale.js', 'providerLocale.js', 'mobileSubagentModelApi.js',
+      'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileWorkspaceSort.js',
+      'imagePreviewGuard.js', 'tabFeedback.js']));
+    expect(ui.names.some((name) => name.startsWith('schedules'))).toBe(false);
+    expect(ui.names.indexOf('navigation.js')).toBeLessThan(ui.names.indexOf('usageBundle.js'));
     expect(ui.names.slice(-5)).toEqual([
       'usageBundle.js', 'questionCardLayout.js', 'presentation.js', 'sessionSize.js', 'messageTimestamps.js',
     ]);

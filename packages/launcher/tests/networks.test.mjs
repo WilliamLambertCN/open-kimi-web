@@ -42,7 +42,7 @@ describe('listNetworkAddresses', () => {
     expect(listNetworkAddresses({ Ethernet: undefined })).toEqual([]);
   });
 
-  it('drops Windows and POSIX virtual adapters while keeping physical ones', () => {
+  it('keeps Hyper-V addresses while dropping other Windows and POSIX virtual adapters', () => {
     const interfaces = {
       'vEthernet (WSL)': [{ address: '172.20.0.1', family: 'IPv4', internal: false }],
       'VMware Network Adapter VMnet8': [{ address: '192.168.222.1', family: 'IPv4', internal: false }],
@@ -59,6 +59,8 @@ describe('listNetworkAddresses', () => {
     expect(listNetworkAddresses(interfaces)).toEqual([
       '10.1.0.5',
       '10.9.9.9',
+      '172.20.0.1',
+      '172.31.240.1',
       '192.168.3.40',
       '192.168.3.41',
     ]);

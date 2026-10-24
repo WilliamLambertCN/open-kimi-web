@@ -379,8 +379,7 @@ describe('catalog refresh behavior', () => {
     await store.get();
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     now += 30 * 60 * 1000 + 1;
-    await store.get();
-    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(4));
+    await vi.waitFor(async () => { await store.get(); expect(fetchImpl).toHaveBeenCalledTimes(4); });
   });
 });
 

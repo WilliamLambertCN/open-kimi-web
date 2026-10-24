@@ -266,6 +266,21 @@ describe('atmospheric theme mutation observer', () => {
 });
 
 describe('atmospheric theme responsive controls', () => {
+  it('backs only the native mobile preview with opaque Canvas without changing geometry or translucent tokens', () => {
+    const { view } = install();
+    const rules = [...view.document.querySelector('style').sheet.cssRules];
+    const preview = rules.find((rule) => rule.selectorText === 'html[data-okw-theme] .global-preview.mobile');
+    expect(preview.style.length).toBe(1);
+    expect(preview.style.getPropertyValue('background'))
+      .toBe('linear-gradient(var(--okw-bg), var(--okw-bg)), Canvas');
+    expect(preview.style.getPropertyPriority('background')).toBe('important');
+    expect(rules.find((rule) => rule.selectorText === 'html[data-okw-theme]').style.getPropertyValue('--bg'))
+      .toBe('var(--okw-bg)');
+    for (const theme of ['nocturne', 'aurora', 'twilight', 'ember', 'mineral']) {
+      const rule = rules.find((entry) => entry.selectorText === `html[data-okw-theme='${theme}']`);
+      expect(rule.style.getPropertyValue('--okw-bg')).toMatch(/^rgba\([\d, ]+, \.\d+\)$/);
+    }
+  });
   it('adds settings controls on a new panel and retains media-change behavior', async () => {
     const { media, observerState, view } = install({
       body: userMenuHtml,

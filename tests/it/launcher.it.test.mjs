@@ -1,6 +1,4 @@
-// Integration tests for the launcher: real TCP servers on both ends.
-// A fake upstream (node:http + ws) stands in for `kimi web`; the launcher
-// under test serves a fixture public/ dir and proxies /api to the fake.
+// Real HTTP/WS servers verify launcher proxy boundaries against an observable fixture upstream.
 import { createServer, request as httpRequest } from 'node:http';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { connect } from 'node:net';
@@ -19,10 +17,51 @@ let publicDir;
 let lastWsHeaders = null;
 let lastWsCloseCode = null;
 const upstreamWsConnections = [];
+const upstreamRequests = [];
+const upstreamWsPaths = [];
+const blockedDebugPaths = [
+  '/api/v1/debug', '/api/v1/debug/rpc?arg=1', '/api/v1/%64ebug', '/api/v1/deb%75g/rpc',
+  '/api/v1/%2564ebug', '/api/v1/%25%36%34ebug', '/api/v1/debug%2Frpc', '/api/v1%2fdebug',
+  '/api/v1%5cdebug', '/api/v1/debug\\rpc', '/api//v1/./debug', '/api/v1/fs/%2e%2e/%64ebug',
+  '/api/v1/%64ebug/%GG', '/api/v1/debug/../meta', '/%61pi/v1/debug', '/api/v1/debug/',
+  '/api/v1/debug#probe', '/api/v1/%64ebug#probe?arg=1'];
+const remoteControlPaths = [
+  '/api/v1/remote-control', '/api/v1/%72emote-control', '/api/v1/%2572emote-control/start',
+  '/api/v1/remote%2Dcontrol', '/api/v1%2fremote-control', '/api/v1%5cremote-control',
+  '/api/v1/remote-control#probe', '/api/v1/%72emote-control#probe?arg=1'];
+const allowedApiPaths = [
+  '/api/v1/meta?path=/api/v1/debug&encoded=%2564ebug&literal=%&plus=a+b',
+  '/api/v1/fs/debug:download', '/api/v1/fs/debug/file.txt:download', '/api/v1/debugger',
+  '/api/v1/fs/report%25.txt:download', '/api/v1/fs/100%.txt:download',
+  '/api/v1/fs/%E4%B8%AD%E6%96%87-debug.txt:download', '/api/v1/fs/a%2Fdebug.txt:download',
+  '/api/v1/fs/invalid%FF.txt:download', '/api/v1/%', '/api/v1/%6', '/api/v1/%GG',
+  '/api/v1/remote-control%23probe', '/api/v1/fs/report%23name:download'];
+const pathProbeHeaders = { 'x-path-policy-probe': 'yes', authorization: 'Bearer it-token' };
+
+function testLauncher(options = {}) {
+  return createLauncher({ target: upstreamUrl, publicDir, host: '127.0.0.1', port: 0, ...options });
+}
+
+function opened(ws) {
+  return new Promise((resolve, reject) => {
+    ws.once('open', resolve);
+    ws.once('error', reject);
+  });
+}
+
+function closeWs(ws) {
+  ws.close(1000, 'done');
+  return new Promise((resolve) => ws.once('close', resolve));
+}
 
 function startFakeUpstream() {
   return new Promise((resolveListen) => {
     const server = createServer((req, res) => {
+      upstreamRequests.push({ method: req.method, url: req.url });
+      if (req.headers['x-path-policy-probe'] === 'yes') {
+        res.writeHead(209, { 'x-upstream': 'path-policy-probe' }).end(req.url);
+        return;
+      }
       if (req.url === '/api/v1/echo' && req.method === 'POST') {
         let body = '';
         req.on('data', (c) => (body += c));
@@ -32,15 +71,13 @@ function startFakeUpstream() {
             'x-upstream': 'yes',
             connection: 'keep-alive',
           });
-          res.end(
-            JSON.stringify({
-              body,
-              authorization: req.headers.authorization ?? null,
-              host: req.headers.host ?? null,
-              origin: req.headers.origin ?? null,
-              xhop: req.headers['x-hop'] ?? null,
-            }),
-          );
+          res.end(JSON.stringify({
+            body,
+            authorization: req.headers.authorization ?? null,
+            host: req.headers.host ?? null,
+            origin: req.headers.origin ?? null,
+            xhop: req.headers['x-hop'] ?? null,
+          }));
         });
         return;
       }
@@ -48,6 +85,7 @@ function startFakeUpstream() {
     });
     const wss = new WebSocketServer({ noServer: true });
     server.on('upgrade', (req, socket, head) => {
+      upstreamWsPaths.push(req.url);
       lastWsHeaders = { ...req.headers };
       if (req.url === '/api/v1/ws?reject=401') {
         socket.end(
@@ -100,11 +138,7 @@ function raw(url, { method = 'GET', path, headers = {}, body } = {}) {
     const target = new URL(url);
     const req = httpRequest(
       {
-        hostname: target.hostname,
-        port: target.port,
-        method,
-        path: path ?? target.pathname,
-        headers,
+        hostname: target.hostname, port: target.port, method, path: path ?? target.pathname, headers,
       },
       (res) => {
         let text = '';
@@ -118,12 +152,12 @@ function raw(url, { method = 'GET', path, headers = {}, body } = {}) {
   });
 }
 
-function rawWsRequest(url, extraHeaders = []) {
+function rawWsRequest(url, extraHeaders = [], path = '/api/v1/ws') {
   return new Promise((resolve, reject) => {
     const target = new URL(url);
     const socket = connect(Number(target.port), target.hostname, () => {
       socket.write(
-        `GET /api/v1/ws HTTP/1.1\r\nHost: ${target.host}\r\n` +
+        `GET ${path} HTTP/1.1\r\nHost: ${target.host}\r\n` +
         'Connection: Upgrade\r\nUpgrade: websocket\r\n' +
         `${extraHeaders.join('\r\n')}\r\n\r\n`,
       );
@@ -144,11 +178,8 @@ describe('launcher access URLs', () => {
   });
 
   it('builds wildcard access URLs from injected interfaces and the actual port', async () => {
-    const wildcard = await createLauncher({
-      target: upstreamUrl,
-      publicDir,
+    const wildcard = await testLauncher({
       host: '0.0.0.0',
-      port: 0,
       interfaces: {
         Ethernet: [
           { address: '192.168.1.20', family: 'IPv4', internal: false },
@@ -196,15 +227,11 @@ describe('static files', () => {
     expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
   });
 
-  it('falls back to index.html for unknown SPA routes', async () => {
+  it('falls back for SPA routes but not missing assets', async () => {
     const res = await fetch(`${launcherUrl}/session/abc`);
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('open-kimi-web fixture');
-  });
-
-  it('404s missing hashed assets instead of falling back', async () => {
-    const res = await fetch(`${launcherUrl}/assets/missing.js`);
-    expect(res.status).toBe(404);
+    expect((await fetch(`${launcherUrl}/assets/missing.js`)).status).toBe(404);
   });
 
   it('serves HEAD requests with headers and no body', async () => {
@@ -237,6 +264,7 @@ describe('REST proxy', () => {
     const echoed = await res.json();
     expect(echoed.body).toBe('{"hello":"world"}');
     expect(echoed.authorization).toBe('Bearer it-token');
+    expect(echoed.origin).toBeNull();
   });
 
   it('rewrites Host and an existing Origin to the target origin', async () => {
@@ -249,12 +277,6 @@ describe('REST proxy', () => {
     const target = new URL(upstreamUrl);
     expect(echoed.host).toBe(target.host);
     expect(echoed.origin).toBe(target.origin);
-  });
-
-  it('does not add Origin when the client omitted it', async () => {
-    const res = await raw(`${launcherUrl}/api/v1/echo`, { method: 'POST', body: 'x' });
-    const echoed = JSON.parse(res.text);
-    expect(echoed.origin).toBeNull();
   });
 
   it('does not leak hop-by-hop headers named by connection tokens', async () => {
@@ -280,18 +302,66 @@ describe('REST proxy', () => {
   });
 
   it('returns 502 when the upstream is down', async () => {
-    const dead = await createLauncher({
-      target: 'http://127.0.0.1:1',
-      publicDir,
-      host: '127.0.0.1',
-      port: 0,
-    });
+    const dead = await testLauncher({ target: 'http://127.0.0.1:1' });
     try {
       const res = await fetch(`${dead.url}/api/v1/echo`, { method: 'POST', body: 'x' });
       expect(res.status).toBe(502);
     } finally {
       await dead.close();
     }
+  });
+});
+
+describe.each([
+  [false, false], [true, false], [true, true],
+])('API isolation (officialPresentation=%s, scheduledTasks=%s)', (officialPresentation, scheduledTasks) => {
+  let isolated;
+  beforeAll(async () => { isolated = await testLauncher({ officialPresentation, scheduledTasks }); });
+  afterAll(async () => { await isolated?.close(); });
+
+  it.each([...blockedDebugPaths, ...remoteControlPaths])(
+    'applies the raw namespace policy before upstream: %s', async (path) => {
+      for (const method of ['GET', 'POST', 'HEAD']) {
+        expect((await raw(upstreamUrl, { path, method, headers: pathProbeHeaders })).status).toBe(209);
+        const count = upstreamRequests.length;
+        const blocked = scheduledTasks || blockedDebugPaths.includes(path);
+        const response = await raw(isolated.url, { path, method, headers: pathProbeHeaders });
+        expect(response.status).toBe(blocked ? 404 : 209);
+        expect(response.headers['x-upstream']).toBe(blocked ? undefined : 'path-policy-probe');
+        expect(response.text).toBe(method === 'HEAD' ? '' : blocked ? 'Not Found' : path);
+        expect(upstreamRequests).toHaveLength(count + Number(!blocked));
+      }
+    },
+  );
+
+  it.each(allowedApiPaths)('preserves the original non-debug URL: %s', async (path) => {
+    const response = await raw(isolated.url, { path, headers: pathProbeHeaders });
+    expect(response.status).toBe(209);
+    expect(response.headers['x-upstream']).toBe('path-policy-probe');
+    expect(response.text).toBe(path);
+    expect(upstreamRequests.at(-1)).toEqual({ method: 'GET', url: path });
+  });
+
+  it.each([...blockedDebugPaths, '/api/v1/%77s', '/api/v1/ws/', '/api/v1/ws/../debug', '/api/v1/other'])(
+    'refuses raw non-allowlisted WS upgrades without reaching upstream: %s', async (path) => {
+      const count = upstreamWsPaths.length;
+      const response = await rawWsRequest(isolated.url, [
+        'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==', 'Sec-WebSocket-Version: 13',
+      ], path);
+      expect(response).toBe('');
+      expect(upstreamWsPaths).toHaveLength(count);
+    },
+  );
+
+  it('keeps the exact WS path and query working with a 101 handshake', async () => {
+    const path = '/api/v1/ws?client_id=debug&path=%2Fapi%2Fv1%2Fdebug';
+    const ws = new WebSocket(`${isolated.url.replace('http', 'ws')}${path}`);
+    let status;
+    ws.once('upgrade', (res) => { status = res.statusCode; });
+    await opened(ws);
+    expect(status).toBe(101);
+    expect(upstreamWsPaths.at(-1)).toBe(path);
+    await closeWs(ws);
   });
 });
 
@@ -305,10 +375,7 @@ describe('WebSocket proxy', () => {
     );
     const messages = [];
     ws.on('message', (data) => messages.push(String(data)));
-    await new Promise((resolveOpen, reject) => {
-      ws.on('open', resolveOpen);
-      ws.on('error', reject);
-    });
+    await opened(ws);
     expect(ws.protocol).toBe('kimi-code.bearer.it-token');
     expect(lastWsHeaders['sec-websocket-protocol']).toBe('kimi-code.bearer.it-token');
     expect(lastWsHeaders.host).toBe(new URL(upstreamUrl).host);
@@ -319,30 +386,22 @@ describe('WebSocket proxy', () => {
     expect(messages).toContain('hello-from-upstream');
     expect(messages).toContain('echo:ping');
 
-    ws.close(1000, 'done');
-    await new Promise((r) => ws.on('close', r));
+    await closeWs(ws);
   });
 
   it('does not add Origin to WS when the client omitted it', async () => {
     lastWsHeaders = null;
     const ws = new WebSocket(`${launcherUrl.replace('http', 'ws')}/api/v1/ws`);
-    await new Promise((resolveOpen, reject) => {
-      ws.on('open', resolveOpen);
-      ws.on('error', reject);
-    });
+    await opened(ws);
     expect(lastWsHeaders.origin).toBeUndefined();
-    ws.close(1000, 'done');
-    await new Promise((r) => ws.on('close', r));
+    await closeWs(ws);
   });
 
   it('terminates the upstream after an abnormal client drop', async () => {
     await expect.poll(() => upstream.wss.clients.size).toBe(0);
     lastWsCloseCode = null;
     const ws = new WebSocket(`${launcherUrl.replace('http', 'ws')}/api/v1/ws`);
-    await new Promise((resolveOpen, reject) => {
-      ws.on('open', resolveOpen);
-      ws.on('error', reject);
-    });
+    await opened(ws);
     // TCP drop without a close frame: terminate the matching upstream rather
     // than waiting for a close handshake that can keep shutdown alive.
     ws.terminate();
@@ -355,53 +414,17 @@ describe('WebSocket proxy', () => {
   });
 
   it('drops the client when the upstream WS is unreachable', async () => {
-    const dead = await createLauncher({
-      target: 'http://127.0.0.1:1',
-      publicDir,
-      host: '127.0.0.1',
-      port: 0,
-    });
+    const dead = await testLauncher({ target: 'http://127.0.0.1:1' });
     try {
       const ws = new WebSocket(`${dead.url.replace('http', 'ws')}/api/v1/ws`);
-      const outcome = await new Promise((resolveEvent) => {
-        ws.on('open', () => resolveEvent('open'));
-        ws.on('error', () => resolveEvent('error'));
-        ws.on('close', () => resolveEvent('close'));
-      });
-      expect(outcome).not.toBe('open');
+      await expect(opened(ws)).rejects.toThrow();
     } finally {
       await dead.close();
     }
   });
-
-  it('refuses upgrades outside /api/v1/ws', async () => {
-    const ws = new WebSocket(`${launcherUrl.replace('http', 'ws')}/api/v1/other`);
-    const outcome = await new Promise((resolveEvent) => {
-      ws.on('open', () => resolveEvent('open'));
-      ws.on('error', () => resolveEvent('error'));
-    });
-    expect(outcome).toBe('error');
-  });
 });
 
 describe('WebSocket upgrade routing', () => {
-  it('accepts the WS upgrade with a query string (official web appends ?client_id=)', async () => {
-    const ws = new WebSocket(
-      `${launcherUrl.replace('http', 'ws')}/api/v1/ws?client_id=it-probe`,
-      'kimi-code.bearer.it-token',
-    );
-    const messages = [];
-    ws.on('message', (data) => messages.push(String(data)));
-    await new Promise((resolveOpen, reject) => {
-      ws.on('open', resolveOpen);
-      ws.on('error', reject);
-    });
-    await new Promise((r) => setTimeout(r, 200));
-    expect(messages).toContain('hello-from-upstream');
-    ws.close(1000, 'done');
-    await new Promise((r) => ws.on('close', r));
-  });
-
   it('closes the upstream when the downstream handshake is malformed', async () => {
     const connectionIndex = upstreamWsConnections.length;
     const response = await rawWsRequest(launcherUrl, ['Sec-WebSocket-Version: 13']);
@@ -440,12 +463,7 @@ describe('WebSocket upgrade routing', () => {
 
 describe('shutdown', () => {
   it('close() stops accepting connections', async () => {
-    const temp = await createLauncher({
-      target: upstreamUrl,
-      publicDir,
-      host: '127.0.0.1',
-      port: 0,
-    });
+    const temp = await testLauncher();
     const res = await fetch(`${temp.url}/`);
     expect(res.status).toBe(200);
     await temp.close();
@@ -463,13 +481,7 @@ describe('shutdown', () => {
     });
     await new Promise((resolve) => stalled.listen(0, '127.0.0.1', resolve));
     const target = `http://127.0.0.1:${stalled.address().port}`;
-    const temp = await createLauncher({
-      target,
-      publicDir,
-      host: '127.0.0.1',
-      port: 0,
-      closeGraceMs: 25,
-    });
+    const temp = await testLauncher({ target, closeGraceMs: 25 });
     const response = fetch(`${temp.url}/api/v1/hang`).catch(() => null);
     await started;
     const closed = temp.close();

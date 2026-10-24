@@ -1,12 +1,10 @@
 import { isIP } from 'node:net';
 import { networkInterfaces } from 'node:os';
 
-// Interface names that belong to hypervisors, containers, tunnels, or other
-// virtual adapters: advertising their addresses as Network links/TLS SANs
-// mostly produces unreachable clutter (WSL, Hyper-V, VMware, Docker, VPNs).
 const VIRTUAL_INTERFACE_RE =
   /vethernet|vmware|hyper-v|virtualbox|vbox|tap-|tun2?|wsl|docker|loopback|pseudo|isatap/i;
 const VIRTUAL_POSIX_PREFIX_RE = /^(veth|docker|br-|virbr|vmnet|tailscale|utun|tun|tap)/i;
+const HYPERV_INTERFACE_RE = /vethernet|hyper-v/i;
 
 export function isVirtualInterfaceName(name) {
   if (typeof name !== 'string' || name === '') return false;
@@ -51,12 +49,10 @@ function listableAddress(entry) {
   return address;
 }
 
-// Virtual adapters are filtered by interface name when one is available;
-// nameless entries (non-standard fixtures) are conservatively kept.
 export function listNetworkAddresses(interfaces = networkInterfaces()) {
   const addresses = new Map();
   for (const [name, entries] of Object.entries(interfaces)) {
-    if (isVirtualInterfaceName(name)) continue;
+    if (!HYPERV_INTERFACE_RE.test(name) && isVirtualInterfaceName(name)) continue;
     for (const entry of entries ?? []) {
       const address = listableAddress(entry);
       if (address !== null) addresses.set(address, address);
