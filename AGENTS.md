@@ -24,6 +24,7 @@
 - [任务与统一导航](docs/plans/scheduled-tasks-management-v1-plan.md)
 - [工作区与 2.3.1 适配](docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md)
 - [模型发现修复](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md)
+- [新模型默认能力](docs/plans/provider-defaults-r2-release-v1-plan.md)
 
 ## 项目边界
 

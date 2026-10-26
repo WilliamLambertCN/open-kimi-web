@@ -149,6 +149,8 @@ describe('localized provider controls', () => {
     await settled(ui);
     const form = ui.doc.querySelector('.pf');
     const input = form.querySelector('.pmt-grid:not(.pmt-head) > input');
+    expect(form.querySelector('fieldset').title).toBe(
+      '尚无已保存配置；保存将采用当前勾选，默认勾选不代表服务支持，请按实际能力调整');
     input.value = '用户模型';
     const checkbox = form.querySelector('input[value="thinking"]');
     expect(checkbox.checked).toBe(true);
@@ -161,6 +163,8 @@ describe('localized provider controls', () => {
     ui.doc.querySelector('.st').textContent = 'Idle';
     await settled(ui);
     expect(systemText(form)).toEqual([]);
+    expect(form.querySelector('fieldset').title).toBe(
+      'No saved configuration; current selections will be saved. Service support is not guaranteed; adjust as needed');
     expect(form.querySelector('input[value="thinking"]')).toBe(checkbox);
     expect(checkbox.checked).toBe(false);
     expect(input.value).toBe('用户模型');
@@ -201,8 +205,8 @@ describe('localized provider controls', () => {
         capabilities: ['tool_use', 'thinking'], adaptive_thinking: true }] }),
     });
     const saved = JSON.parse(ui.fetch.mock.calls.at(-1)[1].body).models[0];
-    expect(saved).toEqual({ model: '用户模型', capabilities: ['tool_use'], adaptive_thinking: true });
-    expect(saved).not.toHaveProperty('support_efforts');
+    expect(saved).toEqual({ model: '用户模型', capabilities: ['image_in', 'tool_use', 'always_thinking'],
+      support_efforts: ['none', 'low', 'medium', 'high', 'xhigh', 'max'], adaptive_thinking: true });
   });
 });
 
