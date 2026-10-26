@@ -3,13 +3,15 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
 ---
 
 帮助用户安装独立 Open Kimi Web launcher 或管理接管。安装本插件不安装、启动或卸载 launcher。用户参数：$ARGUMENTS
-版本 `v2.1.1-r10`，官方兼容基线仍为 `2.1.1`；Release 发布状态／CI 以 README 链接及发布计划的真实记录为准。
+目标版本 `v2.3.1-r2`，兼容官方 `2.3.1`；CI 与发布状态以正式 Release 及
+[本轮计划][r2-plan]的真实记录为准，不以 r1 历史结果代替。
 
 严格按顺序执行：
 
 1. 先检查 `open-kimi-web --version` 是否可用；wrapper 可使用记录的私有 Node，不能仅因 PATH 中无 Node／npm 就拒绝。
    launcher 不可用时，优先提供[README 顶部的一键兼容式命令][install]，不要求预装 Node／npm／Corepack／pnpm／Git／Kimi。
-   命令解析 r10 tag 的真实 40 位 commit SHA，下载同 SHA 入口，传同 `--revision` 和固定 `--version 2.1.1-r10`。
+   命令从 `v2.3.1-r2` commit API 解析并校验真实 40 位十六进制 SHA，只下载同 SHA 入口，
+   传同一 `--revision` 和固定 `--version 2.3.1-r2`；tag／资产未发布时停止，不伪造或复用旧 r10 SHA。
    下载失败即停，不回退 main／旧包；不静默联网安装，不声称 npm registry 已发布本包。
    解释联网及标准 curl／tar 前提；空 Linux（glibc）仍需 Python 3、C／C++ 和 make，不自动 sudo 或安装工具链。
    macOS／arm64、Windows 真注册表／新终端接管未全面验收。只有源码开发才需要 Corepack／pnpm。
@@ -28,3 +30,4 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
    不宣称完整清理，不删除旧目录；安装器不自动登录、启动生产服务、读取真实会话或发付费调用。
 
 [install]: https://github.com/WilliamLambertCN/open-kimi-web#readme
+[r2-plan]: ../docs/plans/provider-defaults-r2-release-v1-plan.md

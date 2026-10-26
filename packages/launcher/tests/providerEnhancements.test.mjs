@@ -351,7 +351,7 @@ const tick = async () => {
 };
 
 describe('provider model enhancements', () => {
-  it('preserves explicit empty settings and native defaults for a new row in PUT/POST bodies', async () => {
+  it('preserves explicit empty settings and saves the displayed new-row defaults in PUT/POST bodies', async () => {
     const app = install();
     await app.window.fetch('/api/v1/config', { headers: { authorization: 'Bearer page-token' } });
     await app.window.fetch('/api/v1/models', { headers: { authorization: 'Bearer page-token' } });
@@ -364,7 +364,8 @@ describe('provider model enhancements', () => {
     expect(existingChecks.every((input) => input.checked === false)).toBe(true);
     expect(addedChecks).toHaveLength(13);
     expect(addedChecks.filter((input) => input.checked).map((input) => input.value))
-      .toEqual(['tool_use', 'thinking', 'adaptive_thinking']);
+      .toEqual(['image_in', 'tool_use', 'thinking', 'always_thinking', 'none', 'low', 'medium', 'high', 'xhigh', 'max',
+        'adaptive_thinking']);
     app.added.inputs[0].value = 'new-model';
     const models = [
       { model: 'existing-model', max_context_size: 131072 },
@@ -379,7 +380,8 @@ describe('provider model enhancements', () => {
       const body = JSON.parse(app.calls.at(-1)[1].body);
       expect(body.models.map((model) => model.model)).toEqual(['existing-model', 'new-model']);
       expect(body.models[0]).toMatchObject({ capabilities: [], support_efforts: [], adaptive_thinking: false });
-      expect(body.models[1]).toEqual(models[1]);
+      expect(body.models[1]).toEqual({ ...models[1], capabilities: ['image_in', 'tool_use', 'thinking', 'always_thinking'],
+        support_efforts: ['none', 'low', 'medium', 'high', 'xhigh', 'max'], adaptive_thinking: true });
     }
   });
 
@@ -472,7 +474,8 @@ describe('provider model sorting', () => {
       });
       const body = JSON.parse(app.calls.at(-1)[1].body);
       expect(body.models.map((model) => model.max_context_size)).toEqual([262144, 131072]);
-      expect(body.models[0]).toEqual({ model: 'existing-model', max_context_size: 262144 });
+      expect(body.models[0]).toEqual({ model: 'existing-model', max_context_size: 262144,
+        capabilities: [], support_efforts: [], adaptive_thinking: false });
       expect(body.models[1].capabilities).toEqual([]);
     },
   );

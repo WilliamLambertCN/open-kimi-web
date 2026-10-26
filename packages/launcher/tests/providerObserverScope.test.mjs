@@ -111,7 +111,8 @@ describe('provider observer scope', () => {
     const saved = JSON.parse(nativeFetch.mock.calls.at(-1)[1].body);
     expect(saved.models.map((model) => model.model)).toEqual(['model-a', 'model-b']);
     expect(saved.models[0]).toMatchObject({ capabilities: [], support_efforts: [], adaptive_thinking: false });
-    expect(saved.models[1]).toEqual({ model: 'model-b' });
+    expect(saved.models[1]).toEqual({ model: 'model-b', capabilities: ['image_in', 'tool_use', 'thinking', 'always_thinking'],
+      support_efforts: ['none', 'low', 'medium', 'high', 'xhigh', 'max'], adaptive_thinking: true });
     const scanCount = queries.mock.calls.length;
     const callbackCount = fixture.state.callbacks;
     await tick();

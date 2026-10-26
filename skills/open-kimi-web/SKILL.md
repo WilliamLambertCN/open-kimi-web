@@ -11,8 +11,14 @@ description: |
 Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，
 在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
-版本 `v2.1.1-r10` 兼容官方 `2.1.1`，包含兼容式安装、主选择器风格的手机子模型控件及英文修复。
-保留 r9 流式 gzip 与既有偏好；Release 发布状态／CI 以 [Release 页面][r10-release]和[发布计划][r10-plan]的真实记录为准。
+本轮目标版本 `v2.3.1-r2` 兼容官方 `2.3.1`，恢复用户要求的新模型默认勾选，保留 r1 发现选择及保存作用域修复。
+新模型仅 `video_in`、`image_out` 默认不选；`image_in`、`tool_use`、`thinking`、`always_thinking` 默认选中。
+六档 `none/low/medium/high/xhigh/max` 和 `adaptive_thinking` 也默认选中；已有显式数组（含空数组）、未知值及 false 不自动改写。
+默认选择是用户偏好，不保证服务支持；已授权实测 low 成功、xhigh 400，修后 thinking:on 未显式 effort 成功，
+medium/high/max 未逐档验证。本轮不新增付费调用或改用户配置／生产。
+r2 的 CI、线上资产和正常 update 结果以 [Release 页面][current-release]及[本轮计划][r2-plan]为准。
+保留既有统一导航、路径修复、统计、gzip、手机子模型和英文界面功能；r1 适配证据见[原计划][current-plan]，
+下方 r9／r10 证据仅代表历史阶段。
 
 本 skill 管理独立的 `open-kimi-web`，驱动 `integrate install|status|repair|uninstall` 和 `update`。
 安装或移除 Kimi 插件不会安装、启动或卸载 launcher，也不会自动修改或撤销 PATH 接管。
@@ -30,25 +36,27 @@ Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 
 ### 提供安装路线（先解释影响并确认授权）
 
 优先提供[README 顶部短在线安装命令](https://github.com/WilliamLambertCN/open-kimi-web#readme)，无需克隆仓库或手动下载脚本。
-Windows PowerShell ≥ 5.1／macOS-Linux sh 均固定已发布 r10 SHA `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf`。
-下载成功后通过 PowerShell script block／`sh -c` 执行完整入口，传同一 `--revision` 和固定 `--version 2.1.1-r10`。
-入口取同提交完整 coordinator／helpers；不回退漂移的 main 或旧包，HTTPS 和同提交配对不是脚本签名验证。
-可先审阅该 SHA 的完整源码；本地使用时，入口、coordinator 与 helpers 必须来自同一提交：
+Windows PowerShell ≥ 5.1／macOS-Linux sh 均从 `v2.3.1-r2` 的 GitHub commit API 解析并校验真实 40 位十六进制 SHA。
+只下载该 SHA 的入口，成功后通过 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.3.1-r2`。
+入口取同提交完整 coordinator／helpers；tag、SHA、下载或资产不可用即停，不回退 main／旧包，不复用旧 r10 SHA 或伪造将来 SHA。
+HTTPS 和同提交配对不是脚本签名验证；r2 正式发布前不将这些入口说成已在线可用。
+可先审阅解析所得 SHA 的完整源码；本地使用时，入口、coordinator 与 helpers 必须来自同一提交：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.1.1-r10 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r2
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r2 --no-integrate
 ```
 
 ```sh
-sh scripts/install.sh --version 2.1.1-r10
-sh scripts/install.sh --version 2.1.1-r10 --no-integrate
+sh scripts/install.sh --version 2.3.1-r2
+sh scripts/install.sh --version 2.3.1-r2 --no-integrate
 ```
 
 - 无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi，仍需联网与标准 PATH curl／tar，不是离线安装。
   优先 Node ≥ 22.19.0 与配套 npm，缺失才校验并准备固定 Node `22.23.3`；home 必须是安全绝对目录。
   launcher prefix、official prefix、runtime 和 bin 分离，不覆盖系统 Node／Git，不要求管理员权限。
-- 可用 native／npm Kimi 按实际顺序复用，不升级或覆盖；缺官方准备固定 `2.1.1` tarball／SHA-512、ignore-scripts，避免旧 Python 迁移。
+- 可用 native／npm Kimi 按实际顺序复用，不升级或覆盖；缺官方准备固定 `2.3.1` tarball／SHA-512、ignore-scripts，避免旧 Python 迁移。
+  已知 owned `2.1.1` 仅在 version／integrity、package 身份及 entry／shim digests 全部通过后复用，不自动升级。
   未知归属／坏 override／partial 拒绝，不自动续装。新 owned 安装先真实 PTY，成功才写 record；重复 probe，损坏拒绝不自动重建。
   Linux 缺 binding 只对固定 node-pty 1.1.0／node-addon-api 7.1.1 审计后限定 rebuild，不跑根 Kimi 或其它包脚本。
   **空 Linux（glibc）仍需 Python 3、C／C++ 编译器和 make**；不自动 sudo／apt 或安装完整工具链，不以 Web 200 替代 PTY。
@@ -61,13 +69,13 @@ sh scripts/install.sh --version 2.1.1-r10 --no-integrate
   本地薄入口 `--help` 不要求 Node、不联网、不写入，非法参数也在 runtime 前拒绝；独立入口须显式匹配 revision。
 - PATH 遮挡或 shell 不支持时按输出处理，不把包已安装当接管生效；不自动登录、启动生产服务、读取真实会话或发付费调用。
   macOS／arm64、Windows 真注册表／新终端接管未全面验证；历史 fixture、失败及检查见[安装计划][install-plan]。
-  发布与资产核对见发布计划；不能把旧 r9 场景、本地 pack 或 Git Bash 当作全平台结果。
+  本轮发布与资产核对见 [r2 计划][r2-plan]；不能把旧 r9 场景、本地 pack 或 Git Bash 当作全平台结果。
 
-已有 Node ≥ 22／npm 可手动装 launcher，但不会准备官方 Kimi；官方 npm `2.1.1` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
-不需要 Corepack／pnpm；可用 r10 Release 的固定 URL：
+已有 Node ≥ 22／npm 可手动装 launcher，但不会准备官方 Kimi；官方 npm `2.3.1` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
+不需要 Corepack／pnpm；r2 正式发布后使用其固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.3.1-r2/open-kimi-web-2.3.1-r2.tgz
 ```
 
 仅用户明确需要源码开发且已有 Node ≥ 22／Git／Corepack 时，提供源码路线：
@@ -130,6 +138,8 @@ Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保�
 ## 安装自更新（r8 起可用）
 
 `v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
+r2 正式发布后，原 `2.3.1-r1` 走正常 `update --check`／`update`，不要求同版本重装或重跑安装器。
+r2 的 latest/update 与线上验收以 [r2 计划][r2-plan] 的实际记录为准，不能用旧 r1 通过记录代替。
 旧 r7 发布包不含 update，须先手动升级至 r8 或更高版本，不能直接在 r7 上运行该命令。
 用户要求更新已具备该命令的 launcher 时，先运行：
 
@@ -199,3 +209,6 @@ Auto 合法提交 `defaultEffort: ''`；已配置模型仍不能通过 API 清�
 [r10-plan]: ../../docs/plans/one-click-install-r10-release-v1-plan.md
 [mobile-plan]: ../../docs/plans/mobile-subagent-model-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
+[current-plan]: ../../docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
+[r2-plan]: ../../docs/plans/provider-defaults-r2-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
