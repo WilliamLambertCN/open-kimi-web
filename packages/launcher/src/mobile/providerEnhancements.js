@@ -16,8 +16,7 @@
     ['xhigh', '极高', 'Extra high'],
     ['max', '最大', 'Max'],
   ];
-  const ALL_CAPABILITIES = CAPABILITIES.map(([value]) => value);
-  const ALL_EFFORTS = EFFORTS.map(([value]) => value);
+  const modelState = window.OpenKimiProviderModelState;
   const FORM_SELECTOR = '.pf-form, .pf';
   const MODEL_ROWS_SELECTOR = [
     '.pf-models > .pf-model-grid:not(.pf-model-head)',
@@ -40,6 +39,8 @@
     efforts: '思考档位',
     adaptive: '自适应思考',
     adaptiveTitle: '允许模型根据任务复杂度调整思考方式',
+    savedEfforts: (values) => `保留的未列出档位：${values}`,
+    unconfirmed: '尚无已确认配置；这里只显示手动默认，保存时保留原生元数据',
     discover: '拉取模型',
     discovering: '正在拉取…',
     choose: '选择已发现的模型',
@@ -57,6 +58,8 @@
     efforts: 'Thinking efforts',
     adaptive: 'Adaptive thinking',
     adaptiveTitle: 'Allow the model to adjust its thinking to task complexity',
+    savedEfforts: (values) => `Retained unlisted efforts: ${values}`,
+    unconfirmed: 'No confirmed configuration; showing manual defaults and preserving native metadata on save',
     discover: 'Fetch models',
     discovering: 'Fetching…',
     choose: 'Choose a discovered model',
@@ -144,23 +147,11 @@
   const textInputs = (row) => Array.from(row.querySelectorAll('input:not([type="checkbox"])'));
   const sorting = window.OpenKimiProviderSorting;
 
-  const savedList = (saved, field, fallback) => Array.isArray(saved?.[field]) ? saved[field] : fallback;
-
   const stateFor = (row, provider) => {
     let state = rowStates.get(row);
     if (state) return state;
     const model = textInputs(row)[0]?.value?.trim() ?? '';
-    const saved = modelConfigs.get(keyOf(provider, model));
-    const capabilities = savedList(saved, 'capabilities', ALL_CAPABILITIES);
-    const supportEfforts = savedList(saved, 'supportEfforts', ALL_EFFORTS);
-    state = {
-      capabilities: new Set(capabilities),
-      supportEfforts: new Set(supportEfforts),
-      extraCapabilities: capabilities.filter((value) => !ALL_CAPABILITIES.includes(value)),
-      extraEfforts: supportEfforts.filter((value) => !ALL_EFFORTS.includes(value)),
-      adaptiveThinking: saved?.adaptiveThinking ?? true,
-      dirty: false,
-    };
+    state = modelState.create(modelConfigs.get(keyOf(provider, model)));
     rowStates.set(row, state);
     return state;
   };
@@ -214,11 +205,7 @@
         label: () => isChinese() ? zh : en,
         checked: state.capabilities.has(value),
         disabled,
-        onChange: (checked) => {
-          if (checked) state.capabilities.add(value);
-          else state.capabilities.delete(value);
-          state.dirty = true;
-        },
+        onChange: (checked) => modelState.update(state, 'capabilities', value, checked),
       }));
     }
 
@@ -229,11 +216,7 @@
         label: () => isChinese() ? zh : en,
         checked: state.supportEfforts.has(value),
         disabled,
-        onChange: (checked) => {
-          if (checked) state.supportEfforts.add(value);
-          else state.supportEfforts.delete(value);
-          state.dirty = true;
-        },
+        onChange: (checked) => modelState.update(state, 'supportEfforts', value, checked),
       }));
     }
     efforts.list.append(checkbox({
@@ -244,16 +227,27 @@
       disabled,
       onChange: (checked) => {
         state.adaptiveThinking = checked;
-        state.dirty = true;
+        state.dirty.add('adaptiveThinking');
       },
     }));
 
+    const unlisted = [...state.supportEfforts].filter((value) => !EFFORTS.some(([known]) => known === value));
+    if (unlisted.length) {
+      const hint = document.createElement('span');
+      hint.className = 'pf-hint-inline';
+      bindCopy(hint, () => copy().savedEfforts(unlisted.join(', ')));
+      efforts.fieldset.append(hint);
+    }
+    if (!modelConfigs.has(keyOf(provider, model))) {
+      bindCopy(capabilities.fieldset, () => copy().unconfirmed, 'title');
+      bindCopy(efforts.fieldset, () => copy().unconfirmed, 'title');
+    }
     options.append(capabilities.fieldset, efforts.fieldset);
     row.append(options);
   };
 
   const fieldByLabel = (form, expected) => Array.from(form.querySelectorAll('.pf-field')).find((field) => {
-    const text = field.querySelector('label')?.textContent?.replaceAll('*', '').trim() ?? '';
+    const text = field.querySelector('.pf-label, label')?.textContent?.replaceAll('*', '').trim() ?? '';
     return expected.some((label) => text === label || text.startsWith(`${label} `));
   });
 
@@ -311,6 +305,7 @@
     setCopy(fetchButton, 'discover');
     const select = document.createElement('select');
     select.className = 'okw-discovery-select';
+    bindCopy(select, () => copy().choose, 'aria-label');
     select.disabled = true;
     const placeholder = document.createElement('option');
     placeholder.value = '';
@@ -407,7 +402,7 @@
     document.querySelectorAll(FORM_SELECTOR).forEach((form) => {
       modelRows(form).forEach((row) => {
         const state = rowStates.get(row);
-        if (!state || state.dirty) return;
+        if (!state || state.dirty.size) return;
         rowStates.delete(row);
         row.querySelector('.okw-model-options')?.remove();
       });
@@ -427,7 +422,8 @@
   const isProviderSave = (url, method) => (method === 'POST' && url.pathname === '/api/v1/providers') ||
     (method === 'PUT' && /^\/api\/v1\/providers\/[^/]+$/.test(url.pathname));
 
-  const parseBody = (text) => {
+  const readBody = async (input, init) => {
+    const text = init?.body ?? (input instanceof Request ? await input.clone().text() : null);
     if (typeof text !== 'string') return null;
     try {
       return JSON.parse(text);
@@ -436,35 +432,34 @@
     }
   };
 
-  const serializeModelState = (model, state) => ({
-    ...model,
-    capabilities: [
-      ...ALL_CAPABILITIES.filter((value) => state.capabilities.has(value)),
-      ...state.extraCapabilities,
-    ],
-    support_efforts: [
-      ...ALL_EFFORTS.filter((value) => state.supportEfforts.has(value)),
-      ...state.extraEfforts,
-    ],
-    adaptive_thinking: state.adaptiveThinking,
-  });
+  const isVisible = (form) => {
+    if (!form.getClientRects().length) return false;
+    const { visibility } = window.getComputedStyle(form);
+    return visibility !== 'hidden' && visibility !== 'collapse';
+  };
 
-  const orderedModels = (form, models, provider) => {
-    return sorting.mapModels(form, models).map(({ model, row }) => (
-      row ? serializeModelState(model, stateFor(row, provider)) : model
-    ));
+  const matchesProvider = (provider, body, url, method) => method === 'POST' ? body.id === provider :
+    body.new_id === provider || (!body.new_id && url.pathname === `/api/v1/providers/${encodeURIComponent(provider)}`);
+
+  const mayEnhanceSave = (url, method) => url.origin === location.origin && isProviderSave(url, method) && configLoaded;
+  const matchingModels = (form, models) => {
+    if (modelRows(form).length !== models.length) return null;
+    const mapped = sorting.mapModels(form, models);
+    return mapped.every(({ model, row }) => row && model?.model === textInputs(row)[0]?.value?.trim()) ? mapped : null;
   };
 
   const mergeProviderFields = async (input, init, url, method) => {
-    if (!isProviderSave(url, method)) return [input, init];
-    const form = Array.from(document.querySelectorAll(FORM_SELECTOR))
-      .find((candidate) => enhancedForms.has(candidate));
-    if (!form) return [input, init];
-    enhance();
-    const originalBody = init?.body ?? (input instanceof Request ? await input.clone().text() : null);
-    const body = parseBody(originalBody);
-    if (!Array.isArray(body?.models)) return [input, init];
-    body.models = orderedModels(form, body.models, inputValue(form, ['名称', 'Name']));
+    if (!mayEnhanceSave(url, method)) return [input, init];
+    const forms = Array.from(document.querySelectorAll(FORM_SELECTOR)).filter(isVisible);
+    if (forms.length !== 1 || !enhancedForms.has(forms[0])) return [input, init];
+    const form = forms[0];
+    const provider = inputValue(form, ['名称', 'Name']);
+    const body = await readBody(input, init);
+    if (!Array.isArray(body?.models) || !matchesProvider(provider, body, url, method)) return [input, init];
+    const mapped = matchingModels(form, body.models);
+    if (!mapped) return [input, init];
+    body.models = mapped.map(({ model, row }) => textInputs(row)[0].disabled ? model :
+      modelState.serialize(model, stateFor(row, provider)));
     const nextInit = { ...init, body: JSON.stringify(body) };
     if (input instanceof Request) return [new Request(input, nextInit), undefined];
     return [input, nextInit];

@@ -153,7 +153,21 @@ debug 先仅存内存，B 正常关闭可在 A 仍持锁时落盘，stale 40932 
 真实固定 npm 2.3.1 安装、CLI／PTY／鉴权 Web、owned 复用与损坏拒绝通过，未碰用户实际安装。
 PR #29 与 main required CI 已通过，正式 v2.3.1-r1 tag 指向 c9a3e0ce；发布包 130 文件／8,413,567 bytes。
 线上 tgz 与本地正式资产原字节相同，同 SHA 在线入口及 latestRelease 已核验；准确公开链接／digest 见本轮计划。
-发布后证据另作 docs 更新，不移动 tag 或替换资产；实体手机／软键盘及全平台未全面验收。
+上轮发布后证据另作 docs 更新，未移动 tag 或替换资产；实体手机／软键盘及全平台未全面验收。
+
+用户此次明确要求修复供应商发现模型后无选择入口，并重新发布同一 r1，按
+[`docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md`](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md) 执行。
+本次仅对 v2.3.1-r1 授权精确 lease 移 tag／替换同名资产，覆盖上轮该版本不变更限制；其它版本和分支历史不动。
+官方 2.3.1 模型标题是 div.pf-label，旧 label-only 查找漏挂增强选择器；保留原生批量拉取及正式保存流程。
+必须验证真实新 DOM、双表单作用域及双端主题实图；不以旧测试或旧整套验收冒充本次通过。
+同版本 npm update 会跳过，已隔离验证原 prefix 重装，须提供原 r1 用户准确步骤；不自动改用户安装或重启生产。
+用户追加 Kimi for Coding HTTP 400 排查并授权用环境变量 KIMI_KEY：仅官方端点最短必要调用，密钥不落盘、不回显。
+按同一计划增补范围执行，不读取真实配置／会话、不伪装客户端身份，问题明确前暂停 r1 发布。
+实测同 Key／模型／全能力配置，low 完成而 xhigh 复现完全相同 400；不得继续默认全能力／六档或未编辑就覆盖原生字段。
+完整 app 已确证隐藏 preset 串 Custom 保存；已最小修唯一可见及身份／行匹配，按编辑字段合并，保存／重开续验见计划。
+新增 providerModelState helper 已登记，主增强 494 行；55 定向 UT／5 asset IT 与标准 lint／typecheck／pack 通过。
+实际资源保存→准确官方 2.3.1→Coding 的最短 thinking:on 对话完成，密钥只用环境引用，自有进程／端口清零。
+已有污染配置不自动清洗，需明确纠正步骤；不把复现同错当作已读取并确认用户现场全部原因。
 
 ## 项目边界
 
