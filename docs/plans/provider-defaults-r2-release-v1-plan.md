@@ -85,3 +85,32 @@
   无横向溢出，fieldset／13个checkbox／Save可达，r2与固定r1几何一致；不把旧baseline24／25或mobile驱动失败写成全过。
   完整 Settings 由桌面打开后 resize／touch，只用虚构 loopback REST／WS，不代表实体手机、冷入口或用户真实磁盘配置验收。
   自有 Chrome 整棵子树、全部测试监听／launcher／WS 已清零；未访问真实配置／会话／凭据或生产端口。
+
+## 正式发布与线上核验
+
+- [PR #33](https://github.com/WilliamLambertCN/open-kimi-web/pull/33) 经 required gate 通过后普通 squash，未绕过保护。
+  develop 提交 `b91613d3154e625d836be7a827a014da4ebf4dd2`，准确发布 main 为
+  `6562db37b66fd307cd308deedf88790c86810089`；本轮提交／squash／新 tag 使用 noreply 邮箱，未重写既有历史。
+- [main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40315878374) 成功：
+  lint、typecheck、pack 通过；UT 97 文件通过，2070 项通过／25 跳过；IT 22 文件通过／1 跳过，532 项通过／22 跳过。
+  UT Lines／Branch 91.97%／83.53%，IT 85.57%／72.97%；未降低70%门槛、提高timeout或将跳过计为通过。
+  本地不再重复全量矩阵，公开日志与 ignored `main-ci.log` 保留准确结果。
+- 从上述已验 main 打出 `open-kimi-web-2.3.1-r2.tgz`，131文件／8,415,233 bytes。
+  实际包内源码／文档与该提交原字节一致；manifest 仅移除 pnpm 生命周期 hooks，版本及依赖正确。
+  未混入测试、缓存、真实配置、凭据、个人路径、日志、备份或调试 sourcemap，既有公开媒体未变化。
+  包内真实 HTTP 资源200／no-cache、sorting→modelState→enhancements顺序、默认／取消保存和已有空数组／false验证通过。
+- 正式 [v2.3.1-r2 Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2)
+  已发布为 Latest，非 draft／非 prerelease；新 tag 固定上述 main，未再移动或替换资产。
+  Release ID `424173693`，唯一上传的 tgz asset ID `677975997`；未发布 npm registry。
+  SHA-256：`f8acdab2525d7d359bce889fb88d2c6a95c751e3b9b788d2761c2fed36cdd957`。
+- 线上重新下载的 tgz 与本地正式包原字节一致，GitHub digest／size一致；tag commit API与上述40位SHA相同。
+  同SHA的 PowerShell／sh／coordinator／official／network helpers及完整源码归档获取成功，入口原字节核对通过。
+  实际 `latestRelease()` 返回r2；从正式r1包解出的原更新器真实访问latest也返回r2及准确tgz，版本比较确认可正常升级。
+  这是发现／比较及来源核验，不冒充在用户实际安装上执行更新；未重复整包安装或浏览器矩阵。
+- 首次线上核验在解压旧r1包时遇到Git Bash tar的Windows绝对路径兼容错误，之前线上断言已通过但整脚本exit1。
+  仅修 ignored QA 的相对路径参数后续验成功，不改产品／发布包；临时解包目录已清理，准确结果见
+  ignored `provider-defaults-r2-release/release/online-verification.json`。
+- 与发布前记录比对，原r1的tag／target、Release ID及asset ID／size／digest均未变化，仍固定 `5b626e3f`。
+  本次无用户实际安装／官方CLI升级、生产重启、真实配置／会话读取或付费调用；实体手机、冷入口及未测档位边界保持不变。
+- 本节是发布后证据记录，只做正常文档PR；不会为纳入记录再次移动r2 tag、重打或替换正式包。
+  用户正常 `update --check`／`update` 后手动停止旧launcher、重启并刷新，不需清空配置或同版本重装。
