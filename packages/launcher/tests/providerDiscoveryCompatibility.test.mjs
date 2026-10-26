@@ -148,7 +148,11 @@ describe('official 2.3.1 provider discovery markup', () => {
     const saved = JSON.parse(ui.writes()[0][1].body);
     expect(saved.models.map(({ model }) => model)).toEqual(['existing-model', modelIds[21]]);
     expect(saved.models[0]).toMatchObject({ capabilities: ['tool_use'], support_efforts: ['low'], adaptive_thinking: false });
-    expect(saved.models[1]).toEqual(body.models[1]);
+    expect([...rows[1].querySelectorAll('.okw-model-options input:checked')].map((input) => input.value))
+      .toEqual(['image_in', 'tool_use', 'thinking', 'always_thinking', 'none', 'low', 'medium', 'high', 'xhigh', 'max',
+        'adaptive_thinking']);
+    expect(saved.models[1]).toEqual({ ...body.models[1], capabilities: ['image_in', 'tool_use', 'thinking', 'always_thinking'],
+      support_efforts: ['none', 'low', 'medium', 'high', 'xhigh', 'max'], adaptive_thinking: true });
     expect(ui.view.localStorage.setItem).not.toHaveBeenCalled();
     await settled(ui);
   });

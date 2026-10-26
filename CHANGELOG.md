@@ -4,6 +4,38 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.3.1-r2] - 2026-10-26
+
+继续兼容官方 Kimi Code `2.3.1`；本轮由用户明确要求恢复新模型默认并新发 r2，实施基线见
+[默认勾选与 r2 发布计划](docs/plans/provider-defaults-r2-release-v1-plan.md)。
+准确验收、CI、交付包与线上发布结果以该计划及其公开记录为准，不沿用 r1 的通过记录。
+
+- 新模型仅 `video_in`、`image_out` 默认不选；`image_in`、`tool_use`、`thinking`、`always_thinking` 默认选中。
+  六档 `none/low/medium/high/xhigh/max` 与 `adaptive_thinking` 恢复默认选中，展示与实际保存／重开应一致。
+- 已有显式数组（含空数组）、未知值与 false 不自动改写；保留 r1 的模型发现选择、唯一可见表单、逐行身份匹配及独立字段保存修复。
+  不把新模型默认当作已有配置迁移，也不将默认选择当作服务能力保证。
+- r2 正式发布后，原 r1 用户正常 `update --check`／`update`，再停止旧 launcher、重新启动并刷新，无需同版本重装。
+  源码安装仍仅允许干净 main 快进；不移动 r1 tag、不替换其资产、不更新用户实际官方 Kimi 或自动重启生产。
+- 当前安装指引固定 r2 版本，从 tag commit API 解析并校验真实 40 位 SHA，只下载同 SHA 入口并传同一 revision。
+  不复用旧 r10 SHA 或伪造未发布版本的 SHA；缺官方时仍固定准备官方 `2.3.1`，已有可用安装不自动升级。
+- 默认／保存定向 8 文件／99 项 UT、5 项 asset IT、受影响 ESLint 和标准 lint／typecheck／pack 已通过。
+  完整官方 app 的 POST／PUT、fresh GET／重开及四张双端代表图已核对；原 QA 驱动失败及未完成部分续验单独保留。
+  标准 CI、正式包及线上 latest/update 的准确结果记录于本轮计划，不以阶段检查冒充全部完成。
+  本轮不新增付费请求、不读取或改写用户真实配置／会话，不改生产。
+
+### 事件：上轮热修复取消了用户要求的新模型默认勾选
+
+- 影响：新模型的能力、思考档位与自适应思考默认选择偏离用户偏好，需要用户重新逐项勾选。
+- 触发条件：使用上轮同版本 r1 热修复后新增模型；已有显式配置不属于本次自动恢复范围。
+- 根因：上轮把 Coding 特定参数的 low／xhigh 对照扩展为通用保守默认，擅自改变原有勾选偏好，未区分用户偏好与服务能力证据。
+  上轮默认回归沿用了保守策略，未把保留原有勾选偏好与真实保存链路同时作为验收条件。
+- 证据：同 Key／服务／模型对照为 low 成功、xhigh 400；修后 thinking:on 未显式 effort 成功，medium/high/max 未逐档实测。
+  用户随后明确只取消视频输入与图片输出，其它能力、六档 effort 和自适应思考恢复默认选中；不据此宣称服务全部支持。
+- 修复：按本轮要求恢复新模型默认，保留原 r1 表单作用域、身份匹配及字段合并门禁；已有明确配置不自动重写。
+- 回归验证：99 项定向 UT 验证准确默认、POST／PUT／重开、逐项取消与既有空数组／false／未知值；完整 app 与发布证据见计划。
+- 运维动作：r2 正式发布后正常 update，再手动重启 launcher 并刷新；无需清空配置、会话或官方缓存。
+- 剩余边界：默认只是用户偏好，模型服务是否接受须以实际支持为准；不新增付费调用，不称未测档位可用或实体手机／全平台已验收。
+
 ## [open-kimi-web v2.3.1-r1] - 2026-10-24
 
 兼容基线更新为官方 Kimi Code `2.3.1`；发布与准确验收记录见
@@ -676,3 +708,5 @@ Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR�
 [open-kimi-web v2.1.1-r8]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r8
 [open-kimi-web v2.1.1-r9]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r9
 [open-kimi-web v2.1.1-r10]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
+[open-kimi-web v2.3.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
+[open-kimi-web v2.3.1-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
