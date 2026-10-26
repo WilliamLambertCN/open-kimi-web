@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mockProviderLayout } from './testkit/providerLayout.mjs';
 
 const source = (name) => readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8');
 const frames = [];
@@ -29,6 +30,7 @@ function install() {
   document.body.append(frame);
   frames.push(frame);
   const view = frame.contentWindow;
+  mockProviderLayout(view);
   const history = Array.from({ length: 500 }, (_, index) => `<div class="a-msg">Message ${index}</div>`).join('');
   view.document.body.innerHTML = `<div id="app">${history}</div>${formMarkup}`;
   view.Request = Request;
@@ -53,7 +55,8 @@ function install() {
   const nativeFetch = vi.fn(async (url) => String(url).includes('/api/v1/config') ? config() : Response.json({}));
   view.fetch = nativeFetch;
   const location = { href: 'http://localhost/settings', origin: 'http://localhost' };
-  const scripts = `${source('providerLocale.js')}\n${source('providerSorting.js')}\n${source('providerEnhancements.js')}`;
+  const scripts = ['providerLocale.js', 'providerSorting.js', 'providerModelState.js', 'providerEnhancements.js']
+    .map(source).join('\n');
   view.eval(`((location) => { ${scripts}\n})(${JSON.stringify(location)})`);
   return { view, nativeFetch, state };
 }
@@ -103,12 +106,12 @@ describe('provider observer scope', () => {
 
     await view.fetch('/api/v1/providers', {
       method: 'POST',
-      body: JSON.stringify({ models: [{ model: 'model-a' }, { model: 'model-b' }] }),
+      body: JSON.stringify({ id: 'provider-fixture', models: [{ model: 'model-a' }, { model: 'model-b' }] }),
     });
     const saved = JSON.parse(nativeFetch.mock.calls.at(-1)[1].body);
     expect(saved.models.map((model) => model.model)).toEqual(['model-a', 'model-b']);
     expect(saved.models[0]).toMatchObject({ capabilities: [], support_efforts: [], adaptive_thinking: false });
-    expect(saved.models[1].capabilities).toContain('image_in');
+    expect(saved.models[1]).toEqual({ model: 'model-b' });
     const scanCount = queries.mock.calls.length;
     const callbackCount = fixture.state.callbacks;
     await tick();

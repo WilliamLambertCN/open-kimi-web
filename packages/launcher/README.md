@@ -7,12 +7,18 @@
 ## 安装
 
 本项目不发布到 npm registry；版本 `v2.3.1-r1` 兼容 Kimi Code `2.3.1`。
-本轮真实双端路径／原生信任与重启持久化、cron 只读及官方 npm 安装验收已通过，标准 lint／typecheck／UT／IT／pack 通过。
+本次同版本修复供应商模型选择入口、隐藏表单串保存和默认能力／思考档位污染；验证与重发状态见[热修复计划][provider-hotfix-plan]。
+原 r1 的 npm 安装须按下方[同版本重装说明](#升级)更新，不能只运行 `update`。
+初发版本的真实双端路径／原生信任与重启持久化、cron 只读及官方 npm 安装验收已通过，标准门禁通过。
 手机预览透底、子模型文案及新增工作区排序已修，并完成受影响主题、窄屏及官方安全对话框的定向实图检查。
 准确证据与未验边界见[发布计划][current-plan]；CI 与发布以公开记录及 [Release 页面][current-release]为准。
 官方 [2.3.1 Release][official-231-release] 修复无 Git Bash 时的工作区信任流程、POSIX 崩溃残留占用，
 并改进持有客户端名称及 retry／takeover 对话框；增强层保留原生信任、会话锁与模型确认，不关锁或自动接管。
 2.3.0 的模型切换确认受云配置控制，RC 压缩／100 MiB 处理和归档恢复属于官方功能，不作为本项目新增能力。
+供应商能力／思考档位必须由模型实际支持，发现模型 ID 不等于支持全部功能。
+Kimi Coding 手动配置选 `Kimi` 协议及国内 `https://api.kimi.com/coding/v1`／Global `https://api.kimi.ai/coding/v1`。
+已有全档位配置报 400 时，取消如 `xhigh` 等不支持项，
+再在会话选受支持档位重试。升级不自动清洗已有配置，根因和实证见热修复计划。
 
 ### 一键安装（推荐）
 
@@ -319,7 +325,14 @@ open-kimi-web update           # 更新同一安装，不自动重启
 open-kimi-web update --help
 ```
 
-一键安装的专用 prefix 沿用标准 npm 全局布局，常规升级用上面的 `update`，不重跑安装器或追加切换参数。
+**2026-10-26 同版本 r1 热修复：** npm 更新器跳过相同版本，`update` 不会替换原 r1。
+一键用户重跑上方对应系统命令，保持原 `OPEN_KIMI_WEB_HOME` 和安装选项，不加 `--switch-installation`。
+安装器重新下载并校验当前 Release，替换同一 prefix，不清空会话或配置。
+手动 npm 用户从 [Release][current-release] 新下载 tgz，用原 npm／prefix 安装本地文件以避开相同 URL 的缓存，
+例如 `npm install -g --prefix "<原 prefix>" "<新 tgz 绝对路径>"`；源码 main 用户照常快进到修复提交。
+完成后仍需停止旧 launcher，重新启动并刷新页面。
+
+一键安装的专用 prefix 沿用标准 npm 全局布局，常规新版本用上面的 `update`，不重跑安装器或追加切换参数。
 wrapper 会调用记录的 Node，更新器优先使用该 Node 旁的 npm，不要求 shell 的裸 `node` 可用。
 `--no-integrate` 不建立新 wrapper／PATH，更新时须用所选 Node 的绝对路径执行该专用 prefix 中的 launcher，
 再加 `update --check`／`update`，不能让 PATH 中的旧安装或默认 `npm root -g` 代替目标入口。
@@ -389,5 +402,7 @@ MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 M
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [current-plan]:
   https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
+[provider-hotfix-plan]:
+  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md
 [current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
