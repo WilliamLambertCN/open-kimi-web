@@ -40,7 +40,7 @@
     adaptive: '自适应思考',
     adaptiveTitle: '允许模型根据任务复杂度调整思考方式',
     savedEfforts: (values) => `保留的未列出档位：${values}`,
-    unconfirmed: '尚无已确认配置；这里只显示手动默认，保存时保留原生元数据',
+    unconfirmed: '尚无已保存配置；保存将采用当前勾选，默认勾选不代表服务支持，请按实际能力调整',
     discover: '拉取模型',
     discovering: '正在拉取…',
     choose: '选择已发现的模型',
@@ -59,7 +59,7 @@
     adaptive: 'Adaptive thinking',
     adaptiveTitle: 'Allow the model to adjust its thinking to task complexity',
     savedEfforts: (values) => `Retained unlisted efforts: ${values}`,
-    unconfirmed: 'No confirmed configuration; showing manual defaults and preserving native metadata on save',
+    unconfirmed: 'No saved configuration; current selections will be saved. Service support is not guaranteed; adjust as needed',
     discover: 'Fetch models',
     discovering: 'Fetching…',
     choose: 'Choose a discovered model',
@@ -148,10 +148,14 @@
   const sorting = window.OpenKimiProviderSorting;
 
   const stateFor = (row, provider) => {
-    let state = rowStates.get(row);
-    if (state) return state;
     const model = textInputs(row)[0]?.value?.trim() ?? '';
-    state = modelState.create(modelConfigs.get(keyOf(provider, model)));
+    const saved = modelConfigs.get(keyOf(provider, model));
+    let state = rowStates.get(row);
+    if (state) {
+      state.saved ??= saved;
+      return state;
+    }
+    state = modelState.create(saved);
     rowStates.set(row, state);
     return state;
   };
