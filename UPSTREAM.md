@@ -78,6 +78,13 @@ Initial-publication hashes and acceptance above remain historical. The updater c
 existing one-click users must rerun their matching installer with the same home, while manual npm users must replace their actual
 installation from the refreshed package. Source users can fast-forward their clean main checkout. Restart remains manual.
 
+The hotfix is published at the same r1 Release. [PR #31](https://github.com/WilliamLambertCN/open-kimi-web/pull/31) and
+[main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40299735039) passed the unchanged standard gates.
+The tag now points to `5b626e3fa94c5016c0c8d6d3ff248ed514b491ca`; refreshed asset 677671621 has 131 files and 8,414,834 bytes.
+Online tgz bytes, immutable installer entries and the real latest-release lookup match the verified release.
+Focused save/reopen, default metadata and rename checks plus their retained driver failure are recorded in the hotfix plan.
+These checks do not establish physical-phone, all-platform installation or unread production-configuration acceptance.
+
 ## Unified navigation and search
 
 The formerly unpublished navigation, mobile official-index search and Hyper-V fixes are now in [the current scope][current-plan].

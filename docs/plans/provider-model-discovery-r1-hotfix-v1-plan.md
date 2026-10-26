@@ -100,7 +100,56 @@
   原生 POST 保持完整原样，官方返回 201；随后同 launcher→准确未修改 2.3.1→官方 Coding，thinking:on 完成 1 次最短对话。
   Key 仅用环境引用；无新增 efforts、无隐藏表单串值。浏览器 DOM 部分用 jsdom 及显式布局模拟，不冒充完整 app 实图。
   首次 driver 缺本地 jsdom 解析失败保留，未启动后端／未发模型；修正为锁文件已有依赖路径后通过。
-  正常 shutdown、自有进程／监听均零，隔离 home 已删除；完整 app 的保存／重开续验仍需独立完成。
-- 首次 required CI 未通过，未合入 main 或发布：localeUi 的手动资源列表漏新 helper，归档 all-scripts 测试仍断言 33 而非 34。
+  正常 shutdown、自有进程／监听均零，隔离 home 已删除；完整 app 独立续验结果见下方。
+- 首次 required CI 未通过，当时未合入 main 或发布：localeUi 的手动资源列表漏新 helper，归档 all-scripts 测试仍断言 33 而非 34。
   原失败日志／CI 链接保留，不以重复重跑掩盖；仅同步两处测试装载与真实新默认／正式提交身份，未改产品或放宽门禁。
-  续验 2 文件／21 项及受影响 ESLint 通过；新 CI 须重新通过完整标准命令和覆盖率门槛。
+  续验 2 文件／21 项及受影响 ESLint 通过，后续完整 required CI 结果见下方。
+
+## 最终验收与发布记录
+
+- 完整准确官方 app 保存作用域续验 `run-scope-fixed-2026-10-26T09-11-56-893Z/report.json`：19／19、exit 0。
+  `run-metadata-fixed-2026-10-26T09-17-13-360Z/report.json` 已执行 32／32，但末尾 rename 驱动滚动后被 sticky header
+  遮挡而 hit-test timeout，整次 exit 1／passed:false；保留失败，不能将该报告写成整次通过。
+  仅修驱动居中滚动，独立补齐 adaptive／rename：`run-adaptive-fixed-2026-10-26T09-19-44-059Z/report.json` 15／15、exit 0。
+  上述报告均在 ignored `.cache/provider-discovery-r1-hotfix/`，未公开 QA、日志或截图。
+- 三次 POST、四次 PUT 及 fresh GET／重开覆盖：取消 Thinking、未编辑原生默认且无新增 efforts、两行独立选项修改与鼠标排序、
+  已知／未知 capability 和 effort、显式 false、adaptive-only 与 new_id 重命名。保存值不串隐藏 preset。
+  父级实看桌面 Original 默认、320 Nocturne 已知 effort、320 Nocturne 重命名三张代表图；两组选项对齐、无页面横向溢出，
+  13 项控件 hit-test、Save 可达与未知 effort 保留提示通过。沿用已有 1280／390／320、中英长短 ID 矩阵，不重跑无变化组合。
+  手机仍是桌面打开完整设置后的 resize／touch，正式 method-aware fixture 不等于真实配置磁盘或实体手机验收。
+  全部自有 Chrome 子树、launcher、WS、fixture 与监听清零；未自动重启生产。
+- [首次 CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40298212890) 的资源 fixture 失败保留。
+  后续 PR 初次 pack 启动 15 秒超时，日志未提供子进程原因；同 SHA develop 与本地 pack 已成功，未改产品、timeout 或门槛。
+  同 SHA 重跑完整标准门禁通过：[develop CI][develop-ci]、[PR required CI][pr-ci]。
+  [PR #31][hotfix-pr] 正常 squash 到 main `5b626e3fa94c5016c0c8d6d3ff248ed514b491ca`，无 admin 绕过；[main CI][main-ci] 成功。
+- main 标准 lint／typecheck／test:pack 通过。UT 97 文件，2047 通过＋25 平台跳过；IT 22 文件通过＋1 文件跳过，
+  532 项通过＋22 平台跳过。UT 行／分支覆盖率 91.97%／83.53%，IT 85.57%／72.97%，70% 门槛不变。
+  完整日志归档 `main-ci-passed.log`，不重复无变化的本地整套测试或安装矩阵。
+- 在该准确已验 main 打正式 `open-kimi-web-2.3.1-r1.tgz`，131 文件／8,414,834 bytes。
+  SHA-256：`f9b93346c510508c98a0b181796e870178799925629f079ee14a42c5a60516cb`。
+  `release/package-audit.json` 确认包内源码／文档与 checkout 原字节对应；manifest 仅移除 pnpm 打包生命周期 hooks。
+  未发现私有配置、凭据、个人路径、日志、缓存或调试 sourcemap；既有公开背景未变，无新公开媒体。
+  实际解包 import officialPresentation 并启动资源服务，sorting→modelState→enhancements 顺序正确，三资源 200／no-cache，
+  与已验源码原字节相同；见 `release/packed-assets-verification.json`，scratch 已删除。这不是重复完整浏览器或安装验收。
+- 已仅对 `refs/tags/v2.3.1-r1` 使用旧 SHA `c9a3e0ce2a71037f510d794303e84ce6bed69209` 的精确 force-with-lease，
+  新 tag 为 `5b626e3fa94c5016c0c8d6d3ff248ed514b491ca`；未重写 main／develop 历史或更改其它 Release。
+  [原 r1 Release][release] ID 422608140 不变，同名新 asset ID 677671621；旧 asset ID 671704889 与旧包已本地归档。
+  Release 正式公开、非 draft／prerelease，说明已补升级边界；不新增 r2，不再次移动 tag 来纳入本次事后记录。
+- `release/online-verification.json` 已通过：线上重下 tgz 与本地正式包原字节相同，API digest 与上述一致，tag／target 正确；
+  同 SHA 的 PowerShell／sh／协调器和两个安装 helpers 原字节匹配，源码归档可下载，真实 latestRelease 返回正确版本及 tgz URL。
+  源码归档只验证下载，未逐文件解包比对；这些是来源与资产核对，不冒充线上包全平台安装或实体设备验收。
+- 同版本 update 仍正确返回 already-current。README、launcher README 与 Release 已给出原 r1 的真实升级方式：
+  一键用户重跑顶部对应系统命令，保持原 home 和安装选项，不追加切换、不删配置；手动 npm 用户新下载 tgz，
+  用原 npm／原 prefix 安装新本地文件，避免同 URL 缓存；源码 main 干净快进并安装 frozen lockfile。
+  停旧 launcher、重启并刷新。已有不支持档位不会自动清洗：在供应商取消服务不支持的档位，再在会话选择受支持档位。
+- 隐私历史检查的保留问题：本地新增提交均显式使用 noreply，但 GitHub PR squash 默认作者仍带账号学校邮箱，已进入 main。
+  未发现凭据泄露，不需要因该作者信息轮换 Key；邮箱历史清理超出本轮授权，未擅自重写分支或再次移动发布 tag。
+  事后文档提交及后续 squash 显式指定 noreply；不能据此宣称旧公开提交的作者邮箱已消失。
+- 不读取或更改用户真实配置／会话，不升级其实际官方 CLI，不修改 PATH／网络，不自动重启其生产服务。
+  用户现场的全部 400 原因、实体手机／软键盘、macOS／arm64 及真实用户安装仍未全面验证。
+
+[develop-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40298663038
+[pr-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40298669066
+[main-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40299735039
+[hotfix-pr]: https://github.com/WilliamLambertCN/open-kimi-web/pull/31
+[release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1

@@ -168,6 +168,10 @@ PR #29 与 main required CI 已通过，正式 v2.3.1-r1 tag 指向 c9a3e0ce；�
 新增 providerModelState helper 已登记，主增强 494 行；55 定向 UT／5 asset IT 与标准 lint／typecheck／pack 通过。
 实际资源保存→准确官方 2.3.1→Coding 的最短 thinking:on 对话完成，密钥只用环境引用，自有进程／端口清零。
 已有污染配置不自动清洗，需明确纠正步骤；不把复现同错当作已读取并确认用户现场全部原因。
+保存作用域 19／19、metadata 已执行 32／32 后驱动失败保留、独立 adaptive／rename 15／15；代表图和边界见热修复计划。
+PR #31 及 main 标准 CI 已通过；同 r1 已重发，tag 固定 5b626e3f，新包 131 文件／8,414,834 bytes，线上字节及入口一致。
+事后记录不再次移动 tag／换包；同版须原 prefix 重装并重启刷新，原有错误档位须手动纠正，不再重复无变化矩阵。
+本轮 squash 默认作者含学校邮箱，历史未获重写授权；后续提交和 squash 必须显式使用已确认 noreply，准确隐私边界见计划。
 
 ## 项目边界
 
