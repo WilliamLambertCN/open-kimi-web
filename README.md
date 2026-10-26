@@ -45,7 +45,9 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
 > 默认界面直接来自官方 npm 包（MIT 许可）的构建产物；官方 logo 与样式版权归 Moonshot AI 所有。
 
 > 当前版本：[v2.3.1-r1][current-release]，兼容 Kimi Code `2.3.1`。更新记录见 [CHANGELOG.md](CHANGELOG.md)。
-> 本轮真实双端路径／原生信任与重启持久化、cron 只读及官方 npm 安装验收已通过，标准 lint／typecheck／UT／IT／pack 通过。
+> 本次同版本修复供应商模型选择入口、隐藏表单串保存和默认能力／思考档位污染；验证与重发状态见[热修复计划][provider-hotfix-plan]。
+> 已安装原 r1 的 npm 用户不能只运行 `update`，请按[同版本重装说明](#升级)获取修复。
+> 初发版本的真实双端路径／原生信任与重启持久化、cron 只读及官方 npm 安装验收已通过，标准门禁通过。
 > 手机预览透底、子模型文案及新增工作区排序已修，并完成受影响主题、窄屏及官方安全对话框的定向实图检查。
 > 准确证据与未验边界见[当前计划][current-plan]，CI 与发布以公开记录为准；下方旧版数字不代表新版结果。
 
@@ -159,6 +161,10 @@ Open Kimi Web 保留官方 Web 与后端，在外层增加用量统计、局域�
   可恢复官方外观，选择只保存在当前浏览器和站点。
 - **供应商编辑增强**：供应商标签支持触摸、拖动、滚轮和键盘导航；模型可配置多模态、
   工具、思考能力与思考档位，可从 `/models` 发现并添加模型，也可用鼠标或触摸排序。
+  能力和档位必须由实际模型支持，候选 ID 不等于支持所有功能；已有配置不会因升级自动清洗。
+  Kimi Coding 手动接入选 `Kimi` 协议，国内 Base URL 为 `https://api.kimi.com/coding/v1`，
+  Global 为 `https://api.kimi.ai/coding/v1`；不能与开放平台 Key／地址混用。
+  若曾保存全档位并出现 400，先取消服务不支持的档位（如 `xhigh`），再在会话中选择受支持档位；详见[热修复记录][provider-hotfix-plan]。
 - **工作区最近活动排序与置顶**：桌面首次使用默认按最近活动排列，也可切回官方手动顺序；
   置顶项始终在前，多个置顶项按操作顺序排列。本地仅为置顶保存工作区 ID。
   手机会话抽屉支持原生“平铺／按工作区”，分别记住各端的视图选择。
@@ -473,7 +479,14 @@ open-kimi-web update           # 更新该安装，不更新官方 Kimi、不自
 open-kimi-web update --help
 ```
 
-一键安装的专用 prefix 是标准 npm 全局布局，仍用 `update` 更新同一安装，不需要重跑安装器或追加切换参数。
+**2026-10-26 同版本 r1 热修复：** npm 更新器会把相同版本判为已最新，单独运行 `update` 不会替换原 r1。
+一键安装用户重新运行本文开头对应系统的命令，保持原来的 `OPEN_KIMI_WEB_HOME` 和安装选项；无需切换安装方式。
+安装器会重新下载并校验当前 Release 的包，再替换同一个 prefix。不要加 `--switch-installation` 或删除配置。
+手动 npm 用户从 [Release][current-release] 重新下载 tgz，用原来的 npm、原 prefix 安装这个**新下载的本地文件**，
+避免相同 URL 的缓存影响；例如 `npm install -g --prefix "<原 prefix>" "<新 tgz 绝对路径>"`。
+源码 main 用户照常快进到修复提交。以上方式完成后，停止旧 launcher，重新启动并刷新页面；无需清空会话或缓存。
+
+一键安装的专用 prefix 是标准 npm 全局布局，常规新版本仍用 `update` 更新同一安装，不需要重跑安装器或追加切换参数。
 已接管 wrapper 使用记录的 Node，更新器优先解析该 Node 旁的 npm；不需要先给系统安装 Node 或 Corepack／pnpm。
 使用 `--no-integrate` 后没有新 wrapper／PATH 入口，不能假定 `open-kimi-web` 命令已经可用：
 用安装时选定 Node 的**绝对路径**执行专用 prefix 中的 launcher 入口，再加 `update --check`／`update`。
@@ -642,5 +655,6 @@ MIT — 见 [`LICENSE`](LICENSE)。Moonshot AI 的 MIT 许可代码保留原始�
 [r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [current-plan]: docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
+[provider-hotfix-plan]: docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md
 [current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

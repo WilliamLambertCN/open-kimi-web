@@ -166,7 +166,7 @@ class FakeField extends FakeElement {
   }
 
   querySelector(selector) {
-    if (selector === 'label') return this.label;
+    if (selector === '.pf-label, label') return this.label;
     if (selector === 'input') return this.control instanceof FakeInput ? this.control : null;
     if (selector === 'select') return this.control?.tagName === 'SELECT' ? this.control : null;
     if (selector === '[role="combobox"], button') return this.control?.tagName === 'BUTTON' ? this.control : null;
@@ -307,7 +307,8 @@ function install({ current = false } = {}) {
   const document = createDocument(form);
   const calls = [];
   const nativeFetch = createFetch(calls);
-  const window = { fetch: nativeFetch, addEventListener() {} };
+  form.getClientRects = () => [{ width: 600, height: 300 }];
+  const window = { fetch: nativeFetch, addEventListener() {}, getComputedStyle: () => ({ visibility: 'visible' }) };
   const context = {
     Array,
     Error,
@@ -329,6 +330,7 @@ function install({ current = false } = {}) {
     window,
   };
   runInNewContext(sortingSource, context);
+  runInNewContext(readFileSync(new URL('../src/mobile/providerModelState.js', import.meta.url), 'utf8'), context);
   runInNewContext(readFileSync(new URL('../src/mobile/providerLocale.js', import.meta.url), 'utf8'), context);
   runInNewContext(enhancementSource, context);
   const mutate = () => observerCallback([{ target: form, addedNodes: [], removedNodes: [] }]);
@@ -349,7 +351,7 @@ const tick = async () => {
 };
 
 describe('provider model enhancements', () => {
-  it('preserves explicit empty settings and defaults a new row to every option in PUT/POST bodies', async () => {
+  it('preserves explicit empty settings and native defaults for a new row in PUT/POST bodies', async () => {
     const app = install();
     await app.window.fetch('/api/v1/config', { headers: { authorization: 'Bearer page-token' } });
     await app.window.fetch('/api/v1/models', { headers: { authorization: 'Bearer page-token' } });
@@ -361,26 +363,23 @@ describe('provider model enhancements', () => {
     expect(existingChecks).toHaveLength(13);
     expect(existingChecks.every((input) => input.checked === false)).toBe(true);
     expect(addedChecks).toHaveLength(13);
-    expect(addedChecks.every((input) => input.checked === true)).toBe(true);
-
+    expect(addedChecks.filter((input) => input.checked).map((input) => input.value))
+      .toEqual(['tool_use', 'thinking', 'adaptive_thinking']);
+    app.added.inputs[0].value = 'new-model';
     const models = [
       { model: 'existing-model', max_context_size: 131072 },
-      { model: 'new-model', max_context_size: 131072 },
+      { model: 'new-model', max_context_size: 131072, capabilities: ['tool_use', 'thinking'], adaptive_thinking: true },
     ];
     for (const [url, method] of [['/api/v1/providers/provider-fixture', 'PUT'], ['/api/v1/providers', 'POST']]) {
       await app.window.fetch(url, {
         method,
         headers: { authorization: 'Bearer page-token', 'content-type': 'application/json' },
-        body: JSON.stringify({ type: 'openai', models }),
+        body: JSON.stringify({ id: 'provider-fixture', type: 'openai', models }),
       });
       const body = JSON.parse(app.calls.at(-1)[1].body);
       expect(body.models.map((model) => model.model)).toEqual(['existing-model', 'new-model']);
       expect(body.models[0]).toMatchObject({ capabilities: [], support_efforts: [], adaptive_thinking: false });
-      expect(body.models[1].capabilities).toEqual([
-        'image_in', 'image_out', 'video_in', 'tool_use', 'thinking', 'always_thinking',
-      ]);
-      expect(body.models[1].support_efforts).toEqual(['none', 'low', 'medium', 'high', 'xhigh', 'max']);
-      expect(body.models[1].adaptive_thinking).toBe(true);
+      expect(body.models[1]).toEqual(models[1]);
     }
   });
 
@@ -473,9 +472,7 @@ describe('provider model sorting', () => {
       });
       const body = JSON.parse(app.calls.at(-1)[1].body);
       expect(body.models.map((model) => model.max_context_size)).toEqual([262144, 131072]);
-      expect(body.models[0].capabilities).toEqual([
-        'image_in', 'image_out', 'video_in', 'tool_use', 'thinking', 'always_thinking',
-      ]);
+      expect(body.models[0]).toEqual({ model: 'existing-model', max_context_size: 262144 });
       expect(body.models[1].capabilities).toEqual([]);
     },
   );
