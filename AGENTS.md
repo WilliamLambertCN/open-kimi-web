@@ -182,7 +182,9 @@ PR #31 及 main 标准 CI 已通过；同 r1 已重发，tag 固定 5b626e3f，�
 新行按来源区分并保存所见选择，已有模型保留 native／明确配置和选项 delta；晚到 saved 记录不触发新默认覆盖。
 8 文件／99 项定向 UT、5 asset IT、标准 lint／typecheck／pack 通过；本轮完整 app 保存／重开与四张代表图已核对。
 桌面20／20、手机续验28／28、320窄屏11／11通过；原baseline差异与手机驱动超时保留，不重复旧矩阵或冒称全绿。
-虚构 REST／WS 与 resize／touch 不代表真实用户磁盘或实体手机；CI 和实际发布记录见本轮计划，不借旧结果。
+虚构 REST／WS 与 resize／touch 不代表真实用户磁盘或实体手机；准确边界见本轮计划，不借旧结果。
+PR #33及main required CI通过，r2 tag固定6562db37；正式包131文件／8,415,233 bytes，线上字节／digest及同SHA入口一致。
+真实r1包更新器已发现r2，原r1 tag／资产未变化；本节事后记录不再移tag或换包，正常同步main回develop。
 
 ## 项目边界
 
