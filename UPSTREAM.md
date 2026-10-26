@@ -57,6 +57,27 @@ The initial concurrent UT/IT/pack run had four IT timeouts; targeted single-work
 Counts, coverage, retained first-failure logs and physical-device/platform limits are in [the current plan][current-plan].
 Required CI and publication must be established by their public records, not inferred from local checks.
 
+## Provider discovery hotfix for 2.3.1-r1
+
+The exact official 2.3.1 model field uses `div.pf-label`, including a model count and its native fetch button.
+The previous label-only field lookup prevented the enhanced discovery/select/add controls from mounting.
+The native fetch button appends all returned model IDs to the draft; it is not the enhanced selective picker.
+The compatibility fix accepts both semantic heading forms and adds a localized accessible name for the candidate select.
+Native rows, bulk fetch and formal provider POST/PUT saving remain upstream-owned; discovery alone does not save configuration.
+Focused complete-app QA also reproduced a hidden preset/manual save-scope error. The old enhancement declared every capability
+and six effort levels for unknown models and wrote them back even when untouched, rather than preserving native metadata.
+Authorized environment-key tests confirmed direct Coding HTTP 200 and unmodified 2.3.1 completion with low effort;
+changing only the declared effort to xhigh with the same old enhanced metadata reproduced `400 Invalid request Error`.
+This establishes a reproducible unsupported-parameter failure, not proof of the user's unread production configuration.
+Existing persisted metadata requires explicit correction; a package replacement must not silently rewrite user configuration.
+Old tests used the earlier label shape and missed this regression. Exact DOM tests and focused complete-app checks are tracked in
+[the hotfix and same-r1 republication plan](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md).
+
+The user authorized replacing only v2.3.1-r1 using an exact old-tip lease, not rewriting shared branch history or other releases.
+Initial-publication hashes and acceptance above remain historical. The updater compares npm versions and skips equal versions;
+existing one-click users must rerun their matching installer with the same home, while manual npm users must replace their actual
+installation from the refreshed package. Source users can fast-forward their clean main checkout. Restart remains manual.
+
 ## Unified navigation and search
 
 The formerly unpublished navigation, mobile official-index search and Hyper-V fixes are now in [the current scope][current-plan].
@@ -120,8 +141,9 @@ PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pi
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
 The historical r10 commands pinned `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and launcher `2.1.1-r10`;
 that old SHA must not supply the new official-version pin.
-Post-publication checks confirmed tag commit `c9a3e0ce2a71037f510d794303e84ce6bed69209`, matching online entry/helpers,
-source archive and tgz bytes; the real updater recognizes 2.3.1-r1. See [the current plan][current-plan] for public CI and assets.
+Initial-publication checks confirmed tag commit `c9a3e0ce2a71037f510d794303e84ce6bed69209`, matching online entry/helpers,
+source archive and tgz bytes; the real updater recognized 2.3.1-r1. These are not the same-r1 hotfix republication results.
+See [the initial plan][current-plan] and [the hotfix plan](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md).
 
 A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
 Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.

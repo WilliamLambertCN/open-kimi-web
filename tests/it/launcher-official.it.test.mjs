@@ -232,7 +232,8 @@ const PRESENTATION_ASSETS = [
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',
   'notificationPermission.js', 'completionModal.css', 'completionModal.js', 'questionCardLayout.js', 'presentation.js',
   'sessionSize.js', 'sessionSize.css', 'messageTimestamps.js', 'messageTimestamps.css', 'chatWidth.css',
-  'archivedSessionDelete.css', 'archivedSessionDelete.js', 'providerSorting.js', 'providerEnhancements.js',
+  'archivedSessionDelete.css', 'archivedSessionDelete.js', 'providerSorting.js', 'providerModelState.js',
+  'providerEnhancements.js',
   'workspacePins.css', 'workspacePins.js', 'usage.css', 'usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js',
   'usage.js', 'usageBundle.js', 'themes.css', 'themes.js', 'backgrounds/aurora.png', 'backgrounds/twilight.png',
   'backgrounds/ember.png', 'backgrounds/mineral.png', 'backgrounds/nocturne.png',
@@ -332,7 +333,9 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('completionModal.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('questionCardLayout.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
-      expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
+      expect(indexText).toContain('/__open-kimi-mobile/providerModelState.js');
+      expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('providerModelState.js'));
+      expect(indexText.indexOf('providerModelState.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('providerEnhancements.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
