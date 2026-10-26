@@ -142,12 +142,16 @@ describe('localized provider controls', () => {
       <div class="pf-field"><label>Models *</label><div class="pmt">
         <div class="pmt-grid pmt-head"></div><div class="pmt-grid"><input value=""><input value="131072"></div>
       </div></div><button>Add model</button></div>`);
-    ['providerLocale', 'providerSorting', 'providerEnhancements'].forEach(ui.evaluate);
+    vi.spyOn(ui.view.Element.prototype, 'getClientRects').mockReturnValue([{ width: 640, height: 400 }]);
+    ['providerLocale', 'providerSorting', 'providerModelState', 'providerEnhancements'].forEach(ui.evaluate);
+    ui.fetch.mockResolvedValueOnce(Response.json({ code: 0, data: { models: {} } }));
+    await ui.view.fetch('/api/v1/config');
     await settled(ui);
     const form = ui.doc.querySelector('.pf');
     const input = form.querySelector('.pmt-grid:not(.pmt-head) > input');
     input.value = '用户模型';
-    const checkbox = form.querySelector('input[type=checkbox]');
+    const checkbox = form.querySelector('input[value="thinking"]');
+    expect(checkbox.checked).toBe(true);
     checkbox.click();
     const fetchButton = form.querySelector('.okw-discovery-button');
     fetchButton.click();
@@ -157,7 +161,7 @@ describe('localized provider controls', () => {
     ui.doc.querySelector('.st').textContent = 'Idle';
     await settled(ui);
     expect(systemText(form)).toEqual([]);
-    expect(form.querySelector('input[type=checkbox]')).toBe(checkbox);
+    expect(form.querySelector('input[value="thinking"]')).toBe(checkbox);
     expect(checkbox.checked).toBe(false);
     expect(input.value).toBe('用户模型');
     expect(ui.fetch.mock.calls).toHaveLength(requests);
@@ -193,11 +197,12 @@ describe('localized provider controls', () => {
     await settled(ui);
     expect(form.querySelector('.okw-discovery-status').textContent).toBe('模型端点请求失败（HTTP 503）');
     await ui.view.fetch('/api/v1/providers', {
-      method: 'POST', body: JSON.stringify({ models: [{ model: '用户模型' }] }),
+      method: 'POST', body: JSON.stringify({ id: '用户供应商', models: [{ model: '用户模型',
+        capabilities: ['tool_use', 'thinking'], adaptive_thinking: true }] }),
     });
     const saved = JSON.parse(ui.fetch.mock.calls.at(-1)[1].body).models[0];
-    expect(saved.model).toBe('用户模型');
-    expect(saved.capabilities).not.toContain('image_in');
+    expect(saved).toEqual({ model: '用户模型', capabilities: ['tool_use'], adaptive_thinking: true });
+    expect(saved).not.toHaveProperty('support_efforts');
   });
 });
 
