@@ -7,6 +7,11 @@ const frames = [];
 const observers = [];
 const source = (name) => readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8');
 export const tick = () => new Promise((done) => setTimeout(done, 0));
+export const defaultMetadata = {
+  capabilities: ['image_in', 'tool_use', 'thinking', 'always_thinking'],
+  support_efforts: ['none', 'low', 'medium', 'high', 'xhigh', 'max'], adaptive_thinking: true,
+};
+export const defaultChecks = [...defaultMetadata.capabilities, ...defaultMetadata.support_efforts, 'adaptive_thinking'];
 export const manualModel = (model = 'fixture-model') => ({
   model, max_context_size: 131072, capabilities: ['tool_use', 'thinking'], adaptive_thinking: true,
 });
@@ -33,7 +38,7 @@ export function cleanupProviderSave() {
   frames.splice(0).forEach((frame) => frame.remove());
 }
 
-export function installProviderSave({ forms = [{}], config = {} } = {}) {
+export function installProviderSave({ forms = [{}], config = {}, listed = [] } = {}) {
   const frame = document.createElement('iframe');
   document.body.append(frame);
   frames.push(frame);
@@ -43,7 +48,7 @@ export function installProviderSave({ forms = [{}], config = {} } = {}) {
   view.Request = Request; view.Response = Response; view.Headers = Headers;
   doc.documentElement.lang = 'en';
   doc.body.innerHTML = forms.map(formMarkup).join('');
-  const state = { config, callbacks: 0, exceededLimit: false };
+  const state = { config, listed, callbacks: 0, exceededLimit: false };
   const NativeObserver = view.MutationObserver;
   view.MutationObserver = class extends NativeObserver {
     constructor(callback) {
@@ -57,7 +62,7 @@ export function installProviderSave({ forms = [{}], config = {} } = {}) {
   const nativeFetch = vi.fn(async (input, init) => {
     const path = new URL(input instanceof Request ? input.url : String(input), 'http://localhost').pathname;
     if (path === '/api/v1/config') return Response.json({ code: 0, data: { models: state.config } });
-    if (path === '/api/v1/models') return Response.json({ code: 0, data: { items: [] } });
+    if (path === '/api/v1/models') return Response.json({ code: 0, data: { items: state.listed } });
     if (path.startsWith('/api/v1/providers')) {
       const text = init?.body ?? await input.clone().text();
       const body = JSON.parse(text);

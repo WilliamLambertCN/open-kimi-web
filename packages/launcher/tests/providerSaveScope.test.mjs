@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { afterEach, describe, expect, it } from 'vitest';
 import {
-  change, checksOf, cleanupProviderSave, installProviderSave, loadConfig, manualModel,
+  change, checksOf, cleanupProviderSave, defaultChecks, defaultMetadata, installProviderSave, loadConfig, manualModel,
   reopen, rowsOf, save, saveBody, tick,
 } from './testkit/providerSave.mjs';
 
@@ -22,14 +22,14 @@ describe('unique visible native provider form', () => {
     hide(ui.forms[0], mode); await loadConfig(ui);
     const [preset, manual] = ui.forms;
     const presetRow = rowsOf(preset)[0]; const manualRow = rowsOf(manual)[0];
-    change(ui, presetRow, 'image_in', true); change(ui, presetRow, 'xhigh', true);
+    change(ui, presetRow, 'image_out', true); change(ui, presetRow, 'xhigh', false);
     change(ui, manualRow, 'thinking', false);
     const native = saveBody([manualModel()]);
     const saved = await save(ui, native);
-    expect(saved).toEqual({ ...native, models: [{ ...native.models[0], capabilities: ['tool_use'] }] });
-    expect(saved.models[0]).not.toHaveProperty('support_efforts');
+    expect(saved).toEqual({ ...native, models: [{ ...native.models[0], ...defaultMetadata,
+      capabilities: ['image_in', 'tool_use', 'always_thinking'] }] });
     const form = await reopen(ui, saved);
-    expect(checksOf(rowsOf(form)[0])).toEqual(['tool_use', 'adaptive_thinking']);
+    expect(checksOf(rowsOf(form)[0])).toEqual(defaultChecks.filter((value) => value !== 'thinking'));
     const callbacks = ui.state.callbacks; await tick();
     expect(ui.state.exceededLimit).toBe(false); expect(ui.state.callbacks).toBe(callbacks);
   });
@@ -80,6 +80,6 @@ describe('unique visible native provider form', () => {
     change(ui, rowsOf(ui.forms[0])[0], 'thinking', false);
     const body = { ...saveBody([manualModel()], 'renamed-fixture'), new_id: 'renamed-fixture' };
     expect((await save(ui, body, { method: 'PUT', path: '/api/v1/providers/old-fixture' })).models[0].capabilities)
-      .toEqual(['tool_use']);
+      .toEqual(['image_in', 'tool_use', 'always_thinking']);
   });
 });

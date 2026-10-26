@@ -173,6 +173,17 @@ PR #31 及 main 标准 CI 已通过；同 r1 已重发，tag 固定 5b626e3f，�
 事后记录不再次移动 tag／换包；同版须原 prefix 重装并重启刷新，原有错误档位须手动纠正，不再重复无变化矩阵。
 本轮 squash 默认作者含学校邮箱，历史未获重写授权；后续提交和 squash 必须显式使用已确认 noreply，准确隐私边界见计划。
 
+用户随后要求恢复默认勾选并正式发布 r2，按
+[`docs/plans/provider-defaults-r2-release-v1-plan.md`](docs/plans/provider-defaults-r2-release-v1-plan.md) 执行。
+新模型仅图片输出、视频输入默认不选，其它能力、六档 effort 与自适应思考默认选中，覆盖上一轮保守默认要求。
+展示与保存须一致；已有显式数组（含空数组）、未知值和 false 不自动改写，保留唯一可见表单及逐行身份安全门禁。
+已实测 low 成功、xhigh 400；修后 thinking:on 未显式 effort 成功，其它档位未逐档验证，不擅自把偏好当服务保证。
+本轮不新增付费请求或读取真实配置；新建 r2 tag／正式 Release，不移动 r1 或换其资产，正常 update 后手动重启刷新。
+新行按来源区分并保存所见选择，已有模型保留 native／明确配置和选项 delta；晚到 saved 记录不触发新默认覆盖。
+8 文件／99 项定向 UT、5 asset IT、标准 lint／typecheck／pack 通过；本轮完整 app 保存／重开与四张代表图已核对。
+桌面20／20、手机续验28／28、320窄屏11／11通过；原baseline差异与手机驱动超时保留，不重复旧矩阵或冒称全绿。
+虚构 REST／WS 与 resize／touch 不代表真实用户磁盘或实体手机；CI 和实际发布记录见本轮计划，不借旧结果。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。

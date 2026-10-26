@@ -12,8 +12,9 @@ or a vendored transcript implementation.
 - Published package integrity:
   `sha512-Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==`.
 - Server API compatibility target: `2.3.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.3.1-r1`. Publication, CI and acceptance follow [the Release page][current-release]
-  and [the current workspace/release plan][current-plan], not inferred results.
+- Open Kimi Web version: `2.3.1-r2`. Follow [the Release page][current-release]
+  and [the r2 implementation/release plan][r2-plan] for actual CI, acceptance and publication results.
+  The [r1 workspace/release plan][current-plan] and r1 hotfix evidence remain historical, not r2 acceptance.
   Both devices use the same existing-directory path form. Official workspace trust and session ownership stay upstream-owned.
   Official UI versions >=2.3.0 no longer receive the legacy Side Chat scrollTop guard; explicit frontend pins drive this choice.
   Existing installation, mobile model, locale, streaming gzip, statistics and safe self-update features are retained.
@@ -47,15 +48,34 @@ Metadata failure falls back to official UI `2.3.1`; old 2.1.1/2.2.0 UI keeps its
 Official 2.3.1 previews PNG/JPG/GIF/WEBP/BMP/ICO/AVIF and PDF using authenticated download/Blob paths.
 SVG and older UIs can still use `fs:read`, so `imagePreviewGuard.js` remains. Its 32 MiB limit applies only to the enhanced
 truncated-base64 fallback, not all native 2.3.1 previews. Partial reads and unrelated requests retain official behavior.
-Current source and runtime checks passed real dual-device workspace submission, native trust confirmation and restart persistence,
+Historical r1 source and runtime checks passed dual-device workspace submission, native trust confirmation
+and restart persistence,
 plus exact-2.3.1 cron read-only enforcement and isolated official npm installation/CLI/PTY/authenticated Web checks.
 The complete official app passed functional assertions with fictional REST/WS; this is not all-visual acceptance.
 Mobile preview opacity, subagent wording and mobile workspace identity/locale fixes passed focused browser/visual checks.
 Original and affected atmosphere themes retain native preview geometry; trust/retry/takeover/model dialogs remain reachable.
 Standard lint/typecheck/UT/pack and a standalone standard IT run passed with unchanged 70% line/branch gates.
 The initial concurrent UT/IT/pack run had four IT timeouts; targeted single-worker and independent standard IT passed unchanged.
-Counts, coverage, retained first-failure logs and physical-device/platform limits are in [the current plan][current-plan].
-Required CI and publication must be established by their public records, not inferred from local checks.
+Counts, coverage, retained first-failure logs and physical-device/platform limits are in [the r1 plan][current-plan].
+These remain r1 evidence; current r2 CI and publication must be established by new public records, not local or historical checks.
+
+## Provider defaults and release target 2.3.1-r2
+
+The user explicitly requested r2 for normal updates and restored new-model defaults under [the r2 plan][r2-plan].
+Only `video_in` and `image_out` default to unchecked. `image_in`, `tool_use`, `thinking` and `always_thinking` default to checked,
+as do all six efforts (`none`, `low`, `medium`, `high`, `xhigh`, `max`) and `adaptive_thinking`.
+Display and POST/PUT/save-reopen behavior must agree. Existing explicit arrays, including empty arrays, unknown values and false
+must not be automatically rewritten. Retain r1's discovery/select controls, unique-visible-form scope, row identity checks
+and independently edited-field metadata merging; ambiguous or unmatched forms must retain native behavior.
+
+These defaults express user preference, not service capability. Prior authorized environment-key checks completed with low,
+reproduced HTTP 400 with xhigh and completed after the fix with thinking:on without an explicit effort.
+Medium/high/max were not individually tested. No new paid calls, real-user configuration access or production changes
+are in scope.
+Actual r2 acceptance and publication are recorded in its plan; r1 tests, CI and online checks do not establish r2 results.
+After formal r2 publication, existing r1 installations use normal `update --check`/`update`, then manual restart and page refresh.
+Source updates still require a clean main tracking origin/main and a fast-forward. Publication must create a new tag/Release,
+without moving r1 or replacing its assets. Historical same-r1 reinstall instructions below apply only to that republication.
 
 ## Provider discovery hotfix for 2.3.1-r1
 
@@ -135,14 +155,15 @@ internal, loopback, IPv6 link-local and other virtual-adapter filters. This does
 
 ## Compatibility-first installation
 
-The `2.3.1-r1` installer pins official Kimi `2.3.1` only when no usable installation exists; it does not upgrade existing Kimi.
+The `2.3.1-r2` installation target keeps the official Kimi `2.3.1` pin only when no usable installation exists;
+it does not upgrade existing Kimi or change installer runtime behavior.
 Historical implementation evidence follows [the one-click installation plan](docs/plans/one-click-install-v1-plan.md).
-The r10 scope and [release record][r10-plan] remain historical;
-current installation, CI and assets follow [this plan][current-plan].
+The r10 scope and [release record][r10-plan] remain historical; r1 installation results remain in [the r1 plan][current-plan].
+The scope and exact results of r2 installation, CI and asset checks are recorded in [the r2 plan][r2-plan].
 
-The README starts with short online commands for Windows PowerShell >=5.1 and macOS/Linux sh.
-They resolve `v2.3.1-r1` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.3.1-r1`.
+The README starts with short online commands for Windows PowerShell >=5.1 and macOS/Linux sh, for use after r2 publication.
+They resolve `v2.3.1-r2` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.3.1-r2`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -189,7 +210,7 @@ Linux uses forkpty; spawn-helper is a macOS build target, not an independent Lin
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r1 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r2 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -512,5 +533,6 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [current-plan]: docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
+[r2-plan]: docs/plans/provider-defaults-r2-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
