@@ -190,6 +190,8 @@ PR #33及main required CI通过，r2 tag固定6562db37；正式包131文件／8,
 [`docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md`](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md) 执行。
 目标正式版本为 2.4.1-r1；仅规范 effort 展示，不重排官方元数据或改变默认值，不强制开启 Tower。
 安装发现补齐受支持的现有命令来源；新版无 node-pty，按精确官方身份验证运行时，旧版仍保留 PTY 边界。
+Windows HOME／USERPROFILE 默认目录均参与去重／歧义判断；旧 POSIX Python 只接受有界标准 console entry，仍验 Web 能力。
+真实 uv／官方 Python 1.51.0 已补验；弃用1.52.0无 Web 能力仍拒绝，详情与首失败见同计划，不扩大为全平台保证。
 本轮授权正常提交、推送与新版本发布，不移动旧 tag／资产，不升级用户实际 CLI 或重启生产。
 
 ## 项目边界

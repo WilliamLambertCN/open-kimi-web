@@ -55,11 +55,15 @@ async function explicitCandidate(ctx, target) {
   return override || ctx.kimi;
 }
 
+function homeDirectories(ctx) {
+  return ctx.platform === 'win32' ? [ctx.env.HOME, ctx.env.USERPROFILE] : [ctx.env.HOME || ctx.env.USERPROFILE];
+}
+
 function knownDirectories(ctx) {
   const env = ctx.env;
-  const home = env.HOME || env.USERPROFILE;
+  const homes = homeDirectories(ctx);
   const dirs = [];
-  if (home) dirs.push(join(home, '.kimi-code/bin'), join(home, '.local/bin'));
+  for (const home of new Set(homes.filter(Boolean))) dirs.push(join(home, '.kimi-code/bin'), join(home, '.local/bin'));
   if (env.KIMI_INSTALL_DIR) dirs.push(join(env.KIMI_INSTALL_DIR, 'bin'));
   for (const key of ['UV_TOOL_BIN_DIR', 'XDG_BIN_HOME']) if (env[key]) dirs.push(env[key]);
   if (env.XDG_DATA_HOME) dirs.push(resolve(env.XDG_DATA_HOME, '../bin'));

@@ -239,11 +239,15 @@ Custom OPEN_KIMI_WEB_HOME must be absolute and unlinked. Its `official` prefix i
 
 Discovery preserves explicit override/registered-integration priority and normal PATH order. Additional bounded candidates
 include official default bin locations, `KIMI_INSTALL_DIR/bin`, uv/XDG/default local bin locations, Windows APPDATA/npm,
-read-only persisted Machine/User PATH and standard commands beside the selected Node. This is not an unbounded disk scan.
+read-only persisted Machine/User PATH and standard commands beside the selected Node. Windows HOME and USERPROFILE default
+bins are both considered and deduplicated, without inventing priority. This is not an unbounded disk scan.
+Boundedly recognized standard legacy POSIX Python/uv console entries still require real version and Web capability probes;
+a matching module-name substring alone is not sufficient. Unknown scripts and wrappers remain rejected.
 Candidates with no unambiguous priority require an explicit override; unknown PowerShell functions, scripts and argument-taking
 wrappers are not executed as guessed CLI commands. Discovery does not modify persisted PATH to search it.
-Working supported native/standard npm installations are reused without overwrite. Only confirmed absence prepares the verified
-`@moonshot-ai/kimi-code@2.4.1` tarball with fixed SHA-512 integrity. Exact owned 2.3.1 and 2.1.1 remain reusable only with their
+Working supported native/npm/recognized legacy console installations are reused without overwrite. Only confirmed absence
+prepares the verified `@moonshot-ai/kimi-code@2.4.1` tarball with fixed SHA-512 integrity.
+Exact owned 2.3.1 and 2.1.1 remain reusable only with their
 known version/integrity, package identity and unchanged entry/shim digests. Altered ownership records and partial installs reject.
 Default ignore-scripts avoids official postinstall migration of old Python commands. Unowned dedicated prefixes are not resumed.
 Windows canonical npm shims validate JS targets for selected-Node checks and retain the cmd-aware runtime/takeover path;

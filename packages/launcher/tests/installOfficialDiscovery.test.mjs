@@ -56,6 +56,28 @@ describe('bounded read-only official command discovery', () => {
     expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining('no official CLI download or upgrade'));
   });
 
+  it('finds USERPROFILE default bin when HOME differs, reusing without official downloads', async () => {
+    const ctx = await fixture();
+    ctx.env.USERPROFILE = join(ctx.home, 'windows-profile');
+    const file = await native(ctx, join(ctx.env.USERPROFILE, '.kimi-code/bin'));
+    const before = await readFile(file);
+    const found = await discoverOfficial(ctx);
+    expect(found.path).toBe(file);
+    await prepareOfficial(ctx, found, '/unused', {});
+    expect(ctx.downloadOfficial).not.toHaveBeenCalled();
+    expect(await readFile(file)).toEqual(before);
+  });
+
+  it('refuses different HOME and USERPROFILE installs without assigning either implicit precedence', async () => {
+    const ctx = await fixture();
+    ctx.env.USERPROFILE = join(ctx.home, 'windows-profile');
+    await native(ctx, join(ctx.env.HOME, '.kimi-code/bin'));
+    await native(ctx, join(ctx.env.USERPROFILE, '.kimi-code/bin'));
+    await expect(discoverOfficial(ctx)).rejects.toThrow('multiple official Kimi');
+    expect(ctx.run).not.toHaveBeenCalled();
+    expect(ctx.downloadOfficial).not.toHaveBeenCalled();
+  });
+
   it('collects expanded persistent Machine/User PATH only as unordered candidates without changing active PATH', async () => {
     const ctx = await fixture();
     ctx.env.FIXTURE_ROOT = ctx.home;
