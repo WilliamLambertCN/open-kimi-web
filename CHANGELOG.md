@@ -9,6 +9,9 @@
 兼容目标更新为官方 Kimi Code `2.4.1`，版本目标为 `2.4.1-r1`。本条目记录本轮变更范围与已确认根因；
 真实后端、双端界面、标准门禁、CI、交付包和线上发布结果统一见
 [2.4.1 适配计划](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md)，未记录的检查不视为通过。
+PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23项跳过，独立行／分支70%门槛不变。
+正式v2.4.1-r1固定beac8c68；包132文件／8,418,868 bytes，线上字节／digest和同SHA入口一致，真实r2更新器已发现新版。
+旧r1／r2 tag与资产未变；本条发布后记录不再移动tag或换包，准确SHA／digest及未验边界见上述计划。
 
 - 已支持推理档位仅按 `none → minimal → low → medium → high → xhigh → max` 规范展示，Max 最后。
   未知值稳定保留在 Max 前；Auto／Off／On 保持各入口原语义。不增加支持项、不重排 `supportEfforts`，

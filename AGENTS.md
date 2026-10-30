@@ -195,6 +195,9 @@ Windows HOME／USERPROFILE 默认目录均参与去重／歧义判断；旧 POSI
 手机强提醒window capture隔离Escape／Tab及其它modal内按键，保留按钮默认click和关闭后原生快捷键；47项定向及完整app续验通过。
 重连重建pending DOM仍可能再提醒，不宣称跨重建去重；真实backend正向审批、实体手机等未验，首失败与图见同计划。
 本轮授权正常提交、推送与新版本发布，不移动旧 tag／资产，不升级用户实际 CLI 或重启生产。
+PR #35及main required CI已通过，2154 UT／545 IT通过、28／23平台条件跳过；行／分支70%门槛不变，准确覆盖率见计划。
+正式v2.4.1-r1 tag固定beac8c68；包132文件／8,418,868 bytes，线上字节／digest／同SHA入口及真实r2更新发现已核。
+旧r1／r2 tag和资产未变；本节发布后证据不再移动tag／换包，main正常同步回develop。
 
 ## 项目边界
 
