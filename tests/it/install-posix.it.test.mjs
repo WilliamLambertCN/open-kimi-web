@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
-import { access, chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { installRelease, runInstallProcess } from '../../scripts/install.mjs';
 import { packageFixture } from './updateFixture.mjs';
+import { posixOfficialFixture } from './installOfficialFixture.mjs';
 
 let directory;
 let archive;
@@ -29,12 +30,7 @@ function metadata(bytes) {
 
 async function fixture(shell, existing) {
   const home = join(directory, shell);
-  const kimi = join(home, 'fakeKimi');
-  const { mkdir } = await import('node:fs/promises');
-  await mkdir(home);
-  await writeFile(kimi, '#!/bin/sh\nif [ "$1" = web ]; then echo "kimi web --host --port"; ' +
-    'else printf "kimi, version 2.1.1\\n"; fi\n');
-  await chmod(kimi, 0o755);
+  const kimi = await posixOfficialFixture(home);
   if (existing) await writeFile(join(home, '.bashrc'), 'export FIXTURE_SENTINEL=preserved\n');
   const bytes = await readFile(archive);
   const env = { ...process.env, HOME: home, USERPROFILE: home, SHELL: `/bin/${shell}`,

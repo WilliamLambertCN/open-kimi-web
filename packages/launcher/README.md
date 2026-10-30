@@ -97,8 +97,9 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 
 - 优先 Node ≥ 22.19.0 与配套 npm；缺失才校验固定 Node `22.23.3`，launcher／official prefix、runtime、bin 分离。
 - 官方发现保留 override／已登记目标／PATH 优先关系，并有界检查默认 bin、`KIMI_INSTALL_DIR/bin`、uv／XDG、
-  Windows 持久 Machine／User PATH、APPDATA/npm 和所选 Node 旁标准命令；不递归扫盘、不修改持久 PATH 来搜索。
-  多份无明确优先级需显式 override；未知 PowerShell 函数／脚本／带参 wrapper 不执行，不猜新旧。
+  Windows 持久 Machine／User PATH、APPDATA/npm 和所选 Node 旁标准命令；HOME 与 USERPROFILE 默认目录均去重检查。
+  旧 POSIX Python／uv 只接受有界识别的标准 console entry，并实测版本／Web 能力；未知脚本或带参 wrapper 仍拒绝。
+  不递归扫盘、不修改持久 PATH；多份无明确优先级需显式 override，不猜新旧或执行未知 PowerShell 函数。
 - 真正缺官方时固定 `2.4.1` tarball／SHA-512，ignore-scripts 避免旧 Python 迁移。
   旧 owned `2.3.1`／`2.1.1` 按精确 version／integrity、package 身份及 entry／shim digests 验证后复用，不自动升级。
   partial／坏 override／未知归属拒绝，不自动续装或重建已有安装。

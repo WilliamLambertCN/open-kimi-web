@@ -1,6 +1,7 @@
 import { open, readFile, realpath } from 'node:fs/promises';
 import { dirname, join, sep } from 'node:path';
 import { pathStat } from './npm.mjs';
+import { pythonConsoleEntry } from './officialPython.mjs';
 
 export function canonicalNpmCmd() {
   const target = '%dp0%\\node_modules\\@moonshot-ai\\kimi-code\\dist\\main.mjs';
@@ -52,7 +53,9 @@ async function assertNative(target, platform) {
   const magic = buffer.toString('hex');
   const supported = platform === 'win32' ? magic.startsWith('4d5a') :
     ['7f454c46', 'feedface', 'feedfacf', 'cefaedfe', 'cffaedfe', 'cafebabe', 'bebafeca'].includes(magic);
-  if (!supported) throw new Error('unsupported official shell shim or wrapper; set OPEN_KIMI_REAL_KIMI to a native executable');
+  if (supported || platform !== 'win32' && await pythonConsoleEntry(target)) return;
+  throw new Error('unsupported official shell shim or wrapper; use a native executable, standard npm entry or ' +
+    'supported Python console entry; OPEN_KIMI_REAL_KIMI does not bypass identity checks');
 }
 
 export async function officialEntry(candidate, ctx) {
