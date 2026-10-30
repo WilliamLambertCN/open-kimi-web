@@ -17,7 +17,7 @@ export async function assertNoSystemShadow(ctx) {
   const wrapper = expanded.findIndex((dir) => resolve(dir).toLowerCase() === resolve(ctx.bin).toLowerCase());
   for (const [index, dir] of expanded.entries()) {
     if (wrapper !== -1 && index >= wrapper) break;
-    for (const name of ['kimi.exe', 'kimi.cmd', 'kimi.bat']) {
+    for (const name of ['kimi.exe', 'kimi.cmd', 'kimi.bat', 'kimi.ps1', 'kimi']) {
       let exists;
       try { exists = await lstat(join(dir, name)); } catch (error) { if (error.code !== 'ENOENT') throw error; }
       if (exists) throw new Error('package installed, but System PATH shadows takeover');

@@ -9,6 +9,7 @@ const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navi
   'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
 const FILES = new Map([
   ...LOCALE_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['effortOrder.js', 'text/javascript; charset=utf-8'],
   ...SUBAGENT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ...NAVIGATION_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['navigation.css', 'text/css; charset=utf-8'],
@@ -60,6 +61,7 @@ const FILES = new Map([
 const USAGE_SCRIPTS = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js'];
 const SCRIPTS = [
   ...LOCALE_SCRIPTS,
+  'effortOrder.js',
   ...SUBAGENT_SCRIPTS,
   ...NAVIGATION_SCRIPTS,
   'foldingDefaults.js',
