@@ -29,7 +29,7 @@ async function fixture() {
   const home = await mkdtemp(join(tmpdir(), 'okw installer fixture-'));
   roots.push(home);
   const tools = join(home, 'tools');
-  for (const name of ['kimi', 'curl', 'tar']) await put(join(tools, `${name}.exe`), 'fixture executable');
+  for (const name of ['kimi', 'curl', 'tar']) await put(join(tools, `${name}.exe`), 'MZ fixture executable');
   const run = vi.fn(async (command, args) => {
     if (args.includes('install')) return '';
     if (command.endsWith('kimi.exe')) return args.includes('web') ? 'kimi web --host --port' : 'kimi, version 2.1.1';
@@ -129,7 +129,12 @@ describe('full coordinator orchestration', () => {
     expect(call[2].env.npm_config_strict_ssl).toBe('true');
     expect(f.verifyInstalled).toHaveBeenCalledOnce();
     expect(f.integrateInstalled).not.toHaveBeenCalled();
-    expect(f.log.mock.calls.flat().join('\n')).toContain('NOT installed or changed');
+    const lines = f.log.mock.calls.flat().join('\n');
+    expect(lines).toContain('NOT installed or changed');
+    expect(lines).toContain('OKW release: downloading');
+    expect(lines).toContain('Official Kimi: reusing');
+    expect(lines).toContain('no official CLI download or upgrade');
+    expect(f.download).toHaveBeenCalledOnce();
     const home = f.env.OPEN_KIMI_WEB_HOME;
     expect(await readdir(home)).toEqual(['bootstrap-install.json', 'npm', 'tools']);
     expect(JSON.parse(await readFile(join(home, 'bootstrap-install.json'), 'utf8')).version).toBe('2.1.1-r9');
@@ -309,12 +314,12 @@ describe('official preparation orchestration', () => {
   it('refuses a new PATH official after Git Bash preparation instead of silently installing another', async () => {
     const f = await fixture();
     const gitCmd = join(f.env.OPEN_KIMI_WEB_HOME, 'git/cmd');
-    await put(join(gitCmd, 'kimi.exe'), 'unexpected official');
+    await put(join(gitCmd, 'kimi.exe'), 'MZ unexpected official');
     f.ensureGitBash.mockImplementation(async (ctx) => { ctx.env.PATH = `${gitCmd};${ctx.env.PATH}`; });
     await expect(installRelease(options, f)).rejects.toThrow('changed during Git Bash preparation');
     expect(f.run.mock.calls.some(([, args]) => args.includes('install'))).toBe(false);
     expect(f.verifyInstalled).not.toHaveBeenCalled();
-    expect(await readFile(join(gitCmd, 'kimi.exe'), 'utf8')).toBe('unexpected official');
+    expect(await readFile(join(gitCmd, 'kimi.exe'), 'utf8')).toBe('MZ unexpected official');
   });
 
   it('refuses changed official versions during Git Bash preparation before npm replacement', async () => {

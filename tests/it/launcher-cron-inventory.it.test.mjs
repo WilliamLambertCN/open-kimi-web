@@ -75,7 +75,8 @@ afterEach(async () => {
 });
 
 describe('real TCP global native Cron cold inventory', () => {
-  it.each(['2.1.1', '2.2.0', '2.3.1'])('projects original saved tasks for exact %s without loading agents', async (version) => {
+  it.each(['2.1.1', '2.2.0', '2.3.1', '2.4.1'])(
+    'projects original saved tasks for exact %s without loading agents', async (version) => {
     const { home, inventory, calls, state } = await fixture(version);
     const records = [event('cron.add', { task }), event('context.undo'), event('forked', { agentId: 'main' })];
     const path = await writeWire(home, 'first', records);
@@ -136,7 +137,7 @@ describe('real TCP cursor byte budget', () => {
 });
 
 describe('real TCP cold Cron history evidence', () => {
-  it.each(['2.1.1', '2.3.1'])(
+  it.each(['2.1.1', '2.3.1', '2.4.1'])(
     'cold %s history preserves deleted jobs, exact models and shared steer end evidence without guessing', async (version) => {
       const { home, inventory, calls, state } = await fixture(version);
       await writeWire(home, 'first', [

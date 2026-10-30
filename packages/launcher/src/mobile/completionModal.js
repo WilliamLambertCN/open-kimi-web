@@ -84,6 +84,19 @@
     next.focus();
   };
 
+  const composingOrModified = (event) => event.isComposing || event.keyCode === 229 ||
+    event.ctrlKey || event.altKey || event.metaKey;
+  window.addEventListener('keydown', (event) => {
+    const dialog = modal?.querySelector('.okw-completion-modal');
+    if (!dialog || !(event.target instanceof Node) || !dialog.contains(event.target)) return;
+    event.stopImmediatePropagation();
+    if (composingOrModified(event)) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeModal();
+    } else keepFocusInside(event, dialog);
+  }, true);
+
   const firstPendingControl = (pendingNode) => pendingNode?.querySelector(
     'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), ' +
     'textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
@@ -136,10 +149,6 @@
     });
     backdrop.addEventListener('click', (event) => {
       if (event.target === backdrop) closeModal();
-    });
-    dialog.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeModal();
-      else keepFocusInside(event, dialog);
     });
 
     dialog.append(close, title, description, viewResult);

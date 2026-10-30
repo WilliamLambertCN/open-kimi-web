@@ -178,16 +178,16 @@ describe('Cron assets and read-only inventory on TCP', () => {
   });
 });
 
-describe('Cron 2.3.1 read-only HTTP on TCP', () => {
-  it('serves 2.3.1 cold inventory/history and live snapshots while rejecting both HTTP writes without debug mutations',
+describe.each(['2.3.1', '2.4.1'])('Cron %s read-only HTTP on TCP', (version) => {
+  it('serves cold inventory/history and live snapshots while rejecting both HTTP writes without debug mutations',
     async () => {
       const home = await fixtureHome();
-      const { origin, state } = await fixture({ home, version: '2.3.1' });
+      const { origin, state } = await fixture({ home, version });
       const saved = { ...init, id: 'deadbeef', createdAt: now };
       state.tasks = [saved];
       const available = await raw(origin);
       expect(available.status).toBe(200);
-      expect(available.body).toMatchObject({ available: true, version: '2.3.1', reason: 'read-only-version',
+      expect(available.body).toMatchObject({ available: true, version, reason: 'read-only-version',
         capabilities: { list: true, inventory: true, history: true, create: false, remove: false } });
       const inventory = await raw(origin, CRON_PREFIX + '/sessions');
       expect(inventory.status).toBe(200);
@@ -205,9 +205,9 @@ describe('Cron 2.3.1 read-only HTTP on TCP', () => {
       expect(state.calls.some((call) => /addTask|removeTasks|snapshot|resume|\/status|flush|close/.test(call.url))).toBe(false);
     });
 
-  it('keeps ordinary 2.3.1 startup disabled rather than exposing read-only management implicitly', async () => {
-    const { origin, state } = await fixture({ version: '2.3.1', enabled: false });
-    expect((await raw(origin)).body).toMatchObject({ available: false, reason: 'not-enabled', version: '2.3.1',
+  it('keeps ordinary startup disabled rather than exposing read-only management implicitly', async () => {
+    const { origin, state } = await fixture({ version, enabled: false });
+    expect((await raw(origin)).body).toMatchObject({ available: false, reason: 'not-enabled', version,
       capabilities: { list: false, create: false, remove: false, inventory: false, history: false } });
     expect((await raw(origin, path, write(init))).body.error.code).toBe('not-enabled');
     expect(state.calls.map((call) => call.method)).toEqual(['meta', 'meta']);

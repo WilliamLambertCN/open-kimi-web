@@ -14,6 +14,7 @@ const env = { ...process.env, OPEN_KIMI_WEB_HOME: home,
   npm_config_ignore_scripts: 'false', npm_config_dry_run: 'true', npm_config_prefix: join(directory, 'wrong-prefix') };
 const result = await installRelease({ integrate: false, switchInstallation: true }, {
   env, log: (line) => lines.push(line), ensureGitBash: async () => {},
+  windowsPaths: async () => ({ user: '', system: '' }),
   discoverOfficial: async () => ({ kind: 'native', path: env.OPEN_KIMI_REAL_KIMI, version: 'kimi, version 2.1.1' }),
   run: async (command, args, options) => command === env.OPEN_KIMI_REAL_KIMI
     ? 'kimi, version 2.1.1' : runInstallProcess(command, args, options),

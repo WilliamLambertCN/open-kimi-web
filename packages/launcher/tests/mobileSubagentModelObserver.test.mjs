@@ -59,6 +59,32 @@ describe('mobile subagent real DOM observer', () => {
     await ui.settled();
     expect(ui.query('section')).toBeNull();
   });
+});
+
+describe('mobile subagent effort order and observer scope', () => {
+  it('converges after effort reordering and locale updates without replacing the selected node or writing metadata', async () => {
+    const config = fixtureConfig({ defaultModel: 'fixture/fast', defaultEffort: 'future_current' });
+    const stored = ['low', 'medium', 'max', 'high', 'xhigh', 'future_b', 'future_a'];
+    config.models['fixture/fast'].supportEfforts = [...stored];
+    const ui = await install({ config });
+    await open(ui);
+    const control = ui.query('effort');
+    const selected = control.querySelector('.is-on');
+    const order = [...control.children];
+    expect(order.map((node) => node.dataset.effort)).toEqual([
+      '', 'off', 'on', 'low', 'medium', 'high', 'xhigh', 'future_b', 'future_a', 'future_current', 'max',
+    ]);
+    const requests = ui.nativeFetch.mock.calls.length;
+    await switchLocale(ui, 'zh');
+    expect([...control.children]).toEqual(order);
+    expect(control.querySelector('.is-on')).toBe(selected);
+    expect(selected.dataset.effort).toBe('future_current');
+    expect(control.lastElementChild.textContent).toBe('最高');
+    expect(ui.getConfig().models['fixture/fast'].supportEfforts).toEqual(stored);
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(requests);
+    expect(ui.posts).toEqual([]);
+    await ui.settled();
+  });
   it('does not scan document or settings during main and side-chat text streams, including an open picker', async () => {
     const ui = await install();
     await open(ui);
