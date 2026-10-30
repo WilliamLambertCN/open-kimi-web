@@ -26,6 +26,8 @@
   新版不再无条件要求该编译工具链；Windows Git Bash 仍必需，平台及真实入口验收不超出计划内证据。
 - 官方 UI fallback 更新为 `2.4.1`；cron 精确 READ 追加 `2.4.1`，与 `2.3.1` 一样只读。
   WRITE 仍仅精确 `2.1.1`／`2.2.0`；未知版本拒绝，debug／RC、冷会话、鉴权及 transport／route 双 gate 安全边界保留。
+- 手机强提醒在 window capture 层隔离弹窗内按键，Escape 只关闭提醒，不误拒审批或放弃回答；
+  保留 Tab 环绕、Enter／Space 按钮默认行为及关闭后原生快捷键。重连重建同 pending 卡片仍可能再次提醒。
 - 当前安装说明从 `v2.4.1-r1` commit API 解析并校验真实 40 位 SHA，下载同 SHA 入口并传同一 revision，
   launcher 固定 `--version 2.4.1-r1`；不伪造 SHA、不移动旧 tag／资产，不把待发布链接说成已在线验收。
   原 `2.3.1-r2` 用户在正式发布后正常 `update --check`／`update`，再手动重启 launcher 和实际后端、刷新页面。
@@ -73,6 +75,18 @@
 - 回归验证：定向77项UT、真实POSIX integration及uv／官方Python 1.51.0动态检查通过，准确数量和首失败见本轮计划。
 - 运维动作：已有用户日常使用 update，不需重跑安装器或迁移数据；未升级用户真实官方 CLI。
 - 剩余边界：弃用Python 1.52.0不含Web能力仍拒绝；真实pipx、macOS／arm64及Windows新终端接管未全面验收。
+
+### 事件：关闭手机强提醒时误拒审批或放弃回答
+
+- 影响：审批／问题提醒中按 Escape，底层原生卡片可能被拒绝或 dismiss，而用户只想关闭提醒。
+- 触发条件：手机强提醒覆盖 pending interaction，官方 document capture 先于旧 dialog bubble 处理按键。
+- 根因：原生监听先收到 Escape；旧测试未提前注册 native capture，只验证弹窗消失，漏掉隐藏回答副作用。
+- 证据：准确官方2.4.1完整app复现；修前新回归8失败／3通过，原浏览器失败及修后续验均保留在计划。
+- 修复：window capture只隔离当前弹窗内事件，Escape仅关闭，Tab本地环绕，其它键保留按钮默认行为，关闭后原生快捷键恢复。
+- 回归验证：4文件47项UT通过；完整app可信按键证实Escape与定位动作不增加interaction POST，原卡保持pending，代表图已查看。
+  首次焦点fixture与全局observer绝对计数假设失败均保留，最少续验和原生TITLE动画诊断结果见计划。
+- 运维动作：正常update后手动重启launcher并刷新，不需迁移、清配置或清会话。
+- 剩余边界：真实后端正向审批、实体手机与OS输入法未验；重连重建pending DOM可能再提醒，不在本轮假称已修。
 
 ## [open-kimi-web v2.3.1-r2] - 2026-10-26
 
