@@ -179,6 +179,7 @@ okw_coordinator() (
     fi
     revision=$(printf '%s' "$revision" | tr 'A-F' 'a-f')
     archive=$temporary/source.tar.gz
+    printf '%s\n' "Installer source: downloading coordinator/helpers at $revision; not the Official Kimi CLI." >&2
     okw_download "https://codeload.github.com/WilliamLambertCN/open-kimi-web/tar.gz/$revision" "$archive"
     name=open-kimi-web-$revision
     okw_archive_layout "$archive" "$name" "$temporary/listing"
@@ -253,6 +254,14 @@ okw_main() (
         printf '%s\n' '       [--revision <40-digit commit SHA>]'
         exit 0
     fi
+    if [ -z "${OPEN_KIMI_REAL_KIMI:-}" ]; then
+        command_path=$(command -v kimi || :)
+        case "$command_path" in
+            '') ;;
+            /*) OPEN_KIMI_INSTALL_COMMAND=$command_path; export OPEN_KIMI_INSTALL_COMMAND ;;
+            *) okw_fail 'Unsupported kimi shell command; set OPEN_KIMI_REAL_KIMI to its absolute executable.' ;;
+        esac
+    fi
     platform=$(okw_platform)
     home=${OPEN_KIMI_WEB_HOME:-$HOME/.open-kimi-web}
     okw_safe_directory "$home"
@@ -260,10 +269,12 @@ okw_main() (
     candidate=$(command -v node || :)
     if [ -n "$candidate" ]; then node=$(okw_node "$candidate" || :); fi
     if [ -z "$node" ]; then
+        printf '%s\n' 'Node runtime: downloading verified private Node; this is not the Official Kimi CLI.' >&2
         command -v curl >/dev/null 2>&1 || okw_fail 'curl is required to download the private Node runtime.'
         command -v tar >/dev/null 2>&1 || okw_fail 'tar is required to extract the private Node runtime.'
         node=$(okw_private_node "$home" "$platform")
     fi
+    printf '%s\n' "Node runtime: using $node; no system Node installation was changed." >&2
     temporary=$(mktemp -d "${TMPDIR:-/tmp}/open-kimi-web-install-XXXXXXXX")
     trap 'rm -rf "$temporary"' EXIT
     trap 'exit 1' HUP INT TERM

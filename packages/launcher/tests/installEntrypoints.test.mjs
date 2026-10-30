@@ -24,7 +24,8 @@ ${body}
 `);
   return spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', runner], {
     encoding: 'utf8', timeout: 30_000,
-    env: { ...process.env, OPEN_KIMI_WEB_HOME: join(root, 'home'), FIXTURE: root, ...extra },
+    env: { ...process.env, OPEN_KIMI_WEB_HOME: join(root, 'home'), OPEN_KIMI_REAL_KIMI: '',
+      OPEN_KIMI_INSTALL_COMMAND: '', FIXTURE: root, ...extra },
   });
 }
 
@@ -125,6 +126,27 @@ if (-not (Get-OkwNodeInfo $fakeNode)) { throw 'Suitable Node rejected' }
     const result = ps(`exit (Invoke-OkwInstall @(${array}) $env:FIXTURE)`);
     expect(result.status).toBe(2);
     expect(result.stderr).toMatch(/revision|Revision/);
+  });
+
+});
+
+windows('PowerShell official command hints', () => {
+  it.each(['Function', 'Alias'])('rejects a kimi %s without executing it or discovering Node', (kind) => {
+    const result = ps(`
+function Get-Command { return [pscustomobject] @{ CommandType = '${kind}'; Source = 'unknown' } }
+function Get-OkwPlatform { throw 'platform must not run' }
+Invoke-OkwInstall @('--no-integrate') $env:FIXTURE
+`);
+    expectFailure(result, /Unsupported kimi alias\/function/);
+  });
+
+  it('passes only Application or ExternalScript paths for coordinator inspection without invoking them', () => {
+    const result = ps(`
+function Get-Command { return [pscustomobject] @{ CommandType = 'ExternalScript'; Source = 'C:\\fixture\\kimi.ps1' } }
+Get-OkwKimiCommand
+`);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout.trim()).toBe('C:\\fixture\\kimi.ps1');
   });
 
   it('rejects arbitrary HTTP and nonofficial origins before calling web request', () => {
@@ -244,6 +266,16 @@ okw_main --help
 `);
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain('Usage: install.sh');
+  });
+
+  it('rejects an inherited kimi function before bootstrap and does not run it', () => {
+    const result = shell(`
+unset OPEN_KIMI_REAL_KIMI
+kimi() { okw_fail 'unknown function must not run'; }
+okw_platform() { okw_fail 'platform must not run'; }
+okw_main --no-integrate
+`);
+    expectFailure(result, /Unsupported kimi shell command/);
   });
 
   it('rejects a mutable revision before creating the runtime', () => {

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, rename, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -9,7 +9,14 @@ import { dependencyRoot } from '../../scripts/install/ptyAudit.mjs';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
-import { discoverOfficial, officialPaths, prepareOfficial } from '../../scripts/install/official.mjs';
+import { canonicalNpmCmd, discoverOfficial, officialPaths, prepareOfficial } from '../../scripts/install/official.mjs';
+import { verifyOfficialShell } from '../../scripts/install/officialShell.mjs';
+import { preparePty } from '../../scripts/install/pty.mjs';
+import { fileDigest, installNpmArgs, isolatedNpmEnv } from '../../scripts/install/npm.mjs';
+import { createHash } from 'node:crypto';
+
+const LEGACY_INTEGRITY = 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==';
+let legacy;
 
 let directory;
 let ctx;
@@ -44,9 +51,15 @@ beforeAll(async () => {
     await mkdir(env[key], { recursive: true, mode: 0o700 });
   }
   for (const name of ['user.npmrc', 'global.npmrc', 'gitconfig']) await writeFile(join(stage, name), '', { mode: 0o600 });
-  ctx = makeInstallContext({ env, log: () => {},
+  ctx = makeInstallContext({ env, log: () => {}, windowsPaths: async () => ({ user: '', system: '' }),
     run: (command, args, settings) => runInstallProcess(command, args, { cwd: directory, ...settings }) });
   ctx.npm = await adjacentNpm(ctx.node);
+  if (process.env.OPEN_KIMI_TEST_OFFICIAL_ARCHIVE) {
+    ctx.downloadOfficial = async (url) => {
+      expect(url).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz');
+      return readFile(process.env.OPEN_KIMI_TEST_OFFICIAL_ARCHIVE);
+    };
+  }
   await ensureGitBash(ctx);
 }, 30000);
 
@@ -84,22 +97,25 @@ async function ready(url, child) {
 }
 
 describe('real pinned official npm dependency', () => {
-  it('keeps top-level scripts disabled, verifies real CLI/PTY/Web and reuses owned 2.3.1', async () => {
+  it('keeps top-level scripts disabled, verifies real CLI/child_process shell and reuses owned 2.4.1', async () => {
     const progress = {};
-    await prepareOfficial(ctx, { kind: 'missing' }, stage, progress);
+    await prepareOfficial({ ...ctx, env: { ...ctx.env, OPEN_KIMI_REAL_KIMI: undefined, PATH: '' } },
+      { kind: 'missing' }, stage, progress);
     const paths = officialPaths(ctx);
-    expect(ctx.kimi).toBe(paths.kimi);
     const record = JSON.parse(await readFile(paths.record, 'utf8'));
-    expect(record).toMatchObject({ schema: 1, version: '2.3.1', entry: paths.entry });
+    expect(record).toMatchObject({ schema: 1, version: '2.4.1', entry: paths.entry });
     const manifest = JSON.parse(await readFile(join(paths.root, 'package.json'), 'utf8'));
-    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.3.1' });
-    expect(await verifyPty(ctx, paths.root)).toBe('ok');
-    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.3.1');
+    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.4.1', engines: { node: '>=22.19.0' } });
+    expect(manifest.dependencies?.['node-pty']).toBeUndefined();
+    await verifyOfficialShell(ctx, paths.root);
+    expect(await verifyPty(ctx, paths.root)).toBe('missing');
+    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.4.1');
     expect(await ctx.run(ctx.node, [paths.entry, 'web', '--help'], { env: ctx.env })).toContain('--no-open');
     const found = await discoverOfficial({ ...ctx, env: { ...ctx.env, PATH: '' }, kimi: undefined });
     expect(found).toMatchObject({ kind: 'npm', path: paths.kimi });
     const snapshot = await readFile(paths.record, 'utf8');
     await prepareOfficial(ctx, found, stage, progress);
+    expect(ctx.kimi).toBe(paths.kimi);
     expect(await readFile(paths.record, 'utf8')).toBe(snapshot);
     expect((await readdir(directory)).sort()).toEqual(['bootstrap-official.json', 'official', 'stage']);
   }, 180000);
@@ -132,9 +148,32 @@ describe('real pinned official npm dependency', () => {
 
 });
 
+async function prepareLegacy() {
+  const home = join(stage, 'legacy');
+  legacy = { ...ctx, home, kimi: undefined, env: { ...ctx.env, HOME: home, USERPROFILE: home, PATH: '' } };
+  const paths = officialPaths(legacy);
+  let bytes;
+  if (process.env.OPEN_KIMI_TEST_LEGACY_ARCHIVE) bytes = await readFile(process.env.OPEN_KIMI_TEST_LEGACY_ARCHIVE);
+  else {
+    const response = await fetch('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.3.1.tgz');
+    expect(response.status).toBe(200);
+    bytes = Buffer.from(await response.arrayBuffer());
+  }
+  expect(createHash('sha512').update(bytes).digest('base64')).toBe(LEGACY_INTEGRITY);
+  const archive = join(stage, 'legacy-kimi.tgz');
+  await writeFile(archive, bytes);
+  await ctx.run(ctx.node, installNpmArgs({ ...ctx, prefix: paths.prefix }, archive), {
+    cwd: stage, env: isolatedNpmEnv(ctx.env, stage, ctx.node, ctx.platform), timeoutMs: 300000 });
+  await preparePty(ctx, paths, stage, {});
+  await writeFile(paths.record, JSON.stringify({ schema: 1, version: '2.3.1', integrity: LEGACY_INTEGRITY,
+    prefix: paths.prefix, entry: paths.entry, kimi: paths.kimi,
+    entryDigest: await fileDigest(paths.entry), shimDigest: await fileDigest(paths.kimi) }));
+  return paths;
+}
+
 describe('real owned official dependency failures', () => {
-  it('rejects a missing owned PTY binary without rewriting or rebuilding', async () => {
-    const paths = officialPaths(ctx);
+  it('retains legacy 2.3.1 PTY and rejects a missing owned binary without rewriting or rebuilding', async () => {
+    const paths = await prepareLegacy();
     const pty = dependencyRoot(paths.root, 'node-pty');
     const binding = process.platform === 'win32' ? 'conpty.node' : 'pty.node';
     const binary = process.platform === 'linux' ? join(pty, 'build/Release', binding) :
@@ -143,15 +182,76 @@ describe('real owned official dependency failures', () => {
     const snapshot = await readFile(paths.record, 'utf8');
     await rename(binary, disabled);
     try {
-      await expect(prepareOfficial(ctx, { kind: 'npm', path: paths.kimi }, stage, {})).rejects.toThrow('repair manually');
+      await expect(prepareOfficial(legacy, { kind: 'npm', path: paths.kimi }, stage, {})).rejects.toThrow('repair manually');
       expect(await readFile(paths.record, 'utf8')).toBe(snapshot);
       await expect(readFile(binary)).rejects.toThrow();
     } finally { await rename(disabled, binary); }
     expect(await verifyPty(ctx, paths.root)).toBe('ok');
-  }, 30000);
+    await prepareOfficial(legacy, await discoverOfficial(legacy), stage, {});
+  }, 180000);
 
   it('rejects changed owned entry rather than reinstalling over a partial or modified install', async () => {
     await writeFile(officialPaths(ctx).entry, 'modified fixture');
     await expect(discoverOfficial(ctx)).rejects.toThrow('ownership or version changed');
+  });
+});
+
+async function syntheticContext(name) {
+  const home = join(stage, name);
+  await mkdir(home);
+  const env = { ...ctx.env, HOME: home, USERPROFILE: home, APPDATA: join(home, 'appdata'), PATH: '' };
+  return { ...ctx, home, bin: join(home, 'bin'), prefixBin: join(home, 'npm'), kimi: undefined, env,
+    windowsPaths: async () => ({ user: '', system: '' }) };
+}
+
+async function externalNpm(context, directory) {
+  const root = join(directory, 'node_modules/@moonshot-ai/kimi-code');
+  await mkdir(join(root, 'dist'), { recursive: true });
+  await writeFile(join(root, 'package.json'), JSON.stringify({ name: '@moonshot-ai/kimi-code', version: '2.4.1',
+    bin: { kimi: 'dist/main.mjs' } }));
+  await writeFile(join(root, 'dist/main.mjs'), 'console.log(process.argv.includes("--version") ? "2.4.1" : "kimi web --host");');
+  if (context.platform === 'win32') {
+    await writeFile(join(directory, 'kimi.cmd'), canonicalNpmCmd());
+    return join(directory, 'kimi.cmd');
+  }
+  await chmod(join(root, 'dist/main.mjs'), 0o755);
+  await symlink(join(root, 'dist/main.mjs'), join(directory, 'kimi'));
+  return join(directory, 'kimi');
+}
+
+describe('synthetic discovery with real selected Node calls and no user persistent PATH', () => {
+  it('reuses the official default-bin command with zero official downloads and leaves its bytes unchanged', async () => {
+    const context = await syntheticContext('synthetic-reuse');
+    const file = await externalNpm(context, join(context.env.HOME, '.kimi-code/bin'));
+    const snapshot = await readFile(file);
+    let downloads = 0;
+    context.downloadOfficial = async () => { downloads += 1; throw new Error('official download must not run'); };
+    const found = await discoverOfficial(context);
+    expect(found).toMatchObject({ kind: 'npm', path: file, version: '2.4.1' });
+    await prepareOfficial(context, found, stage, {});
+    expect(downloads).toBe(0);
+    expect(await readFile(file)).toEqual(snapshot);
+  });
+
+  it('rejects a real unknown wrapper without running it or downloading over the installation', async () => {
+    const context = await syntheticContext('synthetic-unknown');
+    const tools = join(context.home, 'tools');
+    await mkdir(tools);
+    context.env.PATH = tools;
+    await writeFile(join(tools, context.platform === 'win32' ? 'kimi.ps1' : 'kimi'), 'throw "do not execute"');
+    await expect(discoverOfficial(context)).rejects.toThrow(/shim|executable/);
+    expect(await readdir(tools)).toHaveLength(1);
+  });
+
+  it('runs an actual profile-free shell child using child_process without a package install', async () => {
+    await verifyOfficialShell(ctx, stage);
+  });
+
+  it('only reports missing after absent synthetic candidates and refuses two unrelated installs', async () => {
+    const context = await syntheticContext('synthetic-ambiguous');
+    expect(await discoverOfficial(context)).toEqual({ kind: 'missing' });
+    await externalNpm(context, join(context.env.HOME, '.kimi-code/bin'));
+    await externalNpm(context, join(context.env.HOME, '.local/bin'));
+    await expect(discoverOfficial(context)).rejects.toThrow('multiple official Kimi');
   });
 });

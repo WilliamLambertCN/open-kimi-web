@@ -84,9 +84,9 @@ afterEach(async () => {
 });
 
 describe('real TCP restricted Cron client', () => {
-  it('reads 2.3.1 task memory but rejects create/remove before any debug mutation over TCP', async () => {
+  it.each(['2.3.1', '2.4.1'])('reads %s task memory but rejects writes before any debug mutation over TCP', async (version) => {
     const saved = task(1);
-    const { client, state, calls } = await startFixture({ meta: { ...meta, server_version: '2.3.1' }, tasks: [saved] });
+    const { client, state, calls } = await startFixture({ meta: { ...meta, server_version: version }, tasks: [saved] });
     expect(await client.list(args)).toEqual([saved]);
     await expect(client.create({ ...args, init })).rejects.toMatchObject({ code: 'read-only-version' });
     await expect(client.remove({ ...args, id: saved.id })).rejects.toMatchObject({ code: 'read-only-version' });

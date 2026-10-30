@@ -89,6 +89,23 @@ describe('subagent model metadata and effort compatibility', () => {
     expect(result.find(({ id }) => id === 'provider-looking/alias').provider).toBe('');
     expect(result).toHaveLength(3);
   });
+  it('retains raw effort order, prefixes and implicit-default input across config and catalog reads', () => {
+    const { api } = install();
+    const stored = ['low', 'medium', 'max', 'high', 'xhigh', 'future_b', 'future_a'];
+    const section = { defaultModel: 'a' };
+    const config = { models: { a: { capabilities: ['thinking'], supportEfforts: [...stored] } } };
+    const catalog = { items: [{ model: 'a', capabilities: ['thinking'], support_efforts: [...stored] }] };
+    const models = api.modelsFor(config, catalog);
+    expect(models[0].supportEfforts).toEqual(stored);
+    expect(api.effortsFor(models[0])).toEqual(['off', 'on', ...stored]);
+    expect(api.availableEfforts(section, 'a', models)).toEqual(['off', 'on', ...stored]);
+    expect(api.choiceFor(section)).toEqual({ model: 'a', effort: '' });
+    expect(api.patchFor(section, { model: 'a', effort: '' }, models)).toBeNull();
+    expect(api.effortsFor({ ...models[0], alwaysThinking: true })).toEqual(['on', ...stored]);
+    expect(api.effortsFor(model('b', { supportEfforts: [] }))).toEqual(['on', 'off']);
+    expect(config.models.a.supportEfforts).toEqual(stored);
+    expect(catalog.items[0].support_efforts).toEqual(stored);
+  });
   it('follows official thinking metadata and intersects explicit efforts across a retained pool', () => {
     const { api } = install();
     expect(api.effortsFor(model('a'))).toEqual(['off', 'on', 'low', 'medium', 'high']);

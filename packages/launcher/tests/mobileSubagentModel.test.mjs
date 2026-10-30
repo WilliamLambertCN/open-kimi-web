@@ -282,6 +282,31 @@ describe('mobile subagent inheritance and automatic effort', () => {
     expect(ui.posts).toEqual([{ secondary_model: { defaultModel: 'fixture/fast', defaultEffort: 'on' } }]);
     expect(ui.getConfig().secondary_model.models).toEqual(section.models);
   });
+  it('sorts final entries after appending an unsupported current value without silently changing it', async () => {
+    const config = fixtureConfig({ defaultModel: 'fixture/fast', defaultEffort: 'minimal' });
+    const stored = ['low', 'medium', 'max', 'high', 'xhigh', 'future_b', 'future_a'];
+    config.models['fixture/fast'].supportEfforts = [...stored];
+    const ui = await install({ config });
+    await open(ui);
+    expect(efforts(ui)).toEqual(['', 'off', 'on', 'minimal', 'low', 'medium', 'high', 'xhigh',
+      'future_b', 'future_a', 'max']);
+    expect(effortValue(ui)).toBe('minimal');
+    expect(ui.query('save').disabled).toBe(true);
+    expect(ui.query('status').textContent).toContain('incompatible with the latest model pool');
+    ui.effort('high');
+    ui.key('End', ui.query('effort').querySelector('.is-on'));
+    expect(effortValue(ui)).toBe('max');
+    ui.key('ArrowLeft', ui.doc.activeElement);
+    expect(effortValue(ui)).toBe('future_a');
+    ui.query('save').click();
+    await ui.settled();
+    expect(ui.posts).toEqual([{ secondary_model: { defaultModel: 'fixture/fast', defaultEffort: 'future_a' } }]);
+    expect(ui.getConfig().models['fixture/fast'].supportEfforts).toEqual(stored);
+    await open(ui);
+    expect(effortValue(ui)).toBe('future_a');
+    expect(efforts(ui).at(-1)).toBe('max');
+    expect(ui.storage.setItem).not.toHaveBeenCalled();
+  });
   it('explains empty catalogs while keeping inherited state without a write', async () => {
     const ui = await install({ noModels: true });
     await open(ui);

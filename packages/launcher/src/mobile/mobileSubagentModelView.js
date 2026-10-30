@@ -283,7 +283,7 @@
   };
   const renderEfforts = (state, entries, onEffort) => {
     const { ui } = state;
-    const nodes = entries.map((value) => {
+    const nodes = window.__okwEffortOrder.sort(entries).map((value) => {
       let item = ui.efforts.get(value);
       if (!item) {
         item = button('ui-seg__item');
