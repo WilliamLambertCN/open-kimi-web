@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, vi } from 'vitest';
 
-export const sources = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js']
+export const sources = ['effortOrder.js', 'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js']
   .map((name) => readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8'));
 const localeSource = readFileSync(resolve('packages/launcher/src/mobile/locale.js'), 'utf8');
 export const tick = async () => { await new Promise((done) => setTimeout(done, 0)); };

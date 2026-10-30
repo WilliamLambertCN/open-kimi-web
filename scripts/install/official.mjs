@@ -1,19 +1,22 @@
 import { createHash } from 'node:crypto';
-import { access, mkdir, readFile, readdir, realpath, rename, writeFile } from 'node:fs/promises';
+import { access, mkdir, readdir, realpath, rename, writeFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { downloadBytes } from './network.mjs';
 import { fileDigest, installNpmArgs, isolatedNpmEnv, pathStat, safeDirectory, stateJson } from './npm.mjs';
 import { installerCommand, shQuote } from './wrappers.mjs';
-import { nodePathEnv, pathValue } from './environment.mjs';
-import { preparePty, verifyOwnedPty } from './pty.mjs';
+import { nodePathEnv } from './environment.mjs';
+import { verifyOwnedPty } from './pty.mjs';
+import { findOfficialCandidate } from './officialCandidates.mjs';
+import { verifyOfficialShell } from './officialShell.mjs';
 
-export const OFFICIAL_VERSION = '2.3.1';
-export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.3.1.tgz';
-export const OFFICIAL_INTEGRITY = 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==';
+export const OFFICIAL_VERSION = '2.4.1';
+export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz';
+export const OFFICIAL_INTEGRITY = 'z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw==';
 
 const OWNED_RELEASES = new Map([
   [OFFICIAL_VERSION, OFFICIAL_INTEGRITY],
+  ['2.3.1', 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg=='],
   ['2.1.1', 'xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw=='],
 ]);
 
@@ -29,32 +32,8 @@ export function officialPaths(ctx) {
     record: join(ctx.home, 'bootstrap-official.json') };
 }
 
-export function canonicalNpmCmd() {
-  const target = '%dp0%\\node_modules\\@moonshot-ai\\kimi-code\\dist\\main.mjs';
-  return '@ECHO off\nGOTO start\n:find_dp0\nSET dp0=%~dp0\nEXIT /b\n:start\nSETLOCAL\nCALL :find_dp0\n\n' +
-    'IF EXIST "%dp0%\\node.exe" (\n  SET "_prog=%dp0%\\node.exe"\n) ELSE (\n  SET "_prog=node"\n' +
-    '  SET PATHEXT=%PATHEXT:;.JS;=;%\n)\n\n' +
-    `endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & "%_prog%"  "${target}" %*\n`;
-}
-
-async function cmdEntry(candidate) {
-  const stat = await pathStat(candidate);
-  if (!stat?.isFile() || stat.isSymbolicLink() || stat.size > 16384 || !/\.cmd$/i.test(candidate)) {
-    throw new Error('official npm shim is unsafe or unsupported');
-  }
-  const text = (await readFile(candidate, 'utf8')).replaceAll('\r\n', '\n');
-  if (text !== canonicalNpmCmd()) throw new Error('official npm shim does not match the standard kimi npm target');
-  return join(dirname(candidate), 'node_modules/@moonshot-ai/kimi-code/dist/main.mjs');
-}
-
-async function npmEntry(candidate, ctx) {
-  if (ctx.platform === 'win32' && /\.(cmd|bat|ps1)$/i.test(candidate)) return cmdEntry(candidate);
-  const target = await realpath(candidate);
-  if (ctx.platform === 'win32' && !target.toLowerCase().endsWith('.exe')) {
-    throw new Error('unsupported Windows official shim; use the standard npm kimi.cmd or native kimi.exe');
-  }
-  return target.endsWith(`${sep}dist${sep}main.mjs`) ? target : null;
-}
+export { canonicalNpmCmd, canonicalNpmPs1 } from './officialShims.mjs';
+import { officialEntry, runtimeCandidate } from './officialShims.mjs';
 
 async function verifyNpmEntry(entry) {
   const root = dirname(dirname(entry));
@@ -95,7 +74,7 @@ function assertVersion(version, expected) {
 
 export async function verifyOfficial(ctx, candidate) {
   await assertCandidate(ctx, candidate);
-  const entry = await npmEntry(candidate, ctx);
+  const entry = await officialEntry(candidate, ctx);
   const expected = entry ? await verifyNpmEntry(entry) : null;
   const command = entry ? ctx.node : candidate;
   const args = entry ? [entry] : [];
@@ -133,38 +112,23 @@ async function ownedOfficial(ctx) {
   return paths.kimi;
 }
 
-async function pathCandidate(ctx) {
-  const dirs = pathValue(ctx.env, ctx.platform).split(ctx.platform === 'win32' ? ';' : ':').filter(Boolean);
-  const names = ctx.platform === 'win32' ? ['kimi.exe', 'kimi.cmd', 'kimi.bat', 'kimi'] : ['kimi'];
-  for (const dir of dirs) {
-    if ([ctx.bin, ctx.prefixBin].some((skip) => equal(dir, skip, ctx.platform))) continue;
-    for (const name of names) {
-      const candidate = resolve(dir, name);
-      if (await pathStat(candidate)) return candidate;
-    }
-  }
-  return null;
-}
-
-function explicitCandidate(ctx) {
-  const override = ctx.env.OPEN_KIMI_REAL_KIMI;
-  if (override !== undefined && (!override || !isAbsolute(override))) {
-    throw new Error('OPEN_KIMI_REAL_KIMI must be an absolute path');
-  }
-  if (override && ctx.kimi && !equal(override, ctx.kimi, ctx.platform)) {
-    throw new Error('official override conflicts with integration');
-  }
-  return override || ctx.kimi;
-}
-
 export async function discoverOfficial(ctx) {
   const owned = await ownedOfficial(ctx);
-  const candidate = explicitCandidate(ctx) || await pathCandidate(ctx) || owned;
+  const candidate = await findOfficialCandidate(ctx, owned, officialEntry);
   if (!candidate) return { kind: 'missing' };
+  await assertCandidate(ctx, candidate);
   if (ctx.platform !== 'win32') {
     try { await access(candidate, constants.X_OK); } catch { throw new Error('official PATH command is not executable'); }
   }
-  return verifyOfficial(ctx, candidate);
+  return verifyOfficial(ctx, await runtimeCandidate(candidate, ctx));
+}
+
+async function verifyOwnedRuntime(ctx, paths) {
+  if (!await ownedOfficial(ctx)) throw new Error('official dedicated prefix is missing; no automatic reinstall');
+  const record = await stateJson(paths.record);
+  await officialEntry(paths.kimi, ctx);
+  if (record.version === OFFICIAL_VERSION) await verifyOfficialShell(ctx, paths.root);
+  else await verifyOwnedPty(ctx, paths);
 }
 
 async function recordOfficial(paths, stage) {
@@ -179,10 +143,16 @@ async function recordOfficial(paths, stage) {
 export async function prepareOfficial(ctx, discovery, stage, progress) {
   const paths = officialPaths(ctx);
   if (discovery.kind !== 'missing') {
-    if (equal(discovery.path, paths.kimi, ctx.platform)) await verifyOwnedPty(ctx, paths);
+    const selected = await realpath(discovery.path).catch(() => discovery.path);
+    const owned = await realpath(paths.kimi).catch(() => paths.kimi);
+    if (equal(selected, owned, ctx.platform)) await verifyOwnedRuntime(ctx, paths);
     ctx.kimi = discovery.path;
+    ctx.log(`Official Kimi: reusing ${discovery.version} at ${discovery.path}; no official CLI download or upgrade.`);
     return;
   }
+  const current = await discoverOfficial(ctx);
+  if (current.kind !== 'missing') throw new Error('official Kimi appeared after discovery; refusing a second installation');
+  ctx.log(`Official Kimi: all supported candidates are absent; downloading fixed ${OFFICIAL_VERSION}.`);
   progress.label = 'official Kimi verified download';
   const bytes = await (ctx.downloadOfficial ?? downloadBytes)(OFFICIAL_URL, { env: ctx.env });
   if (createHash('sha512').update(bytes).digest('base64') !== OFFICIAL_INTEGRITY) {
@@ -197,7 +167,7 @@ export async function prepareOfficial(ctx, discovery, stage, progress) {
   progress.label = 'official Kimi runtime verification';
   if (await verifyNpmEntry(paths.entry) !== OFFICIAL_VERSION) throw new Error('official installed package version is not pinned');
   await verifyOfficial(ctx, paths.kimi);
-  await preparePty(ctx, paths, stage, progress);
+  await verifyOfficialShell(ctx, paths.root);
   await recordOfficial(paths, stage);
   ctx.kimi = paths.kimi;
   ctx.log(`Official Kimi ${OFFICIAL_VERSION} installed in dedicated prefix; existing installations were not modified.`);

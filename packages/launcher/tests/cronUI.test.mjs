@@ -53,8 +53,8 @@ async function settled(test) {
 }
 afterEach(() => { observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove()); });
-describe('2.3.1 read-only scheduled-task UI', () => {
-  const readonly = { available: true, version: '2.3.1', reason: 'read-only-version',
+describe.each(['2.3.1', '2.4.1'])('%s read-only scheduled-task UI', (version) => {
+  const readonly = { available: true, version, reason: 'read-only-version',
     capabilities: { list: true, inventory: true, history: true, create: false, remove: false } };
   it('keeps cold inventory/history readable and blocks hidden buttons and direct create/remove/restore callbacks', async () => {
     const cold = { ...session, loaded: false, modelSource: 'saved' };
@@ -62,8 +62,8 @@ describe('2.3.1 read-only scheduled-task UI', () => {
       sessions: vi.fn(async () => ({ items: [cold], hasMore: false, cursor: null })) });
     await select(test);
     const notice = test.find('.okw-cron-panel > .okw-cron-status');
-    expect(notice.textContent).toContain('Official 2.3.1');
-    expect(notice.textContent).toContain('session locks or freshness checks');
+    expect(notice.textContent).toContain('This official version');
+    expect(notice.textContent).toContain('session ownership and freshness');
     expect(notice.textContent).toContain('no write was sent');
     expect(notice.textContent).not.toContain('not enabled');
     expect(test.find('.okw-cron-main').textContent).toContain('Showing saved records only');
@@ -81,7 +81,7 @@ describe('2.3.1 read-only scheduled-task UI', () => {
     expect(test.api.remove).not.toHaveBeenCalled(); expect(test.api.list).not.toHaveBeenCalled();
     expect(test.api.history).toHaveBeenCalledWith(session.id);
     test.language('zh');
-    expect(notice.textContent).toContain('当前仅支持只读；未写入');
+    expect(notice.textContent).toContain('仅支持只读；未写入');
     expect(notice.textContent).toContain('不恢复会话');
     expect(test.find('.okw-cron-main').textContent).toContain('未恢复会话或启动任务');
     expect(test.find('[data-cron-action="open-session"]').getAttribute('href')).toBe('/sessions/original-session');
