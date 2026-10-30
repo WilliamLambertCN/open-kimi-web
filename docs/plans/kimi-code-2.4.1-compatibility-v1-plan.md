@@ -249,4 +249,25 @@ backend-protocol 与 interaction-qa 成功运行合计 60 个命名检查组、7
   自有进程／命名容器0，scratch已清理；实际 Python tool／依赖及IT缓存明确归档在同 ignored 目录，不公开。
 - frontend fallback 已补精确2.4.1／显式旧UI pin及旧backend pin新版用例，定向1文件28项UT通过；仍须重新跑 required CI。
 
-交互隔离及 required CI 完成前不合并或发布；正式包和线上结果仍待后续记录。
+### 强提醒键盘穿透修复与最少续验
+
+- completionModal 仅把本弹窗内的 keydown 提前至 window capture，早于官方 document capture；
+  Escape 阻止默认／传播后仅关闭提醒，Tab／ShiftTab本地环绕，Enter／Space保留默认按钮click。
+  IME／229／Ctrl／Alt／Meta不执行本地关闭／切焦，modal外或关闭后原生按键继续生效；不改CSS、locale或交互状态。
+- 新回归在脚本执行前注册原生 document capture，修前8失败／3通过；修后completion键盘／原modal／observer／locale共4文件47项通过。
+  两个改动文件ESLint及diff check通过，源码290行；不是仅测试晚注册bubble监听。
+- 准确完整2.4.1 app与真实createLauncher注入、fictional REST／WS、Chrome可信按键续验：
+  approval／question的modal Escape均保持原卡pending且POST不增加，关闭后主动在原控件按Escape才分别发rejected／dismissed。
+  Enter／Space各单次trusted click只定位，不代答；Tab／ShiftTab、pointer close、completion三种关闭方式及焦点恢复通过。
+- 第一修后报告31／36并一次导航driver blocked：初始焦点fixture选择的composer被原生pending移除，改用仍连接的topbar按钮后通过。
+  续验46／48，余两项全局observer回调绝对不变失败；未为此改产品或关闭原生动画。
+  仅补observer的最终12／12通过：两类pending各900ms正文childList mutation为0，剩余记录全为原生TITLE等待动画，无重复modal或隐藏回答。
+- 父级亲看approval Escape后、question Escape后及completion关闭前3张代表图，原控件可达，布局未变化；不重跑Max／Tower已绿矩阵。
+  新证据在ignored .cache/compat-241-ui/run-modal-keys-fixed-*、run-modal-keys-continuation-*、run-modal-observer-final-*。
+- final-audit保留全部原报告：累计371断言／351通过／20历史失败／51图，不是最终唯一通过率或全绿声明。
+  19个run、182个带创建时间的自有进程identity最终剩余进程／监听／WS为0；prompt／TowerInit／debug／trust写入0。
+  真实后端正向审批、实体手机、OS输入法／软键盘仍未验；IME／modifier仅UT证据，重连DOM重建可能再提醒边界不变。
+- 安装修复已独立提交9cfa0e7；标准lint／typecheck在最终代码上exit0，发布前再做本轮唯一最终pack及required CI。
+  相关新增diff与新Python helper／测试定向隐私检查未发现新增秘密、个人路径或map；无新公开截图。
+
+required PR／main CI完成前不合并或发布；正式包和线上结果仍待后续记录。

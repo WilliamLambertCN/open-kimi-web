@@ -192,6 +192,8 @@ PR #33及main required CI通过，r2 tag固定6562db37；正式包131文件／8,
 安装发现补齐受支持的现有命令来源；新版无 node-pty，按精确官方身份验证运行时，旧版仍保留 PTY 边界。
 Windows HOME／USERPROFILE 默认目录均参与去重／歧义判断；旧 POSIX Python 只接受有界标准 console entry，仍验 Web 能力。
 真实 uv／官方 Python 1.51.0 已补验；弃用1.52.0无 Web 能力仍拒绝，详情与首失败见同计划，不扩大为全平台保证。
+手机强提醒window capture隔离Escape／Tab及其它modal内按键，保留按钮默认click和关闭后原生快捷键；47项定向及完整app续验通过。
+重连重建pending DOM仍可能再提醒，不宣称跨重建去重；真实backend正向审批、实体手机等未验，首失败与图见同计划。
 本轮授权正常提交、推送与新版本发布，不移动旧 tag／资产，不升级用户实际 CLI 或重启生产。
 
 ## 项目边界
