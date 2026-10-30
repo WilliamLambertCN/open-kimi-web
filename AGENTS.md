@@ -5,7 +5,7 @@
 
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
-为当时的实施、审查和验收基线。当前 `2.3.1` 适配与 `2.3.1-r1` 发布边界见 `UPSTREAM.md`、`upstream.json` 和下方本轮计划。
+为当时的实施、审查和验收基线。当前 `2.4.1` 适配与 `2.4.1-r1` 发布边界见 `UPSTREAM.md`、`upstream.json` 和下方本轮计划。
 
 当前用量统计功能按已确认的
 [`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md)
@@ -50,22 +50,22 @@
 [`docs/plans/one-click-install-v1-plan.md`](docs/plans/one-click-install-v1-plan.md)。
 用户已授权 r10 发布；按[收敛发布计划](docs/plans/one-click-install-r10-release-v1-plan.md) 执行，
 沿用已有验收，不重复本地全套测试、UI 矩阵或跨平台组合；保留实际包检查、隐私检查及 required CI。
-r10 时 README 顶部只留短在线安装命令，固定已发布 r10 SHA；此为历史约定，当前入口来源按下方 2.3.1-r1 计划。
+r10 时 README 顶部只留短在线安装命令，固定已发布 r10 SHA；此为历史约定，当前入口来源按下方 2.4.1 计划。
 用量截图继续两栏缩略展示并链接原图，不因版本适配替换既有图片。
 以本地入口和同一不可变提交的完整脚本为交付边界；目标不要求预装 Node／npm／Corepack／pnpm／Git 或官方 Kimi。
 r10 历史实现缺官方时 npm 优先准备固定 `@moonshot-ai/kimi-code@2.1.1`；本轮新装 pin 见下方，已有可用安装不升级。
 官方 npm 需要 Node ≥ 22.19.0；专用 `home/official` 与 launcher prefix／runtime／wrapper 分开。
 固定真实 tarball／SHA-512、默认 ignore-scripts，避免官方 postinstall 迁移用户旧 Python 命令；归属不明／partial 不自动续装。
-Windows 完整场景已验证真实官方 2.1.1、实际 r9 cmd wrapper／managed Web、重复复用和 uninstall；接管仍用注册表 seams。
-最新 Windows User／Machine raw PATH 字节值前后相等；真实 Git Bash PTY 与 x64 portable 下载／校验／初始化分别通过，
+以下为 r10 历史验收：Windows 完整场景验证真实官方 2.1.1、实际 r9 cmd wrapper／managed Web、重复复用和 uninstall；
+接管仍用注册表 seams。该阶段 Windows User／Machine raw PATH 字节值前后相等；Git Bash PTY 与 portable 下载／初始化分别通过，
 缺 Git portable 与完整 coordinator 不是同一次组合验收。Linux 现有 Docker bookworm 标准工具环境完整 sh／r9／新 bash、
 真实 PTY／managed Web／重复复用／uninstall 通过；WSL 缺 make／C++ 明确失败，不记 full 通过。
-新自有官方安装先真实 PTY probe；Linux 缺 binding 时只审计固定 node-pty 1.1.0／node-addon-api 7.1.1，
+legacy 官方安装先真实 PTY probe；Linux 缺 binding 时只审计固定 node-pty 1.1.0／node-addon-api 7.1.1，
 限定审计后的绝对 node-pty 目录 npm rebuild，只跑其 install／postinstall，不跑根 kimi 旧 Python 迁移或其它包脚本。
 审计补齐 noexcept.gypi，构建环境过滤所有 MAKE 前缀及 FLAGS 控制变量；真实 make／audit 窄验证通过，不冒充重跑 PTY。
-需标准 Python 3、C／C++ 编译器和 make；空 Linux 仍非零编译依赖一键，不 sudo／apt 或自动准备完整工具链。
-PTY 成功才写 ownership record；owned 重复安装再 probe，损坏拒绝且不自动 rebuild；non-owned 安装保留不重建。
-Linux 使用 forkpty，spawn-helper 为 macOS 目标；早期缺 binding 与 native fallback 失败保留为历史，不能以 Web 200 代替 PTY。
+legacy rebuild 需 Python 3、C／C++ 编译器和 make；不 sudo／apt 或自动准备完整工具链，不作为新版新装的必需前提。
+PTY 成功才写 legacy ownership record；owned 重复 probe，损坏拒绝不自动 rebuild；non-owned 安装保留不重建。
+旧 Linux 使用 forkpty，spawn-helper 为 macOS 目标；缺 binding 与 native fallback 失败保留为历史，Web 200 不能代替 PTY。
 不自动登录、启动生产服务、读取真实会话或发付费调用；此前仅本地实现的范围现纳入已授权 r10 发布，r9 不包含它们。
 旧 fixture 与 expanded2 保留为历史；PTY／UI／i18n 改动后的 final3 标准门禁已完成，父级确认五项命令均 exit 0。
 lint／typecheck 通过；UT 79 文件／1412 项通过，Lines 88.77%／Branch 80.21%；IT 19 文件通过／1 跳过，
@@ -186,6 +186,12 @@ PR #31 及 main 标准 CI 已通过；同 r1 已重发，tag 固定 5b626e3f，�
 PR #33及main required CI通过，r2 tag固定6562db37；正式包131文件／8,415,233 bytes，线上字节／digest及同SHA入口一致。
 真实r1包更新器已发现r2，原r1 tag／资产未变化；本节事后记录不再移tag或换包，正常同步main回develop。
 
+用户当前要求推理档位 Max 最后、查明 Tower 显隐、跟随官方 2.4.1 与安装器复用已有 Kimi，按
+[`docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md`](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md) 执行。
+目标正式版本为 2.4.1-r1；仅规范 effort 展示，不重排官方元数据或改变默认值，不强制开启 Tower。
+安装发现补齐受支持的现有命令来源；新版无 node-pty，按精确官方身份验证运行时，旧版仍保留 PTY 边界。
+本轮授权正常提交、推送与新版本发布，不移动旧 tag／资产，不升级用户实际 CLI 或重启生产。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
@@ -195,10 +201,10 @@ PR #33及main required CI通过，r2 tag固定6562db37；正式包131文件／8,
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.3.1 与历史版本适配事实
+## 官方 2.4.1 与历史版本适配事实
 
-- 当前兼容目标是 Kimi Code `2.3.1`；`UPSTREAM.md`、`upstream.json` 和本轮计划区分静态审计与真实运行验收。
-  下列 `2.1.1`／`0.43.1` 行为保留为历史参考，不是新版保证；升级仍须重新核对受影响的 API、DOM、交互和失败行为。
+- 当前兼容目标是 Kimi Code `2.4.1`；`UPSTREAM.md`、`upstream.json` 和本轮计划区分静态审计与真实运行验收。
+  下列旧版行为保留为历史参考，不是新版保证；升级仍须重新核对受影响的 API、DOM、交互和失败行为。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
   官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、

@@ -4,6 +4,64 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.4.1-r1] - 2026-10-31
+
+兼容目标更新为官方 Kimi Code `2.4.1`，版本目标为 `2.4.1-r1`。本条目记录本轮变更范围与已确认根因；
+真实后端、双端界面、标准门禁、CI、交付包和线上发布结果统一见
+[2.4.1 适配计划](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md)，未记录的检查不视为通过。
+
+- 已支持推理档位仅按 `none → minimal → low → medium → high → xhigh → max` 规范展示，Max 最后。
+  未知值稳定保留在 Max 前；Auto／Off／On 保持各入口原语义。不增加支持项、不重排 `supportEfforts`，
+  不改当前选择、默认推导、保存数组或 r2 用户要求的新模型默认。
+- 说明 Tower 的原生实验条件：meta 的 `experimental_flags.tower === true` 才显示入口，实验默认 off。
+  单项 `KIMI_CODE_EXPERIMENTAL_TOWER` 优先配置，再回退全局实验开关；核对实际后端进程环境与 home。
+  启动 off 后 live config true 可出现入口，但工具未在启动时组装，需用户自行重启实际 backend；不强制开启或自动重启。
+  会话 chip 还要求模式已开且非 Side Chat；缺 chip 不代表功能不存在，Side Chat 无入口正常。
+- 安装发现补齐有界已知目录、Windows 持久 PATH、标准 npm／uv 及所选 Node 旁命令等候选来源。
+  先明确复用可用官方 CLI，不下载或升级该 CLI；坏、歧义、不支持候选明确拒绝，不伪装 missing 后另装。
+  只有确认缺失才准备固定官方 `2.4.1` tarball／SHA-512；保留精确身份、entry／shim 摘要、partial 拒绝与 ignore-scripts。
+- 官方 `2.4.1` 已移除 node-pty，按精确身份改做真实 Node `child_process` shell probe，不装回旧 PTY 依赖。
+  旧 owned `2.3.1`／`2.1.1` 仍保留精确身份与真实 PTY 检查；Linux 仅 legacy rebuild 需要 Python 3、make 和 C／C++。
+  新版不再无条件要求该编译工具链；Windows Git Bash 仍必需，平台及真实入口验收不超出计划内证据。
+- 官方 UI fallback 更新为 `2.4.1`；cron 精确 READ 追加 `2.4.1`，与 `2.3.1` 一样只读。
+  WRITE 仍仅精确 `2.1.1`／`2.2.0`；未知版本拒绝，debug／RC、冷会话、鉴权及 transport／route 双 gate 安全边界保留。
+- 当前安装说明从 `v2.4.1-r1` commit API 解析并校验真实 40 位 SHA，下载同 SHA 入口并传同一 revision，
+  launcher 固定 `--version 2.4.1-r1`；不伪造 SHA、不移动旧 tag／资产，不把待发布链接说成已在线验收。
+  原 `2.3.1-r2` 用户在正式发布后正常 `update --check`／`update`，再手动重启 launcher 和实际后端、刷新页面。
+- 上游变化按[官方更新日志][official-changelog]及[Tower 指南][official-tower]说明，不作为本项目新造功能：
+  `2.3.2` 默认不主动 delegate，AgentSwarm 须显式开启 swarm；`2.3.3` 增加 Swarm 高用量警示并更新模型切换确认。
+  `2.4.0` 增加 Claude Code／Codex 近期导入（近 15／30 天）、provider refresh、`Ctrl-O` 思考显示切换，
+  Tower 每任务模型与并发默认 16→256，用户显式 Plan 且执行前 review，30 分钟空闲卸载／透明恢复，
+  统一 interaction，并移除 node-pty／session terminal。`2.4.1` Read 默认 100,000 字符或约 25,000 tokens 先到为准，
+  `read.max_chars` 可调；内置 prompt／重复提醒精简，并修复 Web 问题。
+- `upstream.json` 追加 inspected package／SRI／官方 tag commit 并更新 compatibility target；
+  liveTested 仅按实际验收追加，0.41.0 protocolBaseline／contracts 保留历史，未为 `2.4.1` 重捕全部协议。
+  本轮不读取用户现场配置／会话、不发付费调用、不升级用户实际 Kimi、不承诺实体手机或全部平台已验收。
+
+### 事件：推理档位中的 Max 出现在 High／XHigh 之前
+
+- 影响：部分已有模型在主模型、状态或子模型选择入口显示 `low / medium / max / high / xhigh`，顺序不符合强度。
+- 触发条件：已有支持项含 `low / medium / max`，增强表单通过 Set 继续追加 `high / xhigh`；原生选择器沿数组展示。
+- 根因：Set 保留插入顺序；旧回归只传已排序数组，未覆盖从旧支持项追加新项后再进入真实选择器的路径。
+  直接重排官方元数据还会影响其缺省 effort 中位数推导，不能用改数组来修展示。
+- 证据：精确官方两版源码与内存复现已确认追加顺序和默认推导；准确 commit／包记录见 UPSTREAM 与本轮计划。
+- 修复范围：只规范最终可选项的展示与对应键盘顺序，未知项保留、Max 最后，不改当前值、默认或保存。
+- 回归验证：以本轮计划中的真实 DOM、键盘、点击、保存重开与双端实图记录为准；不沿用旧有序 fixture 宣称通过。
+- 运维动作：正式版本发布后正常 update，手动重启旧 launcher 并刷新；无需重排用户配置、清空会话或重设默认。
+- 剩余边界：只展示模型已声明的支持项，不证明模型服务接受每一档，也不迁移已有显式数组。
+
+### 事件：原生 Tower 入口在不同启动环境中有时缺失
+
+- 影响：用户看到某些实例没有 Tower 入口或会话 chip，可能误判为账号／provider 差异。
+- 触发条件：实际 backend 的实验开关、继承环境或 home 不同；chip 另受会话模式与 Side Chat 限制。
+- 根因：入口由 meta 的严格 true 控制，实验默认 off；单项环境变量优先配置，工具在启动时组装。
+  off-start 后热改配置并不补装工具。此前仅检查静态界面不能证明当前进程已启用能力，缺 chip 也不是反证。
+- 证据：精确官方源码已确认 gate、优先级与工具组装时机；隔离后端的实际开关／重启记录见本轮计划，不预写通过。
+- 处理：保留官方入口条件与安全边界，提供用户自行选择开启、核对进程环境／home 和手动重启实际 backend 的说明。
+- 回归验证：meta false／true、off-start／live-enable／restart、会话开关、主 composer／Side Chat 与双端可达性以计划为准。
+- 运维动作：用户接受实验风险后自行设置单项环境变量并重启实际后端；代理刷新不能替代后端重启，不自动代开。
+- 剩余边界：不读取用户现场、不以付费 prompt 或 `/tower status` 验证，也不把入口显示当成任务执行验收。
+
 ## [open-kimi-web v2.3.1-r2] - 2026-10-26
 
 继续兼容官方 Kimi Code `2.3.1`；本轮由用户明确要求恢复新模型默认并新发 r2，实施基线见
@@ -712,3 +770,6 @@ Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR�
 [open-kimi-web v2.1.1-r10]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [open-kimi-web v2.3.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
 [open-kimi-web v2.3.1-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
+[open-kimi-web v2.4.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r1
+[official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
+[official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

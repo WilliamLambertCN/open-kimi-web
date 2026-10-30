@@ -26,12 +26,13 @@ async function fixture() {
   await mkdir(tools);
   const run = vi.fn(async (_command, args) => args.includes('web') ? 'Usage: kimi web --host --port' : 'kimi, version 2.1.1');
   return { home, bin: join(home, 'bin'), prefixBin: join(home, 'npm'), platform: 'win32',
-    env: { PATH: tools }, node: process.execPath, npm: join(home, 'npm-cli.js'), run, log: vi.fn() };
+    env: { PATH: tools, HOME: home, USERPROFILE: home }, node: join(tools, 'node.exe'),
+    windowsPaths: vi.fn(async () => ({ user: '', system: '' })), npm: join(home, 'npm-cli.js'), run, log: vi.fn() };
 }
 
 async function native(ctx, dir = ctx.env.PATH) {
   const file = join(dir, ctx.platform === 'win32' ? 'kimi.exe' : 'kimi');
-  await writeFile(file, 'native fixture');
+  await writeFile(file, ctx.platform === 'win32' ? 'MZ native fixture' : Buffer.from('7f454c460000', 'hex'));
   await chmod(file, 0o755);
   return file;
 }
@@ -50,6 +51,7 @@ async function npm(ctx, version = '2.1.1') {
 
 function officialOutput(args, version) {
   if (args[0].endsWith('ptyProbe.mjs')) return '{"status":"ok"}';
+  if (args[0] === '-e') return 'open-kimi-shell-ok';
   return args.includes('web') ? 'Usage: kimi web --host --port' : `kimi, version ${version}`;
 }
 
@@ -85,12 +87,12 @@ describe('official dependency discovery', () => {
       expect(nodeSupported(version)).toBe(false);
     }
     for (const version of ['22.19.0', '22.23.3', '24.0.0']) expect(nodeSupported(version)).toBe(true);
-    expect(OFFICIAL_VERSION).toBe('2.3.1');
-    expect(OFFICIAL_URL).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.3.1.tgz');
-    expect(OFFICIAL_INTEGRITY).toBe('Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==');
+    expect(OFFICIAL_VERSION).toBe('2.4.1');
+    expect(OFFICIAL_URL).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz');
+    expect(OFFICIAL_INTEGRITY).toBe('z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw==');
     expect(assertDownloadUrl(OFFICIAL_URL).hostname).toBe('registry.npmjs.org');
-    for (const version of ['2.1.1', '2.2.0', '2.3.0', '2.3.2', 'latest']) {
-      expect(() => assertDownloadUrl(OFFICIAL_URL.replace('2.3.1', version))).toThrow('not allowed');
+    for (const version of ['2.1.1', '2.2.0', '2.3.0', '2.3.1', '2.4.0', '2.4.2', 'latest']) {
+      expect(() => assertDownloadUrl(OFFICIAL_URL.replace('2.4.1', version))).toThrow('not allowed');
     }
   });
 
@@ -159,7 +161,7 @@ describe('official version and environment boundaries', () => {
     await symlink(protectedRoot, linked, 'junction');
     ctx.prefixBin = protectedRoot.toUpperCase();
     await expect(verifyOfficial(ctx, join(linked, 'nested/kimi.exe'))).rejects.toThrow('resolves into');
-    expect(await readFile(target, 'utf8')).toBe('native fixture');
+    expect(await readFile(target, 'utf8')).toBe('MZ native fixture');
     expect(ctx.run).not.toHaveBeenCalled();
   });
 
@@ -244,7 +246,7 @@ describe('npm shim and dedicated ownership safety', () => {
 });
 
 describe('new pinned official installation', () => {
-  it('installs only verified 2.3.1 with scripts disabled and records ownership after its PTY probe', async () => {
+  it('installs verified 2.4.1 with scripts disabled and records ownership only after child_process shell probe', async () => {
     const ctx = await fixture();
     installFixture(ctx);
     const paths = officialPaths(ctx);
@@ -257,8 +259,10 @@ describe('new pinned official installation', () => {
     expect(command).toBe(ctx.node);
     expect(args.slice(0, 2)).toEqual([ctx.npm, 'install']);
     expect(args).toEqual(expect.arrayContaining(['--global', '--prefix', paths.prefix, '--ignore-scripts', archive]));
+    expect(args).toContain('--engine-strict');
     expect(settings).toMatchObject({ cwd: ctx.home, timeoutMs: 300000 });
-    expect(ctx.run.mock.calls.at(-1)[1][0]).toContain('ptyProbe.mjs');
+    expect(ctx.run.mock.calls.at(-1)[1].slice(0, 2)).toEqual(['-e', expect.stringContaining('node:child_process')]);
+    expect(ctx.run.mock.calls.some(([, args]) => args.includes('rebuild') || args[0].endsWith('ptyProbe.mjs'))).toBe(false);
     expect(ctx.run).toHaveBeenCalledTimes(4);
     expect(ctx.kimi).toBe(paths.kimi);
     expect(JSON.parse(await readFile(paths.record, 'utf8'))).toEqual({
@@ -266,7 +270,7 @@ describe('new pinned official installation', () => {
       prefix: paths.prefix, entry: paths.entry, kimi: paths.kimi,
       entryDigest: await fileDigest(paths.entry), shimDigest: await fileDigest(paths.kimi),
     });
-    expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining('Official Kimi 2.3.1 installed'));
+    expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining('Official Kimi 2.4.1 installed'));
   });
 
   it('does not mark a mismatched newly installed package as owned even when its CLI would agree', async () => {
@@ -277,13 +281,24 @@ describe('new pinned official installation', () => {
     await expect(readFile(officialPaths(ctx).record)).rejects.toThrow();
   });
 
-  it('does not record ownership when a new installation fails its PTY probe', async () => {
+  it('rechecks absence before download and refuses a newly appeared or partial official installation', async () => {
+    const ctx = await fixture();
+    ctx.downloadOfficial = vi.fn();
+    await native(ctx);
+    await expect(prepareOfficial(ctx, { kind: 'missing' }, ctx.home, {})).rejects.toThrow('appeared after discovery');
+    expect(ctx.downloadOfficial).not.toHaveBeenCalled();
+    await mkdir(officialPaths(ctx).prefix);
+    await writeFile(join(officialPaths(ctx).prefix, 'partial'), 'keep');
+    await expect(prepareOfficial(ctx, { kind: 'missing' }, ctx.home, {})).rejects.toThrow('unknown or partial');
+    expect(ctx.downloadOfficial).not.toHaveBeenCalled();
+  });
+
+  it('does not record ownership when a new installation fails its shell probe', async () => {
     const ctx = await fixture();
     installFixture(ctx);
     const run = ctx.run.getMockImplementation();
-    ctx.run.mockImplementation(async (command, args) => args[0].endsWith('ptyProbe.mjs') ?
-      '{"status":"failed"}' : run(command, args));
-    await expect(prepareOfficial(ctx, { kind: 'missing' }, ctx.home, {})).rejects.toThrow('no unapproved native build');
+    ctx.run.mockImplementation(async (command, args) => args[0] === '-e' ? 'failed' : run(command, args));
+    await expect(prepareOfficial(ctx, { kind: 'missing' }, ctx.home, {})).rejects.toThrow('child_process shell verification');
     await expect(readFile(officialPaths(ctx).record)).rejects.toThrow();
   });
 });
@@ -291,6 +306,8 @@ describe('new pinned official installation', () => {
 describe('strict current and legacy owned official reuse', () => {
   it.each([
     ['win32', '2.1.1', LEGACY_INTEGRITY], ['linux', '2.1.1', LEGACY_INTEGRITY],
+    ['win32', '2.3.1', 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg=='],
+    ['linux', '2.3.1', 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg=='],
     ['win32', OFFICIAL_VERSION, OFFICIAL_INTEGRITY], ['linux', OFFICIAL_VERSION, OFFICIAL_INTEGRITY],
   ])('reuses owned %s %s unchanged without download, npm or upgrade', async (platform, version, integrity) => {
     const ctx = await fixture();
@@ -304,9 +321,38 @@ describe('strict current and legacy owned official reuse', () => {
     expect(ctx.kimi).toBe(paths.kimi);
     expect(ctx.downloadOfficial).not.toHaveBeenCalled();
     expect(ctx.run).toHaveBeenCalledTimes(3);
-    expect(ctx.run.mock.calls.at(-1)[1][0]).toContain('ptyProbe.mjs');
+    const probe = ctx.run.mock.calls.at(-1)[1];
+    if (version === OFFICIAL_VERSION) expect(probe.slice(0, 2)).toEqual(['-e', expect.stringContaining('node:child_process')]);
+    else expect(probe[0]).toContain('ptyProbe.mjs');
     expect(await Promise.all(files.map((file) => readFile(file, 'utf8')))).toEqual(before);
-    expect(ctx.log).not.toHaveBeenCalled();
+    expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining('no official CLI download or upgrade'));
+  });
+
+  it('probes an owned installation selected through a symlink alias rather than treating it as external', async () => {
+    const ctx = await fixture();
+    ctx.platform = 'linux';
+    const { paths } = await owned(ctx, OFFICIAL_VERSION, OFFICIAL_INTEGRITY);
+    const alias = join(ctx.env.PATH, 'kimi');
+    await symlink(paths.entry, alias);
+    ctx.env.OPEN_KIMI_REAL_KIMI = alias;
+    const found = await discoverOfficial(ctx);
+    expect(found.path).toBe(alias);
+    await prepareOfficial(ctx, found, '/unused', {});
+    expect(ctx.run.mock.calls.at(-1)[1][0]).toBe('-e');
+    expect(ctx.downloadOfficial).not.toHaveBeenCalled();
+  });
+
+  it('rejects a broken owned 2.4.1 shell without rebuild, npm, download or ownership writes', async () => {
+    const ctx = await fixture();
+    const { paths } = await owned(ctx, OFFICIAL_VERSION, OFFICIAL_INTEGRITY);
+    const found = await discoverOfficial(ctx);
+    const snapshot = await readFile(paths.record, 'utf8');
+    ctx.run.mockClear().mockResolvedValue('wrong marker');
+    await expect(prepareOfficial(ctx, found, '/unused', {})).rejects.toThrow('repair manually');
+    expect(ctx.run).toHaveBeenCalledOnce();
+    expect(ctx.run.mock.calls[0][1][0]).toBe('-e');
+    expect(ctx.downloadOfficial).not.toHaveBeenCalled();
+    expect(await readFile(paths.record, 'utf8')).toBe(snapshot);
   });
 
   it.each(['missing', 'failed'])('refuses legacy owned PTY status %s without rebuilding or updating', async (status) => {

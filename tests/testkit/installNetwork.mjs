@@ -8,7 +8,7 @@ import { assertDownloadUrl, downloadBytes } from '../../scripts/install/network.
 import { generateSelfSignedCertificate } from '../../packages/launcher/src/tlsCertificate.mjs';
 
 const repository = 'https://github.com/WilliamLambertCN/open-kimi-web';
-const official = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.3.1.tgz';
+const official = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz';
 const asset = `${repository}/releases/download/v2.1.1-r9/open-kimi-web-2.1.1-r9.tgz`;
 const metadata = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/releases/latest';
 const networkError = 'HTTPS download failed; check network/proxy and certificate trust';
@@ -105,8 +105,8 @@ function registerUrlBoundaries() {
       ['fragment', `${asset}#fixture`],
       ['host', asset.replace('github.com', 'github.com.example.invalid')],
       ['path', asset.replace('WilliamLambertCN/', 'other/')],
-      ['legacy official', official.replace('2.3.1', '2.1.1')],
-      ['unpinned official', official.replace('2.3.1', '2.3.2')],
+      ['legacy official', official.replace('2.4.1', '2.1.1')],
+      ['unpinned official', official.replace('2.4.1', '2.3.2')],
       ['official query', `${official}?download=1`],
       ['official encoded path', official.replace('@moonshot-ai/', '@moonshot-ai%2F')],
       ['official mirror', official.replace('registry.npmjs.org', 'registry.npmmirror.com')],
@@ -155,7 +155,7 @@ function registerSuccess(fixture, active) {
       expect(harness.agentFactory).toHaveBeenCalledWith({ proxyEnv: {} });
     });
 
-    it('downloads the exact official 2.3.1 URL through the verified TLS transport', async () => {
+    it('downloads the exact official 2.4.1 URL through the verified TLS transport', async () => {
       const harness = active(transport(fixture(), [ok('official fixture')]));
       await expect(downloadBytes(official, harness.options)).resolves.toEqual(Buffer.from('official fixture'));
       expect(harness.send).toHaveBeenCalledOnce();
@@ -204,8 +204,8 @@ function registerRedirects(fixture, active) {
     it.each([
       undefined,
       'https://example.invalid/archive.tgz',
-      official.replace('2.3.1', '2.1.1'),
-      official.replace('2.3.1', '2.3.2'),
+      official.replace('2.4.1', '2.1.1'),
+      official.replace('2.4.1', '2.3.2'),
       `${official}?download=1`,
       'http://objects.githubusercontent.com/asset',
       'https://fixture@objects.githubusercontent.com/asset',

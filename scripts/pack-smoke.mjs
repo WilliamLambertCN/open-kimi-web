@@ -117,6 +117,7 @@ const required = [
   'src/mobile/locale.js',
   'src/mobile/providerLocale.js',
   'src/mobile/usageLocale.js',
+  'src/mobile/effortOrder.js',
   'src/mobile/mobileSubagentModelApi.js',
   'src/mobile/mobileSubagentModelView.js',
   'src/mobile/mobileSubagentModel.js',
