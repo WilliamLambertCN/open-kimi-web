@@ -59,6 +59,10 @@ The launcher transparently proxies the official interaction protocol; it does no
 replace idle-session state, or claim these changes for older user-selected backends. Metadata failure now falls back
 to official UI `2.4.1`. The actual selected frontend version, including explicit pins, still drives Side Chat injection;
 UI >=2.3.0 retains native scrolling, while exact legacy 2.1.1/2.2.0 UI keeps its guard.
+Mobile reminder keys are isolated at window capture before native document capture: Escape only closes the reminder,
+Tab stays local and Enter/Space preserve default button clicks. Native shortcuts resume after closing; no hidden interaction
+response is synthesized. Exact-app request-count evidence and retained driver failures are in the plan.
+Reconnection that rebuilds the same pending DOM card may still show another reminder; cross-rebuild deduplication is not claimed.
 
 ## Effort presentation and Tower boundaries
 
