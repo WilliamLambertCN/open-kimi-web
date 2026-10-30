@@ -241,9 +241,12 @@ describe('startFrontend official presentation version', () => {
     ['2.1.1', undefined, '2.1.1', true],
     ['2.2.0', undefined, '2.2.0', true],
     ['2.3.1', undefined, '2.3.1', false],
-    [undefined, undefined, '2.3.1', false],
+    ['2.4.1', undefined, '2.4.1', false],
+    [undefined, undefined, '2.4.1', false],
     ['2.3.1', '2.2.0', '2.2.0', true],
     ['2.1.1', '2.3.1', '2.3.1', false],
+    ['2.4.1', '2.2.0', '2.2.0', true],
+    ['2.1.1', '2.4.1', '2.4.1', false],
   ])('resolves backend %s with pin %s as bundle %s, legacy guard=%s', async (
     backendVersion, webVersion, expectedVersion, legacy,
   ) => {

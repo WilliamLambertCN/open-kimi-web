@@ -197,7 +197,8 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
   Side Chat、仅从实时 WS 到达的消息，以及超过 1,048,576 字符的 transcript 响应保留官方时间显示，
   不为增强另行读取或解析大正文。
 - **手机任务强提醒**：任务完成、审批请求和提问请求会显示可关闭的弹窗；待处理弹窗可定位
-  到原控件，并避免初始空闲、切换会话、历史回放和断线重连误触发；Side Chat 输出不会推迟提醒。
+  到原控件，避免初始空闲、切换会话和历史回放误触发；Side Chat 输出不会推迟提醒。
+  重连若原生重建同一个待处理卡片，可能再提醒一次；当前按 DOM 节点去重，不承诺跨重建去重。
 - **五套氛围主题**：提供夜幕、极光、暮色、余烬和矿物青绿主题，覆盖桌面与手机；
   可恢复官方外观，选择只保存在当前浏览器和站点。
 - **供应商编辑增强**：供应商标签支持触摸、拖动、滚轮和键盘导航；模型可配置多模态、
@@ -399,8 +400,9 @@ sh scripts/install.sh --help
   launcher 专用 `npm` prefix、官方 `official` prefix、runtime 与 wrapper `bin` 分开，不覆盖系统 Node 或默认全局包。
 - **先发现并复用官方 Kimi**：保留显式 override／已登记接管目标／实际 PATH 的优先关系，
   有界检查官方默认 bin、`KIMI_INSTALL_DIR/bin`、uv／XDG／默认 local bin、Windows 持久 Machine／User PATH、
-  APPDATA/npm 及所选 Node 旁标准命令；不递归扫盘、不修改持久 PATH 来搜索。
-  无明确优先关系的多份安装须显式 override；未知 PowerShell 函数／脚本／带参 wrapper 不执行，不猜版本新旧。
+  APPDATA/npm 及所选 Node 旁标准命令；Windows 同时检查 HOME 与 USERPROFILE 默认目录，去重但不猜优先级。
+  旧 POSIX Python／uv 仅接受有界识别的标准 console entry，继续验证实际版本与 Web 能力；未知 wrapper 不执行。
+  不递归扫盘、不修改持久 PATH；无明确优先关系的多份安装须显式 override，未知 PowerShell 函数／脚本仍拒绝。
   明确输出复用哪份官方 CLI，**不下载或升级该 CLI**；仍可能需要下载 launcher Release 或 Node runtime。
   损坏、歧义、不支持、坏 override／partial／未知归属明确拒绝，不能变成 missing 后另装或自动续装。
   只有确认缺失才准备固定真实官方 `2.4.1` tarball／SHA-512；ignore-scripts 避免 postinstall 迁移旧 Python 命令。

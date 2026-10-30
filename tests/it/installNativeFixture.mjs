@@ -1,19 +1,17 @@
 import { createHash } from 'node:crypto';
-import { chmod, cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installRelease, runInstallProcess } from '../../scripts/install.mjs';
+import { posixOfficialFixture } from './installOfficialFixture.mjs';
 
 export async function nativeCoordinatorFixture(shell = 'bash') {
   if (process.platform === 'win32') throw new Error('native POSIX fixture requires a POSIX runtime');
   const directory = await mkdtemp(join(tmpdir(), "okw native quote' fixture-"));
   const home = join(directory, 'home');
   await mkdir(home);
-  const kimi = join(home, 'fakeKimi');
-  await writeFile(kimi, '#!/bin/sh\nif [ "$1" = web ]; then echo "kimi web --host --port"; ' +
-    'else node -e "console.log(\'kimi, version 2.1.1\')"; fi\n');
-  await chmod(kimi, 0o755);
+  const kimi = await posixOfficialFixture(home);
   await writeFile(join(home, '.bashrc'), 'export FIXTURE_SENTINEL=preserved\n');
   const base = { ...process.env, HOME: home, USERPROFILE: home, SHELL: shell.startsWith('/') ? shell : `/bin/${shell}`,
     OPEN_KIMI_WEB_HOME: join(home, '.open-kimi-web'), OPEN_KIMI_REAL_KIMI: kimi,

@@ -18,6 +18,7 @@
   启动 off 后 live config true 可出现入口，但工具未在启动时组装，需用户自行重启实际 backend；不强制开启或自动重启。
   会话 chip 还要求模式已开且非 Side Chat；缺 chip 不代表功能不存在，Side Chat 无入口正常。
 - 安装发现补齐有界已知目录、Windows 持久 PATH、标准 npm／uv 及所选 Node 旁命令等候选来源。
+  Windows 同时检查 HOME 与 USERPROFILE 默认目录；旧 POSIX Python／uv 只识别标准 console entry 并验证版本／Web 能力。
   先明确复用可用官方 CLI，不下载或升级该 CLI；坏、歧义、不支持候选明确拒绝，不伪装 missing 后另装。
   只有确认缺失才准备固定官方 `2.4.1` tarball／SHA-512；保留精确身份、entry／shim 摘要、partial 拒绝与 ignore-scripts。
 - 官方 `2.4.1` 已移除 node-pty，按精确身份改做真实 Node `child_process` shell probe，不装回旧 PTY 依赖。
@@ -61,6 +62,17 @@
 - 回归验证：meta false／true、off-start／live-enable／restart、会话开关、主 composer／Side Chat 与双端可达性以计划为准。
 - 运维动作：用户接受实验风险后自行设置单项环境变量并重启实际后端；代理刷新不能替代后端重启，不自动代开。
 - 剩余边界：不读取用户现场、不以付费 prompt 或 `/tower status` 验证，也不把入口显示当成任务执行验收。
+
+### 事件：一键安装漏掉已有官方 Kimi
+
+- 影响：部分用户已有可用 Kimi，安装器仍下载另一份，或将旧 Python／uv 命令误报为不支持。
+- 触发条件：原检测未涵盖默认／持久 PATH 等目录；Windows HOME 与 USERPROFILE 不同，或 POSIX 命令为标准 Python console entry。
+- 根因：候选发现范围不足，原 native magic 门禁又未识别已核官方 Python entry；原 shell fixture 未覆盖真实 npm 身份。
+- 修复：有界补齐候选，两个 Windows home 去重／冲突判断；完整模板识别 Python entry 并验证解释器及实际版本／Web 能力。
+  找到可用安装明确复用，官方 CLI 下载0；损坏、歧义与未知 wrapper 拒绝，不当 missing 另装。
+- 回归验证：定向77项UT、真实POSIX integration及uv／官方Python 1.51.0动态检查通过，准确数量和首失败见本轮计划。
+- 运维动作：已有用户日常使用 update，不需重跑安装器或迁移数据；未升级用户真实官方 CLI。
+- 剩余边界：弃用Python 1.52.0不含Web能力仍拒绝；真实pipx、macOS／arm64及Windows新终端接管未全面验收。
 
 ## [open-kimi-web v2.3.1-r2] - 2026-10-26
 

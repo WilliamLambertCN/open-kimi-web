@@ -195,5 +195,58 @@ backend-protocol 与 interaction-qa 成功运行合计 60 个命名检查组、7
   真实安装新 2.4.1-r1 包，bin 版本、update 帮助及安全拒绝、静态 no-cache 和 API 代理通过；临时包与服务已清理。
   证据为 ignored .cache/compat-241-release/local-gate.log，不作为正式 main 包或线上发布证据。
 
-真实双端页面与独立审查仍在运行；先正常提交 PR 并并行执行 required CI，但两项完成前不合并或发布。
-正式包和线上结果仍待后续记录；本节不构成发布完成。
+### 独立审查后续补齐
+
+- 首个实现提交 67ae69a 已正常推送 develop，并建立 PR #35 开始 required CI；未合并或发布。
+  新增提交 author／committer 均显式 noreply，未暂存原 .tmp/ 或 QA。
+- 只读独立审查发现三个明确触发点：POSIX IT 的旧 shell wrapper fixture 与新安全门禁冲突，
+  POSIX Python／uv console entry 被误拒绝，Windows HOME≠USERPROFILE 时漏掉后者的默认官方目录。
+  既有真实 npm／owned 场景通过不能覆盖这些路径；原负责安装器的 agent 定向修复和补验，不降低脚本身份校验。
+- 补齐方案：POSIX IT 改标准 npm manifest／entry／可执行 symlink，保持真实 discovery／integration；
+  仅识别有界的官方 Python console entry 并继续 CLI／Web 能力验证，不放行任意 wrapper；
+  Windows HOME 和 USERPROFILE 的默认 bin 都纳入去重／冲突判定，只有确实缺失才下载。
+  本段先记录发现与实施边界，不预写修复通过。
+
+### 双端页面验收与新增阻挡项
+
+- 准确官方完整 2.4.1 app 以 officialPresentation false／true 同场对照；主 composer、状态、默认设置、Teleport secondary、
+  390 Nocturne 英文与 320 Aurora 中文长 alias 已完成点击、键盘、保存重开、Auto、未知项及不支持的当前值检查。
+  完整 app 暴露中文手机行名为“思考强度”，已补精确识别并通过 11 项 effort UT；此前中文遗漏报告保留。
+  API supportEfforts 原序不变，无显式默认时原版和增强均按原数组中位数选 Max，未改变默认推导。
+- Tower meta false／true、双端 Add／手机 Settings、chip 开关与 Side Chat 边界通过；320 长 alias／运行草稿下关闭、stop、插队可达。
+  没有点击发送或启动真实 Tower。档位特别多时原生分段的挤压／裁字裸官方同样存在，不擅自扩大为共享 CSS 重设计。
+- 新 flat interaction 的批准／拒绝、answers／dismiss、ended／重复、导航键盘与长提问高度操作已验；
+  但 completionModal 的 Escape 穿透到官方全局监听，会误发审批 rejected 或问题 dismissed，原报告分别 39／40、11／12。
+  必须补 window capture 级别的定向键盘隔离，不用 dialog bubble 阻止来假定安全；只续该缺口，不重跑其它已绿矩阵。
+- 重连原生重建同 pending card 时现 DOM WeakSet 会再次提醒一次，尚未按 interaction ID 去重。
+  本轮保留事实，不宣称跨重建强提醒去重已修；不为了该观察新增另一套 interaction 状态库。
+- 原始非 probe 累计 275 项断言、262 通过、13 失败、45 图，含 7 项驱动假设、1 项已修中文遗漏、
+  3 项原生 chat-scroll 延迟 mutation 及 2 项未修 Escape，不是唯一通过率或全绿。observer 定向诊断另 9／9 通过。
+  初次 auth 输入焦点驱动 timeout 与原失败报告保留；16 个 run 的155个进程 identity／所有端口复核零残留。
+- 父级实际查看裸／增强桌面主模型、Teleport、中文320设置与子模型、长别名运行 Tower、390 Tower chip、审批提醒及长提问代表图。
+  本轮浏览器是完整官方 app＋fictional REST／WS，不是真实 backend 正向审批、实体手机、OS 软键盘或用户磁盘持久化验收。
+- 首次 required CI 在 UT 停止：frontend.test 的 metadata 缺失期望仍是旧 fallback 2.3.1。
+  仅同步为已实施的 2.4.1，并补新 backend／显式 pin 保留旧 UI 的回归；原 CI 失败日志归档，不降低门槛或假报通过。
+
+### 安装审查修复与实际 Python 补验
+
+- 三个审查缺口已完成最小修复；父级审查新增代码／测试和实际证据，不把首轮 npm 场景当作 Python 复用证明。
+  Windows HOME／USERPROFILE 默认 bin 均参与去重／歧义判断，不猜优先级；已有命令不被下载或覆盖。
+- 新 officialPython.mjs 最多实际读取 4097 字节，只接受不超过 4 KiB 的完整 uv／pip／简单 console-entry 模板。
+  已核 entry-point 为 kimi_cli.__main__:main 和旧 kimi_cli.cli:cli；绝对、无参数 Python shebang 须指向存在且可执行的 native 文件。
+  继续真实 --version／web --help；仅含模块子串、插入行、未知 body、env python、带参解释器、shell trampoline 不执行。
+- installOfficialDiscovery／installOfficialPython／installOfficial 3 文件77项 UT 通过；最终有界读取重构后 Python 13项复验及 ESLint 通过。
+  POSIX IT 改标准 npm manifest／entry／symlink，不再用任意 shell wrapper 绕过身份检查；两个现有 fixture 调用点同步。
+- 在既有 agent-eval-lab-browser:1.63.0 镜像中真实 npm／discovery／integration／quoted HOME／新 bash／重复安装通过：
+  POSIX IT 1项通过、zsh因镜像缺失跳过；Python IT 4项通过，使用真实解释器和确定性 fixture module。
+- 另从已核 PyPI wheel SHA-256，以真实 uv 0.10.8 在既有 Python 3.12.3 中安装官方 kimi-cli 1.51.0；
+  六个动态组通过，覆盖 off-PATH／override／hint／PATH／原位复用、注入拒绝、缺解释器拒绝和含引号 npm fixture。
+  复用时官方 CLI 下载0，真实 console entry 原字节不变。不是仅 magic bytes fixture，也未重跑先前全部安装矩阵。
+- 最新 Python 1.52.0 为弃用包，--version 成功但 web --help 仅迁移提示，实际验证后正确拒绝；不承诺所有 Python 版本可用。
+  未做真实 pipx 安装、旧 cli:cli 全依赖运行、macOS／arm64。没有下载新镜像、安装 OS 包或读取用户配置／注册表。
+- 首个 ESLint 复杂度／行长失败、UT 71通过／6失败的跨平台 PATH fixture 错误、uv wheel QA 解包目录错误均保留；
+  修相应测试／QA 驱动后通过，不降低门槛。证据索引为 ignored .cache/compat-241-install/review-summary.json。
+  自有进程／命名容器0，scratch已清理；实际 Python tool／依赖及IT缓存明确归档在同 ignored 目录，不公开。
+- frontend fallback 已补精确2.4.1／显式旧UI pin及旧backend pin新版用例，定向1文件28项UT通过；仍须重新跑 required CI。
+
+交互隔离及 required CI 完成前不合并或发布；正式包和线上结果仍待后续记录。
