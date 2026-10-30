@@ -270,4 +270,35 @@ backend-protocol 与 interaction-qa 成功运行合计 60 个命名检查组、7
 - 安装修复已独立提交9cfa0e7；标准lint／typecheck在最终代码上exit0，发布前再做本轮唯一最终pack及required CI。
   相关新增diff与新Python helper／测试定向隐私检查未发现新增秘密、个人路径或map；无新公开截图。
 
-required PR／main CI完成前不合并或发布；正式包和线上结果仍待后续记录。
+### required CI、正式包与线上发布（2026-10-31）
+
+- [PR #35](https://github.com/WilliamLambertCN/open-kimi-web/pull/35) 已在准确head c86811f3b33823d4f6838860e716c8d54c955423
+  的 [required gate](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/41107747075) 通过后普通squash；无admin绕过。
+  main发布提交为beac8c68e14820c1aec5e6a1ca5f63a97c7e2549，与已验head文件树无差异；
+  [main required CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/41108087133) 也已成功。
+- 两次标准门禁均执行frozen install、lint、typecheck、完整UT／IT及test:pack。
+  UT 101文件／2154项通过、28项平台条件跳过（总2182），Lines92.19%／Branch83.79%；
+  IT 23文件通过／1文件跳过，545项通过／23项跳过（总568），Lines85.54%／Branch72.67%。
+  跳过主要为Windows条件用例，另缺zsh的POSIX用例按原条件跳过；未新增skip掩盖失败或降低独立行／分支70%门槛。
+  本地最终lint／typecheck及pack真实安装、bin／update拒绝边界／静态／API冒烟也已通过，不重复安装／浏览器全矩阵。
+- 从准确已验main正式pack：132文件／8,418,868 bytes；源码与包内文档逐字节匹配当前发布提交，manifest仅清空生命周期scripts。
+  实际9项注入资源HTTP200／no-cache，effort顺序及元数据不变、精确2.4.1只读gate通过。
+  实际清单不含tests、QA、日志、缓存、secret配置、symlink或调试map；定向文本未发现新增凭据／个人路径／sourcemap。
+- 首次包审计的QA预期把scripts字段删除，而pnpm实际保留空对象，故失败；只修QA准确预期后同一tgz通过，未重打包或改产品。
+  初失败formal-package-audit.log与最终formal-package-audit-final.log均保留；审计索引package-audit.json位于ignored发布目录。
+- 已创建新annotated tag v2.4.1-r1，对象d136a0c191417ff6660c50491a6042993ee4a4ce，解引用至上述准确main。
+  新commit／tagger使用明确noreply，GitHub squash作者也为noreply；未重写历史或移动任何旧tag。
+- [正式Latest Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r1) ID429369096，非draft／非prerelease，
+  唯一资产[open-kimi-web-2.4.1-r1.tgz][asset241] ID693047473，与本地正式包逐字节相等。
+  SHA-256为5035f9d77c1d405fb2202355119fa77e2a0ef6ea9d96df68c3e1da356c225e8c，线上size／digest一致。
+- 线上tag commit API、同SHA的PowerShell／sh入口、coordinator及本轮official helpers（含officialPython）字节匹配；
+  完整不可变源码归档下载20,796,728 bytes并解包核对这些入口，临时目录清理。
+  当前latestRelease及真实已发布r2包中的更新器都发现2.4.1-r1和唯一准确tgz，r2→新版本比较为1。
+  未运行用户真实update或改其安装；此结果是线上来源与旧包更新发现，不冒称生产升级已执行。
+- 旧v2.3.1-r1／r2的commit、Release和asset身份／size／digest与发布前基线完全相同；无旧资产替换或npm registry发布。
+  线上索引为ignored .cache/compat-241-release/online-verification.json；原.tmp/保留，自有QA服务／进程／端口已清理。
+- 本节是发布后普通文档更新，不再移动tag或重打／替换包。源码main的后续文档提交不改变已发布资产来源。
+  已有用户正常update --check／update，再自行停止旧launcher及对应后端，启动kimi web --host并刷新页面；
+  不升级其官方CLI、不自动开启Tower或重启生产。未验平台、实体手机、真实正向审批和重连提醒边界仍如上保留。
+
+[asset241]: https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.4.1-r1/open-kimi-web-2.4.1-r1.tgz
