@@ -191,13 +191,14 @@ function verifyChatEnhancementOrder(indexText) {
   expect(indexText).toContain('/__open-kimi-mobile/mobileWorkspaceSort.css');
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeGreaterThan(indexText.indexOf('workspaceSortDefault.js'));
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
-  const subagentScripts = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
+  const subagentScripts = ['effortOrder.js', 'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
   for (const name of subagentScripts) {
     expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
     expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
   }
-  expect(indexText.indexOf(subagentScripts[0])).toBeLessThan(indexText.indexOf(subagentScripts[1]));
-  expect(indexText.indexOf(subagentScripts[1])).toBeLessThan(indexText.indexOf(subagentScripts[2]));
+  for (let index = 1; index < subagentScripts.length; index += 1) {
+    expect(indexText.indexOf(subagentScripts[index - 1])).toBeLessThan(indexText.indexOf(subagentScripts[index]));
+  }
   expect(indexText).toContain('/__open-kimi-mobile/mobileSubagentModel.css');
 }
 
@@ -226,7 +227,7 @@ async function verifyIndexRepresentation(url, response, text) {
 
 const PRESENTATION_ASSETS = [
   ...NAVIGATION_ASSETS,
-  'locale.js', 'usageLocale.js', 'providerLocale.js', 'presentation.css',
+  'locale.js', 'usageLocale.js', 'providerLocale.js', 'effortOrder.js', 'presentation.css',
   'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
   'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',

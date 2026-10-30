@@ -7,19 +7,26 @@ or a vendored transcript implementation.
 ## Current baseline
 
 - Upstream: [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code).
-- Inspected published package version: `2.3.1`.
-- Official release tag commit: `684bae9ea6a437f3bae98bba1dcb797a917d500b`.
+- Inspected published package version: `2.4.1`.
+- Official release tag commit: `2c73f3f50af4fa7f2540ca0d2e33b07a1408e3a7`.
 - Published package integrity:
-  `sha512-Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==`.
-- Server API compatibility target: `2.3.1`; no complete live protocol recapture was performed.
-- Open Kimi Web version: `2.3.1-r2`. Follow [the Release page][current-release]
-  and [the r2 implementation/release plan][r2-plan] for actual CI, acceptance and publication results.
-  The [r1 workspace/release plan][current-plan] and r1 hotfix evidence remain historical, not r2 acceptance.
-  Both devices use the same existing-directory path form. Official workspace trust and session ownership stay upstream-owned.
-  Official UI versions >=2.3.0 no longer receive the legacy Side Chat scrollTop guard; explicit frontend pins drive this choice.
-  Existing installation, mobile model, locale, streaming gzip, statistics and safe self-update features are retained.
-  Historical 2.1.1 checks below are not substituted for the current release's native, browser or standard checks.
-- Historical `r8` acceptance, not an r9 CI or release result:
+  `sha512-z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw==`.
+- Official npm runtime: Node `>=22.19.0`. The launcher's own minimum remains Node `>=22.0.0`.
+- Server API compatibility target: `2.4.1`; no complete live protocol recapture was performed.
+  `protocolBaseline` and the 0.41.0 contracts remain historical; static inspection is not live acceptance.
+  Exact npm `2.4.1` backend checks are recorded in the compatibility plan and `liveTestedServerVersions`.
+  This is targeted runtime evidence, not a complete protocol recapture or a source-checkout live-test claim.
+- Open Kimi Web target: `2.4.1-r1`. Follow [the Release page][current-release] and
+  [the 2.4.1 compatibility plan][compat241-plan] for actual backend, browser, CI, package and publication results.
+  Unrecorded or pending checks are not passes. [The r2 plan][r2-plan], [r2 Release][r2-release],
+  [r1 workspace/release plan][current-plan] and r1 hotfix evidence remain historical, not current acceptance.
+  Existing workspace, native trust, session ownership, model confirmation, mobile model, locale, gzip,
+  statistics and safe self-update boundaries remain unchanged. No user CLI upgrade or production restart is automatic.
+- Machine-readable inspected versions, exact integrity values and historical contracts: `upstream.json`.
+
+## Historical baseline records
+
+- Historical `r8` acceptance, not an r9 or 2.4.1-r1 CI or release result:
   Windows passed lint, typecheck, 65 unit-test files/1007 tests, 11 integration-test files/89 tests and test:pack.
   Windows unit line/branch coverage was 87.58%/79.64%; integration coverage was 87.43%/74.87%.
   [PR #24 Ubuntu CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/37879364663) succeeded.
@@ -32,9 +39,57 @@ or a vendored transcript implementation.
 - The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
   The historical GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
   No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
-- Machine-readable upstream version and historical contract records: `upstream.json`.
 
-## Official 2.3.1 changes and current adaptation
+## Official 2.3.2 through 2.4.1 changes
+
+The [official changelog][official-changelog], [Tower guide][official-tower] and exact tagged source are authoritative.
+These are upstream features and policy changes, not new implementations by Open Kimi Web:
+
+- `2.3.2`: do not proactively delegate by default; AgentSwarm requires the user to explicitly enable swarm mode.
+- `2.3.3`: adds a Swarm high-usage warning and updates model-switch confirmation; retain native confirmation.
+- `2.4.0`: imports recent Claude Code/Codex sessions (15/30-day windows), adds provider refresh and
+  `Ctrl-O` thinking-display control. Tower supports per-task models and raises default concurrency from 16 to 256.
+  Plan mode requires an explicit user request and plan review before execution. Idle sessions can unload after
+  30 minutes and transparently resume; this is not archive/delete. Approval/question flows share interaction frames
+  and the formal interactions response API. node-pty and the unused session terminal are removed.
+- `2.4.1`: Read defaults to 100,000 characters or approximately 25,000 tokens, whichever limit is reached first;
+  `read.max_chars` is configurable. Built-in prompts and repeated reminders are reduced, with Web fixes.
+
+The launcher transparently proxies the official interaction protocol; it does not maintain a conversion layer,
+replace idle-session state, or claim these changes for older user-selected backends. Metadata failure now falls back
+to official UI `2.4.1`. The actual selected frontend version, including explicit pins, still drives Side Chat injection;
+UI >=2.3.0 retains native scrolling, while exact legacy 2.1.1/2.2.0 UI keeps its guard.
+Mobile reminder keys are isolated at window capture before native document capture: Escape only closes the reminder,
+Tab stays local and Enter/Space preserve default button clicks. Native shortcuts resume after closing; no hidden interaction
+response is synthesized. Exact-app request-count evidence and retained driver failures are in the plan.
+Reconnection that rebuilds the same pending DOM card may still show another reminder; cross-rebuild deduplication is not claimed.
+
+## Effort presentation and Tower boundaries
+
+Only the presentation of existing choices is ordered:
+`none -> minimal -> low -> medium -> high -> xhigh -> max`. Unknown entries remain stable before the final Max;
+Auto/Off/On retain each control's native semantics. Do not rewrite `supportEfforts`, add supported values, change the
+current selection or official fallback/default derivation, or reorder saved arrays. The r2 new-model defaults below remain.
+The reproduced cause was Set insertion order: existing `low, medium, max` followed by appended `high, xhigh`
+reaches native pickers in that order. Old tests supplied already-sorted arrays and missed this append path.
+Keyboard selection must follow the displayed order, not just a CSS reorder;
+current verification belongs in [the plan][compat241-plan].
+
+Tower is not an account/provider entitlement. The Web entry requires `GET /api/v1/meta` to return
+`experimental_flags.tower === true`; the experiment defaults off. The per-feature
+`KIMI_CODE_EXPERIMENTAL_TOWER` environment override takes precedence over configuration, then the global experimental flag.
+The actual backend's inherited environment and `KIMI_CODE_HOME` matter, not a different shell, home or config file.
+A session chip additionally requires Tower mode on and a non-Side-Chat composer. No chip does not establish absence;
+Side Chat intentionally has no Tower entry.
+
+If a backend starts with Tower off, a live config change to true can expose the entry without assembling the Tower tools:
+those tools are assembled at startup. The user must restart the actual backend with the intended environment/home,
+not only refresh a page or restart an independent proxy. Follow [the official guide][official-tower]; after choosing to
+accept the experimental behavior, the user can set `KIMI_CODE_EXPERIMENTAL_TOWER=true` in the backend's launch environment.
+README includes shell examples. The launcher neither forces the flag nor automatically restarts production;
+entry visibility and per-session activation remain distinct, and no paid prompt is needed to check visibility.
+
+## Historical 2.3.1 changes and adaptation
 
 The exact [official 2.3.1 Release][official-231-release] and tagged source are authoritative for this patch.
 It fixes workspace trust when Git Bash is absent and stale POSIX session ownership after crashes, and improves holder-client
@@ -43,7 +98,7 @@ Official 2.3.0 introduced cloud-config-controlled model-switch confirmation, Rem
 and archive restoration. These are upstream features, not new launcher features or unconditional confirmation guarantees.
 Keep native trust, ownership locks, retry/takeover and model-confirmation flows; do not disable locks or auto-trust workspaces.
 The selected `officialWebVersion`, including explicit frontend pins, controls Side Chat compatibility, not the backend version.
-Metadata failure falls back to official UI `2.3.1`; old 2.1.1/2.2.0 UI keeps its scroll guard.
+At that release, metadata failure fell back to official UI `2.3.1`; old 2.1.1/2.2.0 UI kept its scroll guard.
 
 Official 2.3.1 previews PNG/JPG/GIF/WEBP/BMP/ICO/AVIF and PDF using authenticated download/Blob paths.
 SVG and older UIs can still use `fs:read`, so `imagePreviewGuard.js` remains. Its 32 MiB limit applies only to the enhanced
@@ -57,9 +112,9 @@ Original and affected atmosphere themes retain native preview geometry; trust/re
 Standard lint/typecheck/UT/pack and a standalone standard IT run passed with unchanged 70% line/branch gates.
 The initial concurrent UT/IT/pack run had four IT timeouts; targeted single-worker and independent standard IT passed unchanged.
 Counts, coverage, retained first-failure logs and physical-device/platform limits are in [the r1 plan][current-plan].
-These remain r1 evidence; current r2 CI and publication must be established by new public records, not local or historical checks.
+These remain r1 evidence; each later release requires its own CI and publication records, not local or historical checks.
 
-## Provider defaults and release target 2.3.1-r2
+## Historical provider defaults and release 2.3.1-r2
 
 The user explicitly requested r2 for normal updates and restored new-model defaults under [the r2 plan][r2-plan].
 Only `video_in` and `image_out` default to unchecked. `image_in`, `tool_use`, `thinking` and `always_thinking` default to checked,
@@ -107,7 +162,7 @@ These checks do not establish physical-phone, all-platform installation or unrea
 
 ## Unified navigation and search
 
-The formerly unpublished navigation, mobile official-index search and Hyper-V fixes are now in [the current scope][current-plan].
+Navigation, mobile official-index search and Hyper-V fixes shipped in [the historical r1 scope][current-plan].
 Earlier implementation evidence remains in [the scheduled-task/navigation plan](docs/plans/scheduled-tasks-management-v1-plan.md).
 Desktop and mobile use the same upper-left action order: new session, new workspace, scheduled tasks, search and usage.
 Both search controls call the official paginated `/api/v1/search` index.
@@ -120,17 +175,20 @@ The version-limited task panel lists original sessions, saved tasks and recorded
 native create/remove after explicit restoration and confirmation. It keeps the original home and backend without another engine,
 live-log edits or an AI CRUD proxy. The modified-backend experiment and its dedicated-data chain remain withdrawn.
 Managed `kimi web --scheduled-tasks` explicitly opts in; ordinary startup remains disabled. External `serve --target`
-does not expose this capability. The exact 2.3.1 adaptation is limited to read-only tasks/history; unknown versions reject.
-Real dual-backend QA found that a formal prompt returns HTTP 200/code 40931 while another process holds the session lock.
-Direct debug cron add/remove/flush instead returns code 0 with initially memory-only changes. Normal close of backend B can
-persist those pending changes while A still holds the lock; direct debug can also persist after the stale gate returns 40932.
-No atomic management entry guarantees ownership, freshness and a durable receipt together; code 0 is not such a guarantee.
-The implemented transport and route gates reject 2.3.1 create/remove before debug mutation. The UI shows English/Chinese
-read-only reasons, hides restore/new and disables remove; read-only browsing never wakes a cold session.
-Targeted tests and real createLauncher QA passed: read=true/write=false, create/remove 409 read-only-version with no mutation
-or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404 without upstream calls.
-Users may still explicitly open the original session.
-Focused UI evidence, CI and publication are tracked in [the current plan][current-plan].
+does not expose this capability. Exact 2.3.1 and 2.4.1 only support read-only tasks/history; WRITE remains exact 2.1.1/2.2.0.
+Unknown versions, including unlisted adjacent versions, reject. The inspected 2.4.1 cron/debug core matches 2.3.1;
+this does not authorize writes. Historical 2.3.1 dual-backend QA found that a formal prompt returns HTTP 200/code 40931
+while another process holds the session lock. Direct debug cron add/remove/flush instead returns code 0 with initially
+memory-only changes. Normal close of backend B can persist pending changes while A still holds the lock;
+direct debug can also persist after the stale gate returns 40932. No atomic management entry guarantees ownership,
+freshness and a durable receipt together; code 0 is not such a guarantee.
+The implemented transport and route gates reject read-only-version create/remove before debug mutation.
+The UI shows English/Chinese read-only reasons, hides restore/new and disables remove;
+read-only browsing never wakes a cold session.
+Historical exact-2.3.1 tests and real createLauncher QA passed: read=true/write=false, create/remove 409 read-only-version
+with no mutation or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404
+without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan];
+current exact-2.4.1 backend/UI verification, CI and publication must be established in [the 2.4.1 plan][compat241-plan].
 Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
 Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
 protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
@@ -140,7 +198,8 @@ and separately identified server submissions. Cold browsing does not restore ses
 records remain explicitly incomplete; recent history is limited to 100 entries and has no pagination. Initial cold reads
 still scan journal bytes; there is no task index or durable cache. Models show live/saved session aliases and exact historical
 request models where available, not an independent per-task setting. Native completed turns do not prove business success.
-Native edit, pause/resume and task-specific model semantics are not implemented or simulated through delete/recreate.
+Native cron edit, pause/resume and independent cron task-model settings are not implemented or simulated through delete/recreate.
+Tower per-task model support does not add those cron capabilities.
 
 Final public-protocol QA used actual superviseWeb/registry/token/guard/frontend with isolated homes for both versions:
 20+2 real paginated sessions including archived entries, cold reads, explicit restore, CRUD and same task ID after close/restore.
@@ -155,23 +214,23 @@ internal, loopback, IPv6 link-local and other virtual-adapter filters. This does
 
 ## Compatibility-first installation
 
-The `2.3.1-r2` installation target keeps the official Kimi `2.3.1` pin only when no usable installation exists;
-it does not upgrade existing Kimi or change installer runtime behavior.
-Historical implementation evidence follows [the one-click installation plan](docs/plans/one-click-install-v1-plan.md).
-The r10 scope and [release record][r10-plan] remain historical; r1 installation results remain in [the r1 plan][current-plan].
-The scope and exact results of r2 installation, CI and asset checks are recorded in [the r2 plan][r2-plan].
+The `2.4.1-r1` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
+installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
+launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
+Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
+Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
+[the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
+Current real-entry, runtime, CI and asset results belong only to [the 2.4.1 plan][compat241-plan].
 
-The README starts with short online commands for Windows PowerShell >=5.1 and macOS/Linux sh, for use after r2 publication.
-They resolve `v2.3.1-r2` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.3.1-r2`.
+The README starts with two online commands for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
+They resolve `v2.4.1-r1` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.4.1-r1`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
-The historical r10 commands pinned `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and launcher `2.1.1-r10`;
-that old SHA must not supply the new official-version pin.
-Initial-publication checks confirmed tag commit `c9a3e0ce2a71037f510d794303e84ce6bed69209`, matching online entry/helpers,
-source archive and tgz bytes; the real updater recognized 2.3.1-r1. These are not the same-r1 hotfix republication results.
-See [the initial plan][current-plan] and [the hotfix plan](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md).
+No future SHA is invented. Historical r10 pinned `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and launcher `2.1.1-r10`;
+initial r1 publication used `c9a3e0ce2a71037f510d794303e84ce6bed69209`. Neither supplies this release's source or acceptance.
+The same-r1 republication and r2 evidence remain historical; old tags and assets are not moved or replaced.
 
 A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
 Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.
@@ -181,36 +240,46 @@ Corepack, pnpm, Git or official Kimi. Network access and standard PATH curl/tar 
 Prefer Node >=22.19.0 with adjacent npm; otherwise SHA-256 check fixed official Node `22.23.3` before extraction into
 `runtime/node-v22.23.3-<platform>`. The executable is `node.exe` on Windows and `bin/node` on POSIX.
 Custom OPEN_KIMI_WEB_HOME must be absolute and unlinked. Its `official` prefix is separate from launcher `npm`, runtime and bin.
-Working native or standard npm Kimi installations are reused in actual PATH order without upgrade or overwrite.
-When absent, fixed `@moonshot-ai/kimi-code@2.3.1` uses the verified official tarball and fixed SHA-512 integrity.
-Previously owned 2.1.1 installs remain reusable only with their known version/integrity pair and unchanged ownership digests;
-they are not automatically upgraded. Unknown versions, altered records and partial installs still fail closed.
-Default ignore-scripts avoids official postinstall migration of old Python commands. Unknown overrides, broken installs and
-unowned/partial dedicated prefixes reject without automatic resume. Owned entry/shim digests and exact versions are checked.
+
+Discovery preserves explicit override/registered-integration priority and normal PATH order. Additional bounded candidates
+include official default bin locations, `KIMI_INSTALL_DIR/bin`, uv/XDG/default local bin locations, Windows APPDATA/npm,
+read-only persisted Machine/User PATH and standard commands beside the selected Node. Windows HOME and USERPROFILE default
+bins are both considered and deduplicated, without inventing priority. This is not an unbounded disk scan.
+Boundedly recognized standard legacy POSIX Python/uv console entries still require real version and Web capability probes;
+a matching module-name substring alone is not sufficient. Unknown scripts and wrappers remain rejected.
+Candidates with no unambiguous priority require an explicit override; unknown PowerShell functions, scripts and argument-taking
+wrappers are not executed as guessed CLI commands. Discovery does not modify persisted PATH to search it.
+Working supported native/npm/recognized legacy console installations are reused without overwrite. Only confirmed absence
+prepares the verified `@moonshot-ai/kimi-code@2.4.1` tarball with fixed SHA-512 integrity.
+Exact owned 2.3.1 and 2.1.1 remain reusable only with their
+known version/integrity, package identity and unchanged entry/shim digests. Altered ownership records and partial installs reject.
+Default ignore-scripts avoids official postinstall migration of old Python commands. Unowned dedicated prefixes are not resumed.
 Windows canonical npm shims validate JS targets for selected-Node checks and retain the cmd-aware runtime/takeover path;
-Windows PATH environment keys are normalized. CLI/Web health alone does not validate native shell dependencies.
-Official Kimi still requires Git Bash on Windows, including npm installs. Existing working Git Bash is reused;
-missing Git uses official user-directory portable assets with strict repository/URL/checksum checks, not system Git replacement.
-Windows x64 real download, digest, SFX extraction, explicit initialization and owned repeat reuse passed targeted native QA.
-The corrected SFX first verifies the entire original asset, preserves the executable module and 7z payload, and replaces only
-its configuration with `RunProgram=usr\bin\true.exe`, using supported `-y`/`-o` flags. true.exe is a launched child;
-default git-bash.exe/post-install.bat do not run. Audited allowlisted initialization runs explicitly afterward in isolated Bash.
-Unknown KIMI_SHELL_PATH rejects. No administrator/sudo, login, real-session access or model calls are required/performed.
-No production service starts automatically. PATH-accessible curl/tar and network access remain necessary, not offline operation.
-Release assets retain matching SHA-256 checks. A new owned install probes real PTY before recording ownership.
-Linux missing bindings permit only an audited rebuild of fixed node-pty 1.1.0 with node-addon-api 7.1.1 build inputs.
-The exact absolute node-pty directory limits npm rebuild to its install/postinstall;
-root Kimi migration and other packages do not run.
-Standard Python 3, C/C++ compiler and make are required; no sudo/apt or complete toolchain installation is attempted.
-Existing Docker bookworm tools passed actual npm preparation, audit/rebuild, PTY, Web 200, record and owned reuse.
-An empty Linux machine is still not a zero-build-dependency one-click install; local WSL without make/C++ correctly fails.
-Owned repeats probe again and reject broken PTY without automatic rebuild; non-owned npm/native installs remain untouched.
-Linux uses forkpty; spawn-helper is a macOS build target, not an independent Linux readiness requirement.
+Windows PATH environment keys are normalized. CLI/Web health alone does not validate shell readiness.
+
+Official 2.4.1 has no node-pty dependency. Its exact supported npm identity requires a real Node `child_process` shell probe,
+not a missing-PTY success assumption or reintroduction of node-pty. Legacy owned 2.3.1/2.1.1 still require real PTY probes.
+Ownership is recorded only after the appropriate probe succeeds; repeats probe again, and damaged owned installations reject
+without automatic rebuild. Non-owned native/npm installs are not rebuilt. Linux Python 3, C/C++ and make requirements apply
+only to an audited legacy rebuild, not unconditionally to new 2.4.1 installs. The legacy rebuild audits fixed node-pty 1.1.0
+and node-addon-api 7.1.1, scopes npm rebuild to the absolute node-pty directory, and does not run root migration or other scripts.
+It audits noexcept.gypi and filters MAKE-prefix/FLAGS controls. No sudo/apt or automatic full toolchain preparation is attempted.
+Legacy Linux uses forkpty; spawn-helper is a macOS build target.
+Historical missing-make failures do not establish a 2.4.1 failure.
+
+Official Kimi still requires Git Bash on Windows. Existing working Git Bash is reused; only absence prepares strictly verified
+user-directory portable Git without replacing system Git. The SFX preserves the executable module and 7z payload and replaces
+only its configuration with `RunProgram=usr\bin\true.exe`; default git-bash.exe/post-install.bat do not run.
+Audited allowlisted initialization follows explicitly. Unknown KIMI_SHELL_PATH rejects. Historical portable-Git artifact QA
+and the full missing-Git coordinator are separate, not combined acceptance for this version.
+No administrator/sudo, login, real-session access or model calls are required. No production service starts automatically.
+Release assets retain matching SHA-256 checks. Actual platform checks and limits remain in the current plan;
+this is not an all-platform claim.
 
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.3.1-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.4.1-r1 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -467,7 +536,7 @@ body. Scrolling back to the bottom resumes following. Other scroll containers
 and user-provided `--web-dir` builds are untouched.
 
 By default the launcher resolves the web bundle version from the target
-server, falling back to `2.3.1` when metadata is unavailable. The selected frontend version drives compatibility injection.
+server, falling back to `2.4.1` when metadata is unavailable. The selected frontend version drives compatibility injection.
 `--web-version` / `OPEN_KIMI_WEB_VERSION` pins the official frontend version;
 it does not pin or upgrade the backend. `--web-dir` / `OPEN_KIMI_WEB_DIR`
 serves a prepared build without injecting the presentation layer or theme picker.
@@ -527,12 +596,16 @@ origin and original checksums. They remain historical reference material;
 the retired standalone-client contract tests and capture workflow no longer
 run. The `0.43.1` archive, deletion, and steer behavior was checked separately,
 but the full artifacts were not recaptured, so these snapshots do not claim
-`0.43.1`, `2.0.2`, `2.1.1` or `2.3.1` coverage.
+`0.43.1`, `2.0.2`, `2.1.1`, `2.3.1` or `2.4.1` coverage.
 
 [lan-plan]: docs/plans/large-session-lan-performance-v1-plan.md
 [r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [current-plan]: docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
 [r2-plan]: docs/plans/provider-defaults-r2-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
+[r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
+[compat241-plan]: docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r1
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
+[official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
+[official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

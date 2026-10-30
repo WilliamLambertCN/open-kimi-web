@@ -4,7 +4,7 @@ const API = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/release
 
 function allowedDownload(url, metadata) {
   if (metadata) return url.origin === 'https://api.github.com' && url.pathname.startsWith(`${new URL(API).pathname}/`);
-  return url.href === 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.3.1.tgz' ||
+  return url.href === 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz' ||
     url.origin === 'https://github.com' && url.pathname.startsWith('/WilliamLambertCN/open-kimi-web/releases/download/') ||
     ['release-assets.githubusercontent.com', 'objects.githubusercontent.com'].includes(url.hostname);
 }

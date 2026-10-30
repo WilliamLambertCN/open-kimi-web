@@ -134,6 +134,7 @@ function Get-OkwCoordinator {
     $Revision = $Revision.ToLowerInvariant()
     $archive = Join-Path $Temporary 'source.zip'
     $url = "https://codeload.github.com/WilliamLambertCN/open-kimi-web/zip/$Revision"
+    Write-Host "Installer source: downloading coordinator/helpers at $Revision; not the Official Kimi CLI."
     Invoke-OkwDownload $url $archive
     $unpacked = Join-Path $Temporary 'source'
     Expand-Archive -LiteralPath $archive -DestinationPath $unpacked
@@ -180,6 +181,15 @@ function Get-OkwArguments {
     return [pscustomobject] @{ Revision = $revision; Forward = $forward; Help = $help }
 }
 
+function Get-OkwKimiCommand {
+    if ($env:OPEN_KIMI_REAL_KIMI) { return '' }
+    $command = Get-Command kimi -ErrorAction SilentlyContinue
+    if (-not $command) { return '' }
+    if ($command.CommandType -eq 'Application') { return $command.Source }
+    if ($command.CommandType -eq 'ExternalScript' -and $command.Source -match '\.ps1$') { return $command.Source }
+    throw 'Unsupported kimi alias/function; set OPEN_KIMI_REAL_KIMI to its absolute executable. No script was executed.'
+}
+
 function Invoke-OkwInstall {
     param([string[]] $Arguments, [string] $ScriptDirectory)
     if ($PSVersionTable.PSVersion -lt [Version] '5.1') { throw 'PowerShell 5.1 or newer is required.' }
@@ -192,6 +202,7 @@ function Invoke-OkwInstall {
     }
     $revision = $parsed.Revision
     $forward = $parsed.Forward
+    $kimiCommand = Get-OkwKimiCommand
     $platform = Get-OkwPlatform
     $homePath = $env:OPEN_KIMI_WEB_HOME
     if (-not $homePath) { $homePath = Join-Path $HOME '.open-kimi-web' }
@@ -203,15 +214,24 @@ function Invoke-OkwInstall {
         $selected = Get-OkwNodeInfo $command.Source
         if ($selected) { break }
     }
-    if (-not $selected) { $selected = Get-OkwPrivateNode $homePath $platform }
+    if (-not $selected) {
+        Write-Host 'Node runtime: downloading verified private Node; this is not the Official Kimi CLI.'
+        $selected = Get-OkwPrivateNode $homePath $platform
+    }
     if (-not $selected) { throw 'Unable to verify the selected Node runtime.' }
+    Write-Host "Node runtime: using $($selected.Node); no system Node installation was changed."
     $temporary = Join-Path ([IO.Path]::GetTempPath()) ('open-kimi-web-install-' + [Guid]::NewGuid().ToString('N'))
     [IO.Directory]::CreateDirectory($temporary) | Out-Null
+    $previousCommand = $env:OPEN_KIMI_INSTALL_COMMAND
     try {
+        $env:OPEN_KIMI_INSTALL_COMMAND = $kimiCommand
         $coordinator = Get-OkwCoordinator $ScriptDirectory $revision $temporary
         & $selected.Node $coordinator @forward | Out-Host
         return $LASTEXITCODE
-    } finally { Remove-Item -LiteralPath $temporary -Recurse -Force }
+    } finally {
+        $env:OPEN_KIMI_INSTALL_COMMAND = $previousCommand
+        Remove-Item -LiteralPath $temporary -Recurse -Force
+    }
 }
 
 if ($MyInvocation.InvocationName -ne '.') {

@@ -32,9 +32,9 @@
     'reload-failed': ['写入已确认，但任务回读失败。请重新读取，勿重复写入。',
       'The write was confirmed, but task reload failed. Reload tasks; do not repeat the write.'],
     'unsupported-version': ['当前官方版本不支持此受限接口。', 'This official version is not supported by this restricted API.'],
-    'read-only-version': ['官方 2.3.1 的 debug cron 写入不遵守会话锁与新鲜度检查，当前仅支持只读；未写入。' +
+    'read-only-version': ['当前官方版本没有经验证可同时保证会话归属与新鲜度的原子任务写入接口，仅支持只读；未写入。' +
       '此面板不新建或删除任务、不恢复会话，不会自动启动任务。',
-    'Official 2.3.1 debug cron writes do not honor session locks or freshness checks. Only read-only access is supported; ' +
+    'This official version has no verified atomic task write API for session ownership and freshness. Read-only access only; ' +
       'no write was sent. This panel cannot create or remove tasks, or restore sessions; it will not start tasks automatically.'],
     'cold-read-only': ['当前仅显示保存记录，未恢复会话或启动任务。可自行打开原会话，按官方原生方式进入。',
       'Showing saved records only; no session was restored or tasks started. You may open the original session natively.'],

@@ -364,6 +364,7 @@ async function selectRelease(ctx, options, before) {
 
 async function stageArchive(ctx, release, progress) {
   progress.label = 'verified release download';
+  ctx.log(`OKW release: downloading open-kimi-web ${release.version}; this is not the Official Kimi CLI.`);
   progress.stage = await mkdtemp(join(ctx.home, '.bootstrap-stage-'));
   const bytes = await (ctx.download ?? downloadBytes)(release.url, { env: ctx.env });
   if (createHash('sha256').update(bytes).digest('hex') !== release.digest) throw new Error('release SHA256 digest mismatch');

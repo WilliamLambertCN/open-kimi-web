@@ -158,6 +158,23 @@ describe('provider saved-model option deltas', () => {
       capabilities: ['image_in', 'catalog_extra'] });
   });
 
+  it('keeps Set append order in the saved metadata instead of sorting the implicit-default source', async () => {
+    const original = ['low', 'medium', 'max'];
+    const ui = installProviderSave({ config: { known: { ...configured, supportEfforts: [...original] } } });
+    await loadConfig(ui);
+    const row = rowsOf(ui.forms[0])[0];
+    change(ui, row, 'high', true); change(ui, row, 'xhigh', true);
+    const native = { ...configuredWire, support_efforts: [...original] };
+    const saved = await save(ui, saveBody([native]));
+    const stored = ['low', 'medium', 'max', 'high', 'xhigh'];
+    expect(saved.models[0].support_efforts).toEqual(stored);
+    expect(saved.models[0].support_efforts[Math.floor(stored.length / 2)]).toBe('max');
+    expect(native.support_efforts).toEqual(original);
+    await reopen(ui, saved);
+    expect((await save(ui, saved)).models[0].support_efforts).toEqual(stored);
+    expect(ui.state.exceededLimit).toBe(false);
+  });
+
   it('updates only efforts and preserves existing capabilities and adaptive false', async () => {
     const ui = installProviderSave({ config: { known: configured } }); await loadConfig(ui);
     const row = rowsOf(ui.forms[0])[0];

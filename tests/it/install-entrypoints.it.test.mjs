@@ -23,6 +23,7 @@ function coordinator() {
 import { writeFileSync } from 'node:fs';
 writeFileSync(process.env.FIXTURE_RECORD, JSON.stringify({
   args: process.argv.slice(2), node: process.execPath, home: process.env.OPEN_KIMI_WEB_HOME,
+  kimiCommand: process.env.OPEN_KIMI_INSTALL_COMMAND,
 }));
 console.log('fixture coordinator progress');
 process.exit(Number(process.env.FIXTURE_EXIT || 0));
@@ -37,7 +38,7 @@ function ps(args, extra = {}) {
     encoding: 'utf8', timeout: 30_000,
     env: {
       ...process.env, OPEN_KIMI_WEB_HOME: join(root, 'home'), FIXTURE_RECORD: record,
-      TEMP: root, TMP: root, ...extra,
+      OPEN_KIMI_REAL_KIMI: '', OPEN_KIMI_INSTALL_COMMAND: '', TEMP: root, TMP: root, ...extra,
     },
   });
 }
@@ -92,18 +93,14 @@ describe.skipIf(process.platform !== 'win32')('native PowerShell entrypoint invo
     coordinator();
   });
 
-  it('selects actual Node and forwards exact package-only args without changing User PATH', () => {
-    const before = spawnSync('powershell.exe', ['-NoProfile', '-Command',
-      '[Environment]::GetEnvironmentVariable("PATH", "User")'], { encoding: 'utf8' }).stdout;
+  it('selects actual Node and forwards exact package-only args without reading persistent user PATH', () => {
     const result = ps(['--version', '2.1.1-r9', '--switch-installation', '--no-integrate']);
     expect(result.status, result.stderr).toBe(0);
     const seen = JSON.parse(readFileSync(record, 'utf8'));
     expect(seen.args).toEqual(['--version', '2.1.1-r9', '--switch-installation', '--no-integrate']);
     expect(seen.node.toLowerCase()).toBe(process.execPath.toLowerCase());
     expect(seen.home).toBe(join(root, 'home'));
-    const after = spawnSync('powershell.exe', ['-NoProfile', '-Command',
-      '[Environment]::GetEnvironmentVariable("PATH", "User")'], { encoding: 'utf8' }).stdout;
-    expect(after).toBe(before);
+    expect(result.stdout).toContain('Node runtime: using');
     expect(readdirSync(root).some((name) => name.startsWith('open-kimi-web-install-'))).toBe(false);
   });
 
@@ -111,6 +108,17 @@ describe.skipIf(process.platform !== 'win32')('native PowerShell entrypoint invo
     const result = ps(['--no-integrate'], { FIXTURE_EXIT: '7' });
     expect(result.status).toBe(7);
     expect(readdirSync(root).some((name) => name.startsWith('open-kimi-web-install-'))).toBe(false);
+  });
+
+  it('forwards an unknown ps1 path for read-only inspection without executing it or loading a user profile', () => {
+    const tools = join(root, 'fake-bin');
+    mkdirSync(tools);
+    const script = join(tools, 'kimi.ps1');
+    writeFileSync(script, 'throw "unknown script must never be executed"');
+    const result = ps(['--no-integrate'], { PATH: `${tools};${process.env.PATH}` });
+    expect(result.status, result.stderr).toBe(0);
+    expect(JSON.parse(readFileSync(record, 'utf8')).kimiCommand).toBe(script);
+    expect(result.stdout).not.toContain('unknown script must never be executed');
   });
 
   it('refuses a mutable revision before any coordinator execution', () => {

@@ -34,7 +34,7 @@
     state.taskStatus = state.readOnly ? 'cold-read-only' : session?.loaded === null ? 'load-unknown' : 'not-loaded';
   };
   const needsLive = (state) => state.unknown || state.sessions.find((item) => item.id === state.sid)?.loaded === true;
-  const readOnlyVersion = (value) => value.reason === 'read-only-version' || value.version === '2.3.1';
+  const readOnlyVersion = (value) => value.reason === 'read-only-version' || ['2.3.1', '2.4.1'].includes(value.version);
   const readOnly = (state) => {
     state.readOnly = true; state.canCreate = false; state.canRemove = false; state.canRestore = false;
     state.formOpen = false; state.confirmation = null; state.globalStatus = 'read-only-version';
