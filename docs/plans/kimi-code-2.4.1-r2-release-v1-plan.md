@@ -20,7 +20,7 @@
 
 ## 顺序
 
-1. 确认远端 main／develop 与最新版本，设置 `packages/launcher/package.json` 为 `2.4.1-r2`。
+1. 确认远端 main／develop 与最新版本，将 `packages/launcher/package.json` 和根 `kimi.plugin.json` 同步为 `2.4.1-r2`。
 2. 更新当前安装链接、根与 launcher README、项目 Skill、CHANGELOG、UPSTREAM，历史版本证据保持原样。
    根 AGENTS 链接本计划；新安装命令仍解析真实 tag SHA 并下载同 SHA 脚本，不伪造提交。
 3. 有针对性审查拟公开文件、提交身份、最终 tgz 清单与内容，排除个人路径、真实会话、日志、缓存和 sourcemap。
@@ -51,7 +51,7 @@
   最初核对脚本的正则错误及直接比较源码 package scripts 的断言失败已纠正；没有修改产品来绕过检查。
 - 拟公开源码、测试、文档及实际 tgz 未发现真实凭据、私人会话／路径或 sourcemap；新增图片沿用已查看的相同文件。
   原 `.tmp/`、ignored cache、真实会话及测试日志不纳入提交或包；不改写既有历史中的作者身份。
-- 新增／修改行长与 `git diff --check` 通过。功能及实图证据沿用上述计划；本次 CI 和线上核验尚未完成。
+- 新增／修改行长与 `git diff --check` 通过。功能及实图证据沿用上述计划；准备阶段尚未完成 CI 和线上核验，最终结果见下方。
 
 ### CI 首轮修正
 
@@ -65,4 +65,29 @@
 
 ### 线上发布
 
-CI、正式 tag、下载与更新发现结果在完成后补充；当前记录不代表已发布成功。
+- [PR #37][release-pr] 已合入 main；[PR CI][pr-ci] 和 [main CI][main-ci] 均通过 lint、typecheck、UT、IT 和 test:pack。
+  UT：111 文件、2507 项通过，28 项平台条件跳过；行覆盖率 93.09%，分支覆盖率 84.56%。
+  IT：29 文件通过、1 文件跳过，617 项通过、23 项平台条件跳过；行覆盖率 85.53%，分支覆盖率 72.97%。
+  UT／IT 各自的行与分支 70% 门槛没有降低。实际安装包启动后，PWA 清单／图标、API 代理和脱敏日志落盘检查通过。
+- [v2.4.1-r2][release] 于 `2026-11-07T07:02:55Z` 发布，已设为 latest，不是草稿或预发布。
+  tag object：`c2e1313775ee767da7cb5614e2064c3821c31d7f`。
+  指向的 main commit：`e8bd89c1f865d13242af609201cbe54ea3997ac4`。
+- [正式 tgz][asset] 从通过 CI 的 main 用标准 pnpm pack 生成：148 文件、8,457,469 bytes。
+  SHA-256：`12e6e24b93a7921812e67b14536c148a00317bc5b3d865bff9b1fdbd544fab51`。
+  与前述候选包相比，13 个文件仅换行不同；规范化后与 main 内容一致，package scripts 仍由 pnpm 正常处理。
+  公开下载包与本地正式包逐字节相同，GitHub 资产 digest 一致；前述候选包未上传。
+- 已下载真实上一版 `2.4.1-r1` 包并校验其 digest，再用包内原版 `latestRelease()` 进行真实网络查询。
+  返回新版 `2.4.1-r2` 的精确资产地址，版本比较确认 r2 高于 r1；这里只验证更新发现，没有升级用户安装。
+- README 的 tag commit API 返回上述 main SHA；同 SHA 的 `install.ps1`、`install.sh`、`install.mjs` 与提交原字节一致。
+  初次 Python urllib 连接被重置；按 README 的 curl TLS 方式下载成功，没有关闭 TLS 校验，也未运行安装器修改本机。
+- 原 `v2.4.1-r1` tag 和旧资产的身份、大小、digest 及更新时间保持不变；不移动任何旧 tag，不替换旧包。
+  本轮提交、合并和新 tag 使用已确认的 noreply 身份；不重写旧公开历史，不将真实会话或临时资料纳入公开内容。
+- 发布后仅补齐维护文档并正常同步分支，不再移动 r2 tag 或替换正式资产。
+  发布日志和包核验资料归档在 ignored `.cache/release-2.4.1-r2/`；原 `.tmp/` 保持不动，没有本轮后台任务或服务待清理。
+  没有升级用户的官方 Kimi、修改 PATH／配置／会话或重启生产；实体手机安装和全部平台组合仍未全面验证。
+
+[release-pr]: https://github.com/WilliamLambertCN/open-kimi-web/pull/37
+[pr-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42349201404
+[main-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42349358347
+[release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
+[asset]: https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.4.1-r2/open-kimi-web-2.4.1-r2.tgz
