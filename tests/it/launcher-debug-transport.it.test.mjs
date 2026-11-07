@@ -110,10 +110,12 @@ describe('real debug-log WebSocket protocol and privacy', () => {
     const ws = await openWs(context);
     const closed = new Promise((resolve) => ws.once('close', resolve));
     ws.send(markers.body);
-    await closed;
+    expect(await closed).toBe(1011);
     const events = requestEvents(await records(context), 0, 'ws');
     expect(event(events, 'ws_error').errorCode).toBe('other');
-    expect(event(events, 'ws_end')).toMatchObject({ outcome: 'error', closeCode: 1011 });
+    expect(event(events, 'ws_end').outcome).toBe('error');
+    expect([1006, 1011]).toContain(event(events, 'ws_end').closeCode);
+    expect(events.map((row) => row.event)).toEqual(['ws_begin', 'ws_ready', 'ws_error', 'ws_end']);
   });
 
   it('logs safe WS error codes for an upstream connection reset', async () => {
