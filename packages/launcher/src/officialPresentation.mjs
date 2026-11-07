@@ -7,7 +7,14 @@ const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.
 const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
 const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
   'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
+const PWA_SCRIPTS = ['pwaInstallView.js', 'pwaInstall.js'];
 const FILES = new Map([
+  ...PWA_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['pwaInstall.css', 'text/css; charset=utf-8'],
+  ['manifest.webmanifest', 'application/manifest+json; charset=utf-8'],
+  ['icons/app-192.png', 'image/png'],
+  ['icons/app-512.png', 'image/png'],
+  ['icons/apple-touch-180.png', 'image/png'],
   ...LOCALE_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['effortOrder.js', 'text/javascript; charset=utf-8'],
   ...SUBAGENT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
@@ -80,6 +87,7 @@ const SCRIPTS = [
   'workspacePins.js',
   'archivedSessionDelete.js',
   'usageBundle.js',
+  ...PWA_SCRIPTS,
   'questionCardLayout.js',
   'presentation.js',
   'sessionSize.js',
@@ -89,6 +97,7 @@ const STYLES = [
   'presentation.css',
   'themes.css',
   'navigation.css',
+  'pwaInstall.css',
   'cron.css',
   'mobileWorkspaceSort.css',
   'mobileSubagentModel.css',
@@ -147,5 +156,12 @@ export function addMobilePresentation(html, { officialWebVersion } = {}) {
     ? html.replace(moduleTag, (tag) => `${scripts}${tag}`)
     : html.replace('</head>', `${scripts}</head>`);
   const styles = STYLES.map((name) => `<link rel="stylesheet" href="${PREFIX}${name}">`).join('\n') + '\n';
-  return withScript.replace('</head>', `${styles}</head>`);
+  const install = [
+    `<link rel="manifest" href="${PREFIX}manifest.webmanifest">`,
+    `<link rel="apple-touch-icon" sizes="180x180" href="${PREFIX}icons/apple-touch-180.png">`,
+    '<meta name="apple-mobile-web-app-capable" content="yes">',
+    '<meta name="mobile-web-app-capable" content="yes">',
+    '<meta name="apple-mobile-web-app-title" content="Open Kimi Web">',
+  ].join('\n') + '\n';
+  return withScript.replace('</head>', `${styles}${install}</head>`);
 }

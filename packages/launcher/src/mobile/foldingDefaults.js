@@ -3,7 +3,7 @@
 
   try {
     if (localStorage.getItem(activityRunFoldingKey) === null) {
-      localStorage.setItem(activityRunFoldingKey, '0');
+      localStorage.setItem(activityRunFoldingKey, '1');
     }
   } catch {
     // The official UI remains usable when browser storage is unavailable.

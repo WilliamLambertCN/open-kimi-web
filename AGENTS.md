@@ -5,7 +5,13 @@
 
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
-为当时的实施、审查和验收基线。当前 `2.4.1` 适配与 `2.4.1-r1` 发布边界见 `UPSTREAM.md`、`upstream.json` 和下方本轮计划。
+为当时的实施、审查和验收基线。当前官方兼容基线为 `2.4.1`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
+
+用户于 2026-11-07 授权发布新版，按
+[`docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md`](docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md) 执行。
+本次 `2.4.1-r2` 纳入下方大会话最近页、脱敏调试日志、安装到桌面、普通 CLI 透传及精简文档。
+本授权覆盖上述功能先前“不提交／不发布”的阶段限制，不覆盖真实数据公开、生产重启或旧 tag／资产变更。
+沿用已有功能及实图验收，不重复浏览器或全平台安装矩阵；必须检查实际发布包、隐私及本次 required CI。
 
 当前用量统计功能按已确认的
 [`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md)
@@ -199,6 +205,41 @@ PR #35及main required CI已通过，2154 UT／545 IT通过、28／23平台条�
 正式v2.4.1-r1 tag固定beac8c68；包132文件／8,418,868 bytes，线上字节／digest／同SHA入口及真实r2更新发现已核。
 旧r1／r2 tag和资产未变；本节发布后证据不再移动tag／换包，main正常同步回develop。
 
+本轮 5 Mbps 大会话调查与修复按
+[`docs/plans/large-session-low-bandwidth-v2-plan.md`](docs/plans/large-session-low-bandwidth-v2-plan.md) 执行。
+用户授权指定真实会话的隔离测试，不提交 Git、不推送、不发布；不修改原会话或重启生产。
+报告只保留无正文统计，真实数据副本仅放 ignored cache 并在测试完成后删除，不以历史 gzip 验收代替本轮复现。
+同一真实响应的工具默认展开已测出约 6.15 万 DOM 节点及 2.2 秒长任务；无偏好默认改回折叠，已有值不迁移。
+最近页只在增强 UI 精确 2.3.1／2.4.1 的无 cursor main page_size=10 请求中改为 1，响应、历史页和 WS 不改。
+短首屏原生自动预取存在 following／sentinel 边界，保留“加载更早消息”按钮，不冒称上滚自动分页全面通过。
+原会话仅只读；真实恢复测试在无网、只读挂载、tmpfs 派生副本的容器内进行，不接管生产或发模型请求。
+准确2.4.1真后端／launcher／Chrome在共享5Mbps下完成cold→reset→live、原生旧页、输入和30秒保持；模型调用0。
+标准lint／typecheck／2241 UT／583 IT及pack通过，6项既有条件跳过、70%门槛不变；首失败和覆盖率见本轮计划。
+只证实305.5MB授权样本的首屏与渲染改善，未复现原虚拟LAN完全打不开，不承诺任意500MB或巨大单轮可用。
+测试副本与内部ID staging已删除，原11个wire及state统计未变，自有容器／QA进程残留0；不提交、不自动部署。
+
+本轮用户追加“仍需几十秒、排查并加 debug log”，按
+[`docs/plans/large-session-debug-log-v1-plan.md`](docs/plans/large-session-debug-log-v1-plan.md) 执行。
+按用户追加要求推荐 `--debug`，保留 `--debug-log` 别名；两者只开 OKW 日志，不开官方调试接口。
+用户要求保留直接 CLI 使用习惯：wrapper 先判定首参数是否为 web，非 web 命令全部交给原 CLI。
+不得用 OKW 的 debug／scheduled-tasks 校验拦截普通 CLI 参数或提示词；保留原 argv、工作目录、环境和退出码。
+日志默认关闭，仅固定脱敏字段和分阶段统计，不记录正文、凭据、真实 ID／路径／IP 或原始错误。
+不启用官方 debug，不提交／发布／升级官方或重启生产；日志功能验证不等于现场慢加载根因已确认。
+双入口与真实传输链 30 项 IT 通过；审查补齐 HTTP 终态后晚事件抑制及 WS 协议错误终态分类。
+最终标准 lint／typecheck／2483 UT／613 IT＋6 条件跳过／pack 通过，70% 门槛不变。
+实际本地包开启日志、静态和 API 调用通过；首次既有安装测试超时及未改 timeout 的重跑证据见计划，不能冒称线上已生效。
+
+手机安装到桌面功能按
+[`docs/plans/pwa-install-v1-plan.md`](docs/plans/pwa-install-v1-plan.md) 实施。
+只增强官方模式的 manifest、安装图标与双端入口；自定义 `--web-dir` 保持原样。
+不注册 service worker、不新增离线会话缓存、不把 token 或当前会话写入安装元信息；继续使用官方登录。
+可信 HTTPS 与浏览器支持是安装前提，不自动修改证书信任；本轮不提交／发布或重启生产。
+准确官方2.4.1完整app的26／26主矩阵与7／7补验通过；真实Chromium安装资格无错误，点击原生prompt保留用户手势。
+同主题入口前后主布局不变，320／390／1440及三主题实图已查看；iOS／不安全上下文／standalone仅模拟，不冒充OS安装。
+2527 UT、627 IT＋6条件跳过、lint／typecheck及实际pack通过，UT／IT行与分支70%门槛不变。
+两次IT首败为旧Windows测试fixture启动竞态，最小修fixture同步／清理而非放宽timeout；额外负载失败与证据见计划。
+无新增凭据存储、SW或CacheStorage，自有浏览器／服务监听已清；实体手机、系统安装与跨浏览器凭据共享未验。
+
 ## 项目边界
 
 - 本项目是官方 Kimi Code Web 和后端外层的轻量增强，不维护另一套会话前端、会话数据库或模型配置真相源。
@@ -267,7 +308,10 @@ PR #35及main required CI已通过，2154 UT／545 IT通过、28／23平台条�
 6. 运行最少必要校验并记录结果。完成后检查 `git diff --check` 和 `git status --short`，清理临时进程与数据。
 7. 除非任务明确要求，不提交、不推送、不发布。
 
-README 只维护相对官方 Web 的完整增强能力和当前版本变化；逐版历史统一放在 CHANGELOG。
+README 保持简短：开头给两段系统安装命令，只留上手、增强功能概览、截图、升级和常见问题。
+使用 humanizer-zh 优化文字，用动作说明用户能做什么，把压缩的术语展开为通俗句子，不为缩短篇幅堆砌名词。
+详细命令链接到 launcher README，兼容细节到 UPSTREAM，历史和验收不堆在首页。
+保留既有图片，新功能补真实界面图；新增 App 图须区分安装面板与实体安装结果，未发布功能明确标注。
 `develop` 的未发布内容仅在确有必要时维护于 CHANGELOG 顶部，准备发布时整理成对应版本条目。
 
 ### KISS 分支模型

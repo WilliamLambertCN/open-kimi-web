@@ -4,6 +4,7 @@
     window[key] = true;
     const actions = new Map();
     const entries = new Map();
+    const visibility = new Map();
     const search = window.__okwNavigationCreateSearch();
     const text = (zh, en) => window.__okwLocale?.text(zh, en) ?? en;
     const make = (action, kind, icon, zh, en) => {
@@ -12,6 +13,7 @@
       const button = document.createElement('button');
       button.type = 'button'; button.className = `okw-navigation-entry is-${kind}`;
       button.dataset.okwNavigationAction = action;
+      button.hidden = visibility.get(action) === false;
       button.setAttribute('aria-haspopup', 'dialog');
       const symbol = document.createElement('span'); symbol.className = 'okw-navigation-icon';
       symbol.textContent = icon; symbol.setAttribute('aria-hidden', 'true');
@@ -26,7 +28,7 @@
       entries.set(id, button); return button;
     };
     const attach = (host, node, before) => {
-      if (before && node.nextElementSibling !== before) before.before(node);
+      if (before?.parentElement === host && node.nextElementSibling !== before) before.before(node);
       else if (node.parentElement !== host) host.append(node);
     };
     const nativeSearches = new WeakSet();
@@ -39,7 +41,10 @@
     };
     const appendActions = (host, kind, before) => {
       if (actions.has('cron')) attach(host, make('cron', kind, '◷', '定时任务', 'Scheduled tasks'), before);
-      if (actions.has('usage')) attach(host, make('usage', kind, '◫', '使用统计', 'Usage'));
+      if (actions.has('usage')) {
+        attach(host, make('usage', kind, '◫', '使用统计', 'Usage'), entries.get(`${kind}:install`));
+      }
+      if (actions.has('install')) attach(host, make('install', kind, '↓', '安装到桌面', 'Install app'));
     };
     const workspace = window.__okwNavigationCreateWorkspace();
     const openWorkspace = (opener) => { workspace.open(opener); };
@@ -73,8 +78,17 @@
     };
     window.__okwNavigation = {
       register(action, handler) {
-        if (!['usage', 'cron'].includes(action) || typeof handler !== 'function') return;
+        if (!['usage', 'cron', 'install'].includes(action) || typeof handler !== 'function') return;
         actions.set(action, handler); mount();
+      },
+      setVisible(action, visible) {
+        if (action !== 'install') return;
+        visibility.set(action, Boolean(visible));
+        for (const button of entries.values()) {
+          if (button.dataset.okwNavigationAction === action && button.hidden === Boolean(visible)) {
+            button.hidden = !visible;
+          }
+        }
       },
       refresh: mount,
       openSearch: search.open,

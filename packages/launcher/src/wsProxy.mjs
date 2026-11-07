@@ -39,21 +39,34 @@ export function relayCloseCode(code) {
   return code === 1005 || code === 1006 || code === 1015 ? 1000 : code;
 }
 
-function bridge(upstream, client, onClose) {
-  upstream.on('message', (data, isBinary) => client.send(data, { binary: isBinary }));
+function bridge(upstream, client, onClose, trace) {
+  upstream.on('message', (data, isBinary) => {
+    client.send(data, { binary: isBinary });
+    trace?.toClient(data, client.bufferedAmount);
+  });
   client.on('message', (data, isBinary) => {
-    if (upstream.readyState === WebSocket.OPEN) upstream.send(data, { binary: isBinary });
+    if (upstream.readyState !== WebSocket.OPEN) return;
+    upstream.send(data, { binary: isBinary });
+    trace?.toUpstream(data, upstream.bufferedAmount);
   });
   upstream.on('close', (code, reason) => {
     onClose();
+    trace?.end('closed', { closeCode: code });
     client.close(relayCloseCode(code), reason);
   });
   client.on('close', (code, reason) => {
+    trace?.end('closed', { closeCode: code });
     if (code === 1006) terminate(upstream);
     else upstream.close(relayCloseCode(code), reason);
   });
-  upstream.on('error', () => client.close(1011));
-  client.on('error', () => upstream.close(1011));
+  upstream.on('error', (error) => {
+    trace?.error(error);
+    client.close(1011);
+  });
+  client.on('error', (error) => {
+    trace?.error(error);
+    upstream.close(1011);
+  });
 }
 
 function terminate(upstream) {
@@ -71,87 +84,119 @@ function safeUpstreamStatus(status) {
   return Number.isInteger(status) && status >= 400 && status <= 599 ? status : 502;
 }
 
-export function createWsProxy() {
+function connectUpstream(req, targetBase) {
+  const target = new URL(targetBase);
+  const targetOrigin = target.origin;
+  target.protocol = target.protocol === 'https:' ? 'wss:' : 'ws:';
+  const protocols = (req.headers['sec-websocket-protocol'] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const headers = { ...upstreamHeaders(req.headers), host: target.host };
+  if (req.headers.origin !== undefined) headers.origin = targetOrigin;
+  return new WebSocket(new URL(req.url, target), protocols, { headers, maxPayload: MAX_WS_PAYLOAD_BYTES });
+}
+
+function acceptUpgrade(context, cleanup, abandon) {
+  const { upstream, req, socket, head, wss, active, trace } = context;
+  upstream.removeAllListeners('unexpected-response');
+  req.upstreamSubprotocol = upstream.protocol;
+  let accepted = false;
+  try {
+    wss.handleUpgrade(req, socket, head, (client) => {
+      accepted = true;
+      cleanup();
+      active.set(upstream, trace);
+      bridge(upstream, client, () => active.delete(upstream), trace);
+      trace?.ready();
+    });
+  } catch (error) {
+    trace?.error(error);
+    trace?.end('error');
+    socket.destroy();
+  }
+  if (!accepted) abandon();
+}
+
+function watchPending(context) {
+  const { upstream, socket, pending, trace } = context;
+  const cleanup = () => {
+    pending.delete(upstream);
+    socket.removeListener('close', abandon);
+    socket.removeListener('end', closed);
+    socket.removeListener('error', discard);
+    upstream.removeListener('error', discard);
+    upstream.removeListener('close', closed);
+  };
+  const abandon = () => {
+    cleanup();
+    trace?.end('aborted');
+    upstream.on('error', () => {});
+    terminate(upstream);
+  };
+  const discard = (error) => {
+    cleanup();
+    trace?.error(error);
+    trace?.end('error');
+    upstream.on('error', () => {});
+    terminate(upstream);
+    socket.destroy();
+  };
+  const closed = () => {
+    abandon();
+    socket.destroy();
+  };
+  socket.once('close', abandon);
+  socket.once('end', closed);
+  socket.once('error', discard);
+  upstream.once('error', discard);
+  upstream.once('close', closed);
+  upstream.once('unexpected-response', (request, response) => {
+    cleanup();
+    upstream.on('error', () => {});
+    const status = safeUpstreamStatus(response.statusCode);
+    trace?.end('rejected', { status });
+    response.destroy();
+    request.destroy();
+    rejectHandshake(socket, status);
+  });
+  upstream.once('open', () => acceptUpgrade(context, cleanup, abandon));
+}
+
+export function createWsProxy(diagnostics) {
   const pending = new Map();
-  const active = new Set();
+  const active = new Map();
   const wss = new WebSocketServer({
     noServer: true,
     maxPayload: MAX_WS_PAYLOAD_BYTES,
-    // proxyUpgrade stashes the upstream's negotiated subprotocol on the
-    // request before handleUpgrade runs; echo it to preserve the
-    // kimi-code.bearer.<token> handshake semantics.
+    // Echo only the upstream's negotiated subprotocol after its handshake succeeds.
     handleProtocols: (_protocols, req) => req.upstreamSubprotocol || false,
   });
 
   function handleUpgrade(req, socket, head, targetBase) {
-    const target = new URL(targetBase);
-    const targetOrigin = target.origin;
-    target.protocol = target.protocol === 'https:' ? 'wss:' : 'ws:';
-    const protocols = (req.headers['sec-websocket-protocol'] ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const headers = { ...upstreamHeaders(req.headers), host: target.host };
-    if (req.headers.origin !== undefined) headers.origin = targetOrigin;
+    const trace = diagnostics?.ws(req);
     let upstream;
     try {
-      upstream = new WebSocket(new URL(req.url, target), protocols, {
-        headers, maxPayload: MAX_WS_PAYLOAD_BYTES,
-      });
-    } catch {
+      upstream = connectUpstream(req, targetBase);
+    } catch (error) {
+      trace?.error(error);
+      trace?.end('error', { status: 400 });
       rejectHandshake(socket);
       return;
     }
-    pending.set(upstream, socket);
-    const discard = () => {
-      pending.delete(upstream);
-      socket.destroy();
-    };
-    const abandon = () => {
-      pending.delete(upstream);
-      upstream.on('error', () => {});
-      terminate(upstream);
-    };
-    socket.once('close', abandon);
-    upstream.once('error', discard);
-    upstream.once('unexpected-response', (request, response) => {
-      pending.delete(upstream);
-      socket.removeListener('close', abandon);
-      upstream.removeListener('error', discard);
-      upstream.on('error', () => {});
-      const status = safeUpstreamStatus(response.statusCode);
-      response.destroy();
-      request.destroy();
-      rejectHandshake(socket, status);
-    });
-    upstream.once('open', () => {
-      upstream.removeListener('error', discard);
-      upstream.removeAllListeners('unexpected-response');
-      req.upstreamSubprotocol = upstream.protocol;
-      let accepted = false;
-      try {
-        wss.handleUpgrade(req, socket, head, (client) => {
-          accepted = true;
-          pending.delete(upstream);
-          socket.removeListener('close', abandon);
-          active.add(upstream);
-          bridge(upstream, client, () => active.delete(upstream));
-        });
-      } catch {
-        socket.destroy();
-      }
-      if (!accepted) abandon();
-    });
+    pending.set(upstream, { socket, trace });
+    watchPending({ upstream, req, socket, head, wss, pending, active, trace });
   }
 
   function closeConnections() {
-    for (const [upstream, socket] of pending) {
+    for (const [upstream, { socket, trace }] of pending) {
+      trace?.end('shutdown');
       socket.destroy();
       upstream.on('error', () => {});
       terminate(upstream);
     }
     pending.clear();
-    for (const upstream of active) terminate(upstream);
+    for (const [upstream, trace] of active) {
+      trace?.end('shutdown');
+      terminate(upstream);
+    }
     active.clear();
   }
 

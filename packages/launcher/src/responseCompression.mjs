@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { constants, createGzip } from 'node:zlib';
+import { responseDiagnostics } from './httpDiagnostics.mjs';
 
 const MIN_LENGTH = 1024;
 const TOKEN = /^[!#$%&'*+.^_`|~\da-z-]+$/i;
@@ -161,8 +162,14 @@ function responsePlan(req, res, statusCode, headers, body) {
   return plan;
 }
 
+function responseStreams(trace, source, gzip, res) {
+  if (trace) return trace.streams(source, gzip, res);
+  return gzip ? [source, gzip, res] : [source, res];
+}
+
 export async function sendResponse(req, res, { statusCode = 200, headers = {}, body = Buffer.alloc(0) } = {}) {
   const controller = new AbortController();
+  const trace = responseDiagnostics(res);
   const abort = () => controller.abort();
   const close = () => { if (!res.writableFinished) abort(); };
   let source;
@@ -172,6 +179,7 @@ export async function sendResponse(req, res, { statusCode = 200, headers = {}, b
   try {
     assertResponseOpen(req, res);
     const plan = responsePlan(req, res, statusCode, headers, body);
+    trace?.response(plan.headers);
     res.writeHead(statusCode, plan.headers);
     if (!plan.bodyAllowed) {
       destroyReadable(body);
@@ -180,9 +188,10 @@ export async function sendResponse(req, res, { statusCode = 200, headers = {}, b
     }
     source = responseSource(body);
     gzip = plan.gzip ? createGzip({ level: 1, flush: constants.Z_SYNC_FLUSH }) : null;
-    const streams = gzip ? [source, gzip, res] : [source, res];
+    const streams = responseStreams(trace, source, gzip, res);
     await pipeline(...streams, { signal: controller.signal });
   } catch (error) {
+    trace?.error(error);
     destroyReadable(source);
     destroyReadable(gzip);
     destroyReadable(body);

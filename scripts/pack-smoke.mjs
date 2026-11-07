@@ -15,7 +15,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -107,10 +107,42 @@ function assertUpdateCommand(pkgDir) {
   console.log('update command ok: help works without runtime deps; unsafe layout and arguments refused');
 }
 
+async function assertDebugLog(home) {
+  const directory = join(home, 'logs');
+  const deadline = Date.now() + 3_000;
+  while (Date.now() < deadline) {
+    const files = existsSync(directory) ? readdirSync(directory) : [];
+    if (files.length === 1) {
+      const text = readFileSync(join(directory, files[0]), 'utf8');
+      const rows = text.split('\n').slice(0, -1).map((line) => JSON.parse(line));
+      const started = rows.some((row) => row.event === 'launcher_start');
+      const served = rows.some((row) => row.event === 'http_end' && row.route === 'index' && row.status === 200);
+      const proxied = rows.some((row) => row.event === 'http_end' && row.route === 'health' && row.status === 200);
+      if (started && served && proxied) {
+        if (text.includes(home) || text.includes('127.0.0.1') || text.includes('fake-target')) {
+          throw new Error('installed diagnostic log leaked fixture context');
+        }
+        console.log('debug log ok: installed CLI emitted safe startup, static and proxy records');
+        return;
+      }
+    }
+    await delay(30);
+  }
+  throw new Error('installed CLI did not write the expected diagnostic records');
+}
+
 const required = [
   'bin/open-kimi-web.mjs',
   'src/serve.mjs',
   'src/responseCompression.mjs',
+  'src/transcriptPaging.mjs',
+  'src/debugLog.mjs',
+  'src/debugLogSchema.mjs',
+  'src/debugLogSink.mjs',
+  'src/diagnosticContext.mjs',
+  'src/httpDiagnostics.mjs',
+  'src/transportDiagnostics.mjs',
+  'src/wsDiagnostics.mjs',
   'src/update/updateMain.mjs',
   'src/mobile/mobileWorkspaceSort.js',
   'src/mobile/mobileWorkspaceSort.css',
@@ -128,6 +160,14 @@ const required = [
   'src/mobile/navigationWorkspace.js',
   'src/mobile/navigation.js',
   'src/mobile/navigation.css',
+  'src/mobile/pwaInstallView.js',
+  'src/mobile/pwaInstall.js',
+  'src/mobile/pwaInstall.css',
+  'src/mobile/manifest.webmanifest',
+  'src/mobile/icons/app.svg',
+  'src/mobile/icons/app-192.png',
+  'src/mobile/icons/app-512.png',
+  'src/mobile/icons/apple-touch-180.png',
   'src/mobile/cronApi.js',
   'src/mobile/cronView.js',
   'src/mobile/cron.js',
@@ -141,6 +181,32 @@ const required = [
   'LICENSE',
   'THIRD_PARTY_NOTICES.md',
 ];
+
+async function assertPwaAssets(pkgDir, publicDir, target) {
+  const { createLauncher } = await import(pathToFileURL(join(pkgDir, 'src/serve.mjs')).href);
+  const launcher = await createLauncher({ target, publicDir, host: '127.0.0.1', port: 0, interfaces: [],
+    officialPresentation: true, officialWebVersion: '2.4.1' });
+  const prefix = '/__open-kimi-mobile/';
+  try {
+    const html = await fetch(launcher.url).then((response) => response.text());
+    if (!html.includes(`rel="manifest" href="${prefix}manifest.webmanifest"`)) {
+      throw new Error('installed enhanced launcher did not inject its manifest');
+    }
+    const response = await fetch(launcher.url + prefix + 'manifest.webmanifest');
+    const manifest = await response.json();
+    if (!response.headers.get('content-type')?.startsWith('application/manifest+json') ||
+        manifest.start_url !== '/' || manifest.id !== '/' || manifest.display !== 'standalone') {
+      throw new Error('installed PWA manifest contract is invalid');
+    }
+    for (const icon of manifest.icons) {
+      const resource = await fetch(launcher.url + icon.src);
+      const png = Buffer.from(await resource.arrayBuffer());
+      if (resource.headers.get('content-type') !== 'image/png' ||
+          png.readUInt32BE(16) !== Number(icon.sizes.split('x')[0])) throw new Error('installed PWA icon is invalid');
+    }
+    console.log('PWA assets ok: installed package serves manifest and correctly sized icons without credentials');
+  } finally { await launcher.close(); }
+}
 
 async function main() {
   const scratch = mkdtempSync(join(tmpdir(), 'pack-smoke-'));
@@ -164,12 +230,12 @@ async function main() {
     const allFiles = readdirSync(pkgDir, { recursive: true });
     const leaked = allFiles.filter((file) => {
       const name = String(file).replaceAll('\\', '/');
-      return /(?:^|\/)(?:\.git|\.cache|\.tmp|coverage|tests|node_modules|upstream|cron-backend)(?:\/|$)/.test(name) ||
+      return /(?:^|\/)(?:\.git|\.cache|\.tmp|coverage|tests|logs|node_modules|upstream|cron-backend)(?:\/|$)/.test(name) ||
         /^src\/(?:schedules(?:\/|$)|mobile\/schedules[^/]*)/.test(name) ||
         /(?:^|\/)(?:build-cron-backend\.mjs|backend-entry\.mjs|owned-home\.mjs)$/.test(name) ||
         /\.(?:patch|diff)$/.test(name) ||
         /(?:^|\/)(?:\.env(?:\..*)?|\.npmrc|id_rsa|id_ed25519)$/.test(name) ||
-        /\.(?:test\.mjs|map|log|bak|old|key|pem|p12|pfx)$/.test(name);
+        /\.(?:test\.mjs|map|log|jsonl|bak|old|key|pem|p12|pfx)$/.test(name);
     });
     if (leaked.length > 0) throw new Error(`tarball contains unexpected private or debug files: ${leaked.join(', ')}`);
     console.log(`tarball contents ok (${required.join(', ')}; no test files)`);
@@ -180,8 +246,10 @@ async function main() {
     assertInstalledDependencies(pkgDir);
     assertVersionFlag(pkgDir);
     const customWebDir = join(scratch, 'custom-web');
+    const debugHome = join(scratch, 'okw-home');
     mkdirSync(customWebDir);
-    writeFileSync(join(customWebDir, 'index.html'), '<!doctype html><title>pack smoke</title>');
+    writeFileSync(join(customWebDir, 'index.html'), '<!doctype html><html><head><title>pack smoke</title></head></html>');
+    await assertPwaAssets(pkgDir, customWebDir, target.url);
     const port = 23_000 + Math.floor(Math.random() * 20_000);
     child = spawn(
       process.execPath,
@@ -191,9 +259,10 @@ async function main() {
         '--target', target.url,
         '--port', String(port),
         '--no-token-link',
+        '--debug',
         '--web-dir', customWebDir,
       ],
-      { stdio: ['ignore', 'pipe', 'pipe'] },
+      { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, OPEN_KIMI_WEB_HOME: debugHome } },
     );
     let log = '';
     child.stdout.on('data', (d) => (log += d));
@@ -208,6 +277,7 @@ async function main() {
     }
     const api = await (await waitFor(`${base}/api/v1/healthz`)).json();
     if (api.from !== 'fake-target') throw new Error(`proxy broken: ${JSON.stringify(api)}`);
+    await assertDebugLog(debugHome);
     console.log('live check ok: / served (no-cache), /api/v1/healthz proxied');
     console.log(log.trim());
   } finally {

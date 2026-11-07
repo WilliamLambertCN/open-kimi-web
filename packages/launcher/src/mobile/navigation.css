@@ -11,6 +11,8 @@
 .okw-navigation-host > .search,
 .okw-navigation-host > [data-okw-navigation-action="search"] { order: 3; }
 .okw-navigation-host > [data-okw-navigation-action="usage"] { order: 4; }
+.okw-navigation-host > [data-okw-navigation-action="install"] { order: 5; }
+.okw-navigation-entry[hidden] { display: none; }
 
 .okw-navigation-entry {
   display: flex;
