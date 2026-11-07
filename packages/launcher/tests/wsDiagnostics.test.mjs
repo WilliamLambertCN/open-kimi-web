@@ -55,15 +55,15 @@ describe('WebSocket diagnostics counters', () => {
 });
 
 describe('WebSocket diagnostics error outcomes', () => {
-  it('retains a protocol failure when the close event follows it', () => {
+  it.each([1006, 1011])('retains a protocol failure and the first observed close code %i', (closeCode) => {
     const { trace, events, onEnd } = harness();
     trace.ready();
     trace.error({ code: 'WS_ERR_UNEXPECTED_RSV_1' });
-    trace.end('closed', { closeCode: 1011 });
-    trace.end('closed');
+    trace.end('closed', { closeCode });
+    trace.end('closed', { closeCode: closeCode === 1006 ? 1011 : 1006 });
     trace.error({ code: 'ECONNRESET' });
     expect(events.map(({ event }) => event)).toEqual(['ws_begin', 'ws_ready', 'ws_error', 'ws_end']);
-    expect(events.at(-1)).toMatchObject({ outcome: 'error', closeCode: 1011 });
+    expect(events.at(-1)).toMatchObject({ outcome: 'error', closeCode });
     expect(onEnd).toHaveBeenCalledTimes(1);
   });
 
