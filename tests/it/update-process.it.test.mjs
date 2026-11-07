@@ -54,16 +54,10 @@ async function stopFixturePid(pid) {
 }
 
 async function exitedParentCommand(value) {
-  if (process.platform === 'win32') {
-    const quote = (text) => `'${text.replaceAll("'", "''")}'`;
-    const command = `Start-Process -FilePath ${quote(process.execPath)} -ArgumentList ` +
-      `${quote(`"${value.script}"`)},${quote(`"${value.pidFile}"`)} -NoNewWindow; exit 0`;
-    return { command: join(process.env.SystemRoot || 'C:/Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe'),
-      args: ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(command, 'utf16le').toString('base64')] };
-  }
-  await put(value.parent, 'const {spawn}=require("child_process");' +
-    'spawn(process.execPath,[process.argv[2],process.argv[3]],{stdio:"inherit"}).unref();' +
-    'setTimeout(()=>process.exit(0),100);');
+  await put(value.parent, 'const {spawn}=require("child_process");const fs=require("fs");' +
+    'spawn(process.execPath,[process.argv[2],process.argv[3]],' +
+    `{stdio:"inherit",detached:${process.platform === 'win32'}}).unref();` +
+    'setInterval(()=>{if(fs.existsSync(process.argv[3])&&Number(fs.readFileSync(process.argv[3],"utf8")))process.exit(0);},10);');
   return { command: process.execPath, args: [value.parent, value.script, value.pidFile] };
 }
 
@@ -120,7 +114,6 @@ describe('owned updater tree cleanup does not touch independent services', () =>
       version: '2.1.1-r9' };
     await put(join(target.root, 'package.json'), { version: target.version });
     const release = await acquireLock(target, { directory: value.directory });
-    cleanup.push(() => release());
     let failure;
     const task = updateMain([], { identify: async () => target, acquireLock: async () => release,
       latestRelease: async () => ({ version: '2.1.1-r10', url: 'fixture-network-not-used' }),
@@ -130,11 +123,20 @@ describe('owned updater tree cleanup does not touch independent services', () =>
         catch (error) { failure = error; throw error; }
       }, log: () => {}, error: () => {},
     });
+    cleanup.push(async () => {
+      await task;
+      const pid = Number(await readFile(value.pidFile, 'utf8').catch((error) => {
+        if (error.code !== 'ENOENT') throw error;
+        return '';
+      }));
+      if (pid) await stopFixturePid(pid);
+    });
+    cleanup.push(() => release());
     const pid = await waitPid(value.pidFile);
-    cleanup.push(() => stopFixturePid(pid));
     expect(await task).toBe(1);
     if (process.platform === 'win32') {
       expect(failure).toMatchObject({ code: 'UPDATE_CLEANUP_UNCONFIRMED', cleanupUnconfirmed: true });
+      expect(failure.message).toContain('parent already exited');
       expect(alive(pid)).toBe(true);
       expect(await exists(release.path)).toBe(true);
       await expect(acquireLock(target, { directory: value.directory })).rejects.toThrow('already has an update lock');
