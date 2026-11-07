@@ -53,6 +53,12 @@
   原 `.tmp/`、ignored cache、真实会话及测试日志不纳入提交或包；不改写既有历史中的作者身份。
 - 新增／修改行长与 `git diff --check` 通过。功能及实图证据沿用上述计划；本次 CI 和线上核验尚未完成。
 
+### CI 首轮修正
+
+- PR #37 首轮 CI 在 plugin manifest 一致性测试失败：launcher 已改 r2，根 `kimi.plugin.json` 遗漏，仍为 r1。
+  lint／typecheck 已过；UT 2505 通过、1 失败、28 条件跳过，后续 IT／pack 未执行，不算发布验收通过。
+- 补齐插件版本，不改测试断言或门槛；该文件不在 launcher tgz 中，不改变已检查的候选包。
+
 ### 线上发布
 
 CI、正式 tag、下载与更新发现结果在完成后补充；当前记录不代表已发布成功。
