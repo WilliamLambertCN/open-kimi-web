@@ -33,12 +33,36 @@ describe('official tool-call folding default', () => {
       .toBeLessThan(injected.indexOf('<script type="module"'));
   });
 
-  it('keeps completed tool calls expanded when no preference exists', () => {
-    expect(install()).toBe('0');
+  it('folds completed tool activity when no preference exists', () => {
+    expect(install()).toBe('1');
   });
 
-  it.each(['0', '1'])('preserves an explicit %s preference', (storedValue) => {
+  it.each(['0', '1', '', 'unknown'])('preserves an existing %s preference', (storedValue) => {
     expect(install(storedValue)).toBe(storedValue);
+  });
+
+  it('preserves a preference changed after the first execution', () => {
+    install();
+    const view = frames.at(-1).contentWindow;
+    view.localStorage.setItem(STORAGE_KEY, '0');
+
+    view.eval(`(() => { ${source}\n})()`);
+    view.eval(`(() => { ${source}\n})()`);
+
+    expect(view.localStorage.getItem(STORAGE_KEY)).toBe('0');
+  });
+
+  it('does not block startup when saving the default fails', () => {
+    const frame = document.createElement('iframe');
+    document.body.append(frame);
+    frames.push(frame);
+    const view = frame.contentWindow;
+    Object.defineProperty(view, 'localStorage', {
+      configurable: true,
+      value: { getItem: () => null, setItem: () => { throw new Error('storage full'); } },
+    });
+
+    expect(() => view.eval(`(() => { ${source}\n})()`)).not.toThrow();
   });
 
   it('does not block startup when localStorage is unavailable', () => {

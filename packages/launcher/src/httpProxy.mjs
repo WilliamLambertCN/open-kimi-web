@@ -4,6 +4,7 @@
 // Origin is rewritten to the target origin. Authorization is never logged.
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
+import { responseDiagnostics } from './httpDiagnostics.mjs';
 import { sendResponse } from './responseCompression.mjs';
 
 const HOP_BY_HOP = new Set([
@@ -50,8 +51,9 @@ export function buildProxyHeaders(headers, target) {
 // because activity keeps resetting the socket timer.
 const UPSTREAM_TIMEOUT_MS = 120_000;
 
-export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_MS) {
+export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_MS, path = req.url) {
   const target = new URL(targetBase);
+  const trace = responseDiagnostics(res);
   const isHttps = target.protocol === 'https:';
   const upstream = (isHttps ? httpsRequest : httpRequest)(
     {
@@ -59,10 +61,12 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
       hostname: target.hostname,
       port: target.port || (isHttps ? 443 : 80),
       method: req.method,
-      path: req.url,
+      path,
       headers: buildProxyHeaders(req.headers, target),
     },
     (upRes) => {
+      trace?.upstream(upRes.statusCode, upRes.headers);
+      if (trace) upRes.once('error', (error) => trace.error(error));
       void sendResponse(req, res, {
         statusCode: upRes.statusCode ?? 502,
         headers: filterHeaders(upRes.headers),
@@ -73,9 +77,11 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
   let timedOut = false;
   upstream.setTimeout(timeoutMs, () => {
     timedOut = true;
+    trace?.error({ code: 'ETIMEDOUT' });
     upstream.destroy();
   });
-  upstream.on('error', () => {
+  upstream.on('error', (error) => {
+    trace?.error(error);
     if (res.headersSent) {
       res.destroy();
       return;
