@@ -8,6 +8,7 @@
 ## 实施计划
 
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
+- [2.4.1-r2 发布](docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md)
 - [用量统计](docs/plans/usage-statistics-v1-plan.md)
 - [自动匹配价格](docs/plans/usage-pricing-auto-match-v2-plan.md)
 - [价格刷新连续性](docs/plans/usage-pricing-refresh-v3-plan.md)
@@ -26,6 +27,9 @@
 - [模型发现修复](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md)
 - [新模型默认能力](docs/plans/provider-defaults-r2-release-v1-plan.md)
 - [2.4.1 适配](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md)
+- [低带宽大会话](docs/plans/large-session-low-bandwidth-v2-plan.md)
+- [分阶段诊断日志](docs/plans/large-session-debug-log-v1-plan.md)
+- [安装到桌面](docs/plans/pwa-install-v1-plan.md)
 
 ## 项目边界
 
@@ -95,7 +99,10 @@
 6. 运行最少必要校验并记录结果。完成后检查 `git diff --check` 和 `git status --short`，清理临时进程与数据。
 7. 除非任务明确要求，不提交、不推送、不发布。
 
-README 只维护相对官方 Web 的完整增强能力和当前版本变化；逐版历史统一放在 CHANGELOG。
+README 保持简短：开头给两段系统安装命令，只留上手、增强功能概览、截图、升级和常见问题。
+使用 humanizer-zh 优化文字，用动作说明用户能做什么，把压缩的术语展开为通俗句子，不为缩短篇幅堆砌名词。
+详细命令链接到 launcher README，兼容细节到 UPSTREAM，历史和验收不堆在首页。
+保留既有图片，新功能补真实界面图；新增 App 图须区分安装面板与实体安装结果，未发布功能明确标注。
 `develop` 的未发布内容仅在确有必要时维护于 CHANGELOG 顶部，准备发布时整理成对应版本条目。
 
 ### KISS 分支模型

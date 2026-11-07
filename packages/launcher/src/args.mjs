@@ -3,6 +3,7 @@
 // credentials, and the listener defaults to loopback only.
 import { isLoopbackHost } from './accessUrls.mjs';
 import { isBundleVersion } from './officialBundle.mjs';
+import { debugLogEnabled } from './debugLog.mjs';
 
 export class UsageError extends Error {}
 
@@ -17,6 +18,7 @@ export const DEFAULTS = Object.freeze({
   keyFile: null,
   tokenFile: null,
   noTokenLink: false,
+  debugLog: false,
   webDir: null,
   webVersion: null,
 });
@@ -44,6 +46,8 @@ Options:
   --key-file       Custom TLS private key PEM (requires --cert-file)
   --token-file     Read a launch-link token from a specific file
   --no-token-link  Do not read or print authenticated launch links
+  --debug          Write sanitized diagnostics to OKW home/logs (or OPEN_KIMI_WEB_DEBUG_LOG=1)
+  --debug-log      Alias for --debug
   --web-ui         Deprecated compatibility flag; "official" is a no-op and
                    "open" reports migration guidance because that UI was removed
   --web-dir        Serve this web build directory as-is (highest priority)
@@ -152,7 +156,19 @@ const BOOLEAN_HANDLERS = {
   '--no-token-link': (opts) => {
     opts.noTokenLink = true;
   },
+  '--debug': (opts) => {
+    opts.debugLog = true;
+  },
+  '--debug-log': (opts) => {
+    opts.debugLog = true;
+  },
 };
+
+function unknownArgument(args, flag) {
+  const explicitDebug = args.some((arg) => /^--debug(?:-log)?(?:=|$)/.test(arg));
+  return explicitDebug ? 'invalid arguments with --debug; use supported serve options and no flag value' :
+    `unknown argument: ${flag}`;
+}
 
 function applyOption(args, index, opts) {
   const flag = args[index];
@@ -170,7 +186,7 @@ function applyOption(args, index, opts) {
     assertOfficialWebUi(value);
     return index + 1;
   }
-  if (!entry) throw new UsageError(`unknown argument: ${flag}`);
+  if (!entry) throw new UsageError(unknownArgument(args, flag));
   const value = args[index + 1];
   if (value === undefined || value.startsWith('--')) {
     throw new UsageError(`missing value for ${flag}`);
@@ -218,5 +234,6 @@ export function parseArgs(argv, env = process.env) {
   for (let i = 1; i < args.length; i += 1) i = applyOption(args, i, opts);
   if (args.includes('--port')) opts.portExplicit = true;
   applyWebEnvDefaults(args, opts, env);
+  opts.debugLog = debugLogEnabled(opts.debugLog, env);
   return finalizeTls(opts);
 }

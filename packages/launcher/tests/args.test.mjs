@@ -19,6 +19,7 @@ describe('parseArgs', () => {
       keyFile: null,
       tokenFile: null,
       noTokenLink: false,
+      debugLog: false,
       webDir: null,
       webVersion: null,
     });
@@ -219,6 +220,38 @@ describe('parseArgs validation', () => {
     expect(parseArgs(argv('serve', '--', '--help')).command).toBe('help');
     expect(parseArgs(argv()).command).toBe('help');
   });
+});
+
+describe('parseArgs debug logging', () => {
+  it.each([undefined, '', '0', 'true', '01', ' 1', '1 '])('stays disabled for env=%s', (value) => {
+    expect(parseArgs(argv('serve'), { OPEN_KIMI_WEB_DEBUG_LOG: value }).debugLog).toBe(false);
+  });
+
+  it('enables logging for the exact environment value 1', () => {
+    expect(parseArgs(argv('serve'), { OPEN_KIMI_WEB_DEBUG_LOG: '1' }).debugLog).toBe(true);
+  });
+
+  it.each(['--debug', '--debug-log'])('enables logging with %s and preserves other options', (flag) => {
+    expect(parseArgs(argv('serve', flag), { OPEN_KIMI_WEB_DEBUG_LOG: '0' }).debugLog).toBe(true);
+    expect(parseArgs(argv('serve', flag, '--port', '8080'), {}).port).toBe(8080);
+    expect(parseArgs(argv('serve', '--', flag), {}).debugLog).toBe(true);
+    expect(parseArgs(argv('serve', '--debug', '--debug-log'), {})).toEqual(parseArgs(argv('serve', flag), {}));
+    expect(() => parseArgs(argv('serve', flag, 'true'), {})).toThrow(UsageError);
+  });
+
+  it.each(['--debug=1', '--debug=false', '--debug=', '--debug-log=1', '--debug-log=false', '--debug-log='])(
+    'rejects a value for %s', (flag) => {
+      expect(() => parseArgs(argv('serve', flag), {})).toThrow(UsageError);
+    },
+  );
+
+  it.each(['--debug', '--debug=private-marker', '--debug-log', '--debug-log=private-marker'])(
+    'does not echo unknown arguments with %s', (flag) => {
+      expect(() => parseArgs(argv('serve', '--unknown=private-marker', flag), {})).toThrow(
+        'invalid arguments with --debug; use supported serve options and no flag value',
+      );
+    },
+  );
 });
 
 describe('parseArgs port explicitness', () => {

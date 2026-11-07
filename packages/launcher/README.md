@@ -6,11 +6,13 @@
 
 ## 安装
 
-本项目不发布到 npm registry；版本目标 `v2.4.1-r1`，兼容目标 Kimi Code `2.4.1`，发布状态以正式 Release 为准。
-本轮规范已有推理档位展示、说明原生 Tower 条件，并改进已有 Kimi 发现和新版运行时检查；不强制开启实验功能。
-保留 r2 用户要求的新模型默认、r1 发现选择／唯一可见表单／独立字段保存及全部已有显式配置。
-真实后端、双端界面、CI、交付包和线上核验见 [2.4.1 适配计划][compat241-plan]及[Release 页面][current-release]，未记录不视为通过。
-[r2 计划][r2-plan]、[r2 Release][r2-release]、[r1 适配计划][current-plan]和[热修复计划][provider-hotfix-plan]保留为历史证据。
+本项目不发布到 npm registry；版本目标 `v2.4.1-r2`，兼容目标 Kimi Code `2.4.1`，发布状态以正式 Release 为准。
+本版包含最近页先取 1 轮、工具活动默认折叠、脱敏排查日志、App 安装入口、普通 CLI 原样透传修正和精简首页。
+保留推理档位排序、原生 Tower 条件说明及已有 Kimi 的发现和运行时检查，不强制开启实验功能。
+保留 `2.3.1-r2` 新模型默认、r1 发现选择／唯一可见表单／独立字段保存及全部已有显式配置。
+本轮验收、CI、交付包和线上核验见[发布计划][release241r2-plan]及[Release 页面][current-release]，未记录不视为通过。
+[2.4.1-r1 适配计划][compat241-plan]、[2.3.1-r2 计划][r2-plan]及[其 Release][r2-release]保留为历史证据。
+更早的 [r1 适配计划][current-plan]和[热修复计划][provider-hotfix-plan]同样不代表本轮结果。
 
 ### 推理档位与原生 Tower
 
@@ -62,11 +64,11 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.4.1-r1'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.4.1-r2'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.4.1-r1
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.4.1-r2
 }
 ```
 
@@ -75,14 +77,14 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.4.1-r1'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.4.1-r2'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.4.1-r1
+    sh -c "$script" install.sh --revision "$sha" --version 2.4.1-r2
 )
 ```
 
@@ -90,7 +92,7 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 按需补齐 Node/npm 和 Windows Git Bash；坏、歧义或不支持候选明确拒绝，不当作 missing 后另装。
 新开终端运行 `kimi web --host`；完整选项与 shell 限制见[仓库快速上手][quickstart]。
 
-命令解析并校验真实 40 位 SHA，只下载同 SHA 入口，传同一 `--revision` 获取完整安装器，固定 `--version 2.4.1-r1`。
+命令解析并校验真实 40 位 SHA，只下载同 SHA 入口，传同一 `--revision` 获取完整安装器，固定 `--version 2.4.1-r2`。
 缺 tag／入口／资产即停，不回退 main 或旧版，不执行可变名称入口，不伪造将来 SHA；HTTPS 不等于签名验证。
 本地入口、coordinator 和 helpers 也必须同一提交；本地 `--help` 不联网、不写入、不要求 Node。
 已有其它已识别源码／prefix 需显式 `--switch-installation`；仅装包选 `--no-integrate`，日常升级用 `update`。
@@ -110,7 +112,7 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
   不自动登录、启动生产服务、读真实会话或发付费调用。历史 portable 与完整缺 Git coordinator 不是同次组合验收。
 
 macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收，不承诺全部平台。
-根安装器不在 launcher tgz；历史见 [r10 计划][r10-plan]／[r1 计划][current-plan]，本轮只以 [2.4.1 计划][compat241-plan]实际证据为准。
+根安装器不在 launcher tgz；历史见 [r10 计划][r10-plan]／[r1 计划][current-plan]，本轮只以 [发布计划][release241r2-plan]实际证据为准。
 
 ### 手动 npm 安装（已有 Node ≥ 22／npm）
 
@@ -118,7 +120,7 @@ macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收�
 不需要 Corepack／pnpm；正式发布后，首次安装且尚未接管时使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.4.1-r1/open-kimi-web-2.4.1-r1.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.4.1-r2/open-kimi-web-2.4.1-r2.tgz
 open-kimi-web integrate install
 ```
 
@@ -134,6 +136,21 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
 已有接管时，手动切换安装方式或目录还需要按下方“升级”说明更新入口。
+
+### 安装到手机桌面
+
+`2.4.1-r2` 包含 PWA 清单、安装图标和双端入口，发布状态以[正式 Release][current-release]为准。
+默认官方增强模式中，手机打开会话／工作区抽屉，点击使用统计后的“安装到桌面”；桌面侧栏同样提供入口。
+Android Chrome 等支持的浏览器可点击“安装”；没有弹出安装提示时按面板指引使用浏览器菜单。
+iPhone／iPad 在 Safari 中打开，使用分享 → 添加到主屏幕；若系统显示“作为 Web App 打开”，保持开启。
+独立窗口不再显示安装入口；不同浏览器可能只支持快捷方式，不能保证所有手机均支持原生安装提示。
+
+手机需要信任该站点的 HTTPS 证书；局域网 HTTP 或仅跳过自签证书警告不能保证安装成功。
+可使用自己管理的可信 HTTPS／证书，项目不会自动修改系统信任或网络设置。
+安装后仍需连通 Kimi 服务，不提供离线会话缓存；新窗口未共享官方凭据或凭据过期时，按原生登录框连接。
+不要把 token 加入 manifest 或启动地址。自定义 `--web-dir` 保持原样，不注入本功能。
+升级后需自行重启 launcher 并刷新浏览器，已运行旧进程不会自动更新。
+实体手机和系统安装未验收；已有浏览器与模拟检查见[PWA 计划][pwa-plan]，不当作实体设备结果。
 
 ### 手机子代理模型与英文界面（r10）
 
@@ -160,6 +177,7 @@ Auto 合法提交 `defaultEffort: ''`；已配置模型仍不能通过 API 清�
 ## 统一导航与会话搜索
 
 桌面和手机左上操作顺序统一为：新建会话、新建工作空间、定时任务、搜索、使用统计。
+本版“安装到桌面”排在使用统计后，独立窗口隐藏该入口。
 两端搜索使用官方 `/api/v1/search` 索引与分页，可选内容、匹配方式和排序，点击结果打开所属会话。
 双端工作空间弹层直接接收运行端已有目录的绝对路径，支持粘贴带成对外层引号的路径，调用正式接口。
 不切离当前会话或丢失草稿，不创建文件夹、不自动授信；不是在手机或浏览器设备上选择本地目录。
@@ -171,7 +189,7 @@ WRITE 不扩展，未知及未列出的相邻版本拒绝。`2.4.1` cron／debug
 历史 `2.3.1` 实测 debug 写入可绕过会话锁和 stale gate，且可能延迟落盘，缺少归属／新鲜度／持久化回执兼顾的原子入口。
 transport／route 双 gate 在 debug mutation 前拒绝只读版本写入，UI 中英提示只读、隐藏恢复／新建、禁用删除。
 历史 `2.3.1` 验收确认创建／删除 409、无 mutation、冷会话与 wire 不变，见 [r1 计划][current-plan]；
-本轮精确 `2.4.1` 的实际结果见 [2.4.1 计划][compat241-plan]，不借旧记录写通过。用户仍可主动打开原会话。
+本轮精确 `2.4.1` 的实际结果见 [发布计划][release241r2-plan]，不借旧记录写通过。用户仍可主动打开原会话。
 该模式不兼容同实例官方 Remote Control；外部 `serve --target` 不开放管理能力，不自动修改安装或重启生产。
 普通和编码 debug 路径均阻断；opt-in 另封闭 RC 路径族，逐次检查原版鉴权和 RC 状态，失效时退出自有实例。
 只读列表不恢复冷会话；旧版“恢复并管理”须确认会启动原任务，关闭浏览器不等于停止任务。
@@ -183,12 +201,36 @@ Tower 每任务模型不是 cron 独立模型。历史双版本公开链路不�
 Hyper-V／vEthernet 不再因名称从网络访问链接和 TLS SAN 中排除；internal、回环和 IPv6 link-local 仍过滤。
 只更改软件地址枚举，不修改网卡、桥接、路由或生产服务。
 
+## 慢加载诊断
+
+`2.4.1-r2` 包含以下脱敏日志功能，发布状态以[正式 Release][current-release]为准。
+在原启动命令追加 `--debug`：已接管入口用 `kimi web --host --debug`，
+独立代理用 `open-kimi-web serve --lan --debug`，保留原 target、home 和其它选项。
+保留 `--debug-log` 别名；也可设 `OPEN_KIMI_WEB_DEBUG_LOG=1`，只有精确 `1` 启用，移除 flag 并取消环境变量后关闭。
+需自行停止旧进程后重新启动，不会热启用或自动重启，也不打开官方 `--debug-endpoints`。
+
+日志位于 `${OPEN_KIMI_WEB_HOME:-~/.open-kimi-web}/logs/debug-*.jsonl`，终端提示本次文件名。
+每个文件 5 MiB，单次运行最多两份轮转备份；旧运行日志不会自动清除。队列有界，丢弃记录用 `log_dropped` 报告。
+只保存白名单时间、状态、大小、分页和随机盐匿名标记，不保存正文、凭据、原始 URL／IP／会话 ID／路径或原始错误。
+不要用终端完整输出代替日志，因为启动链接含 token。日志仍含访问时间与流量统计，分享前自行检查。
+
+`http_upstream.upstreamMs` 是收到上游响应头的等待时间，`firstByteMs` 是首个正文块进入代理计数流的时间；
+`http_end` 的 `rawBytes`／`wireBytes` 是输入／输出正文体积，不含 HTTP/TLS/TCP 开销，也不是远端 ACK。
+已有 gzip 不解压，`rawBytes` 此时也是编码后的字节；`measured=false` 表示该直接响应没有正文计数，不能按零流量理解。
+`pagingApplied` 区分最近页优化命中；`ws_first_frame` 是首服务端消息，`ws_progress` 每五秒聚合，不解析消息内容。
+请求开始即记录，慢请求不会等结束才出现。完成只表示服务端交付，不测浏览器 DOM 解析／渲染；完整边界见[诊断计划][debug-plan]。
+
 ## r9 流式 gzip 与验证边界
 
 `src/responseCompression.mjs` 仅使用 Node 内置 zlib／stream，不增加运行时依赖。
 按 Accept-Encoding 为可压缩 MIME 协商 gzip；已知长度至少 1024 bytes 或长度未知的流可压缩。
 使用 level 1、`Z_SYNC_FLUSH` 与 `pipeline`，保持背压，错误、取消和断线时清理上游与压缩器。
-不为压缩收集完整正文、不缓存会话内容；不改变正文、分页、鉴权、WS、工具展开默认及显式偏好、observer 或主题。
+不为压缩收集完整正文、不缓存会话内容；r9 历史改动未改变正文、分页、鉴权、WS、工具偏好、observer 或主题。
+`2.4.1-r2` 的最近页优化仅对增强 UI 精确官方 `2.3.1`／`2.4.1` 生效：main 无 cursor 的最近页先取 1 轮。
+旧页继续官方分页，不删改输出或实体；顶部原生“加载更早消息”仍可用，短首屏不保证自动预取。
+自定义 UI、其它版本不改请求。首次无偏好时默认折叠工具活动，已有展开／折叠选择不迁移；旧用户可在官方设置开启折叠。
+单轮过大、全量关联实体、后端恢复和解析仍可能慢，不保证巨大单轮秒开。
+本轮证据见[低带宽计划][low-bandwidth-plan]，发布状态以[正式 Release][current-release]为准；下方 r9 验收仅为历史。
 合并 Vary，压缩后删除原 Content-Length／digest 等编码相关头，并弱化合法强 ETag。
 identity 优先、gzip q=0、已编码、HEAD、无正文状态、Range／206、SSE 与 no-transform 不转码。
 
@@ -328,7 +370,7 @@ fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍�
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后仍需自行结束旧进程并重启，
 再刷新或重新打开页面，本轮不会自动重启生产。`--web-dir` 不注入展示层及主题功能。
-当前适配目标为官方 UI `2.4.1`；本轮运行、界面、门禁与发布证据见 [2.4.1 计划][compat241-plan]。
+当前适配目标为官方 UI `2.4.1`；本轮运行、界面、门禁与发布证据见 [发布计划][release241r2-plan]。
 [r1 适配][current-plan]与 [r2 默认／发布][r2-plan]保留为历史，不视为新版验收。
 r9 完整官方 app 源码实测使用虚构 API，其交付包浏览器与线上记录保留在[历史计划][lan-plan]，不充作新版验收。
 
@@ -347,13 +389,16 @@ open-kimi-web integrate uninstall   # 撤销 wrapper 与 PATH 接管
 （POSIX 写 shell rc 标记块；Windows 写 User PATH，System PATH 中更早的官方
 `kimi` 可能遮蔽它，需按警告调整顺序）。同一目录还会放一个
 `open-kimi-web` 命令本体，`status` / `repair` / `uninstall` 不再需要绝对路径。
-之后 `kimi web` 会把官方 server 起在回环、前面架上本 launcher；其它所有
-`kimi` 调用——包括 `web rotate-token` 和危险参数——都逐字透传给官方二进制
-（其绝对路径已固化在 wrapper 里）。
+之后 `kimi web` 会把官方 server 起在回环、前面架上本 launcher。
+wrapper 只在首参数是 `web` 时解析和校验 OKW 选项；非 web 调用（包括 `kimi --debug` 和直接输入提示词）原样交给官方。
+非 web 调用不换 `KIMI_CODE_HOME`，不改变工作目录、参数或退出码；`web rotate-token` 等官方子命令仍交给官方处理。
+官方二进制的绝对路径已记录在 wrapper 中；默认安装会写入上述命令 PATH，发现官方安装的阶段不会为搜索而改 PATH。
+`--no-integrate` 不建立或修改这些入口，需使用安装输出的绝对路径命令。
 
 接管可逆且不碰官方文件：`integrate uninstall` 只删带标记的 wrapper、精确的 PATH/rc
 条目和状态文件；不卸载专用 npm prefix 或私有 runtime。Windows 一键安装器加入的私有 Node User PATH 项
 在 r9 撤销接管后仍保留，无需时按安装输出的路径手动移除。
+撤销只移除 OKW 入口，不替官方补 PATH；原来已在 PATH 的 `kimi` 继续可用，原来需绝对路径的仍需绝对路径。
 已知限制：用绝对路径调官方二进制会绕过 wrapper；已打开的 shell 可能要 `hash -r` 或开新终端刷新命令缓存。
 r9 status 按首个已有 rc 诊断，多 rc 的 zsh 场景可能错误警告；安装器独立验证实际 shell 的 rc／wrapper，
 应核对新 shell 的实际命令，不盲目 repair。bash 在 Release／npm 前检查 `.bash_profile`，仅缺失时选 `.bash_login`。
@@ -372,11 +417,11 @@ open-kimi-web update           # 更新同一安装，不自动重启
 open-kimi-web update --help
 ```
 
-**2.3.1-r2 → 2.4.1-r1：** 正式发布后，用 `update --check` 核对实际安装与目标 `2.4.1-r1`，再运行 `update`。
+**2.4.1-r1 → 2.4.1-r2：** 正式发布后，用 `update --check` 核对实际安装与目标 `2.4.1-r2`，再运行 `update`。
 一键／npm 安装无需同版本重装、重跑安装器或追加 `--switch-installation`；源码仍仅允许跟踪 origin/main 的干净 main 快进。
 完成后自行停止旧 launcher／受管后端，重新运行 `kimi web --host` 并刷新；独立 target 须自行重启实际 backend。
-不改已有显式模型配置或 r2 默认；**不会升级用户已装官方 Kimi**，官方功能取决于实际 backend 版本。
-Tower 开关变更还须遵守启动环境／实际后端重启要求，不自动开启；准确发布、latest/update 和线上结果见 [2.4.1 计划][compat241-plan]。
+不改已有显式模型配置或 `2.3.1-r2` 默认；**不会升级用户已装官方 Kimi**，官方功能取决于实际 backend 版本。
+Tower 开关变更仍须按启动环境重启实际后端，不自动开启；本轮发布、latest/update 和线上结果见[发布计划][release241r2-plan]。
 
 **历史：2026-10-26 同版本 r1 热修复。** 当时更新器跳过同版本，需要原 home／选项重跑安装器，
 或用原 npm／prefix 安装新下载的本地 r1 tgz；不是升级到新版本的要求。[热修复][provider-hotfix-plan]及 [r2 记录][r2-plan]保留为历史。
@@ -435,7 +480,7 @@ node packages/launcher/bin/open-kimi-web.mjs integrate repair
 
 launcher 直调入口最低 Node ≥ 22；官方 npm 的共享 runtime 需 ≥ 22.19.0，可由一键入口准备私有运行时。
 wrapper 不依赖 shell 中的裸 `node`；Linux 编译工具仅 legacy rebuild 需要，Windows Git Bash 仍必需。
-本轮交付及未测平台边界见 [2.4.1 计划][compat241-plan]，不以旧记录承诺全部平台或实体手机已验收。
+本轮交付及未测平台边界见 [发布计划][release241r2-plan]，不以旧记录承诺全部平台或实体手机已验收。
 运行时 npm 依赖：`ws` 与 `selfsigned`（均 MIT）；首次下载官方 UI 还需要 PATH 中可用的系统 `curl` 和 `tar`。
 仅源码开发路线先在仓库根执行 `corepack pnpm install --frozen-lockfile`，
 然后直接运行 `node packages/launcher/bin/open-kimi-web.mjs serve`，无需构建本地前端。
@@ -458,8 +503,14 @@ MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 M
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [compat241-plan]:
   https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r1
+[release241r2-plan]:
+  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md
+[low-bandwidth-plan]:
+  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-low-bandwidth-v2-plan.md
+[pwa-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/pwa-install-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md
 [quickstart]: https://github.com/WilliamLambertCN/open-kimi-web#快速上手
+[debug-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-debug-log-v1-plan.md

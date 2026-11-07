@@ -16,10 +16,13 @@ or a vendored transcript implementation.
   `protocolBaseline` and the 0.41.0 contracts remain historical; static inspection is not live acceptance.
   Exact npm `2.4.1` backend checks are recorded in the compatibility plan and `liveTestedServerVersions`.
   This is targeted runtime evidence, not a complete protocol recapture or a source-checkout live-test claim.
-- Open Kimi Web target: `2.4.1-r1`. Follow [the Release page][current-release] and
-  [the 2.4.1 compatibility plan][compat241-plan] for actual backend, browser, CI, package and publication results.
-  Unrecorded or pending checks are not passes. [The r2 plan][r2-plan], [r2 Release][r2-release],
-  [r1 workspace/release plan][current-plan] and r1 hotfix evidence remain historical, not current acceptance.
+- Open Kimi Web target: `2.4.1-r2`. Follow [the Release page][current-release] and
+  [the 2.4.1-r2 release plan][release241r2-plan] for actual checks, CI, package and publication results.
+  This version includes the recent-page and tool-folding changes, sanitized debug logs, PWA installation support,
+  non-web CLI delegation fix and shorter homepage. Publication status is determined by the formal Release.
+  Unrecorded or pending checks are not passes. [The 2.4.1-r1 compatibility plan][compat241-plan],
+  [the 2.3.1-r2 plan][r2-plan], [r2 Release][r2-release], [r1 workspace/release plan][current-plan]
+  and r1 hotfix evidence remain historical, not current acceptance.
   Existing workspace, native trust, session ownership, model confirmation, mobile model, locale, gzip,
   statistics and safe self-update boundaries remain unchanged. No user CLI upgrade or production restart is automatic.
 - Machine-readable inspected versions, exact integrity values and historical contracts: `upstream.json`.
@@ -86,8 +89,9 @@ If a backend starts with Tower off, a live config change to true can expose the 
 those tools are assembled at startup. The user must restart the actual backend with the intended environment/home,
 not only refresh a page or restart an independent proxy. Follow [the official guide][official-tower]; after choosing to
 accept the experimental behavior, the user can set `KIMI_CODE_EXPERIMENTAL_TOWER=true` in the backend's launch environment.
-README includes shell examples. The launcher neither forces the flag nor automatically restarts production;
-entry visibility and per-session activation remain distinct, and no paid prompt is needed to check visibility.
+Shell examples are in [the launcher README](packages/launcher/README.md#推理档位与原生-tower).
+The launcher neither forces the flag nor automatically restarts production; entry visibility and per-session activation
+remain distinct, and no paid prompt is needed to check visibility.
 
 ## Historical 2.3.1 changes and adaptation
 
@@ -165,6 +169,7 @@ These checks do not establish physical-phone, all-platform installation or unrea
 Navigation, mobile official-index search and Hyper-V fixes shipped in [the historical r1 scope][current-plan].
 Earlier implementation evidence remains in [the scheduled-task/navigation plan](docs/plans/scheduled-tasks-management-v1-plan.md).
 Desktop and mobile use the same upper-left action order: new session, new workspace, scheduled tasks, search and usage.
+In `2.4.1-r2`, Install app follows usage on both devices and is hidden in an installed standalone window.
 Both search controls call the official paginated `/api/v1/search` index.
 Results open the owning session, not a claimed turn anchor.
 Both workspace controls use the same existing-directory form and official API without leaving the current session or draft.
@@ -187,8 +192,9 @@ The UI shows English/Chinese read-only reasons, hides restore/new and disables r
 read-only browsing never wakes a cold session.
 Historical exact-2.3.1 tests and real createLauncher QA passed: read=true/write=false, create/remove 409 read-only-version
 with no mutation or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404
-without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan];
-current exact-2.4.1 backend/UI verification, CI and publication must be established in [the 2.4.1 plan][compat241-plan].
+without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan].
+The exact-2.4.1 baseline checks remain in [the compatibility plan][compat241-plan];
+current CI and publication belong to [the 2.4.1-r2 release plan][release241r2-plan].
 Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
 Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
 protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
@@ -214,17 +220,18 @@ internal, loopback, IPv6 link-local and other virtual-adapter filters. This does
 
 ## Compatibility-first installation
 
-The `2.4.1-r1` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
+The `2.4.1-r2` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
 installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
 launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
 Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
 Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
 [the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
-Current real-entry, runtime, CI and asset results belong only to [the 2.4.1 plan][compat241-plan].
+The [2.4.1-r1 compatibility plan][compat241-plan] retains that release's evidence;
+current checks, CI and assets belong to [the 2.4.1-r2 release plan][release241r2-plan].
 
 The README starts with two online commands for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.4.1-r1` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.4.1-r1`.
+They resolve `v2.4.1-r2` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.4.1-r2`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -279,11 +286,14 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.4.1-r1 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.4.1-r2 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
-`--no-integrate` installs the package without establishing, changing or removing takeover.
+Default installation writes the command entry to user PATH or the supported shell rc; discovery does not change PATH to search.
+Only a first argument of `web` enters OKW option parsing and validation. Non-web calls, including `kimi --debug` and prompts,
+pass unchanged to official Kimi without replacing `KIMI_CODE_HOME` or changing cwd, argv or the exit code.
+`--no-integrate` installs the package without establishing, changing or removing takeover; use its printed absolute entry.
 `--switch-installation` opts into switching a recognized source/prefix, without deleting it; unknown/partial
 integration and version downgrade still reject. Existing users should normally use the launcher's `update`.
 Both thin entries handle `--help`, including a valid optional revision, before bootstrap: no Node, network or install writes.
@@ -299,11 +309,14 @@ This rejection never reports successful takeover. Native WSL bash `--login -ic` 
 Unsupported shell persistence or System PATH shadowing must be reported without claiming integration succeeded.
 An installed wrapper may use its recorded private Node even if the shell's `node` command is absent or outdated.
 On Windows, the installer's private Node User PATH entry remains after r9 integrate uninstall; remove it manually when unused.
-Uninstalling takeover does not remove the private runtime or dedicated npm prefix, official Kimi or other installations.
+Uninstalling takeover removes only OKW command entries and state, not the private runtime, dedicated npm prefix or official Kimi.
+Official Kimi that was already on PATH remains available; one that previously needed an absolute path still needs that path.
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-Regular upgrades do not require rerunning the installer or switching locations.
+After formal `2.4.1-r2` publication, existing `2.4.1-r1` users use normal `update --check` and `update`.
+No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
+tracking origin/main and a fast-forward. Restart and refresh remain manual; old tags and assets are not moved or replaced.
 
 Previous acceptance covers the old scope only: real Node 22.23.3 download/digest checks and r9 package-only installation on
 native Windows x64 PowerShell 5.1 and WSL Ubuntu 22.04 x64 glibc, plus Linux bash/zsh takeover, new shells, repeat and uninstall.
@@ -368,6 +381,32 @@ requests. The bare-official comparison confirms no visual-anchor regression, wit
 strict absolute-scrollTop failures remain unchanged, not an all-pass report. Details are in the mobile plan;
 final standard counts/coverage/pack are in the install plan.
 Neither complete English/all-platform acceptance nor publication is inferred from these results.
+
+## Recent-page, debug and PWA changes in 2.4.1-r2
+
+The release includes the following changes; follow [the formal Release][current-release] for publication status
+and [the release plan][release241r2-plan] for current checks, CI and package results. No pending check is a pass.
+
+- The enhanced exact 2.3.1/2.4.1 UI requests one turn for the main recent page without a cursor instead of ten.
+  Response bodies, associated entities, history pages and WS semantics stay unchanged. Custom UIs and other versions
+  keep their requests. Native Load earlier messages remains available; short pages do not guarantee automatic prefetch.
+  Tool activity defaults to folded only when no preference exists; existing values are not migrated.
+  Backend restore, associated entities, parsing and a huge single turn can still be slow; instant loading is not promised.
+  Isolated low-bandwidth evidence and its limits remain in [the investigation plan][low-bandwidth-plan].
+- `kimi web --host --debug` and `open-kimi-web serve --lan --debug` enable sanitized OKW logs, with `--debug-log`
+  retained as an alias. Only exact `OPEN_KIMI_WEB_DEBUG_LOG=1` enables the environment option.
+  These Web options do not enable official debug endpoints. Logs omit content, credentials, raw IDs, paths, IPs and errors.
+  They record server-side transfer phases, not browser DOM parsing, rendering or device display time.
+  Logs still contain timing and traffic statistics; inspect them before sharing. See [the diagnostic plan][debug-plan].
+- The official enhanced mode includes a PWA manifest, install icons and desktop/mobile Install app entries.
+  Installation needs trusted HTTPS and browser support; bypassing a certificate warning is not a trust guarantee.
+  No service worker, offline conversation cache or credential-bearing install metadata is added.
+  The service must remain reachable, and native login is still required when credentials are absent or expired.
+  Custom `--web-dir` stays unchanged. Physical-phone and operating-system installation remain unverified;
+  browser checks and simulated cases are recorded in [the PWA plan][pwa-plan].
+
+Updating files does not replace a running launcher. Restart and page refresh remain manual; production is not restarted
+and the user's official CLI is not upgraded. The root README is shorter, with detailed commands in the launcher README.
 
 ## r9 streaming gzip and remaining boundaries
 
@@ -605,7 +644,11 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r2-plan]: docs/plans/provider-defaults-r2-release-v1-plan.md
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [compat241-plan]: docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r1
+[release241r2-plan]: docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md
+[low-bandwidth-plan]: docs/plans/large-session-low-bandwidth-v2-plan.md
+[debug-plan]: docs/plans/large-session-debug-log-v1-plan.md
+[pwa-plan]: docs/plans/pwa-install-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
