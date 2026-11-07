@@ -1,7 +1,7 @@
 // __wrap routing: decide whether an intercepted `kimi …` invocation is
 // delegated untouched to the real binary or supervised as an OpenWeb
-// frontend. Unsupported scheduled-task invocations fail closed; ordinary
-// invocations preserve the official delegation behavior.
+// frontend. Explicit web diagnostic and scheduled-task invocations fail closed;
+// non-web invocations preserve the official delegation behavior.
 
 const DELEGATE_FLAGS = new Set([
   '--rc',
@@ -17,12 +17,14 @@ function unsupported(args) {
   return delegate(`passing through to official kimi (unsupported arguments: ${args.join(' ')})`);
 }
 
+const BOOLEAN_OPTIONS = { '--no-open': 'noOpen', '--debug': 'debugLog', '--debug-log': 'debugLog' };
+
 function parseWebArgs(rest) {
   const options = { port: undefined, host: undefined, hostBare: false, noOpen: false };
   for (let i = 0; i < rest.length; i += 1) {
     const arg = rest[i];
-    if (arg === '--no-open') {
-      options.noOpen = true;
+    if (Object.hasOwn(BOOLEAN_OPTIONS, arg)) {
+      options[BOOLEAN_OPTIONS[arg]] = true;
     } else if (arg === '--port') {
       const value = rest[i + 1];
       if (value === undefined || !/^\d+$/.test(value)) return unsupported(rest.slice(i));
@@ -45,16 +47,26 @@ function parseWebArgs(rest) {
   return { action: 'supervise', options };
 }
 
+function routeDebugArgv(argv) {
+  const parsed = parseWebArgs(argv.slice(1).filter((arg) => arg !== '--scheduled-tasks'));
+  if (parsed.action !== 'supervise') {
+    return { action: 'error', reason: '--debug requires supported kimi web options and accepts no value' };
+  }
+  if (argv.includes('--scheduled-tasks')) parsed.options.scheduledTasks = true;
+  return parsed;
+}
+
 export function routeWrapArgv(argv) {
+  if (argv[0] !== 'web') return { action: 'delegate', reason: null };
+  if (argv.some((arg) => /^--debug(?:-log)?(?:=|$)/.test(arg))) return routeDebugArgv(argv);
   const scheduled = argv.some((arg) => arg === '--scheduled-tasks' || arg.startsWith('--scheduled-tasks='));
   if (scheduled) {
     const parsed = parseWebArgs(argv.slice(1).filter((arg) => arg !== '--scheduled-tasks'));
-    if (argv[0] !== 'web' || parsed.action !== 'supervise') {
+    if (parsed.action !== 'supervise') {
       return { action: 'error', reason: '--scheduled-tasks requires supported kimi web options without RC or auth overrides' };
     }
     return { action: 'supervise', options: { ...parsed.options, scheduledTasks: true } };
   }
-  if (argv[0] !== 'web') return { action: 'delegate', reason: null };
   const rest = argv.slice(1);
   if (rest[0] === 'rotate-token') {
     return delegate('passing through to official kimi (web rotate-token manages server auth)');

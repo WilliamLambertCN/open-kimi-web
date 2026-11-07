@@ -126,6 +126,14 @@ describe('supervisor web options', () => {
     expect(frontendOptions({ scheduledTasks: true }, 1234, {}).scheduledTasks).toBe(true);
     expect(frontendOptions({}, 1234, { OPEN_KIMI_SCHEDULED_TASKS: '1' }).scheduledTasks).toBe(false);
   });
+
+  it('preserves the debug flag and original environment for frontend home resolution', () => {
+    const env = { OPEN_KIMI_WEB_HOME: '/fixture/okw-home', OPEN_KIMI_WEB_DEBUG_LOG: '1' };
+    expect(frontendOptions({ debugLog: true }, 1234, env)).toMatchObject({ debugLog: true, env });
+    expect(frontendOptions({}, 1234, env)).toMatchObject({ debugLog: false, env });
+    expect(frontendOptions({}, 1234, env).env).toBe(env);
+    expect(frontendOptions({}, 1234).env).toBe(process.env);
+  });
 });
 
 describe('scheduled-tasks startup environment', () => {
@@ -185,6 +193,23 @@ function startupFixture() {
 }
 
 describe('supervisor controlled scheduled-task startup', () => {
+  it.each([
+    [true, undefined], [false, '1'], [false, '0'], [false, ''],
+  ])('keeps diagnostic flag=%s and env=%s out of official backend arguments', async (debugLog, envValue) => {
+    const fixture = startupFixture();
+    fixture.env.OPEN_KIMI_WEB_DEBUG_LOG = envValue;
+    fixture.env.OPEN_KIMI_WEB_HOME = '/fixture/okw-home';
+    const close = vi.fn(async () => {});
+    startFrontend.mockResolvedValue(mockedFrontend(close));
+    await expect(superviseWeb({ realKimi: '/fixture/official-kimi',
+      web: { noOpen: true, debugLog }, env: fixture.env, deps: fixture.deps,
+    })).resolves.toBe(0);
+    expect(fixture.deps.spawn.mock.calls[0][1]).toEqual(managedBackendWebArgs);
+    expect(startFrontend).toHaveBeenLastCalledWith(expect.objectContaining({ debugLog, env: fixture.env }));
+    expect(fixture.deps.assertCronBackend).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledOnce();
+  });
+
   it.each([false, true])('sets fixed backend argv and frontend capability only with opt-in=%s', async (scheduledTasks) => {
     const fixture = startupFixture();
     const close = vi.fn(async () => {});

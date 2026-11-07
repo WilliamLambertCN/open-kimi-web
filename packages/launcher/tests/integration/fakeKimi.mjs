@@ -3,7 +3,7 @@
 //   --version            prints FAKE_KIMI_VERSION (default "kimi 9.9.9-fake")
 //   web --port N …       accepts the supervisor shape, then uses an isolated
 //                        ephemeral test port for its fake API server
-//   anything else        records {argv, cwd, marker} to FAKE_RECORD and exits
+//   anything else        records {argv, cwd, marker, kimiHome} to FAKE_RECORD and exits
 //                        with FAKE_EXIT_CODE (default 0)
 // Env knobs: FAKE_KIMI_DIE_MS (exit before serving), FAKE_KIMI_DIE_CODE,
 // FAKE_FORCE_DELEGATE (record even web --port shapes instead of serving).
@@ -26,7 +26,8 @@ function record(extra = {}) {
   }
   writeFileSync(
     env.FAKE_RECORD,
-    JSON.stringify({ argv: args, cwd: process.cwd(), marker: env.FAKE_MARKER ?? null, ...prior, ...extra }),
+    JSON.stringify({ argv: args, cwd: process.cwd(), marker: env.FAKE_MARKER ?? null,
+      kimiHome: env.KIMI_CODE_HOME ?? null, ...prior, ...extra }),
   );
 }
 

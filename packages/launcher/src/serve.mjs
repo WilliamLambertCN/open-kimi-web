@@ -11,6 +11,8 @@ import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
 import { serveSessionSize } from './sessionSize.mjs';
 import { serveStatic } from './staticFiles.mjs';
+import { supportsTranscriptPaging, transcriptProxyPath } from './transcriptPaging.mjs';
+import { createTransportDiagnostics } from './transportDiagnostics.mjs';
 import { createUsageService, serveUsage } from './usage/routes.mjs';
 import { createWsProxy } from './wsProxy.mjs';
 
@@ -46,7 +48,7 @@ async function route(req, res, context) {
   if (await serveOfficialExtension(req, res, context)) return;
   const pathname = url.split('?')[0];
   if (pathname === '/api' || pathname.startsWith('/api/')) {
-    proxyRequest(req, res, context.target);
+    proxyRequest(req, res, context.target, undefined, transcriptProxyPath(req, context));
     return;
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -85,6 +87,55 @@ function cronBackendOptions(enabled, home, onUnsafeBackend) {
   return { home: enabled ? home : null, onUnsafeBackend: enabled ? onUnsafeBackend : undefined };
 }
 
+function requestListener(context, diagnostics) {
+  return (req, res) => {
+    const trace = diagnostics?.http(req, res, transcriptProxyPath(req, context));
+    route(req, res, context).catch((error) => {
+      trace?.error(error);
+      if (!res.headersSent) res.writeHead(500);
+      res.end();
+    });
+  };
+}
+
+function closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs }) {
+  let closing;
+  async function close() {
+    try {
+      closeConnections();
+      for (const client of wss.clients) client.terminate();
+      await closeServer(server, closeGraceMs);
+      await closeCronService(cronService);
+    } finally {
+      diagnostics?.stop();
+      debugLog?.emit('launcher_stop');
+      await debugLog?.close();
+    }
+  }
+  return () => { closing ??= close(); return closing; };
+}
+
+function createServer(tls, listener, diagnostics) {
+  const server = tls
+    ? createHttpsServer({ key: tls.key, cert: tls.cert, minVersion: 'TLSv1.2' }, listener)
+    : createHttpServer(listener);
+  diagnostics?.attach(server);
+  return server;
+}
+
+async function listen(server, port, host, wss, cronService) {
+  try {
+    await new Promise((resolveListen, reject) => {
+      server.once('error', reject);
+      server.listen(port, host, resolveListen);
+    });
+  } catch (error) {
+    wss.close();
+    await closeCronService(cronService);
+    throw error;
+  }
+}
+
 export async function createLauncher({
   target,
   publicDir,
@@ -100,25 +151,19 @@ export async function createLauncher({
   usageHome = null,
   usageStorageDir = null,
   usageFetch = fetch,
+  debugLog,
 }) {
   assertCronPresentation(scheduledTasks, officialPresentation);
   const cronService = createCronRouteService({
     target, enabled: scheduledTasks, fetchImpl: usageFetch,
     ...cronBackendOptions(scheduledTasks, usageHome, onUnsafeBackend),
   });
-  const { wss, handleUpgrade, closeConnections } = createWsProxy();
+  const diagnostics = createTransportDiagnostics(debugLog);
+  const { wss, handleUpgrade, closeConnections } = createWsProxy(diagnostics);
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
   const context = { target, publicDir, officialPresentation, officialWebVersion, scheduledTasks, usageHome,
     usageService, cronService, fetchImpl: usageFetch };
-  const listener = (req, res) => {
-    route(req, res, context).catch(() => {
-      if (!res.headersSent) res.writeHead(500);
-      res.end();
-    });
-  };
-  const server = tls
-    ? createHttpsServer({ key: tls.key, cert: tls.cert, minVersion: 'TLSv1.2' }, listener)
-    : createHttpServer(listener);
+  const server = createServer(tls, requestListener(context, diagnostics), diagnostics);
   server.on('upgrade', (req, socket, head) => {
     // req.url carries the query string (the official web appends
     // `?client_id=...`); match on the pathname only.
@@ -128,28 +173,19 @@ export async function createLauncher({
       socket.destroy();
     }
   });
-  await new Promise((resolveListen, reject) => {
-    server.once('error', reject);
-    server.listen(port, host, resolveListen);
-  });
+  await listen(server, port, host, wss, cronService);
   const boundPort = server.address().port;
   const protocol = tls ? 'https' : 'http';
   const accessUrls = createAccessUrls(host, boundPort, interfaces, protocol);
-  const url = accessUrls[0].url;
-
-  async function close() {
-    closeConnections();
-    for (const client of wss.clients) client.terminate();
-    await closeServer(server, closeGraceMs);
-    await closeCronService(cronService);
-  }
-
+  debugLog?.emit('launcher_start', {
+    enhanced: officialPresentation, webVersion: officialWebVersion, pagingSupported: supportsTranscriptPaging(context),
+  });
   return {
     server,
     wss,
-    url,
+    url: accessUrls[0].url,
     accessUrls,
     tls: tlsSummary(tls),
-    close,
+    close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs }),
   };
 }
