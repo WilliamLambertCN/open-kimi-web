@@ -1,0 +1,11 @@
+.okw-pwa-install-panel { width: min(520px, 100%); }
+.okw-pwa-install-panel p { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.okw-pwa-install-panel header { align-items: flex-start; }
+.okw-pwa-install-panel h2 { min-width: 0; overflow-wrap: anywhere; }
+.okw-pwa-install-panel header button { flex: none; }
+.okw-pwa-install-status,
+.okw-pwa-install-security { color: var(--color-text-muted, CanvasText); font-size: 13px; }
+.okw-pwa-install-actions { display: flex; justify-content: flex-end; }
+.okw-pwa-install-actions[hidden],
+.okw-pwa-install-panel button[hidden] { display: none; }
+.okw-pwa-install-open { overflow: hidden; }

@@ -3,6 +3,8 @@
 // creation and the Local/Network link output.
 import { networkInterfaces } from 'node:os';
 import { createServer as createTcpServer } from 'node:net';
+import { basename } from 'node:path';
+import { createDebugLog, debugLogEnabled } from './debugLog.mjs';
 import { launchLinkLines, launchLinkWarnings } from './launchLinks.mjs';
 import { resolveLaunchToken } from './launchToken.mjs';
 import { ensureOfficialBundle, officialCacheDir, resolveOfficialVersion } from './officialBundle.mjs';
@@ -173,6 +175,25 @@ function assertScheduledPresentation(enabled, opts) {
   if (enabled && !officialPresentation(opts)) throw new Error('--scheduled-tasks requires the enhanced official web UI');
 }
 
+async function createFrontendLauncher(opts, debugLog) {
+  try {
+    return await createLauncherWithRetry({ ...opts, debugLog });
+  } catch (error) {
+    await debugLog?.close().catch(() => undefined);
+    throw error;
+  }
+}
+
+function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
+  const log = opts.log ?? console.log;
+  const warn = opts.warn ?? console.error;
+  if (debugLog?.file) log(`debug log enabled: OKW home/logs/${basename(debugLog.file)}`);
+  log(`open-kimi-web ready (target: ${opts.target})`);
+  for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
+  for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);
+  for (const line of tls ? tlsStatusLines(tls) : []) log(line);
+}
+
 /**
  * Start the OpenWeb listener and print its access links.
  * opts mirrors the serve CLI options; log/warn are injectable for tests.
@@ -187,7 +208,11 @@ export async function startFrontend({ scheduledTasks = false, ...opts }) {
     resolveLaunchToken(opts),
   ]);
   const { publicDir, officialWebVersion } = await resolvePublicDir(opts, tokenResult.token);
-  const launcher = await createLauncherWithRetry({
+  const env = opts.env ?? process.env;
+  const debugLog = await createDebugLog({
+    enabled: debugLogEnabled(opts.debugLog, env), home: opts.home, env, warn: opts.warn ?? console.error,
+  });
+  const launcher = await createFrontendLauncher({
     target: opts.target,
     publicDir,
     officialWebVersion,
@@ -201,12 +226,7 @@ export async function startFrontend({ scheduledTasks = false, ...opts }) {
     warn: opts.warn,
     tls,
     interfaces,
-  });
-  const log = opts.log ?? console.log;
-  const warn = opts.warn ?? console.error;
-  log(`open-kimi-web ready (target: ${opts.target})`);
-  for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
-  for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);
-  for (const line of tls ? tlsStatusLines(tls) : []) log(line);
+  }, debugLog);
+  printFrontendStatus(opts, launcher, tokenResult, tls, debugLog);
   return { launcher, tls, tokenResult, publicDir };
 }

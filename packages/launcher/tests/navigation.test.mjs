@@ -106,6 +106,30 @@ describe('shared navigation hosts', () => {
     expect(query.mock.calls.filter(([selector]) => selector.includes('sidebar-actions') || selector.includes('sheet-body')))
       .toHaveLength(0); await settled(test.state);
   });
+});
+describe('install navigation entry', () => {
+  it('keeps install last across late registration, visibility changes and both host replacements', async () => {
+    const test = install(desktop + mobile); const nav = test.view.__okwNavigation;
+    const handler = vi.fn(); nav.setVisible('install', false); nav.register('install', handler);
+    const entries = [...test.doc.querySelectorAll('[data-okw-navigation-action="install"]')];
+    expect(entries.every((entry) => entry.hidden)).toBe(true);
+    nav.register('usage', vi.fn()); nav.register('cron', vi.fn()); await settled(test.state);
+    const order = (selector) => [...test.doc.querySelector(selector).children]
+      .map((node) => node.dataset.okwNavigationAction ?? node.className);
+    expect(order('.sidebar-actions')).toEqual(['btn-new-chat', 'workspace', 'cron', 'search', 'usage', 'install']);
+    expect(order('.actions')).toEqual(['newrow', 'workspace', 'cron', 'search', 'usage', 'install']);
+    nav.setVisible('install', true); entries[0].click(); expect(handler).toHaveBeenCalledOnce();
+    test.doc.querySelector('.side').outerHTML = desktop;
+    test.doc.querySelector('.sheet-panel').outerHTML = mobile;
+    const native = [...test.doc.querySelectorAll('.btn-new-chat, .search, .newrow')];
+    await settled(test.state);
+    expect([...test.doc.querySelectorAll('[data-okw-navigation-action="install"]')]).toEqual(entries);
+    expect([...test.doc.querySelectorAll('.btn-new-chat, .search, .newrow')]).toEqual(native);
+    expect(order('.sidebar-actions')).toEqual(['btn-new-chat', 'workspace', 'cron', 'search', 'usage', 'install']);
+    expect(order('.actions')).toEqual(['newrow', 'workspace', 'cron', 'search', 'usage', 'install']);
+    nav.setVisible('install', false); nav.refresh(); nav.refresh(); await settled(test.state);
+    expect(entries.every((entry) => entry.hidden)).toBe(true);
+  });
   it('uses shared usage entries and leaves no competing footer entry', async () => {
     const test = install(desktop + mobile); test.view.fetch = vi.fn(async () => new Response('{}'));
     test.view.Request = Request; test.view.Headers = Headers;

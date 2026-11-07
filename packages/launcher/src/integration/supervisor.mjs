@@ -177,7 +177,7 @@ export function assertScheduledTasksOptions(web, env, publicDir) {
   }
 }
 
-export function frontendOptions(web, instancePort, env) {
+export function frontendOptions(web, instancePort, env = process.env) {
   const host = web.hostBare ? '0.0.0.0' : web.host ?? '127.0.0.1';
   assertWebUiCompatibility(web, env);
   return {
@@ -196,6 +196,8 @@ export function frontendOptions(web, instancePort, env) {
     webDir: web.webDir ?? env.OPEN_KIMI_WEB_DIR ?? null,
     webVersion: web.webVersion ?? env.OPEN_KIMI_WEB_VERSION ?? null,
     scheduledTasks: web.scheduledTasks === true,
+    debugLog: web.debugLog === true,
+    env,
   };
 }
 

@@ -169,6 +169,11 @@ function verifyNavigationAssetOrder(indexText) {
     if (index) expect(indexText.indexOf(name)).toBeGreaterThan(indexText.indexOf(scripts[index - 1]));
   }
   expect(indexText.indexOf('navigation.js')).toBeLessThan(indexText.indexOf('usageBundle.js'));
+  expect(indexText.indexOf('pwaInstall.js')).toBeGreaterThan(indexText.indexOf('usageBundle.js'));
+  expect(indexText.indexOf('pwaInstallView.js')).toBeLessThan(indexText.indexOf('pwaInstall.js'));
+  expect(indexText.indexOf('pwaInstall.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+  expect(indexText).toContain('/__open-kimi-mobile/pwaInstall.css');
+  expect(indexText).toContain('rel="manifest" href="/__open-kimi-mobile/manifest.webmanifest"');
   expect(indexText).toContain('/__open-kimi-mobile/navigation.css');
   expect(indexText).not.toContain('/__open-kimi-mobile/schedules');
 }
@@ -227,6 +232,8 @@ async function verifyIndexRepresentation(url, response, text) {
 
 const PRESENTATION_ASSETS = [
   ...NAVIGATION_ASSETS,
+  'pwaInstallView.js', 'pwaInstall.js', 'pwaInstall.css', 'manifest.webmanifest',
+  'icons/app-192.png', 'icons/app-512.png', 'icons/apple-touch-180.png',
   'locale.js', 'usageLocale.js', 'providerLocale.js', 'effortOrder.js', 'presentation.css',
   'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
   'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
@@ -260,7 +267,7 @@ async function expectPresentationAssets(baseUrl) {
     }
     if (name === 'foldingDefaults.js') {
       expect(body).toContain("const activityRunFoldingKey = 'kimi-web.activity-run-folding'");
-      expect(body).toContain("localStorage.setItem(activityRunFoldingKey, '0')");
+      expect(body).toContain("localStorage.setItem(activityRunFoldingKey, '1')");
     }
     if (name === 'notificationPermission.js') {
       expect(body).toContain('nativeRequestPermission.call(NotificationApi)');
