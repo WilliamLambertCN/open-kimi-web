@@ -6,9 +6,11 @@
 
 ## [open-kimi-web v2.4.1-r3] - 2026-11-08
 
-继续兼容官方 Kimi Code `2.4.1`。本轮纳入已完成本地验收的会话菜单和局域网证书功能；
-发布状态以正式 Release 为准，CI、交付包和线上核验见
-[2.4.1-r3 发布计划](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md)，未记录或待执行的检查不视为通过。
+继续兼容官方 Kimi Code `2.4.1`。本轮发布会话菜单、手机置顶和局域网证书功能。
+[PR #39](https://github.com/WilliamLambertCN/open-kimi-web/pull/39) 及 main CI 通过，2744 UT／625 IT 通过，
+28／23 项平台条件跳过，覆盖率门槛不变。正式 tag 固定 e0ec0f92，包 159 文件／8,474,802 bytes。
+公开包、同 SHA 安装入口与旧 r2 更新发现已核验，旧 tag／资产不变；完整记录见
+[2.4.1-r3 发布计划](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md)。
 
 - 电脑会话行增加三个点，打开官方原生菜单，直接选择 Fork／分叉；原右键入口不变。
   手机三个点新增分叉、置顶与取消置顶，已置顶会话显示在列表顶部的“已置顶／Pinned”区。
