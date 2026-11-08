@@ -60,4 +60,33 @@
   SHA-256：`a89fc84254fa02c0711c9758f4cbc0bfa69f2ccaea55c80270bac3949b23e981`。
   包内无私钥、证书文件、日志、测试、缓存或调试映射；pnpm 正常移除打包脚本并保留空 scripts 对象。
   核对脚本最初漏计此空对象、文档扫描的转义表达式有误，纠正检查后通过，未改产品绕过。
-- 增改行长、diff 空白检查通过；新提交历史将在推送前确认，尚未完成的 CI 或线上核验不记为通过。
+- 增改行长、diff 空白检查通过；推送前已核对新增提交身份及 44 文件清单，未纳入原 .tmp/ 或 ignored cache。
+
+### CI 与线上发布
+
+- [PR #39][release-pr] 正常 squash 合入 main；[PR CI][pr-ci]、develop CI 及 [main CI][main-ci] 均通过。
+  标准 lint、typecheck、UT、IT、test:pack 全部成功，没有降低 70% 行／分支门槛或扩大跳过范围。
+  UT：118 文件、2744 项通过、28 项平台条件跳过；行覆盖率 93.37%，分支覆盖率 84.91%。
+  IT：30 文件通过、1 文件跳过，625 项通过、23 项平台条件跳过；行覆盖率 85.16%，分支覆盖率 72.95%。
+- [v2.4.1-r3][release] 于 `2026-11-08T07:48:03Z` 正式发布，为 latest，非草稿／预发布。
+  annotated tag object：`24c1291f704dfb0d5c664385832983250efff416`。
+  固定指向通过 CI 的 main commit：`e0ec0f9223322445320cde99eaa551e7a0076104`。
+- [正式 tgz][asset] 从上述 main 提交在隔离 worktree 用标准 pnpm pack 生成，159 文件／8,474,802 bytes。
+  SHA-256：`19ca7f1df4ac90bb673cec8d3ff8b0f575191e6aa80c4126c46ce158c08d537c`。
+  包内容与 main 一致；相对候选包有 30 文件仅换行不同，没有语义差异。候选包未上传。
+  公开下载包与本地正式包原字节相同，GitHub asset ID 723285038、size 及 digest 一致。
+- 真实旧 r2 包已按原公开 SHA-256 校验；用包内原版 `latestRelease()` 进行真实网络检查，
+  成功发现 r3 精确资产地址，版本比较为新版；没有运行更新来修改用户安装。
+- README tag commit API 返回上述 main SHA；同 SHA 的 install.ps1、install.sh、install.mjs 和 README 原字节一致。
+  公开 README 先预览后快速上手、两段安装命令均固定 r3；未运行安装器或关闭 TLS 校验。
+- 原 r2 tag object／目标、资产 ID、大小、digest、更新时间保持不变；未修改其它旧 tag 或资产。
+  新提交、tag 与 squash 作者为已确认 noreply，不重写旧公开历史；本轮无真实会话、CA 私钥或测试日志公开。
+- 发布后仅补维护记录，不移动 r3 tag 或替换包；正常同步 main 与 develop。
+  报告归档 ignored .cache/release-2.4.1-r3/，没有本轮后台任务或生产重启。
+  实体手机、系统软键盘、任意大会话及全部安装平台仍未全面验收；CA 导入与服务重启仍由用户决定。
+
+[release-pr]: https://github.com/WilliamLambertCN/open-kimi-web/pull/39
+[pr-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42459847523
+[main-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42460011585
+[release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r3
+[asset]: https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.4.1-r3/open-kimi-web-2.4.1-r3.tgz
