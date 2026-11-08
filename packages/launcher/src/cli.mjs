@@ -1,5 +1,5 @@
 // Process-level entry glue: argument errors → exit 2, help → usage text,
-// serve → bind + signal handlers. `update`, `integrate` and the hidden `__wrap`
+// serve → bind + signal handlers. `tls`, `update`, `integrate` and the hidden `__wrap`
 // (wrapper handoff) dispatch before strict serve parsing. Excluded from
 // coverage (like the web app's main.ts); exercised for real by
 // scripts/pack-smoke.mjs and the integration IT suite.
@@ -74,6 +74,11 @@ export async function run(argv) {
   if (args[0] === 'integrate') {
     const { integrateMain } = await import('./integration/integrateMain.mjs');
     process.exitCode = await integrateMain(args.slice(1));
+    return;
+  }
+  if (args[0] === 'tls') {
+    const { tlsMain } = await import('./tls/tlsMain.mjs');
+    process.exitCode = await tlsMain(args.slice(1));
     return;
   }
   let opts;
