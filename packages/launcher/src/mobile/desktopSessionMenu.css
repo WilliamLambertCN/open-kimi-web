@@ -1,0 +1,94 @@
+.okw-desktop-session-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--icon-button-sm, 28px);
+  height: var(--icon-button-sm, 28px);
+  padding: 0;
+  border: var(--p-hairline, 1px) solid transparent;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-base, 120ms) var(--ease-out, ease-out),
+    color var(--duration-base, 120ms) var(--ease-out, ease-out);
+}
+
+.okw-desktop-session-menu:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.okw-desktop-session-menu:focus-visible {
+  outline: none;
+  box-shadow: var(--p-focus-ring);
+}
+
+.okw-desktop-session-menu > svg {
+  width: var(--p-ic-md, 18px);
+  height: var(--p-ic-md, 18px);
+  fill: currentColor;
+}
+
+.side .se:has(.okw-desktop-session-menu) {
+  --okw-session-actions-width: calc(3 * var(--icon-button-sm, 28px) + 4px);
+}
+
+.side .se:has(.okw-desktop-session-menu):has(.reopen-btn) {
+  --okw-session-actions-width: calc(2 * var(--icon-button-sm, 28px) + 2px);
+}
+
+.side .se:has(.okw-desktop-session-menu) > .row > .act > .ha:where(:not(.okw-sidebar-archive-actions)) {
+  visibility: visible;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.side .se:has(.okw-desktop-session-menu):is(:hover, :focus-within) > .row > .act > .ha {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity var(--duration-fast, 120ms) var(--ease-out, ease-out);
+}
+
+.side .se:has(.okw-desktop-session-menu):focus-within .act > :is(.ts, .st, .ui-badge) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.side .se:has(.okw-desktop-session-menu):not(:has(.okw-sidebar-archive-delete)):is(:hover, :focus-within) .act {
+  min-width: var(--okw-session-actions-width);
+}
+
+.side .se:has(.okw-desktop-session-menu):not(:has(.okw-sidebar-archive-delete)):is(:hover, :focus-within) .t {
+  --sb-fade: 0px;
+  --sb-fade-len: 16px;
+}
+
+.side .se:has(.okw-desktop-session-menu):has(.okw-sidebar-archive-delete) .t {
+  --sb-fade: calc(96px + var(--icon-button-sm, 28px) + 2px);
+  --sb-fade-len: 20px;
+}
+
+@media (hover: none) {
+  .side .se:has(.okw-desktop-session-menu) > .row > .act > .ha {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .side .se:has(.okw-desktop-session-menu) .act > :is(.ts, .st, .ui-badge) {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .side .se:has(.okw-desktop-session-menu):not(:has(.okw-sidebar-archive-delete)) .act {
+    min-width: var(--okw-session-actions-width);
+  }
+
+  .side .se:has(.okw-desktop-session-menu):not(:has(.okw-sidebar-archive-delete)) .t {
+    --sb-fade: 0px;
+    --sb-fade-len: 16px;
+  }
+}
