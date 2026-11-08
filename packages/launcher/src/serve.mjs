@@ -7,6 +7,7 @@ import { createAccessUrls } from './accessUrls.mjs';
 import { isDebugApiPath, isRemoteControlApiPath } from './apiPathPolicy.mjs';
 import { createCronRouteService, serveCron } from './cron/routes.mjs';
 import { proxyRequest } from './httpProxy.mjs';
+import { localCaRouteForTls } from './localCaRoute.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
 import { serveSessionSize } from './sessionSize.mjs';
@@ -45,6 +46,7 @@ async function route(req, res, context) {
     res.writeHead(404).end('Not Found');
     return;
   }
+  if (context.localCaRoute(req, res)) return;
   if (await serveOfficialExtension(req, res, context)) return;
   const pathname = url.split('?')[0];
   if (pathname === '/api' || pathname.startsWith('/api/')) {
@@ -154,6 +156,7 @@ export async function createLauncher({
   debugLog,
 }) {
   assertCronPresentation(scheduledTasks, officialPresentation);
+  const localCaRoute = localCaRouteForTls(tls);
   const cronService = createCronRouteService({
     target, enabled: scheduledTasks, fetchImpl: usageFetch,
     ...cronBackendOptions(scheduledTasks, usageHome, onUnsafeBackend),
@@ -162,7 +165,7 @@ export async function createLauncher({
   const { wss, handleUpgrade, closeConnections } = createWsProxy(diagnostics);
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
   const context = { target, publicDir, officialPresentation, officialWebVersion, scheduledTasks, usageHome,
-    usageService, cronService, fetchImpl: usageFetch };
+    usageService, cronService, localCaRoute, fetchImpl: usageFetch };
   const server = createServer(tls, requestListener(context, diagnostics), diagnostics);
   server.on('upgrade', (req, socket, head) => {
     // req.url carries the query string (the official web appends

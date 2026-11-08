@@ -8,7 +8,11 @@ const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
 const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
   'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
 const PWA_SCRIPTS = ['pwaInstallView.js', 'pwaInstall.js'];
+const SESSION_MENU_SCRIPTS = ['sessionActionsApi.js', 'desktopSessionMenu.js', 'mobileSessionMenu.js'];
 const FILES = new Map([
+  ...SESSION_MENU_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['desktopSessionMenu.css', 'text/css; charset=utf-8'],
+  ['mobileSessionMenu.css', 'text/css; charset=utf-8'],
   ...PWA_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['pwaInstall.css', 'text/css; charset=utf-8'],
   ['manifest.webmanifest', 'application/manifest+json; charset=utf-8'],
@@ -74,6 +78,7 @@ const SCRIPTS = [
   'foldingDefaults.js',
   'workspaceSortDefault.js',
   'mobileWorkspaceSort.js',
+  ...SESSION_MENU_SCRIPTS,
   'forkTitleGuard.js',
   'imagePreviewGuard.js',
   'tabFeedback.js',
@@ -100,6 +105,8 @@ const STYLES = [
   'pwaInstall.css',
   'cron.css',
   'mobileWorkspaceSort.css',
+  'desktopSessionMenu.css',
+  'mobileSessionMenu.css',
   'mobileSubagentModel.css',
   'workspacePins.css',
   'archivedSessionDelete.css',

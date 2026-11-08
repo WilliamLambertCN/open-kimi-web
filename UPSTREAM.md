@@ -16,11 +16,12 @@ or a vendored transcript implementation.
   `protocolBaseline` and the 0.41.0 contracts remain historical; static inspection is not live acceptance.
   Exact npm `2.4.1` backend checks are recorded in the compatibility plan and `liveTestedServerVersions`.
   This is targeted runtime evidence, not a complete protocol recapture or a source-checkout live-test claim.
-- Open Kimi Web target: `2.4.1-r2`. Follow [the Release page][current-release] and
-  [the 2.4.1-r2 release plan][release241r2-plan] for actual checks, CI, package and publication results.
-  This version includes the recent-page and tool-folding changes, sanitized debug logs, PWA installation support,
-  non-web CLI delegation fix and shorter homepage. Publication status is determined by the formal Release.
-  Unrecorded or pending checks are not passes. [The 2.4.1-r1 compatibility plan][compat241-plan],
+- Open Kimi Web target: `2.4.1-r3`. Follow [the Release page][current-release] and
+  [the 2.4.1-r3 release plan][release241r3-plan] for actual checks, CI, package and publication results.
+  This version adds desktop native session menus, mobile fork/pin actions and an opt-in local CA with phone trust guidance.
+  Recent-page/tool-folding changes, sanitized logs, PWA support and non-web CLI delegation remain unchanged.
+  Publication status is determined by the formal Release; unrecorded or pending checks are not passes.
+  [The 2.4.1-r2 release plan][release241r2-plan], [the 2.4.1-r1 compatibility plan][compat241-plan],
   [the 2.3.1-r2 plan][r2-plan], [r2 Release][r2-release], [r1 workspace/release plan][current-plan]
   and r1 hotfix evidence remain historical, not current acceptance.
   Existing workspace, native trust, session ownership, model confirmation, mobile model, locale, gzip,
@@ -169,7 +170,7 @@ These checks do not establish physical-phone, all-platform installation or unrea
 Navigation, mobile official-index search and Hyper-V fixes shipped in [the historical r1 scope][current-plan].
 Earlier implementation evidence remains in [the scheduled-task/navigation plan](docs/plans/scheduled-tasks-management-v1-plan.md).
 Desktop and mobile use the same upper-left action order: new session, new workspace, scheduled tasks, search and usage.
-In `2.4.1-r2`, Install app follows usage on both devices and is hidden in an installed standalone window.
+Since `2.4.1-r2`, Install app follows usage on both devices and is hidden in an installed standalone window.
 Both search controls call the official paginated `/api/v1/search` index.
 Results open the owning session, not a claimed turn anchor.
 Both workspace controls use the same existing-directory form and official API without leaving the current session or draft.
@@ -194,7 +195,7 @@ Historical exact-2.3.1 tests and real createLauncher QA passed: read=true/write=
 with no mutation or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404
 without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan].
 The exact-2.4.1 baseline checks remain in [the compatibility plan][compat241-plan];
-current CI and publication belong to [the 2.4.1-r2 release plan][release241r2-plan].
+current CI and publication belong to [the 2.4.1-r3 release plan][release241r3-plan].
 Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
 Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
 protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
@@ -220,18 +221,19 @@ internal, loopback, IPv6 link-local and other virtual-adapter filters. This does
 
 ## Compatibility-first installation
 
-The `2.4.1-r2` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
+The `2.4.1-r3` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
 installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
 launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
 Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
 Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
 [the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
-The [2.4.1-r1 compatibility plan][compat241-plan] retains that release's evidence;
-current checks, CI and assets belong to [the 2.4.1-r2 release plan][release241r2-plan].
+The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
+current checks, CI and assets belong to [the 2.4.1-r3 release plan][release241r3-plan].
 
-The README starts with two online commands for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.4.1-r2` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.4.1-r2`.
+The README opens with existing interface screenshots, then Quick start contains the two online installation commands
+for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
+They resolve `v2.4.1-r3` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.4.1-r3`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -286,7 +288,7 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.4.1-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.4.1-r3 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -314,9 +316,10 @@ Official Kimi that was already on PATH remains available; one that previously ne
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-After formal `2.4.1-r2` publication, existing `2.4.1-r1` users use normal `update --check` and `update`.
+After formal `2.4.1-r3` publication, existing `2.4.1-r1`/`2.4.1-r2` users use normal `update --check` and `update`.
 No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
 tracking origin/main and a fast-forward. Restart and refresh remain manual; old tags and assets are not moved or replaced.
+Updating does not enable the local CA or install phone trust; users explicitly run setup in the same home if desired.
 
 Previous acceptance covers the old scope only: real Node 22.23.3 download/digest checks and r9 package-only installation on
 native Windows x64 PowerShell 5.1 and WSL Ubuntu 22.04 x64 glibc, plus Linux bash/zsh takeover, new shells, repeat and uninstall.
@@ -382,10 +385,44 @@ strict absolute-scrollTop failures remain unchanged, not an all-pass report. Det
 final standard counts/coverage/pack are in the install plan.
 Neither complete English/all-platform acceptance nor publication is inferred from these results.
 
+## Session menus and opt-in local CA in 2.4.1-r3
+
+This scope follows [the r3 release plan][release241r3-plan]; publication depends on [the formal Release][current-release].
+Implementation checks below do not establish pending release CI, online delivery or production deployment.
+
+- Desktop session-row three-dot controls open the native context menu, including Fork and Pin, without first selecting the source.
+  Existing right-click behavior remains native. Keyboard handling is scoped to the menu opened by the added control.
+- Mobile adds Fork and Pin/Unpin, plus a top-level Pinned section in flat and grouped lists.
+  Ordinary native rows first open the source and close the sheet; the route after that native selection confirms the exact ID.
+  Titles, relative times and row order never identify a write target. Fork uses the formal API, preserves native ownership/trust
+  failures and does not automatically retry, stop, trust or take over a session.
+- Pins use the official browser-origin session-ID preference, separate from workspace pins; devices, IPs and ports do not sync.
+  Mobile pin/unpin reloads once to synchronize native state and restores the sheet.
+  Unsent text drafts and other pins are retained.
+  Attachment preparation or in-flight upload blocks selection and reload until the user retries after completion.
+  Exact backend 2.4.1 checks passed 23/23; 193 targeted UT and five asset IT passed. Complete-app first runs of 125/129,
+  mobile 42/43 and desktop 30/31 remain recorded, with focused fixes and final two-version Tab/Shift+Tab checks passing 18/18.
+  See [the session menu plan][session-menu-plan]. Physical phones, system keyboards and arbitrary large sessions
+  have not been fully tested.
+- `open-kimi-web tls setup` explicitly enables a stable local CA in the same OKW home used for normal startup.
+  Custom certificates take priority. Daily startup reuses the root and renews the separate server certificate for address changes
+  or impending expiry; damaged, missing or expired roots fail rather than silently replacing trust.
+  `tls status` reports state/fingerprint; `tls disable` only cancels selection on future startup, without deleting certificates
+  or revoking phone trust. These commands do not change device trust/network settings or start/restart services.
+- The install panel provides only the validated public root, its fingerprint and Android import guidance.
+  No private key is served.
+  Users compare the downloaded certificate against the computer terminal's SHA-256 fingerprint, then personally import the CA
+  in Android settings and reopen Chrome. A page on an untrusted connection cannot authenticate its own download.
+  LAN and EasyTier addresses remain separate origins/logins/installations; one icon does not switch addresses automatically.
+  Trusted TLS does not guarantee Android WebAPK support. The old r2 package has no local-CA commands or download guidance.
+  CA-stage lint/typecheck/2634 UT/642 IT plus six existing conditional skips/pack and trusted HTTPS/WSS passed;
+  exact 2.4.1 app UI checks passed 34 assertions. These are prior local checks, not r3 release CI or physical installation.
+  Details and retained first failures are in [the CA plan][lan-ca-plan]. No user CLI upgrade or production restart is automatic.
+
 ## Recent-page, debug and PWA changes in 2.4.1-r2
 
-The release includes the following changes; follow [the formal Release][current-release] for publication status
-and [the release plan][release241r2-plan] for current checks, CI and package results. No pending check is a pass.
+These retained changes and their release evidence belong to [the r2 Release][release241r2-release]
+and [the r2 release plan][release241r2-plan], not current r3 acceptance.
 
 - The enhanced exact 2.3.1/2.4.1 UI requests one turn for the main recent page without a cursor instead of ten.
   Response bodies, associated entities, history pages and WS semantics stay unchanged. Custom UIs and other versions
@@ -645,10 +682,14 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [compat241-plan]: docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md
 [release241r2-plan]: docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md
+[release241r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
+[release241r3-plan]: docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md
+[session-menu-plan]: docs/plans/session-menu-actions-v1-plan.md
+[lan-ca-plan]: docs/plans/android-lan-ca-v1-plan.md
 [low-bandwidth-plan]: docs/plans/large-session-low-bandwidth-v2-plan.md
 [debug-plan]: docs/plans/large-session-debug-log-v1-plan.md
 [pwa-plan]: docs/plans/pwa-install-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r3
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
