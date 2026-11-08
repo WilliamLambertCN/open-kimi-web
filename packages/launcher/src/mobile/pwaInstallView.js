@@ -44,13 +44,38 @@
     head.append(title, dismiss);
     const status = el('p', 'okw-pwa-install-status'); status.setAttribute('role', 'status');
     const guide = el('p'); const security = el('p', 'okw-pwa-install-security');
+    const caSection = el('section', 'okw-pwa-install-ca'); caSection.hidden = true;
+    const caTitle = el('h3'); const download = el('a'); download.href = '/__open-kimi-mobile/tls/ca.cer';
+    download.download = 'open-kimi-web-ca.cer'; download.hidden = true;
+    const fingerprintLabel = el('p'); const fingerprint = el('code', 'okw-pwa-install-fingerprint');
+    const warning = el('p'); const steps = el('ol'); const items = [el('li'), el('li'), el('li')];
+    steps.append(...items); const iosNote = el('p');
+    caSection.append(caTitle, download, fingerprintLabel, fingerprint, warning, steps, iosNote);
     const actions = el('div', 'okw-pwa-install-actions'); const submit = el('button'); submit.type = 'button';
     submit.addEventListener('click', install); actions.append(submit);
-    panel.append(head, status, guide, security, actions); root.append(panel);
+    panel.append(head, status, guide, security, caSection, actions); root.append(panel);
     root.addEventListener('click', (event) => { if (event.target === root) close(); });
     document.body.append(root);
     return { root, panel, dismiss, submit,
-      render({ phase, ios, secure, available, busy }) {
+      render({ phase, ios, secure, available, busy, ca }) {
+        caSection.hidden = !ca; download.hidden = !ca;
+        if (ca) {
+          caTitle.textContent = text('信任此电脑的证书', 'Trust this computer’s certificate');
+          download.textContent = text('下载 CA 公证书（仅公钥）', 'Download CA certificate (public only)');
+          fingerprintLabel.textContent = text('SHA-256 指纹 · 与电脑终端核对', 'SHA-256 fingerprint · compare with computer terminal');
+          fingerprint.textContent = ca.fingerprint;
+          warning.textContent = text('此操作会改变手机信任。只安装自己电脑的证书，并核对指纹。',
+            'This changes your phone’s trust. Only install your own computer’s certificate and verify its fingerprint.');
+          items[0].textContent = text('下载后与电脑终端核对指纹，不能只凭本页面确认。',
+            'Download and compare the fingerprint with your computer terminal, not just this page.');
+          items[1].textContent = text('在安卓设置搜索“安装证书”，选择“CA 证书”，由你确认安装。',
+            'In Android Settings, search for Install a certificate, choose CA certificate, and confirm installation yourself.');
+          items[2].textContent = text('完全关闭并重开 Chrome，回到此地址安装；仍须浏览器提供安装选项。',
+            'Fully close and reopen Chrome, then return here to install. Your browser must still offer installation.');
+          steps.hidden = ios; iosNote.hidden = !ios;
+          iosNote.textContent = text('iPhone／iPad 的证书安装与信任需在系统设置中单独确认，不使用安卓步骤。',
+            'On iPhone or iPad, certificate installation and trust require separate confirmation in system settings.');
+        }
         title.textContent = text('安装到桌面', 'Install app');
         dismiss.textContent = text('关闭', 'Close'); dismiss.setAttribute('aria-label', text('关闭', 'Close'));
         submit.textContent = text('安装', 'Install');

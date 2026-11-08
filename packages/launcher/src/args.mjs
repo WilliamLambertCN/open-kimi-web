@@ -28,6 +28,7 @@ export const USAGE = `Usage: open-kimi-web serve [--target <url>] [--host <host>
                            [--token-file <path> | --no-token-link]
        open-kimi-web integrate <install|status|repair|uninstall>
        open-kimi-web update [--check | --help]
+       open-kimi-web tls <setup|status|disable> [--help]
        open-kimi-web --version
 
 Serves the OpenWeb UI and proxies /api (REST + WebSocket) to a running

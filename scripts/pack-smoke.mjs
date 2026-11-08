@@ -107,6 +107,47 @@ function assertUpdateCommand(pkgDir) {
   console.log('update command ok: help works without runtime deps; unsafe layout and arguments refused');
 }
 
+async function assertLocalCaPackage(pkgDir, publicDir, target, home) {
+  const invoke = (command) => {
+    const result = spawnSync(process.execPath, ['bin/open-kimi-web.mjs', 'tls', command], {
+      cwd: pkgDir, encoding: 'utf8', timeout: 15_000,
+      env: { ...process.env, OPEN_KIMI_WEB_HOME: home },
+    });
+    if (result.error || result.status !== 0 || /BEGIN.*(?:PRIVATE KEY|CERTIFICATE)/.test(result.stdout)) {
+      throw new Error(`installed tls ${command} failed or exposed PEM material`);
+    }
+    return result.stdout;
+  };
+  const { ensureLocalCaTls } = await import(pathToFileURL(join(pkgDir, 'src/tls/localCaStore.mjs')).href);
+  const { createLauncher } = await import(pathToFileURL(join(pkgDir, 'src/serve.mjs')).href);
+  const { X509Certificate } = await import('node:crypto');
+  const { request } = await import('node:https');
+  invoke('setup');
+  const tls = await ensureLocalCaTls({ home, host: '127.0.0.1', interfaces: {} });
+  if (!invoke('status').includes(tls.publicCa.fingerprint)) throw new Error('installed tls status fingerprint mismatch');
+  invoke('setup');
+  const reused = await ensureLocalCaTls({ home, host: '127.0.0.1', interfaces: {} });
+  if (tls.publicCa.fingerprint !== reused.publicCa.fingerprint) throw new Error('installed tls setup replaced its root');
+  const launcher = await createLauncher({ target, publicDir, host: '127.0.0.1', port: 0, tls });
+  try {
+    const body = await new Promise((resolve, reject) => {
+      const req = request(launcher.url + '/__open-kimi-mobile/tls/ca.cer', {
+        ca: new X509Certificate(tls.publicCa.certificate).toString(), agent: false,
+      }, (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => res.statusCode === 200 ? resolve(Buffer.concat(chunks)) : reject(new Error('CA download failed')));
+        res.on('error', reject);
+      });
+      req.on('error', reject); req.end();
+    });
+    if (!body.equals(tls.publicCa.certificate)) throw new Error('installed CA download is not the exact root DER');
+  } finally { await launcher.close(); }
+  invoke('disable');
+  if (await ensureLocalCaTls({ home })) throw new Error('installed tls disable did not disable selection');
+  console.log('local CA ok: installed setup/status/reuse/disable and root-trusted HTTPS certificate download');
+}
+
 async function assertDebugLog(home) {
   const directory = join(home, 'logs');
   const deadline = Date.now() + 3_000;
@@ -134,6 +175,12 @@ async function assertDebugLog(home) {
 const required = [
   'bin/open-kimi-web.mjs',
   'src/serve.mjs',
+  'src/localCaRoute.mjs',
+  'src/tls/localCaStore.mjs',
+  'src/tls/localCaCertificate.mjs',
+  'src/tls/localCaFiles.mjs',
+  'src/tls/tlsMain.mjs',
+  'src/tls/x509Profile.mjs',
   'src/responseCompression.mjs',
   'src/transcriptPaging.mjs',
   'src/debugLog.mjs',
@@ -146,6 +193,11 @@ const required = [
   'src/update/updateMain.mjs',
   'src/mobile/mobileWorkspaceSort.js',
   'src/mobile/mobileWorkspaceSort.css',
+  'src/mobile/sessionActionsApi.js',
+  'src/mobile/desktopSessionMenu.js',
+  'src/mobile/desktopSessionMenu.css',
+  'src/mobile/mobileSessionMenu.js',
+  'src/mobile/mobileSessionMenu.css',
   'src/mobile/locale.js',
   'src/mobile/providerLocale.js',
   'src/mobile/usageLocale.js',
@@ -250,6 +302,7 @@ async function main() {
     mkdirSync(customWebDir);
     writeFileSync(join(customWebDir, 'index.html'), '<!doctype html><html><head><title>pack smoke</title></head></html>');
     await assertPwaAssets(pkgDir, customWebDir, target.url);
+    await assertLocalCaPackage(pkgDir, customWebDir, target.url, join(scratch, 'ca-home'));
     const port = 23_000 + Math.floor(Math.random() * 20_000);
     child = spawn(
       process.execPath,

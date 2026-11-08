@@ -10,7 +10,8 @@ import { resolveLaunchToken } from './launchToken.mjs';
 import { ensureOfficialBundle, officialCacheDir, resolveOfficialVersion } from './officialBundle.mjs';
 import { createLauncher } from './serve.mjs';
 import { tlsStatusLines } from './tlsMessages.mjs';
-import { ensureManagedTls, loadCustomTls } from './tlsStore.mjs';
+import { defaultHome, ensureManagedTls, loadCustomTls } from './tlsStore.mjs';
+import { ensureLocalCaTls } from './tls/localCaStore.mjs';
 
 const TARGET_PROBE_TIMEOUT_MS = 3_000;
 
@@ -35,7 +36,8 @@ async function assertTargetReachable(target, fetchImpl = fetch) {
 async function resolveTls(opts, interfaces) {
   if (!opts.https) return null;
   if (opts.certFile) return loadCustomTls(opts);
-  return ensureManagedTls({ host: opts.host, interfaces });
+  const options = { home: opts.home ?? defaultHome(opts.env ?? process.env), host: opts.host, interfaces };
+  return await ensureLocalCaTls(options) ?? ensureManagedTls(options);
 }
 
 // Pin the official bundle to --web-version or the target server's
