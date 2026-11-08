@@ -205,6 +205,12 @@ function verifyChatEnhancementOrder(indexText) {
     expect(indexText.indexOf(subagentScripts[index - 1])).toBeLessThan(indexText.indexOf(subagentScripts[index]));
   }
   expect(indexText).toContain('/__open-kimi-mobile/mobileSubagentModel.css');
+  for (const name of ['desktopSessionMenu', 'mobileSessionMenu']) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}.css`);
+    expect(indexText.indexOf(`${name}.js`)).toBeGreaterThan(indexText.indexOf('sessionActionsApi.js'));
+    expect(indexText.indexOf(`${name}.js`)).toBeLessThan(indexText.indexOf('<script type="module"'));
+  }
+  expect(indexText.indexOf('sessionActionsApi.js')).toBeGreaterThan(indexText.indexOf('locale.js'));
 }
 
 async function verifyRepresentation(url, response, length, compressible) {
@@ -236,6 +242,7 @@ const PRESENTATION_ASSETS = [
   'icons/app-192.png', 'icons/app-512.png', 'icons/apple-touch-180.png',
   'locale.js', 'usageLocale.js', 'providerLocale.js', 'effortOrder.js', 'presentation.css',
   'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
+  'sessionActionsApi.js', 'desktopSessionMenu.js', 'desktopSessionMenu.css', 'mobileSessionMenu.js', 'mobileSessionMenu.css',
   'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',
   'notificationPermission.js', 'completionModal.css', 'completionModal.js', 'questionCardLayout.js', 'presentation.js',

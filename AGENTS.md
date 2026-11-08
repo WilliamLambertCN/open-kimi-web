@@ -8,7 +8,10 @@
 ## 实施计划
 
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
+- [2.4.1-r3 发布](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md)
 - [2.4.1-r2 发布](docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md)
+- [局域网证书](docs/plans/android-lan-ca-v1-plan.md)
+- [会话菜单](docs/plans/session-menu-actions-v1-plan.md)
 - [用量统计](docs/plans/usage-statistics-v1-plan.md)
 - [自动匹配价格](docs/plans/usage-pricing-auto-match-v2-plan.md)
 - [价格刷新连续性](docs/plans/usage-pricing-refresh-v3-plan.md)
@@ -99,7 +102,8 @@
 6. 运行最少必要校验并记录结果。完成后检查 `git diff --check` 和 `git status --short`，清理临时进程与数据。
 7. 除非任务明确要求，不提交、不推送、不发布。
 
-README 保持简短：开头给两段系统安装命令，只留上手、增强功能概览、截图、升级和常见问题。
+README 保持简短：按用户最新要求先放界面预览，再在“快速上手”里给两段系统安装命令及启动方法。
+只留必要的增强功能概览、截图、升级和常见问题，不在“快速上手”外重复安装说明。
 使用 humanizer-zh 优化文字，用动作说明用户能做什么，把压缩的术语展开为通俗句子，不为缩短篇幅堆砌名词。
 详细命令链接到 launcher README，兼容细节到 UPSTREAM，历史和验收不堆在首页。
 保留既有图片，新功能补真实界面图；新增 App 图须区分安装面板与实体安装结果，未发布功能明确标注。

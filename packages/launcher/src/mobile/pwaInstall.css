@@ -9,3 +9,11 @@
 .okw-pwa-install-actions[hidden],
 .okw-pwa-install-panel button[hidden] { display: none; }
 .okw-pwa-install-open { overflow: hidden; }
+.okw-pwa-install-ca { display: grid; gap: 8px; min-width: 0; border-top: 1px solid var(--color-line);
+  padding-top: 12px; font-size: 13px; line-height: 1.6; }
+.okw-pwa-install-ca[hidden], .okw-pwa-install-ca [hidden] { display: none; }
+.okw-pwa-install-ca h3 { margin: 0; font-size: 14px; }
+.okw-pwa-install-ca a { justify-self: start; color: inherit; text-decoration: underline; }
+.okw-pwa-install-fingerprint { min-width: 0; overflow-wrap: anywhere; user-select: text; }
+.okw-pwa-install-ca ol { margin: 0; padding-left: 20px; }
+.okw-pwa-install-ca li + li { margin-top: 6px; }
