@@ -4,6 +4,31 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.4.1-r3] - 2026-11-08
+
+继续兼容官方 Kimi Code `2.4.1`。本轮纳入已完成本地验收的会话菜单和局域网证书功能；
+发布状态以正式 Release 为准，CI、交付包和线上核验见
+[2.4.1-r3 发布计划](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md)，未记录或待执行的检查不视为通过。
+
+- 电脑会话行增加三个点，打开官方原生菜单，直接选择 Fork／分叉；原右键入口不变。
+  手机三个点新增分叉、置顶与取消置顶，已置顶会话显示在列表顶部的“已置顶／Pinned”区。
+  普通手机会话行会先打开源会话，通过原生路由确认身份；不按标题猜会话，不自动重试分叉、信任或接管。
+- 会话置顶只保存在当前浏览器、同一站点，不跨设备或 IP 同步，也不改变工作区置顶。
+  手机置顶／取消置顶会重新加载一次并恢复列表，保留未发送的文本草稿；附件准备或上传未结束时须稍后重试。
+- 增加局域网与 EasyTier 的手机证书安装方式：在日常启动所用的同一 home 中执行一次
+  `open-kimi-web tls setup`，建立稳定根证书，日常启动按地址变化或临期情况续签网站证书。
+  自定义证书仍优先，根损坏不自动替换；不自动更改设备信任、网络设置或重启服务。
+- 安装面板提供根公证书下载、与电脑终端核对指纹和安卓设置步骤。下载不含私钥，不需要会话凭据；
+  手机须由本人核对并导入 CA。两个地址仍分别登录和安装，桌面图标不会自动切换，可信证书也不保证 WebAPK 安装。
+- 既有会话菜单验收包括 193 项定向 UT、5 项资产 IT、真实官方后端 23 项检查及完整官方 app 修后补验。
+  首轮 125／129、手机 42／43、桌面 30／31 的记录保留，最后两版 Tab／Shift+Tab 补验 18／18；不写成首次全绿。
+  CA 阶段的 lint、typecheck、2634 UT、642 IT／6 项既有条件跳过、pack 及可信 HTTPS／WSS 检查通过，
+  官方 app 界面 34 项断言通过。以上不代替本次发布 CI，也不等同实体手机、系统软键盘或任意大会话验收。
+  详细边界见[会话菜单计划](docs/plans/session-menu-actions-v1-plan.md)及[证书计划](docs/plans/android-lan-ca-v1-plan.md)。
+- 首页先展示原有界面实图，再在“快速上手”中集中安装与启动步骤；保留全部图片和历史版本说明。
+- 原 r2 用户在正式发布后正常运行 `update --check`／`update`，再手动重启旧服务并刷新。
+  CA 需另外显式启用，更新本身不会安装手机证书、升级官方 Kimi、重启生产或改动旧 tag／资产。
+
 ## [open-kimi-web v2.4.1-r2] - 2026-11-07
 
 继续兼容官方 Kimi Code `2.4.1`。本轮发布范围、CI 和线上交付记录见
@@ -827,5 +852,7 @@ Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR�
 [open-kimi-web v2.3.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r1
 [open-kimi-web v2.3.1-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [open-kimi-web v2.4.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r1
+[open-kimi-web v2.4.1-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
+[open-kimi-web v2.4.1-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r3
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

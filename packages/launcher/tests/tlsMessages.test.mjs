@@ -3,6 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { tlsStatusLines } from '../src/tlsMessages.mjs';
 
 describe('tlsStatusLines', () => {
+  it('distinguishes the website fingerprint from the stable CA and requires independent phone verification', () => {
+    const lines = tlsStatusLines({ source: 'local-ca', fingerprint: '11:22', rotated: true,
+      publicCa: { fingerprint: '33:44', certificate: Buffer.from('public certificate') },
+      key: 'PRIVATE KEY', cert: 'server certificate' }).join('\n');
+    expect(lines).toContain('SHA-256 fingerprint: 11:22');
+    expect(lines).toContain('Local CA SHA-256 fingerprint: 33:44');
+    expect(lines).toContain('Compare its fingerprint with this terminal');
+    expect(lines).toContain('Restart Chrome');
+    expect(lines).not.toMatch(/PRIVATE KEY|server certificate|fingerprint changed/);
+  });
+
   it('reports first-use trust guidance and rotation without exposing PEM data', () => {
     const created = tlsStatusLines({
       source: 'managed',
