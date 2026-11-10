@@ -63,11 +63,18 @@ if (!window[Symbol.for('open-kimi-web.navigation-api')]) {
     if (result?.code !== 0) throw requestError('restore-failed', response.status);
     return result.data;
   };
-  const failure = (status) => {
+  const failure = (status, envelope) => {
+    if (status === 401 || status === 403) return text('页面授权已失效，请刷新页面。', 'Authorization expired. Refresh the page.');
+    if (envelope?.code === 50001 && envelope?.msg === 'global search is disabled; set [database] global_search = true or ' +
+        'KIMI_CODE_GLOBAL_SEARCH=1 to enable it') {
+      return text('服务未开启全文搜索。可在 Kimi 配置的 [database] 下设置 global_search = true，' +
+        '或启动服务时设置 KIMI_CODE_GLOBAL_SEARCH=1，再重启 Kimi 服务。开启后会扫描历史会话建立索引。',
+      'Full-text search is disabled. Set global_search = true under [database] in Kimi config, or start the server ' +
+        'with KIMI_CODE_GLOBAL_SEARCH=1, then restart Kimi. Enabling it scans historical sessions to build an index.');
+    }
     if (status === 404 || status === 405) {
       return text('当前服务不支持官方全局搜索接口。', 'This server does not support the official global search API.');
     }
-    if (status === 401 || status === 403) return text('页面授权已失效，请刷新页面。', 'Authorization expired. Refresh the page.');
     return text('搜索失败，请重试。', 'Search failed. Please retry.');
   };
   const validHit = (item) => typeof item?.session_id === 'string' && item.session_id.length > 0 &&
@@ -92,7 +99,7 @@ if (!window[Symbol.for('open-kimi-web.navigation-api')]) {
     });
     let envelope;
     try { envelope = await response.json(); } catch { envelope = null; }
-    if (!response.ok || envelope?.code !== 0) throw new Error(failure(response.status));
+    if (!response.ok || envelope?.code !== 0) throw new Error(failure(response.status, envelope));
     return page(envelope.data);
   };
   const workspaceFailure = (status, code) => {

@@ -8,7 +8,7 @@ const context = { officialPresentation: true, officialWebVersion: '2.4.1' };
 const request = (url = path + query, extra = {}) => ({ method: 'GET', headers: {}, url, ...extra });
 
 describe('initial main transcript page budget', () => {
-  it.each(['2.3.1', '2.4.1'])('uses one complete turn for enhanced exact %s', (officialWebVersion) => {
+  it.each(['2.3.1', '2.4.1', '2.5.2'])('uses one complete turn for enhanced exact %s', (officialWebVersion) => {
     const req = request();
     expect(transcriptProxyPath(req, { ...context, officialWebVersion })).toBe(path + '?agent_id=main&page_size=1');
     expect(req.url).toBe(path + query);
@@ -19,7 +19,8 @@ describe('initial main transcript page budget', () => {
     expect(transcriptProxyPath(req, context)).toBe(path + '?page_size=1&agent_id=main');
   });
 
-  it.each(['2.1.1', '2.3.0', '2.3.2', '2.4.0', '2.4.2', '2.4.1-r1', '', undefined])(
+  it.each(['2.1.1', '2.3.0', '2.3.2', '2.4.0', '2.4.2', '2.4.1-r1',
+    '2.5.0', '2.5.1', '2.5.3', '2.5.2-modified', '', undefined])(
     'leaves unverified version %s transparent', (officialWebVersion) => {
       const req = request();
       expect(transcriptProxyPath(req, { ...context, officialWebVersion })).toBe(req.url);

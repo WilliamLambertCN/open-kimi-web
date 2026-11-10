@@ -53,6 +53,23 @@ describe('official navigation search API', () => {
       await expect(ui.window.__okwNavigationSearch({ query: 'fixture' })).rejects.toThrow(message);
     },
   );
+  it.each(['en', 'zh'])('explains the exact 2.5.2 disabled search response in %s without changing config', async (locale) => {
+    const msg = 'global search is disabled; set [database] global_search = true or KIMI_CODE_GLOBAL_SEARCH=1 to enable it';
+    const ui = install(() => Response.json({ code: 50001, msg, data: null, stack: 'private stack' }));
+    ui.window.__okwLocale.text = (zh, en) => locale === 'zh' ? zh : en;
+    await ui.authorize();
+    const search = ui.window.__okwNavigationSearch({ query: 'fixture' });
+    await expect(search).rejects.toThrow('global_search = true');
+    await expect(search).rejects.toThrow('KIMI_CODE_GLOBAL_SEARCH=1');
+    await expect(search).rejects.toThrow(locale === 'zh' ? '扫描历史会话' : 'scans historical sessions');
+    await expect(search).rejects.not.toThrow('private stack');
+    expect(ui.native.mock.calls.map(([path]) => path)).toEqual(['/api/v1/meta', '/api/v1/search']);
+  });
+  it('does not mislabel unrelated server failures as disabled search', async () => {
+    const ui = install(() => Response.json({ code: 50001, msg: 'index unavailable' }));
+    await ui.authorize();
+    await expect(ui.window.__okwNavigationSearch({ query: 'fixture' })).rejects.toThrow('Search failed');
+  });
   it('rejects a malformed response instead of treating it as empty results', async () => {
     const ui = install(() => envelope({ items: [] })); await ui.authorize();
     await expect(ui.window.__okwNavigationSearch({ query: 'fixture' })).rejects.toThrow('Invalid search response');

@@ -23,20 +23,11 @@ describe('presentation theme layout boundaries', () => {
     );
   });
 
-  it('keeps provider tabs scrollable and the steer control responsive', () => {
+  it('keeps provider tabs scrollable without styling a duplicate steer control', () => {
     expect(presentationCss).toMatch(
       /\.mp\s*>\s*\.chip-strip\.okw-provider-strip\s*\{[^}]*overflow-x:\s*auto/s,
     );
-    expect(presentationCss).toMatch(
-      /\.composer-card\s+\.okw-steer-button\s*\{[^}]*height:\s*var\(--composer-control-size\)/s,
-    );
-    expect(presentationCss).toMatch(
-      new RegExp(
-        String.raw`@media\s*\(max-width:\s*640px\)[\s\S]*\.app\.mobile\s+\.composer-card\s+` +
-          String.raw`\.okw-steer-button\s*\{[^}]*min-width:\s*44px[^}]*min-height:\s*44px`,
-        's',
-      ),
-    );
+    expect(presentationCss).not.toContain('okw-steer-button');
   });
 
   it('limits model drag gestures to the handle and shows both drop directions', () => {

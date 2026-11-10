@@ -36,10 +36,12 @@ describe('bounded shell-free update process', () => {
     })).rejects.toThrow('output bytes');
     await expect(runProcess(join(await temp(), 'nonexistent.exe'))).rejects.toThrow();
   });
-  it('times out or cancels only owned processes and does not execute an already cancelled command', async () => {
+  it('times out and cleans only its owned process tree', async () => {
     await expect(runProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], {
       timeoutMs: 40,
     })).rejects.toThrow('timed out');
+  });
+  it('cancels only its owned process tree and does not execute an already cancelled command', async () => {
     const controller = new AbortController();
     const task = runProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { signal: controller.signal });
     setTimeout(() => controller.abort(), 40);

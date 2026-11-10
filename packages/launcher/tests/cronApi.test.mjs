@@ -14,7 +14,7 @@ function install(response = () => new Response(JSON.stringify({ tasks: [task] })
     authorize: () => window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer fictional-only' } }) };
 }
 describe('read-only cron browser adapter', () => {
-  it.each(['2.3.1', '2.4.1'])(
+  it.each(['2.3.1', '2.4.1', '2.5.2'])(
     'retains %s read-only capabilities and rejects write/restore callbacks before requests', async (version) => {
     const test = install(); await test.authorize();
     const value = { available: true, version, reason: 'read-only-version',

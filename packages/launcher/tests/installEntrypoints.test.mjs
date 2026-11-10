@@ -318,6 +318,32 @@ okw_platform
 
 });
 
+describe('bounded POSIX command probes', () => {
+  it('returns short command output and removes its temporary output', () => {
+    const result = shell(`
+TMPDIR=$FIXTURE; export TMPDIR
+okw_probe printf 'fixture output'
+`);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toBe('fixture output');
+    expect(readdirSync(root).some((name) => name.startsWith('open-kimi-web-probe.'))).toBe(false);
+  });
+
+  it('retains the 15-second probe budget with shorter polling and ends its hanging command', () => {
+    const node = unix(process.execPath).replaceAll("'", "'\\''");
+    const result = shell(`
+TMPDIR=$FIXTURE; export TMPDIR
+sleep() { printf '%s\\n' "$1" >>"$FIXTURE/ticks"; }
+okw_probe '${node}' -e 'setInterval(()=>{},1000)'
+`);
+    expect(result.status).toBe(1);
+    const ticks = readFileSync(join(root, 'ticks'), 'utf8').trim().split('\n');
+    expect(ticks).toHaveLength(150);
+    expect(new Set(ticks)).toEqual(new Set(['0.1']));
+    expect(readdirSync(root).some((name) => name.startsWith('open-kimi-web-probe.'))).toBe(false);
+  });
+});
+
 describe('POSIX runtime integrity and immutable source', () => {
   it('fails digest verification before tar extraction and cleans only its directories', () => {
     const result = shell(`
