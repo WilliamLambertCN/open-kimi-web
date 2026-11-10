@@ -4,18 +4,19 @@
     "cliVersion": "0.41.0"
   },
   "compatibilityBaseline": {
-    "commit": "2c73f3f50af4fa7f2540ca0d2e33b07a1408e3a7",
-    "cliVersion": "2.4.1",
-    "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.4.1"
+    "commit": "1c142a007c10e881602690def96057c23a2baa12",
+    "cliVersion": "2.5.2",
+    "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.5.2"
   },
   "minimumServerVersion": "0.43.1",
-  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1", "2.3.1", "2.4.1"],
+  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1", "2.3.1", "2.4.1", "2.5.2"],
   "inspectedPackageIntegrity": {
     "0.43.1": "sha512-jq60K07tJV+uZB/mTN7rgb99WU5z6PtUeLybywGhXpF5QybaehIWsWudZ9HR8hEEmc7pppB+GAA92RDqOOKnRg==",
     "2.0.2": "sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==",
     "2.1.1": "sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==",
     "2.3.1": "sha512-Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==",
-    "2.4.1": "sha512-z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw=="
+    "2.4.1": "sha512-z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw==",
+    "2.5.2": "sha512-a7UuugqQuPBHB2ZMiu8ezAFIwJ0dn6xanuRnTqa2pXXu12ng7kvigAlXy47TxNKpnyj8vgaNStedTv4kbqSCuA=="
   },
   "provenanceReleaseCommits": [
     "75ac010bcb2050338444455de8328492d152c919",
@@ -24,15 +25,16 @@
   "officialReleaseTagCommits": [
     "f67e6398fb3210ad8ace970e2dfd5bcc984ed61f",
     "684bae9ea6a437f3bae98bba1dcb797a917d500b",
-    "2c73f3f50af4fa7f2540ca0d2e33b07a1408e3a7"
+    "2c73f3f50af4fa7f2540ca0d2e33b07a1408e3a7",
+    "1c142a007c10e881602690def96057c23a2baa12"
   ],
   "liveTestedServerCommits": [],
-  "liveTestedServerVersions": ["2.1.1", "2.2.0", "2.3.1", "2.4.1"],
+  "liveTestedServerVersions": ["2.1.1", "2.2.0", "2.3.1", "2.4.1", "2.5.2"],
   "contracts": {
     "capturedFrom": "live kap-server booted from the sibling kimi-code checkout",
     "snapshotCommit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",
     "snapshotVersion": "0.41.0",
-    "snapshotStatus": "historical-reference; not recaptured for 2.4.1",
+    "snapshotStatus": "historical-reference; not recaptured for 2.5.2",
     "metadata": "contracts/upstream/metadata.json",
     "openapi": "contracts/upstream/openapi.json",
     "asyncapi": "contracts/upstream/asyncapi.json"

@@ -107,6 +107,17 @@ function assertUpdateCommand(pkgDir) {
   console.log('update command ok: help works without runtime deps; unsafe layout and arguments refused');
 }
 
+async function assertInstalledUpdateCleanup(pkgDir) {
+  const { runProcess } = await import(pathToFileURL(join(pkgDir, 'src/update/process.mjs')).href);
+  try {
+    await runProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { timeoutMs: 40 });
+    throw new Error('installed updater did not enforce its deadline');
+  } catch (error) {
+    if (!/timed out after 40ms/.test(error.message) || error.cleanupUnconfirmed === true) throw error;
+  }
+  console.log('update cleanup ok: installed sources terminate and confirm their owned process');
+}
+
 async function assertLocalCaPackage(pkgDir, publicDir, target, home) {
   const invoke = (command) => {
     const result = spawnSync(process.execPath, ['bin/open-kimi-web.mjs', 'tls', command], {
@@ -191,6 +202,8 @@ const required = [
   'src/transportDiagnostics.mjs',
   'src/wsDiagnostics.mjs',
   'src/update/updateMain.mjs',
+  'src/update/windowsTreeCleanup.mjs',
+  'src/update/windowsTreeCleanup.cs',
   'src/mobile/mobileWorkspaceSort.js',
   'src/mobile/mobileWorkspaceSort.css',
   'src/mobile/sessionActionsApi.js',
@@ -234,6 +247,24 @@ const required = [
   'THIRD_PARTY_NOTICES.md',
 ];
 
+async function assertConversationAssets(pkgDir, launcher, html) {
+  const prefix = '/__open-kimi-mobile/';
+  const version = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).version;
+  if (!html.includes(`<meta name="open-kimi-web-version" content="${version}">`) ||
+      !html.includes(`rel="icon" type="image/png" sizes="192x192" href="${prefix}icons/app-192.png"`)) {
+    throw new Error('installed branding metadata or favicon does not match the package');
+  }
+  const assets = ['branding.js', 'branding.css', 'mobileConversationToc.js', 'mobileConversationToc.css',
+    'mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js', 'mobileConversationTocView.js'];
+  for (const name of assets) {
+    const attribute = name.endsWith('.js') ? 'src' : 'href';
+    if (!html.includes(`${attribute}="${prefix}${name}"`)) throw new Error(`installed page does not load ${name}`);
+    const response = await fetch(launcher.url + prefix + name);
+    if (!response.ok || !(await response.text()).trim()) throw new Error(`installed asset unavailable: ${name}`);
+  }
+  console.log('conversation assets ok: actual package version, app favicon, branding and mobile outline resources');
+}
+
 async function assertPwaAssets(pkgDir, publicDir, target) {
   const { createLauncher } = await import(pathToFileURL(join(pkgDir, 'src/serve.mjs')).href);
   const launcher = await createLauncher({ target, publicDir, host: '127.0.0.1', port: 0, interfaces: [],
@@ -244,6 +275,7 @@ async function assertPwaAssets(pkgDir, publicDir, target) {
     if (!html.includes(`rel="manifest" href="${prefix}manifest.webmanifest"`)) {
       throw new Error('installed enhanced launcher did not inject its manifest');
     }
+    await assertConversationAssets(pkgDir, launcher, html);
     const response = await fetch(launcher.url + prefix + 'manifest.webmanifest');
     const manifest = await response.json();
     if (!response.headers.get('content-type')?.startsWith('application/manifest+json') ||
@@ -292,6 +324,7 @@ async function main() {
     if (leaked.length > 0) throw new Error(`tarball contains unexpected private or debug files: ${leaked.join(', ')}`);
     console.log(`tarball contents ok (${required.join(', ')}; no test files)`);
     assertUpdateCommand(pkgDir);
+    await assertInstalledUpdateCleanup(pkgDir);
 
     // 3. Install like a user (prod deps only) and boot the bin.
     run('npm install --omit=dev --no-audit --no-fund', { cwd: pkgDir });

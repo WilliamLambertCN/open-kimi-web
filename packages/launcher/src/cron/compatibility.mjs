@@ -1,6 +1,6 @@
 import { CronClientError } from './errors.mjs';
 
-export const CRON_READ_VERSIONS = Object.freeze(['2.1.1', '2.2.0', '2.3.1', '2.4.1']);
+export const CRON_READ_VERSIONS = Object.freeze(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2']);
 export const CRON_WRITE_VERSIONS = Object.freeze(['2.1.1', '2.2.0']);
 
 export function assertCronReadVersion(meta) {

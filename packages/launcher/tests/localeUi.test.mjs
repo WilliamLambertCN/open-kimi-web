@@ -88,7 +88,7 @@ describe('official locale semantics', () => {
     vi.spyOn(ui.view.Storage.prototype, 'getItem').mockImplementation(() => { throw Error('blocked'); });
     expect(ui.view.__okwLocale.current()).toBe('en');
   });
-  it('updates mounted theme and priority controls from same-tab official UI mutations without storageevent', async () => {
+  it('updates mounted theme controls without duplicating native send or changing drafts', async () => {
     const ui = install('zh');
     ui.evaluate('themes');
     ui.evaluate('presentation');
@@ -104,8 +104,8 @@ describe('official locale semantics', () => {
     expect(systemText(ui.doc.querySelector('.okw-theme-section'))).toEqual([]);
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
     expect(ui.doc.querySelector('[data-theme="ember"]')).toBe(option);
-    expect(ui.doc.querySelector('.okw-steer-button').textContent).toBe('Send now');
-    expect(ui.doc.querySelector('.okw-steer-button').title).not.toMatch(han);
+    expect(ui.doc.querySelector('.okw-steer-button')).toBeNull();
+    expect(ui.doc.querySelector('.send').textContent).toBe('Send');
     expect(ui.doc.querySelector('.dir').textContent).toBe('用户工作区');
     expect(ui.doc.querySelector('.ph').textContent).toBe('用户草稿');
     expect(ui.fetch.mock.calls).toHaveLength(count);

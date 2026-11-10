@@ -1,15 +1,23 @@
 import { readFile } from 'node:fs/promises';
+import packageInfo from '../package.json' with { type: 'json' };
 import { isBundleVersion } from './officialBundle.mjs';
 import { sendResponse } from './responseCompression.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
+const APP_VERSION = packageInfo.version;
 const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
 const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
 const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
   'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
 const PWA_SCRIPTS = ['pwaInstallView.js', 'pwaInstall.js'];
 const SESSION_MENU_SCRIPTS = ['sessionActionsApi.js', 'desktopSessionMenu.js', 'mobileSessionMenu.js'];
+const TOC_SCRIPTS = ['mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js',
+  'mobileConversationTocView.js', 'mobileConversationToc.js'];
 const FILES = new Map([
+  ['branding.js', 'text/javascript; charset=utf-8'],
+  ['branding.css', 'text/css; charset=utf-8'],
+  ...TOC_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['mobileConversationToc.css', 'text/css; charset=utf-8'],
   ...SESSION_MENU_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['desktopSessionMenu.css', 'text/css; charset=utf-8'],
   ['mobileSessionMenu.css', 'text/css; charset=utf-8'],
@@ -97,10 +105,13 @@ const SCRIPTS = [
   'presentation.js',
   'sessionSize.js',
   'messageTimestamps.js',
+  ...TOC_SCRIPTS,
+  'branding.js',
 ];
 const STYLES = [
   'presentation.css',
   'themes.css',
+  'branding.css',
   'navigation.css',
   'pwaInstall.css',
   'cron.css',
@@ -116,6 +127,7 @@ const STYLES = [
   'sessionSize.css',
   'messageTimestamps.css',
   'chatWidth.css',
+  'mobileConversationToc.css',
 ];
 
 // Serve the presentation layer from the installed launcher, so existing
@@ -157,13 +169,16 @@ export function addMobilePresentation(html, { officialWebVersion } = {}) {
   const scriptNames = hasNativeSideChatScroll(officialWebVersion)
     ? SCRIPTS.filter((name) => name !== 'sideChatScroll.js')
     : SCRIPTS;
-  const scripts = scriptNames.map((name) => `<script src="${PREFIX}${name}"></script>`).join('\n') + '\n';
+  const metadata = `<meta name="open-kimi-web-version" content="${APP_VERSION}">\n`;
+  const scripts = metadata + scriptNames.map((name) => `<script src="${PREFIX}${name}"></script>`).join('\n') + '\n';
+  const original = html.replace(/<link\b(?=[^>]*\brel\s*=\s*["'](?:shortcut\s+)?icon["'])[^>]*>\s*/gi, '');
   const moduleTag = /<script\b[^>]*\btype\s*=\s*["']module["'][^>]*>/i;
-  const withScript = moduleTag.test(html)
-    ? html.replace(moduleTag, (tag) => `${scripts}${tag}`)
-    : html.replace('</head>', `${scripts}</head>`);
+  const withScript = moduleTag.test(original)
+    ? original.replace(moduleTag, (tag) => `${scripts}${tag}`)
+    : original.replace('</head>', `${scripts}</head>`);
   const styles = STYLES.map((name) => `<link rel="stylesheet" href="${PREFIX}${name}">`).join('\n') + '\n';
   const install = [
+    `<link rel="icon" type="image/png" sizes="192x192" href="${PREFIX}icons/app-192.png">`,
     `<link rel="manifest" href="${PREFIX}manifest.webmanifest">`,
     `<link rel="apple-touch-icon" sizes="180x180" href="${PREFIX}icons/apple-touch-180.png">`,
     '<meta name="apple-mobile-web-app-capable" content="yes">',

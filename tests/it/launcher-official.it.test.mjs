@@ -21,6 +21,7 @@ const TITLE_SNIPPET = 'function KXe(e,t){return e!==""?e:t?`${VXe(t)} | Kimi Cod
 const BOOT_JS = "// upstream boot fixture\nlocalStorage.getItem('kimi-web.color-scheme');\n";
 const INDEX_HTML = [
   '<!doctype html><html><head>',
+  '<link rel="icon" href="/favicon.ico" sizes="64x64" />',
   '<script src="/boot.js"></script>',
   '<script type="module" src="/assets/index-9.9.9.js"></script>',
   '<title>Kimi Code Web</title>',
@@ -211,6 +212,22 @@ function verifyChatEnhancementOrder(indexText) {
     expect(indexText.indexOf(`${name}.js`)).toBeLessThan(indexText.indexOf('<script type="module"'));
   }
   expect(indexText.indexOf('sessionActionsApi.js')).toBeGreaterThan(indexText.indexOf('locale.js'));
+  const tocScripts = ['mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js',
+    'mobileConversationTocView.js', 'mobileConversationToc.js'];
+  for (const [index, name] of tocScripts.entries()) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
+    expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
+    if (index) expect(indexText.indexOf(name)).toBeGreaterThan(indexText.indexOf(tocScripts[index - 1]));
+  }
+  expect(indexText).toContain('/__open-kimi-mobile/mobileConversationToc.css');
+  expect(indexText).toContain('/__open-kimi-mobile/branding.css');
+  expect(indexText.indexOf('open-kimi-web-version')).toBeLessThan(indexText.indexOf('branding.js'));
+  expect(indexText.indexOf('branding.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
+  const version = JSON.parse(readFileSync('packages/launcher/package.json', 'utf8')).version;
+  expect(indexText).toContain(`<meta name="open-kimi-web-version" content="${version}">`);
+  expect(indexText.match(/rel="icon"/g)).toHaveLength(1);
+  expect(indexText).toContain('sizes="192x192" href="/__open-kimi-mobile/icons/app-192.png"');
+  expect(indexText).not.toContain('/favicon.ico');
 }
 
 async function verifyRepresentation(url, response, length, compressible) {
@@ -237,6 +254,7 @@ async function verifyIndexRepresentation(url, response, text) {
 }
 
 const PRESENTATION_ASSETS = [
+  'branding.js', 'branding.css',
   ...NAVIGATION_ASSETS,
   'pwaInstallView.js', 'pwaInstall.js', 'pwaInstall.css', 'manifest.webmanifest',
   'icons/app-192.png', 'icons/app-512.png', 'icons/apple-touch-180.png',
@@ -247,12 +265,23 @@ const PRESENTATION_ASSETS = [
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',
   'notificationPermission.js', 'completionModal.css', 'completionModal.js', 'questionCardLayout.js', 'presentation.js',
   'sessionSize.js', 'sessionSize.css', 'messageTimestamps.js', 'messageTimestamps.css', 'chatWidth.css',
+  'mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js', 'mobileConversationTocView.js',
+  'mobileConversationToc.js', 'mobileConversationToc.css',
   'archivedSessionDelete.css', 'archivedSessionDelete.js', 'providerSorting.js', 'providerModelState.js',
   'providerEnhancements.js',
   'workspacePins.css', 'workspacePins.js', 'usage.css', 'usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js',
   'usage.js', 'usageBundle.js', 'themes.css', 'themes.js', 'backgrounds/aurora.png', 'backgrounds/twilight.png',
   'backgrounds/ember.png', 'backgrounds/mineral.png', 'backgrounds/nocturne.png',
 ];
+
+function verifyBranding(name, body) {
+  if (name === 'branding.js') {
+    expect(body).toContain("const name = 'OPEN-KIMI-WEB'");
+    expect(body).toContain('open-kimi-web-version');
+    expect(body).toContain('.ch-ses');
+  }
+  if (name === 'presentation.js') expect(body).not.toContain('prompts:steer');
+}
 
 async function expectPresentationAssets(baseUrl) {
   const sourceAssets = new Map();
@@ -268,10 +297,7 @@ async function expectPresentationAssets(baseUrl) {
       expect(Number(response.headers.get('content-length'))).toBeGreaterThan(0);
       expect(body.byteLength).toBe(Number(response.headers.get('content-length')));
     }
-    if (name === 'presentation.js') {
-      expect(body).toContain("document.querySelector('.side .ch-brand .ch-name')");
-      expect(body).toContain("label.textContent = 'OPEN-KIMI-WEB'");
-    }
+    verifyBranding(name, body);
     if (name === 'foldingDefaults.js') {
       expect(body).toContain("const activityRunFoldingKey = 'kimi-web.activity-run-folding'");
       expect(body).toContain("localStorage.setItem(activityRunFoldingKey, '1')");
