@@ -2,7 +2,7 @@ const MESSAGES = {
   'invalid-input': 'Invalid scheduled-task input.',
   'unsafe-target': 'Cron operations require a literal loopback HTTP(S) origin.',
   unauthorized: 'Current authorization was rejected.',
-  'unsupported-version': 'Cron reads require the verified official 2.1.1, 2.2.0, 2.3.1 or 2.4.1 backend.',
+  'unsupported-version': 'Cron reads require the verified official 2.1.1, 2.2.0, 2.3.1, 2.4.1 or 2.5.2 backend.',
   'read-only-version': 'This official version has no verified atomic cron write API for session ownership and freshness. ' +
     'Only read-only access is supported; no write was sent.',
   'unsafe-auth': 'Cron operations require upstream authentication to be enabled.',

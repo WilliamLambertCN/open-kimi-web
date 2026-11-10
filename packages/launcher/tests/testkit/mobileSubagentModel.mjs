@@ -48,16 +48,18 @@ const observe = (view) => {
   };
   return state;
 };
-const mockBackend = (initial) => {
+const mockBackend = (initial, version) => {
   let config = initial;
   const posts = [];
   const nativeFetch = vi.fn(async (path, options) => {
+    if (path === '/api/v1/meta') return response({ server_version: version });
     if (path === '/api/v1/models') return response({ items: [] });
     if (path === '/api/v1/config') {
       if (options?.method === 'POST') {
         const patch = JSON.parse(options.body);
         posts.push(patch);
-        config = { ...config, secondary_model: { ...config.secondary_model, ...patch.secondary_model } };
+        if (patch.secondary_model === null) delete config.secondary_model;
+        else config = { ...config, secondary_model: { ...config.secondary_model, ...patch.secondary_model } };
       }
       return response(config);
     }
@@ -97,7 +99,7 @@ export async function install(options = {}) {
   const media = { matches: mobile, addEventListener: (_name, listener) => { media.change = listener; } };
   view.matchMedia = (query) => query === '(hover: none)' ? { matches: touch } : media;
   Object.assign(view, { Request, Headers, Response, AbortController });
-  const backend = mockBackend(configFor(options));
+  const backend = mockBackend(configFor(options), options.version ?? '2.4.1');
   view.fetch = backend.nativeFetch;
   const storage = new Map([['kimi-locale', locale]]);
   Object.defineProperty(view, 'localStorage', { value: {

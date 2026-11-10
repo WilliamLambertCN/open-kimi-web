@@ -1,0 +1,128 @@
+.okw-toc-backdrop[hidden] { display: none; }
+.okw-toc-trigger { display: none; }
+
+@media (max-width: 640px) {
+  .app.mobile > .topbar.okw-toc-header { gap: 4px; }
+  .app.mobile > .topbar.okw-toc-header .tb-main { flex: 1; width: auto; max-width: none; min-width: 0; }
+  .app.mobile > .topbar.okw-toc-header > .ui-icon-button.okw-toc-trigger {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .okw-toc-open { overflow: hidden; }
+  .okw-toc-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2147482100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 8px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom));
+    background: var(--color-scrim, rgb(0 0 0 / 55%));
+    font-family: var(--font-ui);
+    color: var(--color-text);
+  }
+  .okw-toc-backdrop *, .okw-toc-backdrop { box-sizing: border-box; }
+  .okw-toc-backdrop [hidden] { display: none; }
+  .okw-toc-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: min(480px, 100%);
+    max-height: calc(var(--app-height, 100dvh) - 72px);
+    border: var(--p-hairline, 1px) solid var(--color-line);
+    border-radius: var(--radius-xl, 18px);
+    background: linear-gradient(var(--color-surface-raised), var(--color-surface-raised)), var(--color-bg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+  }
+  .okw-toc-head {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px 8px 16px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .okw-toc-head h2 { margin: 0; font-size: var(--text-base, 15px); font-weight: var(--weight-medium, 500); }
+  .okw-toc-close, .okw-toc-earlier {
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--text-sm, 13px);
+    cursor: pointer;
+  }
+  .okw-toc-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .okw-toc-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-height: 48px;
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: var(--color-text-muted);
+    text-align: start;
+    font: inherit;
+    font-size: var(--text-sm, 13px);
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .okw-toc-number { flex: 0 0 24px; font-size: var(--text-xs, 12px); font-variant-numeric: tabular-nums; opacity: .65; }
+  .okw-toc-label {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .okw-toc-item.is-current { color: var(--color-text); background: var(--color-selected); }
+  .okw-toc-item.is-current .okw-toc-number { color: var(--color-accent); opacity: 1; }
+  .okw-toc-item:hover, .okw-toc-close:hover, .okw-toc-earlier:hover, .okw-toc-trigger:hover {
+    background: var(--color-hover);
+  }
+  .okw-toc-backdrop button:focus-visible, .okw-toc-trigger:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+  .okw-toc-foot {
+    flex: none;
+    padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--color-line);
+  }
+  .okw-toc-foot p, .okw-toc-status {
+    margin: 0;
+    color: var(--color-text-faint);
+    font-size: var(--text-xs, 12px);
+    line-height: 1.5;
+  }
+  .okw-toc-earlier { margin-top: 4px; padding-inline: 0; color: var(--color-accent); }
+  .okw-toc-status { padding: 12px 16px; }
+  .okw-toc-status.is-error { color: var(--color-danger); }
+}

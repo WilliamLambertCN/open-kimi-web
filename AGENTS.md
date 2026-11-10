@@ -8,6 +8,9 @@
 ## 实施计划
 
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
+- [2.5.2 发布](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md)
+- [品牌与 2.5.2 适配](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md)
+- [手机消息目录](docs/plans/mobile-conversation-toc-v1-plan.md)
 - [2.4.1-r3 发布](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md)
 - [2.4.1-r2 发布](docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md)
 - [局域网证书](docs/plans/android-lan-ca-v1-plan.md)
@@ -43,10 +46,16 @@
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.4.1 与历史版本适配事实
+## 官方 2.5.2 与历史版本适配事实
 
-- 当前兼容目标是 Kimi Code `2.4.1`；`UPSTREAM.md`、`upstream.json` 和本轮计划区分静态审计与真实运行验收。
-  下列旧版行为保留为历史参考，不是新版保证；升级仍须重新核对受影响的 API、DOM、交互和失败行为。
+- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r1`；正式状态与线上证据见本轮发布计划和 Release。
+  `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
+  0.41.0 协议快照未重捕；下列旧版行为保留为历史，不是新版保证。
+- 精确 `2.5.2` 新增只读任务和最近页支持；不为列任务调用已删除的 GET `/status` 或恢复冷会话。
+  原生 agent／usage／goal／todo／task 独立 WS 帧直接透传，不补造旧 transcript 状态。
+- 全文搜索默认关闭时给出中英开启方法及扫描成本，不自动启用；普通标题筛选不受影响。
+- 手机全局子模型控件不因模型池只有一项隐藏。仅成功同源精确 `2.5.2` meta 允许显式提交 `secondary_model: null`，
+  按真实省略 section 的回包验证跟随主模型；旧版限制保留，不写 force／primary 或改主模型。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
   官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、
@@ -55,9 +64,8 @@
   保留 v1 `GET /api/v1/sessions?archived_only=true` 兼容，不能只监听其中一个版本。
 - 官方 `2.1.1` 仍提供 `POST /api/v1/sessions/{session_id}:delete`。永久删除必须调用该正式接口，
   继续让官方服务负责关闭会话并清理会话数据。
-- 自定义按钮在 `2.1.1` 的运行中草稿先通过 `.send` 创建 queued prompt，再用返回的精确 `prompt_id` 调用
-  `POST /api/v1/sessions/{session_id}/prompts:steer`。官方快捷键行为由上游维护；自定义“插队”按钮
-  必须提交当前草稿后精确 steer，不能用合成 `Ctrl+S` 替代。
+- 发送、排队和插队由官方处理；不再注入自定义按钮、发送意图或自动 steer 请求。
+  旧版精确 prompt ID 的实现及验收仅为历史，不恢复合成快捷键或重复操作。
 - 浏览器不得访问通用 debug dispatcher。`/api/v1/debug` 及其子路径必须在代理层返回 404；
   launcher 不得为永久删除常态开启 `--debug-endpoints` 或维护另一个删除协议。
 - 外部 `--target` 不支持官方正式删除接口时，必须显示清楚的错误，不能只从页面隐藏条目或误报成功。

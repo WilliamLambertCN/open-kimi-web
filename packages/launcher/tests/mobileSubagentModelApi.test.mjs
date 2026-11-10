@@ -135,6 +135,56 @@ describe('subagent model metadata and effort compatibility', () => {
   });
 });
 
+describe('subagent 2.5.2 inheritance reset', () => {
+  const follow = { model: '', effort: '' };
+  const section = { defaultModel: 'fixture/fast', models: { 'fixture/fast': 'Retained pool' } };
+  it('enables native null only after observing exact same-origin 2.5.2 metadata', async () => {
+    const ui = install();
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.5.2' }));
+    await ui.authorize();
+    expect(ui.api.patchFor(section, follow, [])).toEqual({ secondary_model: null });
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(1);
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.4.1' }));
+    await ui.authorize();
+    expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
+  });
+  it.each(['2.5.1', '2.5.3', '2.5.2-modified', undefined])('keeps %s fail-closed', async (version) => {
+    const ui = install();
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
+    await ui.authorize();
+    expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
+  });
+  it('ignores external, failed, malformed and redirected metadata', async () => {
+    const ui = install();
+    const valid = () => envelope({ server_version: '2.5.2' });
+    ui.nativeFetch.mockResolvedValueOnce(valid());
+    await ui.authorize('https://elsewhere.test/api/v1/meta');
+    expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
+    const redirected = valid();
+    Object.defineProperty(redirected, 'redirected', { value: true });
+    for (const response of [new Response('{}', { status: 503 }), new Response('bad JSON'), redirected]) {
+      ui.nativeFetch.mockResolvedValueOnce(valid());
+      await ui.authorize();
+      ui.nativeFetch.mockResolvedValueOnce(response);
+      await ui.authorize();
+      expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
+    }
+  });
+  it('verifies an omitted secondary section and rejects stale pools without changing the main model', async () => {
+    const ui = install();
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.5.2' }));
+    await ui.authorize();
+    const cleared = config(undefined);
+    delete cleared.secondary_model;
+    ui.nativeFetch.mockResolvedValueOnce(envelope(config(section))).mockResolvedValueOnce(envelope({ items: [] }))
+      .mockResolvedValueOnce(envelope(cleared));
+    await expect(ui.api.save(follow)).resolves.toMatchObject({ section: undefined });
+    expect(JSON.parse(ui.nativeFetch.mock.calls.at(-1)[1].body)).toEqual({ secondary_model: null });
+    expect(cleared.default_model).toBe('fixture/main');
+    expect(() => ui.api.verifySaved(config({ models: {} }), follow)).toThrow('saveMismatch');
+  });
+});
+
 describe('subagent authenticated API', () => {
   it('waits for observed same-origin authorization without reading credential storage', async () => {
     const ui = install();

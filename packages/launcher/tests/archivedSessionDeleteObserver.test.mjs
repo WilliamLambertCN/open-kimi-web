@@ -227,7 +227,7 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(40);
+    expect(ui.names).toHaveLength(45);
     expect(ui.names).toEqual(expect.arrayContaining(['navigationWorkspace.js', 'navigationSearchView.js',
       'cronApi.js', 'cronView.js', 'cron.js', 'providerModelState.js', 'effortOrder.js',
       'locale.js', 'usageLocale.js', 'providerLocale.js', 'mobileSubagentModelApi.js',
@@ -235,9 +235,10 @@ describe('archived delete observer convergence', () => {
       'imagePreviewGuard.js', 'tabFeedback.js']));
     expect(ui.names.some((name) => name.startsWith('schedules'))).toBe(false);
     expect(ui.names.indexOf('navigation.js')).toBeLessThan(ui.names.indexOf('usageBundle.js'));
-    expect(ui.names.slice(-7)).toEqual([
+    expect(ui.names.slice(-12)).toEqual([
       'usageBundle.js', 'pwaInstallView.js', 'pwaInstall.js', 'questionCardLayout.js',
-      'presentation.js', 'sessionSize.js', 'messageTimestamps.js',
+      'presentation.js', 'sessionSize.js', 'messageTimestamps.js', 'mobileConversationTocMetadata.js',
+      'mobileConversationTocNavigate.js', 'mobileConversationTocView.js', 'mobileConversationToc.js', 'branding.js',
     ]);
     await loadArchived(ui);
     expect(ui.view.document.querySelectorAll('.a-msg')).toHaveLength(100);

@@ -2,7 +2,7 @@
   const installed = Symbol.for('open-kimi-web.mobile-subagent-api');
   if (!window[installed]) {
     window[installed] = true;
-    const state = { authorization: '' };
+    const state = { authorization: '', canClear: false };
     const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
     const inherited = (section) => !section?.defaultModel && !section?.model && section?.models === undefined;
     const remember = (authorization) => {
@@ -14,8 +14,21 @@
         return url.origin === location.origin && url.pathname.startsWith('/api/');
       } catch { return false; }
     };
+    const validResponse = (response) => !response.redirected && (!response.url || apiUrl(response.url));
+    const observeMeta = async (resource, response) => {
+      if (!apiUrl(resource)) return response;
+      const url = new URL(resource instanceof Request ? resource.url : String(resource), location.href);
+      if (url.pathname !== '/api/v1/meta') return response;
+      state.canClear = false;
+      if (!response.ok || !validResponse(response)) return response;
+      try {
+        const envelope = await response.clone().json();
+        state.canClear = envelope?.code === 0 && envelope.data?.server_version === '2.5.2';
+      } catch {}
+      return response;
+    };
     const nativeFetch = window.fetch;
-    window.fetch = function subagentAuthFetch(resource, options) {
+    window.fetch = async function subagentAuthFetch(resource, options) {
       try {
         if (apiUrl(resource)) {
           const headers = new Headers(resource instanceof Request ? resource.headers : undefined);
@@ -23,7 +36,8 @@
           remember(headers.get('authorization'));
         }
       } catch {}
-      return nativeFetch.apply(this, arguments);
+      const response = await nativeFetch.apply(this, arguments);
+      return observeMeta(resource, response);
     };
     const xhr = window.XMLHttpRequest?.prototype;
     if (xhr) {
@@ -41,7 +55,7 @@
     }
 
     const responseData = async (response) => {
-      if (response.redirected || (response.url && !apiUrl(response.url))) throw new Error('invalidResponse');
+      if (!validResponse(response)) throw new Error('invalidResponse');
       if ([401, 403].includes(response.status)) throw new Error('authExpired');
       let envelope;
       try { envelope = await response.json(); } catch { throw new Error('invalidResponse'); }
@@ -120,8 +134,9 @@
     };
     const patchFor = (section, choice, models) => {
       if (!choice.model) {
-        if (!inherited(section)) throw new Error('cannotFollow');
-        return null;
+        if (inherited(section)) return null;
+        if (!state.canClear) throw new Error('cannotFollow');
+        return { secondary_model: null };
       }
       validateChoice(section, choice, models);
       const current = choiceFor(section);
@@ -133,6 +148,10 @@
       return { secondary_model: patch };
     };
     const verifySaved = (config, choice) => {
+      if (!choice.model) {
+        if (!inherited(config.secondary_model)) throw new Error('saveMismatch');
+        return config;
+      }
       const saved = choiceFor(config.secondary_model);
       if (saved.model !== choice.model || config.secondary_model?.defaultEffort !== choice.effort) {
         throw new Error('saveMismatch');

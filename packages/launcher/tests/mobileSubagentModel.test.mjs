@@ -240,8 +240,8 @@ describe('mobile subagent keyboard and input composition', () => {
 
 describe('mobile subagent inheritance and automatic effort', () => {
   it.each([
-    ['en', 'The official config API cannot clear a configured subagent model; restore inheritance via CLI config.'],
-    ['zh', '官方配置接口无法清除已配置的子智能体模型；请通过官方 CLI 配置恢复跟随主模型。'],
+    ['en', 'This Kimi version cannot restore inheritance on the web; use the official CLI config.'],
+    ['zh', '当前 Kimi 版本不支持在网页恢复跟随主模型；请通过官方 CLI 配置调整。'],
   ])('explains unsupported clearing in %s without an obsolete version or an invalid merge', async (locale, message) => {
     const ui = await install({ locale, section: { defaultModel: 'fixture/fast', defaultEffort: 'medium' } });
     await open(ui);
@@ -254,6 +254,26 @@ describe('mobile subagent inheritance and automatic effort', () => {
     expect(ui.posts).toEqual([]);
     expect(ui.getConfig().secondary_model.defaultModel).toBe('fixture/fast');
   });
+  it.each(['en', 'zh'])('restores inheritance through native null on 2.5.2 in %s', async (locale) => {
+    const section = { defaultModel: 'fixture/fast', defaultEffort: 'medium', models: { 'fixture/fast': 'Pool' } };
+    const ui = await install({ locale, version: '2.5.2', section });
+    await open(ui);
+    ui.select('');
+    expect(ui.query('save').disabled).toBe(false);
+    expect(ui.query('status').textContent).toBe('');
+    ui.query('save').click();
+    await ui.settled();
+    expect(ui.posts).toEqual([{ secondary_model: null }]);
+    expect(ui.getConfig().secondary_model).toBeUndefined();
+    expect(ui.getConfig().default_model).toBe('fixture/main');
+    expect(ui.query('summary').textContent).toBe(locale === 'zh' ? '跟随主模型' : 'Follow main model');
+    await open(ui);
+    expect(current(ui)).toBe('');
+    expect(ui.query('save').disabled).toBe(true);
+  });
+});
+
+describe('mobile subagent automatic effort and retained pool', () => {
   it('restores Auto with an empty effort and reloads it from backend', async () => {
     const ui = await install({ section: { defaultModel: 'fixture/fast', defaultEffort: 'medium' } });
     await open(ui);
