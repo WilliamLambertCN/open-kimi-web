@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
 import { afterEach, describe, expect, it } from 'vitest';
-import { checkedRun, runProcess } from '../../packages/launcher/src/update/process.mjs';
+import { runProcess } from '../../packages/launcher/src/update/process.mjs';
 import { updateMain } from '../../packages/launcher/src/update/updateMain.mjs';
 import { acquireLock } from '../../packages/launcher/src/update/lock.mjs';
 import { exists } from '../../packages/launcher/src/update/files.mjs';
@@ -43,9 +43,7 @@ function alive(pid) {
 
 async function stopFixturePid(pid) {
   if (alive(pid)) {
-    if (process.platform === 'win32') {
-      await checkedRun(join(process.env.SystemRoot || 'C:/Windows', 'System32/taskkill.exe'), ['/PID', String(pid), '/F']);
-    } else process.kill(pid, 'SIGKILL');
+    process.kill(pid, 'SIGKILL');
   }
   for (let count = 0; count < 100 && alive(pid); count += 1) {
     await new Promise((resolve) => setTimeout(resolve, 10));
@@ -77,30 +75,27 @@ async function independentFixture(value) {
 describe('owned updater tree cleanup does not touch independent services', () => {
   it.each(['timeout', 'cancel'])('stops only its live subtree on %s, preserving independent state', async (mode) => {
     const value = await fixture();
-    const independentFile = join(value.directory, 'independent.pid');
-    const independent = spawn(process.execPath, [value.script, independentFile], { shell: false, stdio: 'ignore' });
-    cleanup.push(async () => {
-      if (independent.exitCode === null) { independent.kill(); await once(independent, 'exit'); }
-    });
-    const independentPid = await waitPid(independentFile);
-    const sentinel = join(value.directory, 'official-data-sentinel');
-    await put(sentinel, 'unchanged');
-    const server = createServer((req, res) => res.end('unrelated-service'));
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    cleanup.push(() => new Promise((resolve) => server.close(resolve)));
-    const url = `http://127.0.0.1:${server.address().port}`;
+    const { pid: independentPid, sentinel, url } = await independentFixture(value);
+    const leafFile = join(value.directory, 'leaf.pid');
+    const worker = join(value.directory, 'worker.cjs');
+    await put(worker, 'const fs=require("fs");fs.writeFileSync(process.argv[2],String(process.pid));' +
+      `require("child_process").spawn(process.execPath,${JSON.stringify([value.script, leafFile])},` +
+      '{stdio:"ignore"});setInterval(()=>{},1000);');
     const controller = new AbortController();
-    const task = runProcess(process.execPath, [value.parent, value.script, value.pidFile], {
+    const task = runProcess(process.execPath, [value.parent, worker, value.pidFile], {
       timeoutMs: mode === 'timeout' ? 1_000 : 5_000, signal: controller.signal,
     });
     const failure = expect(task).rejects.toThrow(mode === 'timeout' ? 'timed out' : 'cancelled');
     const ownedPid = await waitPid(value.pidFile);
+    const leafPid = await waitPid(leafFile);
+    cleanup.push(async () => { await stopFixturePid(ownedPid); await stopFixturePid(leafPid); });
     if (mode === 'cancel') controller.abort();
     await failure;
-    for (let count = 0; count < 100 && alive(ownedPid); count += 1) {
+    for (let count = 0; count < 100 && (alive(ownedPid) || alive(leafPid)); count += 1) {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
-    expect(alive(ownedPid)).toBe(false);
+    expect(alive(ownedPid), `owned PID=${ownedPid}; independent PID=${independentPid}`).toBe(false);
+    expect(alive(leafPid), `leaf PID=${leafPid}`).toBe(false);
     expect(alive(independentPid)).toBe(true);
     expect(await (await fetch(url)).text()).toBe('unrelated-service');
     expect(await readFile(sentinel, 'utf8')).toBe('unchanged');

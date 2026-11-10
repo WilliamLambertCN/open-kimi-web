@@ -5,7 +5,36 @@
 
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
-为当时的实施、审查和验收基线。当前官方兼容基线为 `2.4.1`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
+为当时的实施、审查和验收基线。当前本地兼容目标为 `2.5.2`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
+本轮发布目标为 `2.5.2-r1`，正式状态见 Release；安装器缺官方时的固定版本及 meta 失败 UI fallback 均保持 `2.4.1`。
+
+用户于 2026-11-10 明确要求提 PR、合入 main 并发布，按
+[`docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md`](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md) 执行。
+本次授权覆盖下方品牌／兼容及手机目录此前仅本地提交、不推送／不发布的阶段限制，不包含用户 CLI 升级或生产重启。
+沿用已完成的默认并发测试、真实后端及实图验收，只补版本、实际包、隐私和 required CI；不绕过门禁或改旧 tag／资产。
+提交、squash 与 annotated tag 均使用已确认 GitHub noreply；正式包只从通过 CI 的 main 生成。
+
+品牌图标、实际版本、话题标签及官方 2.5.2 兼容按
+[`docs/plans/branding-and-2.5.2-compatibility-v1-plan.md`](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md) 实施。
+用户于 2026-11-10 追加授权仅本地 Git 提交，覆盖本轮及下方手机目录的“不提交”阶段限制。
+不推送、发布、升级用户 CLI 或重启生产；移除 OKW 重复插队逻辑，保留官方发送行为。
+准确 npm 后端 23 项与最近页补验 3 项通过；正式手机 API 经真实后端配置保存／清除／回读三项通过。
+完整 app 三主题／双端 20 项几何功能检查及 12 张图完成；原报告保留一次 Chrome 瞬时退出未确认，后查已归零。
+话题切换／原生改名／历史与旧消息跳转七项功能、子模型／搜索六项、新 WS 同步六项通过，驱动首失败保留。
+用户追加要求默认并发门禁必须通过；已确认原 taskkill 超时后父子进程确实存活，不归咎于 PID 查询残影。
+Windows 改用原生快照、创建时间与句柄终止／退出确认；保留 3 秒清理期限、未确认错误与安装锁，不增加依赖。
+安装器三个短命令探测原各固定等待一秒，改为 0.1 秒轮询，原 15 秒总预算不变，补边界回归。
+最终默认并发 2914 项 UT、644 项 IT／6 项平台跳过、lint／typecheck 及实际 pack 全通过，70% 门槛不变。
+UT／IT 行与分支为 93.56%／84.86%、84.30%／71.88%；原并发失败保留为修复前证据，准确结果见同计划。
+
+手机消息目录按
+[`docs/plans/mobile-conversation-toc-v1-plan.md`](docs/plans/mobile-conversation-toc-v1-plan.md) 实施。
+本轮只补手机入口和点选跳转，复用原生消息身份／分页，不全量下载会话，不依赖 Vue 私有状态。
+只在本地实现与验收，不提交、推送、发布、升级官方或重启生产；此前 r3 发布授权不延伸到本功能。
+精确 2.4.1／2.3.1 的真实 app 分页与跳转各 12／12，WS 同步各 11／11；窄屏、横屏和三主题实图已查看。
+跳转使用原生相邻揭示及精确锚点，并等待布局稳定；手动滚动立即取消。顶端可能触发官方一页预取，不宣称绝对零请求。
+最多四会话、每会话 2000 项短目录；超过 2 MiB 的响应不额外解析，目录可能缺项，原生正文不截断。
+本轮 120 项定向 UT、5 项资源 IT、标准 lint／typecheck 与本地 pack 已通过；历史首败及实际边界见同计划。
 
 用户于 2026-11-08 要求推送并发布，按
 [`docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md`](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md) 执行。
@@ -128,8 +157,9 @@ bash 登录 profile 以 `.bash_profile` 优先、仅缺失时选 `.bash_login`�
 [`docs/plans/mobile-subagent-model-v1-plan.md`](docs/plans/mobile-subagent-model-v1-plan.md) 实施，现纳入已授权 r10 发布。
 官方 `2.1.1` MobileSettingsSheet 不含该字段，且无已确认的完整 Settings 公开打开动作；使用最小独立手机控件。
 读取官方 config／models，仅 POST `/api/v1/config` 的 `secondary_model`，合并 models 池，不覆盖主模型／其它配置。
-Auto 合法提交 `defaultEffort: ''`，按全局思考设置／模型默认；已配置模型仍无 API 清除为跟随主模型的能力。
-空模型／null 无效，merge 省略字段不能清除；不使用 Vue 私有状态、切换 breakpoint 或另存 localStorage。
+Auto 合法提交 `defaultEffort: ''`，按全局思考设置／模型默认。r10 当时的官方版本不能清除已配置模型，
+空模型／null 无效，merge 省略字段不能清除；准确 `2.5.2` 的原生 null 例外见下方当前适配事实。
+不使用 Vue 私有状态、切换 breakpoint 或另存 localStorage。
 用户新增要求沿用主模型选择 UI，实施范围已增补同一计划：官方 ModelPicker 未公开导出，
 复用 sheet／搜索／供应商 chips／两行模型列表及分段思考的结构与 token，不用 Vue 私有实例或主模型写入回滚。
 旧原生 SELECT／编号／常驻详情及 focused 108 断言／28 图仅属历史；新 UI 实图发现碰撞身份与分段密度问题后已修。
@@ -291,10 +321,16 @@ PR #35及main required CI已通过，2154 UT／545 IT通过、28／23平台条�
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.4.1 与历史版本适配事实
+## 官方 2.5.2 与历史版本适配事实
 
-- 当前兼容目标是 Kimi Code `2.4.1`；`UPSTREAM.md`、`upstream.json` 和本轮计划区分静态审计与真实运行验收。
-  下列旧版行为保留为历史参考，不是新版保证；升级仍须重新核对受影响的 API、DOM、交互和失败行为。
+- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r1`；正式状态与线上证据见本轮发布计划和 Release。
+  `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
+  0.41.0 协议快照未重捕；下列旧版行为保留为历史，不是新版保证。
+- 精确 `2.5.2` 新增只读任务和最近页支持；不为列任务调用已删除的 GET `/status` 或恢复冷会话。
+  原生 agent／usage／goal／todo／task 独立 WS 帧直接透传，不补造旧 transcript 状态。
+- 全文搜索默认关闭时给出中英开启方法及扫描成本，不自动启用；普通标题筛选不受影响。
+- 手机全局子模型控件不因模型池只有一项隐藏。仅成功同源精确 `2.5.2` meta 允许显式提交 `secondary_model: null`，
+  按真实省略 section 的回包验证跟随主模型；旧版限制保留，不写 force／primary 或改主模型。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
   官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、
@@ -303,9 +339,8 @@ PR #35及main required CI已通过，2154 UT／545 IT通过、28／23平台条�
   保留 v1 `GET /api/v1/sessions?archived_only=true` 兼容，不能只监听其中一个版本。
 - 官方 `2.1.1` 仍提供 `POST /api/v1/sessions/{session_id}:delete`。永久删除必须调用该正式接口，
   继续让官方服务负责关闭会话并清理会话数据。
-- 自定义按钮在 `2.1.1` 的运行中草稿先通过 `.send` 创建 queued prompt，再用返回的精确 `prompt_id` 调用
-  `POST /api/v1/sessions/{session_id}/prompts:steer`。官方快捷键行为由上游维护；自定义“插队”按钮
-  必须提交当前草稿后精确 steer，不能用合成 `Ctrl+S` 替代。
+- 按用户最新要求，发送、排队和插队由官方处理；不再注入自定义按钮、发送意图或自动 steer 请求。
+  旧版精确 prompt ID 的实现及验收仅为历史，不恢复合成快捷键或重复操作。
 - 浏览器不得访问通用 debug dispatcher。`/api/v1/debug` 及其子路径必须在代理层返回 404；
   launcher 不得为永久删除常态开启 `--debug-endpoints` 或维护另一个删除协议。
 - 外部 `--target` 不支持官方正式删除接口时，必须显示清楚的错误，不能只从页面隐藏条目或误报成功。

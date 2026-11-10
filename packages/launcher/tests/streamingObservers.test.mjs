@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const sources = ['presentation.js', 'workspacePins.js'].map((name) =>
+const sources = ['branding.js', 'presentation.js', 'workspacePins.js'].map((name) =>
   readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8'));
 const frames = [];
 const observers = [];
@@ -98,7 +98,7 @@ describe('streaming observer scope', () => {
     await settle();
 
     expect(doc.querySelector('.side .ch-name').textContent).toBe('OPEN-KIMI-WEB');
-    expect(doc.querySelector('.okw-steer-button')).not.toBeNull();
+    expect(doc.querySelector('.okw-steer-button')).toBeNull();
     expect(doc.querySelector('.sessions').firstElementChild.dataset.wsId).toBe('workspace-c');
     expect(doc.querySelector('[data-ws-id="workspace-c"] .okw-workspace-pin-mark')).not.toBeNull();
 

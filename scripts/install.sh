@@ -43,14 +43,14 @@ okw_probe() (
     trap 'rm -f "$output"' EXIT
     "$node" "$@" >"$output" 2>/dev/null &
     pid=$!
-    remaining=15
+    remaining=150
     while kill -0 "$pid" 2>/dev/null; do
         if [ "$remaining" -eq 0 ]; then
             kill -KILL "$pid" 2>/dev/null || :
             wait "$pid" 2>/dev/null || :
             exit 1
         fi
-        sleep 1
+        sleep 0.1
         remaining=$((remaining - 1))
     done
     status=0

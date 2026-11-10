@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { terminateTree, unconfirmedCleanup } from './treeCleanup.mjs';
+import { recordProcessStart } from './windowsTreeCleanup.mjs';
 
 const DEFAULT_TIMEOUT = 60_000;
 const DEFAULT_LIMIT = 256 * 1024;
@@ -8,10 +9,12 @@ export function runProcess(command, args = [], options = {}) {
   const { timeoutMs = DEFAULT_TIMEOUT, maxBytes = DEFAULT_LIMIT, signal, platform = process.platform } = options;
   if (signal?.aborted) return Promise.reject(new Error('update command cancelled before start'));
   return new Promise((resolve, reject) => {
+    const startedAt = Date.now() - 1;
     const child = spawn(command, args, {
       cwd: options.cwd, env: options.env ?? process.env, shell: false, windowsHide: true,
       detached: platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'],
     });
+    recordProcessStart(child, startedAt);
     const state = { stdout: '', stderr: '', bytes: 0, failure: null, killTask: null };
     let grace;
     const abort = (message) => {
