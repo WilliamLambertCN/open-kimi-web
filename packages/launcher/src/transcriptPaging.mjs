@@ -1,4 +1,4 @@
-const SUPPORTED_VERSIONS = new Set(['2.3.1', '2.4.1']);
+const SUPPORTED_VERSIONS = new Set(['2.3.1', '2.4.1', '2.5.2']);
 const INITIAL_MAIN_TRANSCRIPT = new RegExp(
   '^/api/v1/sessions/[A-Za-z0-9_-]+/transcript\\?(?:agent_id=main&page_size=10|page_size=10&agent_id=main)(?![\\s\\S])',
 );

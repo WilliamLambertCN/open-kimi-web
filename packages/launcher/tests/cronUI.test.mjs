@@ -53,7 +53,7 @@ async function settled(test) {
 }
 afterEach(() => { observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove()); });
-describe.each(['2.3.1', '2.4.1'])('%s read-only scheduled-task UI', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.5.2'])('%s read-only scheduled-task UI', (version) => {
   const readonly = { available: true, version, reason: 'read-only-version',
     capabilities: { list: true, inventory: true, history: true, create: false, remove: false } };
   it('keeps cold inventory/history readable and blocks hidden buttons and direct create/remove/restore callbacks', async () => {

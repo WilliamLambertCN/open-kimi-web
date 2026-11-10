@@ -9,6 +9,13 @@ import { acquireLock } from '../src/update/lock.mjs';
 import { updateMain } from '../src/update/updateMain.mjs';
 import { runProcess } from '../src/update/process.mjs';
 import { terminateTree, unconfirmedCleanup } from '../src/update/treeCleanup.mjs';
+import { recordProcessStart } from '../src/update/windowsTreeCleanup.mjs';
+
+function windowsChild() {
+  const child = { pid: 123, exitCode: null, signalCode: null };
+  recordProcessStart(child, Date.now() - 1);
+  return child;
+}
 
 const installation = { kind: 'local', root: 'fixture/root', entry: 'fixture/root/bin/open-kimi-web.mjs',
   owner: 'fixture', version: '2.1.1-r9', category: 'dependencies', ownerManifest: { dependencies: { fixture: '1' } } };
@@ -81,32 +88,37 @@ describe('platform-specific process tree cleanup', () => {
     expect(kill).not.toHaveBeenCalledWith(-123, 'SIGKILL');
     await terminateTree({ pid: 123 }, { platform: 'linux', kill: missing });
   });
-  it('never taskkills an already exited Windows PID and reports unknown cleanup', async () => {
+  it('never terminates an already exited or unidentified Windows PID', async () => {
     const spawn = vi.fn();
     await expect(terminateTree({ pid: 123, exitCode: 0, signalCode: null }, { platform: 'win32', spawn }))
       .rejects.toMatchObject({ code: 'UPDATE_CLEANUP_UNCONFIRMED', cleanupUnconfirmed: true });
+    await expect(terminateTree({ pid: 123, exitCode: null, signalCode: null }, { platform: 'win32', spawn }))
+      .rejects.toThrow('parent creation time unavailable');
     expect(spawn).not.toHaveBeenCalled();
   });
-  it('marks taskkill failure and POSIX signal failure as unconfirmed', async () => {
-    const spawn = () => {
+  it('marks native Windows cleanup failure and POSIX signal failure as unconfirmed', async () => {
+    const spawn = vi.fn(() => {
       const killer = new EventEmitter();
       queueMicrotask(() => killer.emit('close', 1));
       return killer;
-    };
-    await expect(terminateTree({ pid: 123, exitCode: null, signalCode: null }, { platform: 'win32', spawn }))
+    });
+    await expect(terminateTree(windowsChild(), { platform: 'win32', spawn }))
       .rejects.toMatchObject({ cleanupUnconfirmed: true });
+    expect(spawn).toHaveBeenCalledOnce();
     await expect(terminateTree({ pid: 123 }, { platform: 'linux', kill: () => { throw new Error('permission denied'); } }))
       .rejects.toMatchObject({ cleanupUnconfirmed: true });
   });
-  it('marks a timed-out Windows taskkill as unconfirmed without retrying any other PID', async () => {
+  it('marks timed-out native Windows cleanup as unconfirmed without retrying any other PID', async () => {
     vi.useFakeTimers();
     const killer = Object.assign(new EventEmitter(), { kill: vi.fn() });
     try {
-      const task = terminateTree({ pid: 123, exitCode: null, signalCode: null }, { platform: 'win32', spawn: () => killer });
+      const spawn = vi.fn(() => killer);
+      const task = terminateTree(windowsChild(), { platform: 'win32', spawn });
       const assertion = expect(task).rejects.toMatchObject({ cleanupUnconfirmed: true });
       await vi.advanceTimersByTimeAsync(3_000);
       await assertion;
       expect(killer.kill).toHaveBeenCalledOnce();
+      expect(spawn).toHaveBeenCalledOnce();
     } finally { vi.useRealTimers(); }
   });
   it('reports unconfirmed cleanup when a process fails to close after the entire grace window', async () => {

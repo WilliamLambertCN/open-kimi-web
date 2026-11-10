@@ -97,7 +97,8 @@
   需要时拆 tool resolver/lock，保持职责小，不引入依赖、配置框架或更新数据库。
 - 实际更新以安装外 exclusive lock 串行，同一安装不能并发；check 不写锁。进程输出有界、deadline。
   自有子树取消/timeout：POSIX独立process group，TERM 后有界宽限再 KILL，不能因父先退出跳过仍存活的 group；
-  Windows精确PID taskkill /T，只清自己的存活树，不追杀已退出／可能复用的 PID。
+  Windows 当前用原生快照、创建时间与进程句柄确认并终止自有树，不追杀已退出／可能复用的 PID。
+  原 taskkill 路径的并发超时修复与默认门禁证据见[2.5.2 计划追加记录](branding-and-2.5.2-compatibility-v1-plan.md)。
   不按进程名或端口杀用户服务；异常脱离父进程不能假称无条件收尾保证，明确错误及边界。
   父先退出且后代收尾无法确认时，返回明确 cleanup 未确认状态并保留安装锁，提示核实原 updater 后手工移除。
 - 更新前加载所需实现，避免替换目录后混用新旧动态 imports。新进程读取同入口 --version、依赖可用性，
