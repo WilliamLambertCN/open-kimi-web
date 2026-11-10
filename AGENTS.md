@@ -6,7 +6,13 @@
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 为当时的实施、审查和验收基线。当前本地兼容目标为 `2.5.2`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
-正式发布仍为 `2.4.1-r3`；安装器缺官方时的固定版本及 meta 失败时的 UI fallback 均保持 `2.4.1`。
+本轮发布目标为 `2.5.2-r1`，正式状态见 Release；安装器缺官方时的固定版本及 meta 失败 UI fallback 均保持 `2.4.1`。
+
+用户于 2026-11-10 明确要求提 PR、合入 main 并发布，按
+[`docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md`](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md) 执行。
+本次授权覆盖下方品牌／兼容及手机目录此前仅本地提交、不推送／不发布的阶段限制，不包含用户 CLI 升级或生产重启。
+沿用已完成的默认并发测试、真实后端及实图验收，只补版本、实际包、隐私和 required CI；不绕过门禁或改旧 tag／资产。
+提交、squash 与 annotated tag 均使用已确认 GitHub noreply；正式包只从通过 CI 的 main 生成。
 
 品牌图标、实际版本、话题标签及官方 2.5.2 兼容按
 [`docs/plans/branding-and-2.5.2-compatibility-v1-plan.md`](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md) 实施。
@@ -317,7 +323,7 @@ PR #35及main required CI已通过，2154 UT／545 IT通过、28／23平台条�
 
 ## 官方 2.5.2 与历史版本适配事实
 
-- 当前本地兼容目标是 Kimi Code `2.5.2`；正式包仍为 `2.4.1-r3`，不把未发布代码写成线上功能。
+- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r1`；正式状态与线上证据见本轮发布计划和 Release。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   0.41.0 协议快照未重捕；下列旧版行为保留为历史，不是新版保证。
 - 精确 `2.5.2` 新增只读任务和最近页支持；不为列任务调用已删除的 GET `/status` 或恢复冷会话。

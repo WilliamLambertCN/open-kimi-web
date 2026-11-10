@@ -21,7 +21,7 @@
 
 ![模型选择中的供应商导航](docs/images/feature-provider-navigation-desktop.png)
 
-以下旧版截图包含 OKW 曾添加的“插队”按钮。开发中代码已移除，发送与插队改用官方界面；尚未发布。
+以下旧版截图包含 OKW 曾添加的“插队”按钮。新版已移除重复按钮，发送与插队使用官方界面。
 
 <p>
   <img src="docs/images/feature-priority-send-desktop.png" alt="桌面端插队发送" width="68%" />
@@ -38,18 +38,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.4.1-r3][current-release]，适用于 Kimi Code `2.4.1`。
-> 开发中的 `2.5.2` 适配尚未发布，见 [兼容说明](UPSTREAM.md#local-252-adaptation-unreleased)；发布状态以正式 Release 为准。
+> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.5.2-r1][current-release]，适配 Kimi Code `2.5.2`。
+> 不自动升级已有官方 Kimi；兼容范围见 [说明](UPSTREAM.md#kimi-code-252-adaptation)，发布状态以正式 Release 为准。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.4.1-r3'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r1'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.4.1-r3
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.5.2-r1
 }
 ```
 
@@ -58,14 +58,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.4.1-r3'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r1'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.4.1-r3
+    sh -c "$script" install.sh --revision "$sha" --version 2.5.2-r1
 )
 ```
 
@@ -92,12 +92,12 @@ kimi web --host
   仍可置顶工作区、按最近活动排序，分叉会话保留 `Fork:` 标记；归档会话永久删除前会再次确认。
   [菜单操作与草稿保护](packages/launcher/README.md#会话三个点菜单)
 - **阅读与提醒**：聊天区随窗格宽度调整，显示会话记录大小和消息时间，完整预览图片，切换标签先显示加载状态。
-  手机显示完成、审批和提问提醒，提问卡片可拉高；发送和插队沿用官方操作，不再添加重复按钮。
+  手机可点消息目录跳转旧消息，并显示完成、审批和提问提醒；提问卡片可拉高，发送和插队沿用官方操作。
 - **模型与主题**：从服务商获取模型后选择添加，调整顺序、能力与思考强度，Max 放最后，不自动改写已有配置。
   可选五套主题或恢复官方外观；电脑从账号菜单、手机从设置进入“氛围主题”。
 - **连接**：HTTPS、Hyper-V 地址识别和传输压缩；源码与 npm 安装均可更新，也能恢复原命令入口。
 
-启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1` 仅可查看任务和已记录的历史，不能编辑、暂停或单独选模型，
+启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2` 仅可查看任务与已有历史，不能编辑、暂停或单独选模型，
 也不能与同一 Kimi 服务的官方 Remote Control 同时开启。[使用限制](packages/launcher/README.md#统一导航与会话搜索)
 
 ## 安装到手机桌面
@@ -108,7 +108,7 @@ kimi web --host
 - **iPhone／iPad**：Safari“分享”→“添加到主屏幕”；若有“作为 Web App 打开”，保持开启。
 - 需设备信任的 HTTPS，跳过证书警告不一定能安装。安装后仍需联网访问正在运行的 Kimi，不能离线聊天，登录方式不变。
 
-`2.4.1-r3` 支持[局域网证书指引](packages/launcher/README.md#局域网证书)：
+`2.4.1-r3` 起支持[局域网证书指引](packages/launcher/README.md#局域网证书)：
 电脑沿用 Open Kimi Web 的数据目录（未改过就用默认值），运行一次 `open-kimi-web tls setup`，再自行重启服务。
 手机核对电脑终端显示的证书指纹，由本人导入根证书，再重开 Chrome；不会自动修改设备信任。
 证书可信也不保证所有安卓设备都能安装；局域网和 EasyTier 地址仍分别登录，桌面图标不会自动切换地址。
@@ -200,4 +200,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r3
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r1
