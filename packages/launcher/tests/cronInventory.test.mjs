@@ -123,7 +123,7 @@ describe('global native Cron inventory', () => {
     } });
   });
 
-  it.each(['2.1.1', '2.2.0', '2.3.1'])(
+  it.each(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2'])(
     'reads actual %s runtime metadata for fork handling on each operation', async (version) => {
       const { inventory, home } = await fixture({ meta: { ...meta, server_version: version } });
       await wire(home, 'session-fixture', [line('cron.add', { task }), line('forked', { agentId: 'main' })]);

@@ -208,33 +208,6 @@
   user-select: none;
 }
 
-.composer-card .okw-steer-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--composer-control-size);
-  padding: 0 var(--space-2);
-  color: var(--color-accent);
-  background: transparent;
-  border: .5px solid transparent;
-  border-radius: var(--radius-full);
-  font-family: var(--font-ui);
-  font-size: var(--ui-font-size-sm);
-  font-weight: var(--weight-medium);
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.composer-card .okw-steer-button:hover {
-  background: var(--color-subtle);
-}
-
-.composer-card .okw-steer-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-}
-
 @media (max-width: 640px) {
   :root {
     --okw-edge: 12px;
@@ -375,14 +348,6 @@
   .app.mobile .composer-card .toolbar-left,
   .app.mobile .composer-card .toolbar-right {
     min-width: 0;
-  }
-
-  .app.mobile .composer-card .okw-steer-button {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0 9px;
-    border-radius: 12px;
-    font-size: 12px;
   }
 
   .app.mobile .composer-card .toolbar {

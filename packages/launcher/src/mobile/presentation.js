@@ -6,7 +6,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const gitBySession = new Map();
   let workspaces = [];
   let sessionListing = null;
-  let prioritySubmit = null;
 
   const currentSessionId = () => {
     const match = location.pathname.match(/^\/sessions\/([^/?#]+)/);
@@ -163,38 +162,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
     return method.toUpperCase();
   };
 
-  const requestHeaders = (input, init) => {
-    const headers = new Headers(input instanceof Request ? input.headers : undefined);
-    if (init?.headers) new Headers(init.headers).forEach((value, name) => headers.set(name, value));
-    return headers;
-  };
-
-  const promptSessionId = (input, init) => {
-    if (requestMethod(input, init) !== 'POST') return null;
-    const url = requestUrl(input);
-    if (url.origin !== location.origin) return null;
-    const match = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/prompts$/);
-    return match ? decodeURIComponent(match[1]) : null;
-  };
-
-  const finishPrioritySubmit = (intent) => {
-    if (prioritySubmit !== intent) return;
-    prioritySubmit = null;
-    intent.button.disabled = false;
-  };
-
-  const takePrioritySubmit = (input, init) => {
-    if (!prioritySubmit || prioritySubmit.captured) return null;
-    try {
-      if (promptSessionId(input, init) !== prioritySubmit.sessionId) return null;
-    } catch {
-      return null;
-    }
-    const intent = prioritySubmit;
-    intent.captured = true;
-    return intent;
-  };
-
   const isSessionCreate = (input, init) => {
     const url = requestUrl(input);
     return url.origin === location.origin && url.pathname === '/api/v1/sessions' && requestMethod(input, init) === 'POST';
@@ -244,36 +211,7 @@ const mobile = window.matchMedia('(max-width: 640px)');
 
   const nativeFetch = window.fetch;
   window.fetch = async function observedFetch(input, init) {
-    const priorityIntent = takePrioritySubmit(input, init);
-    let response;
-    try {
-      response = await nativeFetch.apply(this, arguments);
-    } catch (error) {
-      if (priorityIntent) finishPrioritySubmit(priorityIntent);
-      throw error;
-    }
-    if (priorityIntent) {
-      void (async () => {
-        try {
-          if (!response.ok) return;
-          const body = await response.clone().json();
-          const prompt = body?.data ?? body;
-          if (prompt?.status !== 'queued' || typeof prompt.prompt_id !== 'string') return;
-          const url = requestUrl(input);
-          const headers = requestHeaders(input, init);
-          headers.set('content-type', 'application/json');
-          await nativeFetch.call(window, `${url.pathname}:steer`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ prompt_ids: [prompt.prompt_id] }),
-          });
-        } catch {
-          // The exact submitted prompt remains queued if priority steering fails.
-        } finally {
-          finishPrioritySubmit(priorityIntent);
-        }
-      })();
-    }
+    const response = await nativeFetch.apply(this, arguments);
     const explained = await explainMissingWorkspace(input, init, response);
     void observeResponse(input, init, explained);
     return explained;
@@ -305,11 +243,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const enhanceWorkspaceSheet = (root) => {
     if (!root.querySelector('.actions .newrow') || !root.querySelector('.view-tabs')) return;
     root.classList.add('okw-workspaces');
-  };
-
-  const enhanceBrand = () => {
-    const label = document.querySelector('.side .ch-brand .ch-name');
-    if (label?.textContent.trim() === 'Kimi Code') label.textContent = 'OPEN-KIMI-WEB';
   };
 
   const revealProvider = (target) => {
@@ -385,66 +318,8 @@ const mobile = window.matchMedia('(max-width: 640px)');
     revealProvider(strip.querySelector('.chip.is-active'));
   };
 
-  const steerCopy = () => ({
-    label: text('插队', 'Send now'), title: text('插队：优先发送到当前回合', 'Priority send into the running turn'),
-  });
-  const syncSteerCopy = (button) => {
-    const { label, title } = steerCopy();
-    setText(button, label);
-    if (button.title !== title) button.title = title;
-    if (button.getAttribute?.('aria-label') !== title) button.setAttribute('aria-label', title);
-  };
-
-  const directChild = (container, node) => {
-    let child = node;
-    while (child?.parentElement && child.parentElement !== container) child = child.parentElement;
-    return child?.parentElement === container ? child : null;
-  };
-
-  const enhanceSteerButton = (composer) => {
-    const existing = composer.querySelector('.okw-steer-button');
-    const editor = composer.querySelector('.ph [contenteditable="true"], .ph[contenteditable="true"]');
-    const stop = composer.querySelector('.stop');
-    const send = composer.querySelector('.send:not(:disabled)');
-    if (!stop || !send || !editor) {
-      if (existing) existing.remove();
-      return;
-    }
-    if (existing) { syncSteerCopy(existing); return; }
-
-    const toolbar = composer.querySelector('.toolbar-right');
-    if (!toolbar) return;
-    const { label, title } = steerCopy();
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'okw-steer-button';
-    button.textContent = label;
-    button.title = title;
-    button.setAttribute('aria-label', title);
-    button.addEventListener('click', () => {
-      window.setTimeout(() => {
-        const sessionId = currentSessionId();
-        const currentSend = composer.querySelector('.send:not(:disabled)');
-        if (!sessionId || !currentSend || prioritySubmit) return;
-        const intent = { button, sessionId };
-        prioritySubmit = intent;
-        button.disabled = true;
-        window.setTimeout(() => finishPrioritySubmit(intent), 30_000);
-        try {
-          currentSend.click();
-        } catch (error) {
-          finishPrioritySubmit(intent);
-          throw error;
-        }
-      }, 0);
-    });
-    toolbar.insertBefore(button, directChild(toolbar, stop));
-  };
-
   const enhance = () => {
-    enhanceBrand();
     document.querySelectorAll('.mp > .chip-strip').forEach(enhanceProviderStrip);
-    document.querySelectorAll('.app .composer').forEach(enhanceSteerButton);
     if (!mobile.matches) return;
     renderObservedHeaderState();
 
@@ -452,7 +327,6 @@ const mobile = window.matchMedia('(max-width: 640px)');
       enhanceSettings(root);
       enhanceWorkspaceSheet(root);
     });
-
   };
 
   const restoreDesktop = () => {
@@ -470,17 +344,12 @@ const mobile = window.matchMedia('(max-width: 640px)');
     });
   };
 
-  const presentationSelectors = '.side .ch-name, .mp > .chip-strip, .app .composer, .app.mobile .topbar, .sheet-root';
+  const presentationSelectors = '.mp > .chip-strip, .app.mobile .topbar, .sheet-root';
   const affectsPresentation = ({ target, addedNodes }) => target.closest?.(presentationSelectors) ||
     [...addedNodes].some((node) => node.matches?.(presentationSelectors) || node.querySelector?.(presentationSelectors));
   new MutationObserver((records) => {
     if (records.some(affectsPresentation)) enhance();
-  }).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['disabled'],
-  });
+  }).observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('popstate', enhance);
   window.__okwLocale?.observe(enhance);
   mobile.addEventListener('change', () => {
