@@ -6,13 +6,16 @@
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 为当时的实施、审查和验收基线。当前本地兼容目标为 `2.5.2`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
-本轮发布目标为 `2.5.2-r1`，正式状态见 Release；安装器缺官方时的固定版本及 meta 失败 UI fallback 均保持 `2.4.1`。
+当前正式版本为 `2.5.2-r1`；安装器缺官方时的固定版本及 meta 失败 UI fallback 均保持 `2.4.1`。
 
 用户于 2026-11-10 明确要求提 PR、合入 main 并发布，按
 [`docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md`](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md) 执行。
 本次授权覆盖下方品牌／兼容及手机目录此前仅本地提交、不推送／不发布的阶段限制，不包含用户 CLI 升级或生产重启。
 沿用已完成的默认并发测试、真实后端及实图验收，只补版本、实际包、隐私和 required CI；不绕过门禁或改旧 tag／资产。
 提交、squash 与 annotated tag 均使用已确认 GitHub noreply；正式包只从通过 CI 的 main 生成。
+PR #42 及 main CI 已通过；正式 v2.5.2-r1 固定 f5d510e3，包 168 文件／8,491,803 bytes。
+公开包原字节、digest 与同 SHA 四个在线入口均已核对；真实旧 r3 更新器已发现新版，旧 r3 tag／资产未变化。
+本节为发布后记录，不再移动 tag／换包；没有升级用户 CLI 或重启生产，完整证据及未验证边界见上述发布计划。
 
 品牌图标、实际版本、话题标签及官方 2.5.2 兼容按
 [`docs/plans/branding-and-2.5.2-compatibility-v1-plan.md`](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md) 实施。
