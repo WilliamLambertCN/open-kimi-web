@@ -64,4 +64,32 @@
 - 版本和文档 11 文件定向检查通过；136 项本地文件与引用检查通过，修正了准备阶段漏加的新计划引用。
   未新增媒体，未发现本轮新增真实凭据、个人路径、私钥或 sourcemap；原 .tmp/ 和 ignored 证据不公开。
 - 标准 pnpm pack 的候选包范围为 168 文件，11 个必要模块均包含，清单及内容与源码一致，包中不含测试、日志或缓存。
-  正式包仍须从通过 CI 的 main 生成并核验；候选包不上传，CI 和线上结果尚未完成。
+  此为发布前记录；候选包不上传，正式结果见下方。
+
+### 正式发布与线上核验
+
+- [PR #42](https://github.com/WilliamLambertCN/open-kimi-web/pull/42) 已通过 required gate 并 squash 合入 main。
+  develop、PR 和 main 的 CI 均通过，没有使用 admin 绕过：
+  - [develop CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42791419763)
+  - [PR CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42791430748)
+  - [main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42791904406)
+- Ubuntu CI：2886 UT／625 IT 通过，28／25 项平台条件跳过；UT 行／分支覆盖率 93.39%／84.93%，
+  IT 为 85.07%／72.92%。lint、typecheck、实际包验证通过，70% 门槛不变，不提高超时或扩大跳过范围。
+- 正式 main 提交为 `f5d510e371b7faf4f0ab1abf72674a35fd4a0806`。
+  annotated tag `v2.5.2-r1` 的对象为 `5c6b926fc60bd39d66a30958e52279e6b35d6d6d`，准确指向该提交。
+  提交作者、squash 作者和 tagger 均为已确认的 GitHub noreply；GitHub 合并提交者使用其正常 noreply。
+- 正式包从该 main 提交的隔离 worktree 用标准 pnpm pack 生成：168 文件、8,491,803 bytes，11 个必要模块齐全。
+  SHA-256：`2909bec8db7b2b8ac35a19829b541bd70c9261fa84957e5de94cf7267210dbd0`。
+  与候选包逐项比较，40 文件仅 Git 换行不同，其余内容一致；正式清单及文件与 main 源码相符。
+- [正式 Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r1)
+  发布于 2026-11-10T17:40:48+08:00，为非草稿、非预发布的 latest。
+  唯一资产 `open-kimi-web-2.5.2-r1.tgz`，资产 ID `730883077`；公开下载的原字节、大小与 GitHub digest 均与正式包一致。
+- README 和三个在线安装脚本已按同一 tag 提交逐字节核对。
+  首次核验把 Windows worktree 的 CRLF 与 Git 原始 LF 直接比较而失败；已确认仅换行差异，改为核对 tag 的 Git 对象后通过。
+  首页顺序、两段系统命令及版本引用正确，没有执行这些在线脚本来改用户安装。
+- 从旧 r3 正式包校验、解包后调用其原版 latestRelease()，真实联网发现 2.5.2-r1 及准确资产地址。
+  旧 r3 的 tag 对象、目标提交、Release、资产 ID／大小／digest／更新时间均未变化。
+- 新公开提交、文档与正式包的定向隐私检查未发现本轮新增凭据、个人路径、私钥、调试 sourcemap 或真实会话。
+  没有新增媒体；不把 ignored 日志、检查脚本、旧包解包目录或原 .tmp/ 提交，不扩称已重审全部旧历史。
+- 未升级用户实际官方 CLI、运行 update 修改安装或重启生产；上方实体手机、任意大会话及全平台边界保持不变。
+  本节为发布后记录，另走维护 PR，不移动新 tag 或替换已发布资产；main 以普通 merge 同步回 develop。
