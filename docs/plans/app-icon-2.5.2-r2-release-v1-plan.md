@@ -57,3 +57,31 @@
   本地链接检查首次把 JavaScript 正则误当 Markdown 链接；限定 Markdown 后通过，没有改产品代码绕过检查。
 - 原有功能验收沿用 [r1 发布记录](kimi-code-2.5.2-r1-release-v1-plan.md)，本轮完整 UT／IT 由 required CI 再检查。
   自有 Chrome 进程树、监听和 profile 均已清理；原 .tmp/ 保留，线上核验和正式包结果仍待实际完成。
+
+### 正式发布与线上核验
+
+- [PR #44](https://github.com/WilliamLambertCN/open-kimi-web/pull/44) 已通过 required gate，正常 squash 合入 main。
+  develop、PR 和 main 的 CI 均通过，没有使用 admin 绕过：
+  - [develop CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42976490269)
+  - [PR CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42976555576)
+  - [main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/42976925467)
+- main CI：2886 UT／626 IT 通过，28／25 项既有平台条件跳过；UT 行／分支覆盖率 93.39%／84.93%，
+  IT 为 85.13%／72.94%。lint、typecheck、实际包验证通过，70% 门槛不变，不提高超时或增加跳过。
+  CI 摘要脚本首次未识别日志转义后的颜色码，修正解析后与原始日志核对；没有失败测试或产品修补。
+- 正式软件提交为 `dd2ec5a34db476c68f6910785ac61d9484c77a4e`。
+  annotated tag `v2.5.2-r2` 对象为 `ef374986110ee8b0806814cca8d27695408d86fd`，准确指向该提交。
+  本次提交作者、squash 作者和 tagger 均为已确认 GitHub noreply；GitHub 合并提交者使用其正常 noreply。
+- 正式包从通过 CI 的 main 隔离 worktree 用标准 pnpm pack 生成：168 文件、9,025,489 bytes，16 个必要模块齐全。
+  SHA-256：`9f8e5ee8f273bdd8d832968a02659ec567801ac2cdd8338890324b4beb215a0e`。
+  包与准确 main 源码一致，四份图标尺寸、元数据及安装清单通过检查；与候选包仅 40 文件换行不同。
+- [正式 Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r2)
+  发布于 2026-11-11T15:09:01+08:00，为非草稿、非预发布的 latest。
+  唯一资产为 `open-kimi-web-2.5.2-r2.tgz`，资产 ID `734524303`；公开下载的原字节、大小及 digest 与正式包一致。
+- README、三个在线安装脚本和公开高清图已按 tag 同一 SHA 与 Git 对象逐字节核对；两段系统命令指向新 tag 和版本。
+  从已校验的旧 r1 正式包调用原版 latestRelease()，真实联网发现 r2 及准确下载地址，未运行 update 修改用户安装。
+  旧 r1 的 tag 对象、目标提交、Release 及资产 ID／大小／digest／更新时间均未变化。
+- 本次公开 diff、图片／元数据、提交身份、发布说明和真实包定向检查未发现新增隐私泄露。
+  不扩大为全部旧历史已审计或清理；原 .tmp/、并行任务的 .gitignore 修改及 ignored 证据均未纳入本轮提交。
+  无用户 CLI 升级、生产重启或设备信任修改；上方实体手机、系统图标缓存和全平台未验证边界不变。
+- 构建 worktree、旧更新器解包目录和自有浏览器进程已清理，证据保留在 ignored cache。
+  本节为发布后记录，另走维护 PR；不移动已发布 tag 或替换包，main 通过普通 merge 同步回 develop。
