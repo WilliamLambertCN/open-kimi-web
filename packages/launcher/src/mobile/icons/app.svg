@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <title>Open Kimi Web</title>
-  <path fill="#101923" d="M0 0h512v512H0z"/>
-  <circle cx="211" cy="256" r="78" fill="none" stroke="#edf4fa" stroke-width="28"/>
-  <path d="M288 178v156m64-151-64 73 64 73" fill="none" stroke="#8bc8ef" stroke-width="28"
-    stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

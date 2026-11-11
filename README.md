@@ -4,6 +4,8 @@
 
 ## 界面预览
 
+<img src="docs/images/app-icon.png" alt="新版图标：冰蓝玻璃 O、银灰 K 与蓝色碎钻" width="96" />
+
 下列截图使用基于官方 `0.41.0` 的旧版界面，当前按钮和布局细节可能不同；图中均为虚构演示数据。
 
 ![夜幕主题：工作区列表与对话界面](docs/images/theme-nocturne-desktop.png)
@@ -38,18 +40,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.5.2-r1][current-release]，适配 Kimi Code `2.5.2`。
+> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.5.2-r2][current-release]，适配 Kimi Code `2.5.2`。
 > 不自动升级已有官方 Kimi；兼容范围见 [说明](UPSTREAM.md#kimi-code-252-adaptation)，发布状态以正式 Release 为准。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r1'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r2'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.5.2-r1
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.5.2-r2
 }
 ```
 
@@ -58,14 +60,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r1'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r2'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.5.2-r1
+    sh -c "$script" install.sh --revision "$sha" --version 2.5.2-r2
 )
 ```
 
@@ -200,4 +202,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r1
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r2
