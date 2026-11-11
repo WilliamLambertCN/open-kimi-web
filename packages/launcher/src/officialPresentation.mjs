@@ -26,6 +26,7 @@ const FILES = new Map([
   ['manifest.webmanifest', 'application/manifest+json; charset=utf-8'],
   ['icons/app-192.png', 'image/png'],
   ['icons/app-512.png', 'image/png'],
+  ['icons/app-maskable-512.png', 'image/png'],
   ['icons/apple-touch-180.png', 'image/png'],
   ...LOCALE_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['effortOrder.js', 'text/javascript; charset=utf-8'],

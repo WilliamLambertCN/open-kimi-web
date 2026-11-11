@@ -16,9 +16,16 @@ The launcher applies a title patch and loads this project's separate mobile
 presentation stylesheet and script into HTML responses. The mobile assets
 adapt the layout while retaining upstream interactions and do not rewrite
 the cached upstream assets. The sidebar brand label is changed to
-`OPEN-KIMI-WEB`; upstream logos and license notices are retained. The mobile
+`OPEN-KIMI-WEB`, with this project's app icon also used for the favicon and
+installation icons. Upstream license notices remain intact. The mobile
 presentation is informed by the earlier public Kimi Web layout and
 user-provided references.
+
+The selected project icon combines a glass O, a silver-gray K inspired by
+the official K silhouette, and blue glass shards. Its clean source image is
+`docs/images/app-icon.png`; runtime PNGs are resized from that artwork,
+with extra padding for the maskable variant. Reference to the upstream K
+does not imply affiliation with or endorsement by Moonshot AI.
 
 Older cached bundles may contain the equivalent official 0.41.0 `boot.js`
 with an attribution comment prepended. Existing caches are not deleted by
