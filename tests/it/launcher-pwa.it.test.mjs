@@ -45,22 +45,26 @@ describe('PWA public installation assets', () => {
     expect(response.headers.get('cache-control')).toBe('no-cache');
     const manifest = await response.json();
     expect(manifest).toEqual({ id: '/', name: 'Open Kimi Web', short_name: 'Open Kimi Web', start_url: '/', scope: '/',
-      display: 'standalone', background_color: '#101923', theme_color: '#101923', prefer_related_applications: false,
-      icons: [192, 512].map((size) => ({ src: `${prefix}icons/app-${size}.png`, sizes: `${size}x${size}`,
-        type: 'image/png', purpose: 'any maskable' })) });
+      display: 'standalone', background_color: '#d5fafc', theme_color: '#d5fafc', prefer_related_applications: false,
+      icons: [...[192, 512].map((size) => ({ src: `${prefix}icons/app-${size}.png`, sizes: `${size}x${size}`,
+        type: 'image/png', purpose: 'any' })),
+      { src: `${prefix}icons/app-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }] });
     const clean = await fetch(launcher.url + prefix + 'manifest.webmanifest').then((value) => value.json());
     expect(clean).toEqual(manifest);
   });
-  it.each([[192, 'app-192'], [512, 'app-512'], [180, 'apple-touch-180']])('serves a valid %i pixel icon', async (size, name) => {
-    const url = launcher.url + prefix + `icons/${name}.png`;
-    const response = await fetch(url);
-    expect(response.status).toBe(200); expect(response.headers.get('content-type')).toBe('image/png');
-    const image = Buffer.from(await response.arrayBuffer());
-    expect(image.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
-    expect(image.readUInt32BE(16)).toBe(size); expect(image.readUInt32BE(20)).toBe(size);
-    const head = await fetch(url, { method: 'HEAD' });
-    expect(Number(head.headers.get('content-length'))).toBe(image.length); expect(await head.text()).toBe('');
-  });
+  it.each([[192, 'app-192'], [512, 'app-512'], [512, 'app-maskable-512'], [180, 'apple-touch-180']])(
+    'serves a valid %i pixel %s icon', async (size, name) => {
+      const url = launcher.url + prefix + `icons/${name}.png`;
+      const response = await fetch(url);
+      expect(response.status).toBe(200); expect(response.headers.get('content-type')).toBe('image/png');
+      expect(response.headers.get('cache-control')).toBe('no-cache');
+      const image = Buffer.from(await response.arrayBuffer());
+      expect(image.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+      expect(image.readUInt32BE(16)).toBe(size); expect(image.readUInt32BE(20)).toBe(size);
+      expect(image[25]).toBe(2);
+      const head = await fetch(url, { method: 'HEAD' });
+      expect(Number(head.headers.get('content-length'))).toBe(image.length); expect(await head.text()).toBe('');
+    });
   it('keeps private paths, arbitrary resources and write methods out of the asset route', async () => {
     for (const path of ['sw.js', 'icons/app.svg', 'icons/private.png', 'manifest.webmanifest/extra']) {
       expect((await fetch(launcher.url + prefix + path)).status).toBe(404);
