@@ -6,13 +6,16 @@
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 为当时的实施、审查和验收基线。当前本地兼容目标为 `2.5.2`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
-当前正式版本为 `2.5.2-r1`；本轮发布目标 `2.5.2-r2`，安装器缺官方时的固定版本及 meta 失败 UI fallback 均保持 `2.4.1`。
+当前正式版本为 `2.5.2-r2`；安装器缺官方时的固定版本及 meta 失败 UI fallback 均保持 `2.4.1`。
 
 用户于 2026-11-11 选定玻璃 O、银灰 K 与冰蓝碎钻图标并要求发布，按
 [`docs/plans/app-icon-2.5.2-r2-release-v1-plan.md`](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md) 执行。
-本轮只替换图标、补安全裁切资源及同步版本和文档；不重新生图、不升级用户 CLI 或重启生产。
-正常 develop → PR → main，通过 required CI 后从 main 打新 tag；不改旧 tag／资产，保留原 .tmp/。
-提交、squash 与 annotated tag 使用已确认 GitHub noreply，实际验收和线上结果完成后记录，不预先声称通过。
+本轮只替换图标、补安全裁切资源及同步版本和文档；未重新生图、升级用户 CLI 或重启生产。
+双端三主题 16 项图标／几何检查、21 UT／13 IT、lint／typecheck 及实际 pack 通过；实图与裁切板已查看。
+PR #44 及 main required CI 通过，2886 UT／626 IT、28／25 项平台条件跳过，70% 门槛不变。
+正式 v2.5.2-r2 固定 dd2ec5a3；包 168 文件／9,025,489 bytes，公开原字节／digest、同 SHA 入口和高清图已核对。
+旧 r1 更新器已发现 r2，旧 r1 tag／资产未变；本次提交、squash 和 annotated tag 均使用已确认 GitHub noreply。
+本节为发布后记录，不再移 tag／换包；原 .tmp/ 及并行 .gitignore 修改未纳入，完整证据与未验证边界见上述计划。
 
 用户于 2026-11-10 明确要求提 PR、合入 main 并发布，按
 [`docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md`](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md) 执行。
