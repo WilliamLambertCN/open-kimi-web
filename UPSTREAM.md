@@ -17,11 +17,12 @@ or a vendored transcript implementation.
   [the local compatibility plan](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md) and `liveTestedServerVersions`.
   Source tag inspection is separate from runtime acceptance. Publication follows the release plan below; user installations,
   production, the installer pin and the metadata-failure UI fallback (`2.4.1`) are not automatically changed.
-- Open Kimi Web target: `2.5.2-r2`. Follow [the Release page][current-release] and
-  [the 2.5.2-r2 release plan][release252r2-plan] for actual checks, CI, package and publication results.
-  This revision replaces the app artwork with the selected glass O, silver-gray K and blue shards,
-  including a separately padded maskable icon. It retains r1's mobile directory, branding/version, topic-only tabs,
-  exact upstream 2.5.2 adaptation, native sending and Windows update cleanup. Earlier menus, local CA, logs and PWA remain.
+- Open Kimi Web target: `2.5.2-r3`. Follow [the Release page][current-release] and
+  [the 2.5.2-r3 release plan][release252r3-plan] for actual checks, CI, package and publication results.
+  This revision adds per-call TTFT, average TPS and cache-hit rows, independent side-chat model selection,
+  and managed-service restart in desktop General settings and mobile session settings.
+  It retains r2's artwork and r1's exact upstream 2.5.2 adaptation, mobile directory, native sending and safe update.
+  Earlier menus, local CA, logs and PWA remain. Windows process cleanup and same-instance port discovery are strengthened.
   Publication status is determined by the formal Release; unrecorded or pending checks are not passes.
   [The 2.5.2-r1 release plan][release252r1-plan], [the 2.4.1-r3 plan][release241r3-plan],
   [the 2.4.1-r2 plan][release241r2-plan],
@@ -70,7 +71,34 @@ Isolated unmodified-backend checks cover authentication, HTTP workspace registra
 read-only cron/cold state, history paging and reconnect. Complete-app checks use fictional REST/WS for desktop/mobile
 Original, Nocturne and Aurora layouts. Results, retained first failures and standard gates belong in the plan;
 physical-phone acceptance, arbitrary 400–500 MB sessions and a full protocol recapture are not claimed.
-Publication follows [the release plan][release252r2-plan]; user CLI, production, installer pin and fallback remain unchanged.
+Publication follows [the release plan][release252r3-plan]; user CLI, production, installer pin and fallback remain unchanged.
+
+## Per-call metrics presentation (2.5.2-r3)
+
+Follow [the local metrics/side-chat plan](docs/plans/request-metrics-sidechat-v1-plan.md).
+Exact npm `2.5.2` records step usage and timing, but its ordinary Web hides native timing rows and merges multiple calls
+inside one assistant container. A container/frame ID is not a model-call boundary.
+The launcher applies an all-or-nothing, exact-version static presentation adapter: preserve native step identity,
+attach process timing to the original activity item, and render the existing native final timing location.
+Tool grouping, retry details, whole-turn folding and virtualization remain upstream-owned.
+No backend debug or Vue-private state is used.
+A revisioned asset namespace keeps module/preload identity consistent without modifying cached official files.
+All semantic shapes/counts must match; otherwise original code is served. Custom web directories and other versions are unchanged.
+Calls without a rendered assistant frame, or whose duplicate content upstream removed, do not create extra orphan statistics.
+
+Display one row for each exact session/agent/step location, including loaded history;
+never attach an entire turn's list to its final answer.
+TTFT uses `llmFirstTokenLatencyMs`. At the user's request, Avg TPS divides official output tokens by TTFT plus stream seconds.
+This includes the initial wait but excludes tools and other calls; it intentionally differs from upstream stream-only debug TPS.
+The first parsed generated part includes streamed reasoning, not only final-answer text or an empty role delta.
+Do not add reasoning tokens or timing subcomponents again. Missing timing or a total under 50 ms leaves Avg TPS unavailable.
+Cache hit is `inputCacheRead / (inputOther + inputCacheRead + inputCacheCreation)`;
+new writes are not hits and output is excluded.
+Require explicit nonnegative safe counts and a positive safe total; unavailable counts show a dash, not a fabricated zero.
+Client-observed average throughput is not model-only decoder speed; undisclosed internal reasoning is not recoverable.
+No full-history request or log scan is added.
+Exact local-backend and browser checks, retained first failures and current standard gates belong in the plan,
+not older release results.
 
 ## Historical baseline records
 
@@ -240,7 +268,7 @@ Historical exact-2.3.1 tests and real createLauncher QA passed: read=true/write=
 with no mutation or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404
 without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan].
 The exact-2.4.1 baseline checks remain in [the compatibility plan][compat241-plan];
-current CI and publication belong to [the 2.5.2-r2 release plan][release252r2-plan].
+current CI and publication belong to [the 2.5.2-r3 release plan][release252r3-plan].
 Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
 Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
 protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
@@ -266,19 +294,19 @@ internal, loopback, IPv6 link-local and other virtual-adapter filters. This does
 
 ## Compatibility-first installation
 
-The `2.5.2-r2` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
+The `2.5.2-r3` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
 installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
 launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
 Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
 Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
 [the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
 The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
-current checks, CI and assets belong to [the 2.5.2-r2 release plan][release252r2-plan].
+current checks, CI and assets belong to [the 2.5.2-r3 release plan][release252r3-plan].
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.5.2-r2` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.5.2-r2`.
+They resolve `v2.5.2-r3` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.5.2-r3`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -333,7 +361,7 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.5.2-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.5.2-r3 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -361,7 +389,7 @@ Official Kimi that was already on PATH remains available; one that previously ne
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-After formal `2.5.2-r2` publication, existing older users use normal `update --check` and `update`.
+After formal `2.5.2-r3` publication, existing older users use normal `update --check` and `update`.
 No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
 tracking origin/main and a fast-forward. Restart and refresh remain manual; old tags and assets are not moved or replaced.
 Updating does not enable the local CA or install phone trust; users explicitly run setup in the same home if desired.
@@ -737,7 +765,8 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [pwa-plan]: docs/plans/pwa-install-v1-plan.md
 [release252r1-plan]: docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md
 [release252r2-plan]: docs/plans/app-icon-2.5.2-r2-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r2
+[release252r3-plan]: docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r3
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

@@ -221,6 +221,7 @@ export async function startFrontend({ scheduledTasks = false, ...opts }) {
     officialPresentation: officialPresentation(opts),
     scheduledTasks,
     onUnsafeBackend: scheduledTasks ? opts.onUnsafeBackend : undefined,
+    restartControl: opts.restartControl,
     ...usageOptions(opts),
     host: opts.host,
     port: opts.port,

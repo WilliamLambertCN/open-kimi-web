@@ -17,6 +17,7 @@ import { acquireInstallerUpdateLock } from './install/updateLock.mjs';
 import { adjacentNpm, installNpmArgs, isolatedNpmEnv, nodeSupported } from './install/npm.mjs';
 import { discoverOfficial, officialCommand, prepareOfficial } from './install/official.mjs';
 import { normalizePathEnv, pathValue } from './install/environment.mjs';
+import { recordProcessStart, stopWindowsTree } from '../packages/launcher/src/update/windowsTreeCleanup.mjs';
 export { adjacentNpm, installNpmArgs, isolatedNpmEnv } from './install/npm.mjs';
 const ENTRY = 'bin/open-kimi-web.mjs';
 const HELP = 'Usage: node scripts/install.mjs [--version <formal version>] [--switch-installation] [--no-integrate]';
@@ -108,8 +109,10 @@ async function jsonOrNull(path) {
 export async function runInstallProcess(command, args, options = {}) {
   return new Promise((resolvePromise, reject) => {
     const env = options.env ? normalizePathEnv(options.env) : undefined;
+    const startedAt = Date.now() - 1;
     const child = spawn(command, args, { cwd: options.cwd, env, shell: false, windowsHide: true,
       detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
+    recordProcessStart(child, startedAt);
     let stdout = '';
     let bytes = 0;
     let failure;
@@ -119,11 +122,11 @@ export async function runInstallProcess(command, args, options = {}) {
       if (failure) return;
       failure = new Error(message);
       if (process.platform === 'win32') {
-        const killer = spawn(join(process.env.SystemRoot ?? 'C:\\Windows', 'System32/taskkill.exe'),
-          ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
-        killed = new Promise((done) => {
-          killer.on('error', () => { failure.keepLock = true; done(); });
-          killer.on('exit', (code) => { if (code !== 0) failure.keepLock = true; done(); });
+        killed = Promise.resolve().then(() => stopWindowsTree(child, {})).catch(() => {
+          failure.keepLock = true;
+          clearTimeout(cleanup);
+          child.stdout.destroy(); child.stderr.destroy(); child.unref();
+          reject(failure);
         });
       } else { try { process.kill(-child.pid, 'SIGKILL'); } catch { failure.keepLock = true; } }
       cleanup = setTimeout(() => { failure.keepLock = true; child.unref(); reject(failure); }, 5_000);

@@ -119,13 +119,13 @@ async function resolveRealStaticFile(root, rootReal, filePath) {
 
 // Streams a static file to res with SPA fallback to index.html for unknown
 // non-/api, non-/assets GET paths. Returns true when a file was served.
-export async function serveStatic(rootDir, req, res, transformHtml) {
-  const urlPath = (req.url ?? '/').split('?')[0];
+export async function serveStatic(rootDir, req, res, transformHtml, options = {}) {
+  const urlPath = options.urlPath ?? (req.url ?? '/').split('?')[0];
   const root = resolve(rootDir);
   const rootReal = await realpath(root).catch(() => null);
   if (rootReal === null) return false;
 
-  const requestedPath = resolveStaticPath(root, req.url ?? '/');
+  const requestedPath = resolveStaticPath(root, urlPath);
   if (requestedPath === null) {
     res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }).end('Bad Request');
     return true;
@@ -138,21 +138,29 @@ export async function serveStatic(rootDir, req, res, transformHtml) {
     resolved = await resolveRealStaticFile(root, rootReal, join(root, 'index.html'));
     if (resolved.kind !== 'found') return false;
   }
-  return sendStaticFile({ filePath: resolved.filePath, info: resolved.info, urlPath }, req, res, transformHtml);
+  const transforms = { html: transformHtml, asset: options.transformAsset };
+  return sendStaticFile({ filePath: resolved.filePath, info: resolved.info, urlPath }, req, res, transforms);
 }
 
-async function sendStaticFile({ filePath, info, urlPath }, req, res, transformHtml) {
-  const html = transformHtml && extname(filePath) === '.html'
-    ? Buffer.from(transformHtml(await readFile(filePath, 'utf8')))
-    : null;
+async function transformedBody(filePath, transforms) {
+  const extension = extname(filePath);
+  if (transforms.html && extension === '.html') return Buffer.from(transforms.html(await readFile(filePath, 'utf8')));
+  if (transforms.asset && ['.js', '.css'].includes(extension)) {
+    return Buffer.from(transforms.asset(await readFile(filePath, 'utf8'), filePath));
+  }
+  return null;
+}
+
+async function sendStaticFile({ filePath, info, urlPath }, req, res, transforms) {
+  const body = await transformedBody(filePath, transforms);
   await sendResponse(req, res, {
     headers: {
       'content-type': contentTypeFor(filePath),
-      'content-length': html?.length ?? info.size,
+      'content-length': body?.length ?? info.size,
       'cache-control': cacheControlFor(urlPath),
       'x-content-type-options': 'nosniff',
     },
-    body: html ?? (() => createReadStream(filePath)),
+    body: body ?? (() => createReadStream(filePath)),
   });
   return true;
 }
