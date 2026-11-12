@@ -9,14 +9,21 @@
     "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.5.2"
   },
   "minimumServerVersion": "0.43.1",
-  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1", "2.3.1", "2.4.1", "2.5.2"],
+  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1", "2.3.1", "2.4.1", "2.5.2", "2.5.3"],
   "inspectedPackageIntegrity": {
     "0.43.1": "sha512-jq60K07tJV+uZB/mTN7rgb99WU5z6PtUeLybywGhXpF5QybaehIWsWudZ9HR8hEEmc7pppB+GAA92RDqOOKnRg==",
     "2.0.2": "sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==",
     "2.1.1": "sha512-xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw==",
     "2.3.1": "sha512-Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg==",
     "2.4.1": "sha512-z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw==",
-    "2.5.2": "sha512-a7UuugqQuPBHB2ZMiu8ezAFIwJ0dn6xanuRnTqa2pXXu12ng7kvigAlXy47TxNKpnyj8vgaNStedTv4kbqSCuA=="
+    "2.5.2": "sha512-a7UuugqQuPBHB2ZMiu8ezAFIwJ0dn6xanuRnTqa2pXXu12ng7kvigAlXy47TxNKpnyj8vgaNStedTv4kbqSCuA==",
+    "2.5.3": "sha512-NdBttZiktZhKdH1tu/25A+Il1MxO1RTE1gAdZDmogoCT4g8L7k3pcLeJpwy7PNJvHo9CF8fDJiaZ9nsIPn+Gag=="
+  },
+  "perCallMetrics": {
+    "versionRestriction": null,
+    "requiresCompleteBundleStructureMatch": true,
+    "liveTestedServerVersions": ["2.5.2", "2.5.3"],
+    "evidence": "docs/plans/request-metrics-upgrade-compatibility-v2-plan.md"
   },
   "provenanceReleaseCommits": [
     "75ac010bcb2050338444455de8328492d152c919",
