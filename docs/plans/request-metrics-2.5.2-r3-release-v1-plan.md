@@ -78,4 +78,38 @@
   检查发现六处超长行，已仅换行修正；没有新增公开媒体。并行 `.gitignore` 与 ignored 资源不提交。
   旧历史不是本次全量审计范围，不声称已清理既有作者邮箱；新 commit／squash／tag 使用 GitHub noreply。
 
-待记录 PR／main CI、准确 main SHA、tag、正式包和线上核验结果。
+### PR 与准确 main 门禁
+
+- develop 提交 `b5dc75e5eba50f58f3b4585e6434b0390a6d084f`，经
+  [PR #46](https://github.com/WilliamLambertCN/open-kimi-web/pull/46)正常 squash 合入 main。
+  发布提交为 `ef589f1941cfc9e5583caa57d2460d3804d97211`，产品树与已验证 PR 一致。
+- [PR CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43145964812)与
+  [准确 main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43146298108)全部通过：
+  frozen install、lint、typecheck、UT、IT 和实际 test:pack，无 admin bypass。
+- main 的133个 UT 文件／3061项通过、28项平台条件跳过；33个 IT 文件通过／2个文件条件跳过，
+  649项通过／25项平台条件跳过。UT 行／分支92.61%／84.18%，IT为84.04%／71.95%。
+  原70%门槛、默认并发和超时保持不变；这不是旧阶段数量。
+- develop commit、squash作者与tagger使用已确认 GitHub noreply；GitHub committer为正常noreply。
+  不重写已共享历史，不重新输出旧私人邮箱。
+
+### 正式包与线上核验
+
+- 从准确 main 的独立 worktree 用 frozen install 和标准 pnpm pack 生成唯一正式包，产品文件与该树逐内容比对一致。
+  pnpm只移除源码专用prepack／postpack hooks，包内其余manifest字段一致，不手改发行包。
+- 实际包186个文件、176个文本文件完成秘密、个人路径、内部地址、sourcemap、日志和缓存检查，未发现新增泄露。
+  真实资源验证准确2.5.2逐step适配、平均／缓存公式、桌面General入口及map拒绝；没有付费调用或生产请求。
+- [正式 Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r3)
+  于 `2026-11-12T03:14:12Z` 发布为latest、非draft、非prerelease，不发布npm registry。
+  annotated tag对象 `8dee447a78d5334fa91dfe24f7c6210096422769` 指向上述准确main。
+- 资产 `open-kimi-web-2.5.2-r3.tgz`，ID `737868086`，大小 `9,050,925` bytes。
+  SHA-256：`f2b9c33fea84d28ffd4f4d0012a0226cf566d449f7c5bbc0157f7e760c5d2fbb`。
+  公开下载的原始字节、大小和GitHub digest与本地正式包完全一致。
+- commit API将新版tag解析至准确SHA；该SHA的README、install.ps1、install.sh、install.mjs与Git blob原字节一致。
+  首页两段在线命令均使用r3及同revision；未为检查安装命令而修改用户安装。
+- 已下载的真实旧r2包先核对既有digest，再调用包内 `latestRelease()`，实际发现 `2.5.2-r3`。
+  旧r2 tag对象／指向SHA以及Release／资产ID、大小、digest、时间metadata与发布前一致，没有替换旧包。
+- 核验脚本首败保留：Git Bash tar把Windows冒号路径当远端、pnpm移除源码pack hooks、checkout的CRLF与线上Git LF比较。
+  仅修核验驱动的相对路径／明确manifest归一规则／改比Git blob，产品和正式tgz未改，不把首败覆盖为全绿。
+- 报告、首次驱动失败和公开核验结果归档 ignored cache 的 `request-metrics-sidechat-qa/release-r3/`。
+  包审查短服务、解包目录及独立worktree已清；git remove未删尽的本轮依赖目录已定向移除。
+  本轮没有升级用户CLI或重启生产；发布后用户仍须终端重启旧服务并刷新。
