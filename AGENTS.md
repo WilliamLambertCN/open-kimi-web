@@ -13,7 +13,7 @@ PR #46 及准确 main CI 通过：3061 UT／649 IT、28／25项平台条件跳�
 正式 v2.5.2-r3 固定 ef589f19；包186文件／9,050,925 bytes，公开原字节／digest与同SHA安装入口已核对。
 真实旧r2更新器已发现r3，旧r2 tag／资产未变；公开范围未发现新增隐私泄露，不声称全历史已清理。
 未升级CLI或重启生产，首次停止失败仍未确认；本节不再改旧tag／资产。
-当前目标r4：指标不查版本、全结构匹配才启用；按[升级计划](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)发布。
+当前目标r4：指标全版本按结构启用；安装器补POSIX退出确认；按[升级计划](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)发布。
 
 用户于 2026-11-11 选定玻璃 O、银灰 K 与冰蓝碎钻图标并要求发布，按
 [`docs/plans/app-icon-2.5.2-r2-release-v1-plan.md`](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md) 执行。
