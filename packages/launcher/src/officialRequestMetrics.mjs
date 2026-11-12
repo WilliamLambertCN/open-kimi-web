@@ -1,6 +1,3 @@
-import { extname } from 'node:path';
-import { serveStatic } from './staticFiles.mjs';
-
 export const METRICS_ASSET_PREFIX = '/__open-kimi-assets/step-metrics-v2';
 const identifier = '[\\w$]+';
 const rule = (pattern, count, replace) => ({ pattern: new RegExp(pattern, 'g'), count, replace });
@@ -54,8 +51,8 @@ function timingHelpers(element) {
     '["data-okw-step-id","data-okw-step-state"]));}\n';
 }
 
-export function patchOfficialRequestMetrics(source, version) {
-  if (version !== '2.5.2' || !source.includes('__name:"StepTimingDebug"')) return { text: source, patched: false };
+export function patchOfficialRequestMetrics(source) {
+  if (!source.includes('__name:"StepTimingDebug"')) return { text: source, patched: false };
   const elements = [...source.matchAll(new RegExp(`(${identifier})\\("button",\\{type:"button",class:"st-head"`, 'g'))];
   const pending = [...source.matchAll(new RegExp(`kind:"activity-run",items:(${identifier})\\}` , 'g'))];
   if (elements.length !== 1 || pending.length !== 1) return { text: source, patched: false };
@@ -67,23 +64,7 @@ export function patchOfficialRequestMetrics(source, version) {
   return { text: text + timingHelpers(elements[0][1]), patched: true };
 }
 
-export function metricsAssetPaths(source, version) {
-  if (version !== '2.5.2') return source;
+export function metricsAssetPaths(source) {
   return source.replace(/(["'`(])(\/?)assets\//g, (_, start, slash) =>
     `${start}${slash}${METRICS_ASSET_PREFIX.slice(1)}/assets/`);
-}
-
-export async function serveMetricsAssets(req, res, { publicDir, officialWebVersion, officialPresentation }) {
-  if (!officialPresentation || officialWebVersion !== '2.5.2') return false;
-  const path = (req.url ?? '').split('?')[0];
-  if (path !== METRICS_ASSET_PREFIX && !path.startsWith(`${METRICS_ASSET_PREFIX}/`)) return false;
-  const transformAsset = (source, filePath) => {
-    const text = extname(filePath) === '.js' ? patchOfficialRequestMetrics(source, officialWebVersion).text : source;
-    return metricsAssetPaths(text, officialWebVersion);
-  };
-  if (path.startsWith(`${METRICS_ASSET_PREFIX}/assets/`) && await serveStatic(publicDir, req, res, undefined, {
-    urlPath: path.slice(METRICS_ASSET_PREFIX.length), transformAsset,
-  })) return true;
-  res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' }).end('Not Found');
-  return true;
 }
