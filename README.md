@@ -40,18 +40,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.5.2-r3][current-release]，适配 Kimi Code `2.5.2`。
+> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.5.2-r4][current-release]，适配 Kimi Code `2.5.2`。
 > 不自动升级已有官方 Kimi；兼容范围见 [说明](UPSTREAM.md#kimi-code-252-adaptation)，发布状态以正式 Release 为准。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r3'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r4'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.5.2-r3
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.5.2-r4
 }
 ```
 
@@ -60,14 +60,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r3'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r4'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.5.2-r3
+    sh -c "$script" install.sh --revision "$sha" --version 2.5.2-r4
 )
 ```
 
@@ -98,6 +98,7 @@ kimi web --host
 - **模型与主题**：从服务商获取模型后选择添加，调整顺序、能力与思考强度，Max 放最后，不自动改写已有配置。
   可选五套主题或恢复官方外观；电脑从账号菜单、手机从设置进入“氛围主题”。
 - **请求与侧聊**：在每次回复或工具过程后查看 TTFT、包含等待的平均 TPS 和缓存命中率；侧聊可单独选模型。
+  指标不限制官方版本号，按实际代码结构启用；已实测 `2.5.2`／`2.5.3`。
 - **连接**：HTTPS、Hyper-V 地址识别和传输压缩；源码与 npm 安装均可更新，也能恢复原命令入口。
   桌面“设置 → 通用”和手机会话设置可重启受管服务，忙碌时拒绝，不自动重发消息。
 
@@ -204,4 +205,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r3
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r4

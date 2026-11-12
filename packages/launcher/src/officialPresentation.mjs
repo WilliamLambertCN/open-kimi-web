@@ -2,7 +2,6 @@ import { readFile } from 'node:fs/promises';
 import packageInfo from '../package.json' with { type: 'json' };
 import { isBundleVersion } from './officialBundle.mjs';
 import { sendResponse } from './responseCompression.mjs';
-import { metricsAssetPaths } from './officialRequestMetrics.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
 const APP_VERSION = packageInfo.version;
@@ -182,11 +181,13 @@ function hasNativeSideChatScroll(version) {
   return patch > 0 || prerelease === undefined;
 }
 
-export function addMobilePresentation(html, { officialWebVersion } = {}) {
+export function addMobilePresentation(html, { officialWebVersion, requestMetricsState } = {}) {
   const scriptNames = hasNativeSideChatScroll(officialWebVersion)
     ? SCRIPTS.filter((name) => name !== 'sideChatScroll.js')
     : SCRIPTS;
-  const metadata = `<meta name="open-kimi-web-version" content="${APP_VERSION}">\n`;
+  const metricsMeta = ['active', 'incompatible-bundle', 'unavailable-bundle'].includes(requestMetricsState)
+    ? `<meta name="open-kimi-web-request-metrics" content="${requestMetricsState}">\n` : '';
+  const metadata = `<meta name="open-kimi-web-version" content="${APP_VERSION}">\n` + metricsMeta;
   const scripts = metadata + scriptNames.map((name) => `<script src="${PREFIX}${name}"></script>`).join('\n') + '\n';
   const original = html.replace(/<link\b(?=[^>]*\brel\s*=\s*["'](?:shortcut\s+)?icon["'])[^>]*>\s*/gi, '');
   const moduleTag = /<script\b[^>]*\btype\s*=\s*["']module["'][^>]*>/i;
@@ -202,5 +203,5 @@ export function addMobilePresentation(html, { officialWebVersion } = {}) {
     '<meta name="mobile-web-app-capable" content="yes">',
     '<meta name="apple-mobile-web-app-title" content="Open Kimi Web">',
   ].join('\n') + '\n';
-  return metricsAssetPaths(withScript.replace('</head>', `${styles}${install}</head>`), officialWebVersion);
+  return withScript.replace('</head>', `${styles}${install}</head>`);
 }

@@ -9,6 +9,7 @@
 
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 - [请求指标与重启发布](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)
+- [请求指标升级兼容](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)
 - [应用图标](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md)
 - [2.5.2 发布](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md)
 - [品牌与 2.5.2 适配](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md)
@@ -52,7 +53,7 @@
 
 ## 官方 2.5.2 与历史版本适配事实
 
-- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r3`；正式状态与线上证据见本轮发布计划和 Release。
+- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r4`；指标已实测2.5.3，其它协议范围不扩大。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   0.41.0 协议快照未重捕；下列旧版行为保留为历史，不是新版保证。
 - 精确 `2.5.2` 新增只读任务和最近页支持；不为列任务调用已删除的 GET `/status` 或恢复冷会话。
@@ -150,7 +151,6 @@ README 保持简短：按用户最新要求先放界面预览，再在“快速�
 - 已进入 Git 历史的敏感信息要区分“当前文件已清理”和“历史已重写”。只有明确授权才能重写历史或强推，并使用 `--force-with-lease`；真实凭证泄露时提醒撤销或轮换。
 
 ## 用户可见 Bug 事件复盘
-
 每次修复用户已经遇到的 Bug 后，在任务报告、PR 描述或维护记录中使用下面的短模板。内容必须来自本次证据，不包含真实 token、私人会话、个人路径或不必要的内部信息。
 
 ```md

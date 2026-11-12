@@ -10,7 +10,7 @@ import { proxyRequest } from './httpProxy.mjs';
 import { localCaRouteForTls } from './localCaRoute.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
-import { serveMetricsAssets } from './officialRequestMetrics.mjs';
+import { metricsHtml, prepareMetricsAssets, serveMetricsAssets } from './metricsAssets.mjs';
 import { serveSessionSize } from './sessionSize.mjs';
 import { createRestartController } from './restart/controller.mjs';
 import { guardRestartWrites, serveRestart } from './restart/routes.mjs';
@@ -81,10 +81,12 @@ async function route(req, res, context) {
 }
 
 async function serveFrontendFiles(req, res, context) {
-  const { publicDir, officialPresentation, officialWebVersion } = context;
+  const { publicDir, officialPresentation, officialWebVersion, metrics } = context;
   if (officialPresentation && await servePresentationAsset(req, res)) return true;
   if (await serveMetricsAssets(req, res, context)) return true;
-  const transformHtml = officialPresentation ? (html) => addMobilePresentation(html, { officialWebVersion }) : undefined;
+  const transformHtml = officialPresentation ? (html) => addMobilePresentation(metricsHtml(html, metrics), {
+    officialWebVersion, requestMetricsState: metrics.state,
+  }) : undefined;
   return serveStatic(publicDir, req, res, transformHtml);
 }
 
@@ -178,6 +180,7 @@ export async function createLauncher({
   restartControl,
 }) {
   assertCronPresentation(scheduledTasks, officialPresentation);
+  const metrics = await prepareMetricsAssets(publicDir, officialPresentation);
   const restart = restartService(officialPresentation, restartControl, target);
   const localCaRoute = localCaRouteForTls(tls);
   const cronService = createCronRouteService({
@@ -188,7 +191,7 @@ export async function createLauncher({
   const { wss, handleUpgrade, closeConnections } = wsProxy(diagnostics, restart);
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
   const context = { target, publicDir, officialPresentation, officialWebVersion, scheduledTasks, usageHome,
-    usageService, cronService, restart, localCaRoute, fetchImpl: usageFetch };
+    usageService, cronService, restart, localCaRoute, metrics, fetchImpl: usageFetch };
   const server = createServer(tls, requestListener(context, diagnostics), diagnostics);
   server.on('upgrade', (req, socket, head) => {
     // req.url carries the query string (the official web appends
@@ -212,6 +215,7 @@ export async function createLauncher({
     url: accessUrls[0].url,
     accessUrls,
     tls: tlsSummary(tls),
+    requestMetricsState: metrics.state,
     close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs, restart }),
   };
 }

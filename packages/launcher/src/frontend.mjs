@@ -7,6 +7,7 @@ import { basename } from 'node:path';
 import { createDebugLog, debugLogEnabled } from './debugLog.mjs';
 import { launchLinkLines, launchLinkWarnings } from './launchLinks.mjs';
 import { resolveLaunchToken } from './launchToken.mjs';
+import { metricsStartupMessage } from './metricsAssets.mjs';
 import { ensureOfficialBundle, officialCacheDir, resolveOfficialVersion } from './officialBundle.mjs';
 import { createLauncher } from './serve.mjs';
 import { tlsStatusLines } from './tlsMessages.mjs';
@@ -186,10 +187,16 @@ async function createFrontendLauncher(opts, debugLog) {
   }
 }
 
+function printMetricsStatus(launcher, log, warn) {
+  const message = metricsStartupMessage({ state: launcher.requestMetricsState });
+  if (message) (launcher.requestMetricsState === 'active' ? log : warn)(message);
+}
+
 function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   const log = opts.log ?? console.log;
   const warn = opts.warn ?? console.error;
   if (debugLog?.file) log(`debug log enabled: OKW home/logs/${basename(debugLog.file)}`);
+  printMetricsStatus(launcher, log, warn);
   log(`open-kimi-web ready (target: ${opts.target})`);
   for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
   for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);

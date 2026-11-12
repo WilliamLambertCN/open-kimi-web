@@ -23,9 +23,10 @@ describe('native model-step presentation adapter', () => {
     expect(result.text).not.toContain('.stepDebug');
     expect(result.text).not.toMatch(/kimiDesktop|debug-endpoints|api\/v1\/debug|localStorage/);
   });
-  it.each(['2.4.1', '2.5.3', undefined])('leaves unsupported version %s unmodified', (version) => {
-    expect(patchOfficialRequestMetrics(fixture, version)).toEqual({ patched: false, text: fixture });
-  });
+  it.each(['0.43.1', '2.4.1', '2.5.3', '2.6.0', '3.0.0', '3.0.0-beta.1', undefined])(
+    'uses the complete structure instead of version %s', (version) => {
+      expect(patchOfficialRequestMetrics(fixture, version).patched).toBe(true);
+    });
   it('fails atomically if any contract is missing, duplicated or changed', () => {
     for (const source of [fixture.replace('__name:"StepTimingDebug"', '__name:"ChangedTiming"'),
       fixture.replace('stepDebug||', 'stepDebug&&'), fixture + fixture,
@@ -93,9 +94,8 @@ describe('native activity timing placement', () => {
   it('uses a revisioned namespace for module identity, dependent imports and preloaded assets', () => {
     const html = '<script src="/assets/app.js"></script><link href="/assets/app.css">';
     const source = 'const preload=["assets/a.js"];import("./part.js");new URL("/assets/w.js",import.meta.url)';
-    expect(metricsAssetPaths(html, '2.5.2')).toContain(`src="${METRICS_ASSET_PREFIX}/assets/app.js"`);
-    expect(metricsAssetPaths(source, '2.5.2')).toContain(`"${METRICS_ASSET_PREFIX.slice(1)}/assets/a.js"`);
-    expect(metricsAssetPaths(source, '2.5.2')).toContain('import("./part.js")');
-    expect(metricsAssetPaths(html, '2.4.1')).toBe(html);
+    expect(metricsAssetPaths(html)).toContain(`src="${METRICS_ASSET_PREFIX}/assets/app.js"`);
+    expect(metricsAssetPaths(source)).toContain(`"${METRICS_ASSET_PREFIX.slice(1)}/assets/a.js"`);
+    expect(metricsAssetPaths(source)).toContain('import("./part.js")');
   });
 });

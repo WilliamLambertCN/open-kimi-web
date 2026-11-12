@@ -17,6 +17,7 @@ import { acquireInstallerUpdateLock } from './install/updateLock.mjs';
 import { adjacentNpm, installNpmArgs, isolatedNpmEnv, nodeSupported } from './install/npm.mjs';
 import { discoverOfficial, officialCommand, prepareOfficial } from './install/official.mjs';
 import { normalizePathEnv, pathValue } from './install/environment.mjs';
+import { stopInstallerGroup } from './install/processCleanup.mjs';
 import { recordProcessStart, stopWindowsTree } from '../packages/launcher/src/update/windowsTreeCleanup.mjs';
 export { adjacentNpm, installNpmArgs, isolatedNpmEnv } from './install/npm.mjs';
 const ENTRY = 'bin/open-kimi-web.mjs';
@@ -121,14 +122,13 @@ export async function runInstallProcess(command, args, options = {}) {
     const stop = (message) => {
       if (failure) return;
       failure = new Error(message);
-      if (process.platform === 'win32') {
-        killed = Promise.resolve().then(() => stopWindowsTree(child, {})).catch(() => {
-          failure.keepLock = true;
-          clearTimeout(cleanup);
-          child.stdout.destroy(); child.stderr.destroy(); child.unref();
-          reject(failure);
-        });
-      } else { try { process.kill(-child.pid, 'SIGKILL'); } catch { failure.keepLock = true; } }
+      killed = Promise.resolve().then(() => process.platform === 'win32'
+        ? stopWindowsTree(child, {}) : stopInstallerGroup(child.pid)).catch(() => {
+        failure.keepLock = true;
+        clearTimeout(cleanup);
+        child.stdout.destroy(); child.stderr.destroy(); child.unref();
+        reject(failure);
+      });
       cleanup = setTimeout(() => { failure.keepLock = true; child.unref(); reject(failure); }, 5_000);
     };
     const timer = setTimeout(() => stop('installer child timed out'), options.timeoutMs ?? 30_000);
