@@ -90,16 +90,74 @@ describe('official step metrics static delivery', () => {
       const result = await raw(prefix + path); expect(result.status).toBe(400);
       expect(result.body.toString()).toBe('Bad Request');
     });
-  it('leaves custom web directories and other official versions on their original module graph', async () => {
-    for (const options of [{ officialPresentation: false, officialWebVersion: '2.5.2' },
-      { officialPresentation: true, officialWebVersion: '2.4.1' }]) {
+  it('leaves custom web directories on their original module graph and reserves the private namespace', async () => {
+    const other = await createLauncher({ publicDir, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: false, officialWebVersion: '2.5.2' });
+    try {
+      const index = await (await fetch(other.url)).text();
+      expect(index).toBe(html); expect(other.requestMetricsState).toBe('disabled');
+      expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(source);
+      const missing = await fetch(other.url + prefix + '/assets/main.js');
+      expect(missing.status).toBe(404); expect(await missing.text()).not.toContain('<html');
+    } finally { await other.close(); }
+  });
+});
+
+describe('version-independent metrics activation', () => {
+  it.each(['0.43.1', '2.4.1', '2.5.3', '2.6.0', '3.0.0', '3.0.0-beta.1', undefined])(
+    'activates only from matching structure regardless of version %s', async (officialWebVersion) => {
       const other = await createLauncher({ publicDir, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
-        interfaces: {}, ...options });
+        interfaces: {}, officialPresentation: true, officialWebVersion });
       try {
+        expect(other.requestMetricsState).toBe('active');
         const index = await (await fetch(other.url)).text();
-        expect(index).toContain('src="/assets/main.js"'); expect(index).not.toContain(prefix);
-        expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(source);
+        expect(index).toContain(`src="${prefix}/assets/main.js"`);
+        expect(index).toContain('<meta name="open-kimi-web-request-metrics" content="active">');
+        const module = await fetch(other.url + prefix + '/assets/main.js');
+        expect(module.headers.get('content-type')).toContain('text/javascript');
+        expect(await module.text()).toContain('__okwTimingSlots');
       } finally { await other.close(); }
-    }
+    });
+  it.each([false, true])('keeps the original graph when actual module missing=%s fails validation', async (missing) => {
+    const directory = join(root, missing ? 'missing-module' : 'incompatible');
+    await mkdir(join(directory, 'assets'), { recursive: true });
+    await writeFile(join(directory, 'index.html'), html);
+    if (!missing) await writeFile(join(directory, 'assets/main.js'), '__name:"StepTimingDebug"');
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '2.5.3' });
+    try {
+      const state = missing ? 'unavailable-bundle' : 'incompatible-bundle';
+      expect(other.requestMetricsState).toBe(state);
+      const index = await (await fetch(other.url)).text();
+      expect(index).toContain('src="/assets/main.js"'); expect(index).not.toContain(prefix);
+      expect(index).toContain(`<meta name="open-kimi-web-request-metrics" content="${state}">`);
+      const unavailable = await fetch(other.url + prefix + '/assets/main.js');
+      expect(unavailable.status).toBe(404); expect(await unavailable.text()).not.toContain('<html');
+    } finally { await other.close(); }
+  });
+  it('rejects a replaced module symlink rather than serving unverified original code under the active graph', async () => {
+    const directory = join(root, 'relinked'); await mkdir(join(directory, 'assets'), { recursive: true });
+    await mkdir(join(directory, 'replacement'));
+    await writeFile(join(directory, 'index.html'), html); await writeFile(join(directory, 'assets/main.js'), source);
+    await writeFile(join(directory, 'replacement/main.js'), source);
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '2.5.3' });
+    try {
+      await rm(join(directory, 'assets'), { recursive: true });
+      await symlink(join(directory, 'replacement'), join(directory, 'assets'), process.platform === 'win32' ? 'junction' : 'dir');
+      expect((await fetch(other.url + prefix + '/assets/main.js')).status).toBe(500);
+    } finally { await other.close(); }
+  });
+  it('rejects changed index or entry bytes rather than silently mixing an unverified graph', async () => {
+    const directory = join(root, 'changed'); await mkdir(join(directory, 'assets'), { recursive: true });
+    await writeFile(join(directory, 'index.html'), html); await writeFile(join(directory, 'assets/main.js'), source);
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '3.0.0' });
+    try {
+      await writeFile(join(directory, 'assets/main.js'), source + '\nchanged');
+      expect((await fetch(other.url + prefix + '/assets/main.js')).status).toBe(500);
+      await writeFile(join(directory, 'index.html'), html + '\nchanged');
+      expect((await fetch(other.url)).status).toBe(500);
+    } finally { await other.close(); }
   });
 });
