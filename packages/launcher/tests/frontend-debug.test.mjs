@@ -94,6 +94,19 @@ describe('startFrontend debug logging', () => {
   });
 });
 
+describe('startFrontend metrics status', () => {
+  it.each(['active', 'incompatible-bundle', 'unavailable-bundle'])(
+    'announces verified status %s without enabling debug logging', async (state) => {
+      createLauncher.mockResolvedValueOnce({ ...fixtureLauncher(), requestMetricsState: state });
+      const opts = fixtureOptions({ publicDir: undefined, webVersion: '2.5.3' });
+      await startFrontend(opts);
+      const output = state === 'active' ? opts.log : opts.warn;
+      expect(output).toHaveBeenCalledWith(expect.stringContaining(`request metrics: ${
+        state === 'active' ? 'active' : 'unavailable (' + state + ')'}`));
+      expect(createDebugLog).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
+    });
+});
+
 describe('startFrontend diagnostic startup lifetime', () => {
   it('reuses the same logger through a successful port retry without closing it', async () => {
     const logger = fixtureLogger();
