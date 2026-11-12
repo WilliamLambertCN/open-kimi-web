@@ -1,4 +1,4 @@
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -30,9 +30,24 @@ afterAll(async () => {
   if (root) await rm(root, { recursive: true, force: true });
 });
 
+function httpFetch(url, init = {}) {
+  return new Promise((resolve, reject) => {
+    const req = httpRequest(url, { method: init.method, headers: init.headers, signal: init.signal }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('error', reject);
+      res.on('end', () => resolve(new Response(Buffer.concat(chunks), {
+        status: res.statusCode, headers: res.headers,
+      })));
+    });
+    req.on('error', reject);
+    req.end(init.body);
+  });
+}
+
 function localFetch(url, init) {
   if (new URL(url).origin !== upstreamUrl) throw new Error('offline catalog fixture');
-  return fetch(url, init);
+  return httpFetch(url, init);
 }
 
 async function launch({
@@ -50,7 +65,7 @@ async function launch({
 }
 
 function request(base, path, method = 'GET', body, token = 'local-test-token') {
-  return fetch(`${base}${path}`, {
+  return httpFetch(`${base}${path}`, {
     method,
     headers: {
       ...(token ? { authorization: `Bearer ${token}` } : {}),
@@ -90,7 +105,7 @@ function tracked(time, alias, inputOther, output, { agentId = 'main', modelId = 
 function catalogFetch(mode) {
   return (url, init) => {
     const address = String(url);
-    if (new URL(address).origin === upstreamUrl) return fetch(url, init);
+    if (new URL(address).origin === upstreamUrl) return httpFetch(url, init);
     if (mode.status === 'offline') throw new Error('private backend detail');
     if (address === 'https://models.dev/api.json') {
       return Response.json({ test: { name: 'Test Provider', models: {
@@ -280,7 +295,7 @@ describe('launcher usage input errors', () => {
         model: 'denied', catalogKey: null, rates: { input: 1 },
       }, null);
       expect(denied.status).toBe(401);
-      const malformed = await fetch(`${launcher.url}${prefix}/pricing`, {
+      const malformed = await httpFetch(`${launcher.url}${prefix}/pricing`, {
         method: 'PUT', headers: { authorization: 'Bearer local-test-token' }, body: '{broken',
       });
       expect(malformed.status).toBe(400);
@@ -288,7 +303,7 @@ describe('launcher usage input errors', () => {
         model: 'bad', catalogKey: null, rates: { input: -1 },
       });
       expect(invalid.status).toBe(400);
-      const large = await fetch(`${launcher.url}${prefix}/pricing`, {
+      const large = await httpFetch(`${launcher.url}${prefix}/pricing`, {
         method: 'PUT',
         headers: { authorization: 'Bearer local-test-token' },
         body: 'x'.repeat(1024 * 1024 + 1),

@@ -11,14 +11,18 @@ import { assertCronBackend } from '../cron/guard.mjs';
 import { startFrontend } from '../frontend.mjs';
 import { defaultTokenFile, resolveLaunchToken } from '../launchToken.mjs';
 import { openUrl } from './browserOpen.mjs';
-import { isWindowsCmdScript, resolveSpawnTarget, runCapture } from './proc.mjs';
+import { isWindowsCmdScript, resolveSpawnTarget } from './proc.mjs';
+import { terminateTree } from '../update/treeCleanup.mjs';
+import { recordProcessStart } from '../update/windowsTreeCleanup.mjs';
 import {
   awaitNewInstance,
   instancesDir,
   snapshotInstanceIds,
-  verifyInstance,
+  verifyRegisteredInstance,
 } from './registryDiscovery.mjs';
 import { IntegrateError } from './state.mjs';
+import { createRestartController } from '../restart/controller.mjs';
+import { prepareRestart, restartCommand } from '../restart/launch.mjs';
 
 const SHUTDOWN_TIMEOUT_MS = 3_000;
 const KILL_GRACE_MS = 2_000;
@@ -67,8 +71,11 @@ async function exitedWithin(exited, timeoutMs) {
 }
 
 async function killWindowsTree(child, exited, ctx) {
-  const run = ctx.killTree ?? ((pid) => runCapture('taskkill', ['/pid', String(pid), '/T', '/F']));
   const pid = ctx.backendPid ?? child.pid;
+  const run = ctx.killTree ?? (async () => {
+    await terminateTree(child);
+    return { code: 0 };
+  });
   const result = await run(pid).catch((error) => ({ code: 1, stderr: error.message }));
   if (result?.code !== 0) ctx.warn(`could not terminate backend process tree ${pid}: ${result.stderr}`);
   if (!(await exitedWithin(exited, FORCE_KILL_WAIT_MS))) {
@@ -121,7 +128,7 @@ export function waitForStop(exited, signal) {
     };
     const onSigint = () => done({ kind: 'signal' });
     const onSigterm = () => done({ kind: 'signal' });
-    const onAbort = () => done({ kind: 'unsafe-backend' });
+    const onAbort = () => done({ kind: signal.reason === 'restart' ? 'restart' : 'unsafe-backend' });
     process.once('SIGINT', onSigint);
     process.once('SIGTERM', onSigterm);
     signal?.addEventListener('abort', onAbort, { once: true });
@@ -140,7 +147,7 @@ async function supervise(child, exited, launcher, ctx) {
   await exitedWithin(exited, SHUTDOWN_TIMEOUT_MS);
   await killBackend(child, exited, ctx);
   await closeLauncher(launcher, ctx);
-  if (ctx.stopSignal?.aborted || stop.kind === 'unsafe-backend') {
+  if (ctx.stopSignal?.reason === 'unsafe-backend' || stop.kind === 'unsafe-backend') {
     ctx.warn('scheduled-task backend became unsafe; shutting down the managed backend');
     return 1;
   }
@@ -201,20 +208,31 @@ export function frontendOptions(web, instancePort, env = process.env) {
   };
 }
 
-function unsafeBackendStop(web) {
-  if (web.scheduledTasks !== true) return {};
+function backendStop(web) {
   const controller = new AbortController();
   return {
     signal: controller.signal,
-    onUnsafeBackend: () => {
-      if (!controller.signal.aborted) controller.abort('unsafe-backend');
-    },
+    restart: () => controller.abort('restart'),
+    onUnsafeBackend: web.scheduledTasks ? () => controller.abort('unsafe-backend') : undefined,
   };
+}
+
+function restartFor(options, stop, deps, env) {
+  let command;
+  try { command = restartCommand(options.web); } catch { return undefined; }
+  return createRestartController({ fetchImpl: deps.fetch ?? fetch,
+    prepare: () => prepareRestart(command, { env }), stop: stop.restart });
 }
 
 function managedTreeKill(realKimi, web, platform = process.platform) {
   if (web.scheduledTasks === true && platform === 'win32') return true;
   return isWindowsCmdScript(realKimi, platform);
+}
+
+function notifyRestartReady(frontend) {
+  if (process.connected && process.send) {
+    process.send({ type: 'okw-restart-ready', port: frontend.launcher.server?.address()?.port });
+  }
 }
 
 async function openFrontend(frontend, web, stopSignal, deps, warn) {
@@ -252,16 +270,19 @@ export async function superviseWeb(options) {
     stdio: ['ignore', 'inherit', 'inherit'],
     windowsVerbatimArguments: target.verbatim,
   });
+  recordProcessStart(child, sinceMs);
   const exited = new Promise((resolve, reject) => {
     child.on('error', reject);
     child.on('exit', (code, signal) => resolve({ code, signal }));
   });
 
-  const stop = unsafeBackendStop(options.web);
+  const stop = backendStop(options.web);
+  const restartControl = restartFor(options, stop, deps, env);
   const frontend = await startBackendAndFrontend({
     child, exited, env, dir, previousIds, sinceMs, realKimi: options.realKimi,
-    web: options.web, deps, log, warn, onUnsafeBackend: stop.onUnsafeBackend,
+    web: options.web, deps, log, warn, onUnsafeBackend: stop.onUnsafeBackend, restartControl,
   });
+  notifyRestartReady(frontend);
   await openFrontend(frontend, options.web, stop.signal, deps, warn);
   return supervise(child, exited, frontend.launcher, {
     port: frontend.instancePort,
@@ -301,11 +322,8 @@ async function startBackendAndFrontend(ctx) {
     ]);
     ctx.backendPid = instance.pid;
     const token = await Promise.race([awaitBackendToken(env, deps), earlyExit]);
-    await verifyInstance({
-      port: instance.port,
-      pid: instance.pid,
-      token,
-      fetchImpl: deps.fetch,
+    instance = await verifyRegisteredInstance(instance, {
+      dir: ctx.dir, io: deps.io, token, fetchImpl: deps.fetch,
     });
     ctx.token = token;
     if (ctx.web.scheduledTasks === true) {
@@ -326,6 +344,7 @@ async function startBackendAndFrontend(ctx) {
       env,
       usageHome: dirname(defaultTokenFile(env)),
       onUnsafeBackend: ctx.onUnsafeBackend,
+      restartControl: ctx.restartControl,
       log,
       warn,
       publicDir: deps.publicDir,
