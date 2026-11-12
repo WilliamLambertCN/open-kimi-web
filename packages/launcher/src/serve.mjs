@@ -10,7 +10,10 @@ import { proxyRequest } from './httpProxy.mjs';
 import { localCaRouteForTls } from './localCaRoute.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
+import { serveMetricsAssets } from './officialRequestMetrics.mjs';
 import { serveSessionSize } from './sessionSize.mjs';
+import { createRestartController } from './restart/controller.mjs';
+import { guardRestartWrites, serveRestart } from './restart/routes.mjs';
 import { serveStatic } from './staticFiles.mjs';
 import { supportsTranscriptPaging, transcriptProxyPath } from './transcriptPaging.mjs';
 import { createTransportDiagnostics } from './transportDiagnostics.mjs';
@@ -36,6 +39,21 @@ function assertCronPresentation(scheduledTasks, officialPresentation) {
   if (scheduledTasks && !officialPresentation) throw new Error('--scheduled-tasks requires the enhanced official web UI');
 }
 
+async function serveLocalControl(req, res, context) {
+  if (context.officialPresentation && await serveRestart(req, res, context.restart)) return true;
+  if (guardRestartWrites(req, res, context.restart)) return true;
+  return context.localCaRoute(req, res);
+}
+
+function wsProxy(diagnostics, restart) { return createWsProxy(diagnostics, restart?.blocked); }
+
+function restartService(officialPresentation, restartControl, target) {
+  if (!officialPresentation) return null;
+  const service = restartControl ?? createRestartController();
+  service.configure(target);
+  return service;
+}
+
 async function closeCronService(service) {
   await service?.close?.();
 }
@@ -46,7 +64,7 @@ async function route(req, res, context) {
     res.writeHead(404).end('Not Found');
     return;
   }
-  if (context.localCaRoute(req, res)) return;
+  if (await serveLocalControl(req, res, context)) return;
   if (await serveOfficialExtension(req, res, context)) return;
   const pathname = url.split('?')[0];
   if (pathname === '/api' || pathname.startsWith('/api/')) {
@@ -62,8 +80,10 @@ async function route(req, res, context) {
   if (!served) res.writeHead(404).end('Not Found');
 }
 
-async function serveFrontendFiles(req, res, { publicDir, officialPresentation, officialWebVersion }) {
+async function serveFrontendFiles(req, res, context) {
+  const { publicDir, officialPresentation, officialWebVersion } = context;
   if (officialPresentation && await servePresentationAsset(req, res)) return true;
+  if (await serveMetricsAssets(req, res, context)) return true;
   const transformHtml = officialPresentation ? (html) => addMobilePresentation(html, { officialWebVersion }) : undefined;
   return serveStatic(publicDir, req, res, transformHtml);
 }
@@ -100,10 +120,11 @@ function requestListener(context, diagnostics) {
   };
 }
 
-function closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs }) {
+function closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs, restart }) {
   let closing;
   async function close() {
     try {
+      restart?.close();
       closeConnections();
       for (const client of wss.clients) client.terminate();
       await closeServer(server, closeGraceMs);
@@ -154,18 +175,20 @@ export async function createLauncher({
   usageStorageDir = null,
   usageFetch = fetch,
   debugLog,
+  restartControl,
 }) {
   assertCronPresentation(scheduledTasks, officialPresentation);
+  const restart = restartService(officialPresentation, restartControl, target);
   const localCaRoute = localCaRouteForTls(tls);
   const cronService = createCronRouteService({
     target, enabled: scheduledTasks, fetchImpl: usageFetch,
     ...cronBackendOptions(scheduledTasks, usageHome, onUnsafeBackend),
   });
   const diagnostics = createTransportDiagnostics(debugLog);
-  const { wss, handleUpgrade, closeConnections } = createWsProxy(diagnostics);
+  const { wss, handleUpgrade, closeConnections } = wsProxy(diagnostics, restart);
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
   const context = { target, publicDir, officialPresentation, officialWebVersion, scheduledTasks, usageHome,
-    usageService, cronService, localCaRoute, fetchImpl: usageFetch };
+    usageService, cronService, restart, localCaRoute, fetchImpl: usageFetch };
   const server = createServer(tls, requestListener(context, diagnostics), diagnostics);
   server.on('upgrade', (req, socket, head) => {
     // req.url carries the query string (the official web appends
@@ -189,6 +212,6 @@ export async function createLauncher({
     url: accessUrls[0].url,
     accessUrls,
     tls: tlsSummary(tls),
-    close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs }),
+    close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs, restart }),
   };
 }

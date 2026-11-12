@@ -39,13 +39,14 @@ export function relayCloseCode(code) {
   return code === 1005 || code === 1006 || code === 1015 ? 1000 : code;
 }
 
-function bridge(upstream, client, onClose, trace) {
+function bridge(upstream, client, onClose, trace, blocked) {
   upstream.on('message', (data, isBinary) => {
     client.send(data, { binary: isBinary });
     trace?.toClient(data, client.bufferedAmount);
   });
   client.on('message', (data, isBinary) => {
     if (upstream.readyState !== WebSocket.OPEN) return;
+    if (blocked?.()) { client.close(1013, 'Service restarting'); return; }
     upstream.send(data, { binary: isBinary });
     trace?.toUpstream(data, upstream.bufferedAmount);
   });
@@ -95,7 +96,8 @@ function connectUpstream(req, targetBase) {
 }
 
 function acceptUpgrade(context, cleanup, abandon) {
-  const { upstream, req, socket, head, wss, active, trace } = context;
+  const { upstream, req, socket, head, wss, active, trace, blocked } = context;
+  if (blocked?.()) { abandon(); rejectHandshake(socket, 503); return; }
   upstream.removeAllListeners('unexpected-response');
   req.upstreamSubprotocol = upstream.protocol;
   let accepted = false;
@@ -104,7 +106,7 @@ function acceptUpgrade(context, cleanup, abandon) {
       accepted = true;
       cleanup();
       active.set(upstream, trace);
-      bridge(upstream, client, () => active.delete(upstream), trace);
+      bridge(upstream, client, () => active.delete(upstream), trace, blocked);
       trace?.ready();
     });
   } catch (error) {
@@ -160,7 +162,7 @@ function watchPending(context) {
   upstream.once('open', () => acceptUpgrade(context, cleanup, abandon));
 }
 
-export function createWsProxy(diagnostics) {
+export function createWsProxy(diagnostics, blocked) {
   const pending = new Map();
   const active = new Map();
   const wss = new WebSocketServer({
@@ -172,6 +174,7 @@ export function createWsProxy(diagnostics) {
 
   function handleUpgrade(req, socket, head, targetBase) {
     const trace = diagnostics?.ws(req);
+    if (blocked?.()) { trace?.end('rejected', { status: 503 }); rejectHandshake(socket, 503); return; }
     let upstream;
     try {
       upstream = connectUpstream(req, targetBase);
@@ -182,7 +185,7 @@ export function createWsProxy(diagnostics) {
       return;
     }
     pending.set(upstream, { socket, trace });
-    watchPending({ upstream, req, socket, head, wss, pending, active, trace });
+    watchPending({ upstream, req, socket, head, wss, pending, active, trace, blocked });
   }
 
   function closeConnections() {
