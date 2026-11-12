@@ -348,10 +348,16 @@ describe('bash login preflight and real subprocess boundaries', () => {
     expect(await readFile(join(f.env.HOME, '.bash_profile'), 'utf8')).toBe('');
   });
 
-  it('runs real subprocesses without leaking stderr and times out a fixture process', async () => {
+  it('returns stdout from a real subprocess', async () => {
     expect(await runInstallProcess(process.execPath, ['-e', 'console.log("fixture")'])).toBe('fixture');
+  });
+
+  it('rejects a real subprocess failure without leaking stderr', async () => {
     await expect(runInstallProcess(process.execPath, ['-e', 'console.error("private fixture");process.exit(1)']))
       .rejects.toThrow('no command output logged');
+  });
+
+  it('times out a real fixture process', async () => {
     await expect(runInstallProcess(process.execPath, ['-e', 'setInterval(()=>{},100)'], { timeoutMs: 100 }))
       .rejects.toThrow('timed out');
   });

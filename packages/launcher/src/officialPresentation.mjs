@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import packageInfo from '../package.json' with { type: 'json' };
 import { isBundleVersion } from './officialBundle.mjs';
 import { sendResponse } from './responseCompression.mjs';
+import { metricsAssetPaths } from './officialRequestMetrics.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
 const APP_VERSION = packageInfo.version;
@@ -13,7 +14,16 @@ const PWA_SCRIPTS = ['pwaInstallView.js', 'pwaInstall.js'];
 const SESSION_MENU_SCRIPTS = ['sessionActionsApi.js', 'desktopSessionMenu.js', 'mobileSessionMenu.js'];
 const TOC_SCRIPTS = ['mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js',
   'mobileConversationTocView.js', 'mobileConversationToc.js'];
+const SIDECHAT_SCRIPTS = ['sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js'];
+const METRICS_SCRIPTS = ['requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js'];
+const RESTART_SCRIPTS = ['serviceRestartView.js', 'serviceRestart.js'];
 const FILES = new Map([
+  ...RESTART_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['serviceRestart.css', 'text/css; charset=utf-8'],
+  ...SIDECHAT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['sideChatModel.css', 'text/css; charset=utf-8'],
+  ...METRICS_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['requestMetrics.css', 'text/css; charset=utf-8'],
   ['branding.js', 'text/javascript; charset=utf-8'],
   ['branding.css', 'text/css; charset=utf-8'],
   ...TOC_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
@@ -107,6 +117,9 @@ const SCRIPTS = [
   'sessionSize.js',
   'messageTimestamps.js',
   ...TOC_SCRIPTS,
+  ...SIDECHAT_SCRIPTS,
+  ...METRICS_SCRIPTS,
+  ...RESTART_SCRIPTS,
   'branding.js',
 ];
 const STYLES = [
@@ -127,6 +140,9 @@ const STYLES = [
   'tabFeedback.css',
   'sessionSize.css',
   'messageTimestamps.css',
+  'requestMetrics.css',
+  'sideChatModel.css',
+  'serviceRestart.css',
   'chatWidth.css',
   'mobileConversationToc.css',
 ];
@@ -186,5 +202,5 @@ export function addMobilePresentation(html, { officialWebVersion } = {}) {
     '<meta name="mobile-web-app-capable" content="yes">',
     '<meta name="apple-mobile-web-app-title" content="Open Kimi Web">',
   ].join('\n') + '\n';
-  return withScript.replace('</head>', `${styles}${install}</head>`);
+  return metricsAssetPaths(withScript.replace('</head>', `${styles}${install}</head>`), officialWebVersion);
 }

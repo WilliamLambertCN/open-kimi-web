@@ -20,6 +20,8 @@ import { runCapture, spawnMirror } from '../../packages/launcher/src/integration
 import { pidAlive } from '../../packages/launcher/src/integration/registryDiscovery.mjs';
 import { superviseWeb } from '../../packages/launcher/src/integration/supervisor.mjs';
 import { wrapMain } from '../../packages/launcher/src/integration/wrapMain.mjs';
+import { terminateTree } from '../../packages/launcher/src/update/treeCleanup.mjs';
+import { recordProcessStart } from '../../packages/launcher/src/update/windowsTreeCleanup.mjs';
 
 const FAKE_KIMI = fileURLToPath(
   new URL('../../packages/launcher/tests/integration/fakeKimi.mjs', import.meta.url),
@@ -111,13 +113,13 @@ async function waitForLink() {
   return new URL(localLink());
 }
 
-async function canTaskkillTree() {
+async function assertNativeTreeCleanup() {
+  const startedAt = Date.now() - 1;
   const probe = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
+  recordProcessStart(probe, startedAt);
   const exited = new Promise((resolve) => probe.once('exit', resolve));
-  const result = await runCapture('taskkill', ['/pid', String(probe.pid), '/T', '/F']);
-  if (result.code !== 0) probe.kill('SIGTERM');
-  await exited;
-  return result.code === 0;
+  try { await terminateTree(probe); }
+  finally { if (probe.exitCode === null) probe.kill('SIGTERM'); await exited; }
 }
 
 // Use an ephemeral public frontend port so integration tests do not reserve a
@@ -257,11 +259,8 @@ describe('supervisor startup and Windows process trees', () => {
   it.skipIf(process.platform !== 'win32')(
     'terminates the whole cmd.exe shim tree when graceful shutdown is ignored',
     { timeout: 30_000 },
-    async (context) => {
-      if (!(await canTaskkillTree())) {
-        context.skip();
-        return;
-      }
+    async () => {
+      await assertNativeTreeCleanup();
       const shim = join(root, 'fake-kimi.cmd');
       writeFileSync(shim, `@echo off\r\n"${process.execPath}" "${FAKE_KIMI}" %*\r\n`);
       const supervised = superviseWeb({

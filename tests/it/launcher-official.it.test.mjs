@@ -179,6 +179,19 @@ function verifyNavigationAssetOrder(indexText) {
   expect(indexText).not.toContain('/__open-kimi-mobile/schedules');
 }
 
+function verifySideChatMetricsOrder(indexText) {
+  const scripts = ['sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js',
+    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js', 'serviceRestartView.js', 'serviceRestart.js'];
+  for (const [index, name] of scripts.entries()) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
+    expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
+    if (index) expect(indexText.indexOf(name)).toBeGreaterThan(indexText.indexOf(scripts[index - 1]));
+  }
+  for (const name of ['sideChatModel.css', 'requestMetrics.css', 'serviceRestart.css']) {
+    expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
+  }
+}
+
 function verifyChatEnhancementOrder(indexText) {
   verifyNavigationAssetOrder(indexText);
   for (const name of ['locale.js', 'usageLocale.js', 'providerLocale.js']) {
@@ -219,6 +232,7 @@ function verifyChatEnhancementOrder(indexText) {
     expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
     if (index) expect(indexText.indexOf(name)).toBeGreaterThan(indexText.indexOf(tocScripts[index - 1]));
   }
+  verifySideChatMetricsOrder(indexText);
   expect(indexText).toContain('/__open-kimi-mobile/mobileConversationToc.css');
   expect(indexText).toContain('/__open-kimi-mobile/branding.css');
   expect(indexText.indexOf('open-kimi-web-version')).toBeLessThan(indexText.indexOf('branding.js'));
@@ -254,6 +268,9 @@ async function verifyIndexRepresentation(url, response, text) {
 }
 
 const PRESENTATION_ASSETS = [
+  'serviceRestartView.js', 'serviceRestart.js', 'serviceRestart.css',
+  'sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js', 'sideChatModel.css',
+  'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js', 'requestMetrics.css',
   'branding.js', 'branding.css',
   ...NAVIGATION_ASSETS,
   'pwaInstallView.js', 'pwaInstall.js', 'pwaInstall.css', 'manifest.webmanifest',

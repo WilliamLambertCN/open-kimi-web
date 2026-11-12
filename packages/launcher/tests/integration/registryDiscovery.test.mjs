@@ -9,6 +9,7 @@ import {
   pidAlive,
   snapshotInstanceIds,
   verifyInstance,
+  verifyRegisteredInstance,
 } from '../../src/integration/registryDiscovery.mjs';
 
 const DIR = '/fake/registry';
@@ -102,6 +103,25 @@ describe('awaitNewInstance', () => {
       awaitNewInstance({ dir: DIR, sinceMs, previousIds: new Set(), io }),
     ).rejects.toThrow(/multiple new kimi web instances/);
   });
+});
+
+describe('verifyRegisteredInstance', () => {
+  it('re-reads the same registry identity if the native server moved away from an occupied default port', async () => {
+    const original = instance(); const current = instance({ port: 4322 });
+    const fetchImpl = vi.fn(async (url) => ({ ok: new URL(url).port === '4322', status: 401 }));
+    const found = await verifyRegisteredInstance(original, { dir: DIR,
+      io: ioWith({ 'new.json': JSON.stringify(current) }), token: 'fictional', pidAlive: () => true, fetchImpl });
+    expect(found).toEqual(current);
+    expect(fetchImpl.mock.calls.map(([url]) => new URL(url).port)).toEqual(['4321', '4322', '4322']);
+  });
+  it.each([{ server_id: 'other' }, { pid: 9999 }, { started_at: 1 }, { port: 0 }, {}])(
+    'does not retry an unrelated or unchanged registry record %j', async (patch) => {
+      const fetchImpl = vi.fn(async () => ({ ok: false, status: 401 }));
+      await expect(verifyRegisteredInstance(instance(), { dir: DIR,
+        io: ioWith({ 'new.json': JSON.stringify(instance(patch)) }), token: 'fictional',
+        pidAlive: () => true, fetchImpl, timeoutMs: 30 })).rejects.toThrow(/healthz answered HTTP 401/);
+      expect(fetchImpl).toHaveBeenCalledOnce();
+    });
 });
 
 describe('pidAlive', () => {

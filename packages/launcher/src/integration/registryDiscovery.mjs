@@ -1,10 +1,11 @@
-// Backend discovery: after spawning `kimi web --port 0` on loopback, find
+// Backend discovery: after spawning `kimi web` on loopback, find
 // the new instance in the official server registry ($KIMI_CODE_HOME/server/
 // instances/*.json) and verify it over HTTP. Ambiguity, timeout or a failed
 // verification all fail closed (the caller kills the backend).
 import { readdir, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
 
 import { IntegrateError } from './state.mjs';
 
@@ -88,6 +89,34 @@ export async function awaitNewInstance(options) {
       throw new IntegrateError('timed out waiting for the kimi web instance registry entry');
     }
     await sleep(pollMs);
+  }
+}
+
+function sameRegistration(row, instance) {
+  return row.server_id === instance.server_id && row.pid === instance.pid && row.started_at === instance.started_at;
+}
+
+function movedPort(current, instance) {
+  return current.port !== instance.port && Number.isInteger(current.port) && current.port > 0;
+}
+
+export async function verifyRegisteredInstance(instance, options) {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_VERIFY_TIMEOUT_MS;
+  const signal = options.signal ?? AbortSignal.timeout(timeoutMs);
+  const deadline = Date.now() + timeoutMs;
+  const verify = (row) => verifyInstance({ ...options, signal, pid: row.pid, port: row.port });
+  try { await verify(instance); return instance; }
+  catch (error) {
+    while (!signal.aborted && Date.now() < deadline) {
+      const records = await readInstances(options.dir, options.io ?? { readdir, readFile });
+      const current = records.find((row) => sameRegistration(row, instance));
+      if (!current) throw error;
+      if (movedPort(current, instance)) {
+        await verify(current); return current;
+      }
+      await (options.sleep ?? delay)(Math.min(DEFAULT_VERIFY_POLL_MS, Math.max(0, deadline - Date.now())));
+    }
+    throw error;
   }
 }
 

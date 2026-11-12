@@ -219,6 +219,23 @@ const required = [
   'src/mobile/mobileSubagentModelView.js',
   'src/mobile/mobileSubagentModel.js',
   'src/mobile/mobileSubagentModel.css',
+  'src/mobile/sideChatModelIdentity.js',
+  'src/mobile/sideChatModelApi.js',
+  'src/mobile/sideChatModelView.js',
+  'src/mobile/sideChatModel.js',
+  'src/mobile/sideChatModel.css',
+  'src/mobile/requestMetricsModel.js',
+  'src/mobile/requestMetricsTransport.js',
+  'src/mobile/requestMetrics.js',
+  'src/mobile/requestMetrics.css',
+  'src/mobile/serviceRestartView.js',
+  'src/mobile/serviceRestart.js',
+  'src/mobile/serviceRestart.css',
+  'src/restart/worker.mjs',
+  'src/restart/launch.mjs',
+  'src/restart/controller.mjs',
+  'src/restart/routes.mjs',
+  'src/restart/http.mjs',
   'src/mobile/navigationApi.js',
   'src/mobile/navigationSearchView.js',
   'src/mobile/navigationSearch.js',
@@ -255,14 +272,17 @@ async function assertConversationAssets(pkgDir, launcher, html) {
     throw new Error('installed branding metadata or favicon does not match the package');
   }
   const assets = ['branding.js', 'branding.css', 'mobileConversationToc.js', 'mobileConversationToc.css',
-    'mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js', 'mobileConversationTocView.js'];
+    'mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js', 'mobileConversationTocView.js',
+    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js', 'requestMetrics.css',
+    'sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js', 'sideChatModel.css',
+    'serviceRestartView.js', 'serviceRestart.js', 'serviceRestart.css'];
   for (const name of assets) {
     const attribute = name.endsWith('.js') ? 'src' : 'href';
     if (!html.includes(`${attribute}="${prefix}${name}"`)) throw new Error(`installed page does not load ${name}`);
     const response = await fetch(launcher.url + prefix + name);
     if (!response.ok || !(await response.text()).trim()) throw new Error(`installed asset unavailable: ${name}`);
   }
-  console.log('conversation assets ok: actual package version, app favicon, branding and mobile outline resources');
+  console.log('conversation assets ok: branding, mobile outline, per-request speeds and side chat model picker');
 }
 
 async function assertPwaAssets(pkgDir, publicDir, target) {
