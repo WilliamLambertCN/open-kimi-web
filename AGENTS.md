@@ -6,14 +6,14 @@
 历史 Kimi Code `0.43.1` 适配以
 [`docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md`](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 为当时的实施、审查和验收基线。当前本地兼容目标为 `2.5.2`，准确适配证据见 `UPSTREAM.md`、`upstream.json`。
-上轮正式版本为 `2.5.2-r3`；本轮目标r4，安装器 pin 及 meta 失败 UI fallback 均保持 `2.4.1`。
-用户已要求提交发布，按[请求指标 r3 发布计划](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)执行。
-覆盖下方指标／重启“不提交／不发布”的历史限制；桌面重启放设置→通用，手机不变，本轮不重启生产。
-PR #46 及准确 main CI 通过：3061 UT／649 IT、28／25项平台条件跳过，行／分支70%门槛不变。
-正式 v2.5.2-r3 固定 ef589f19；包186文件／9,050,925 bytes，公开原字节／digest与同SHA安装入口已核对。
-真实旧r2更新器已发现r3，旧r2 tag／资产未变；公开范围未发现新增隐私泄露，不声称全历史已清理。
-未升级CLI或重启生产，首次停止失败仍未确认；本节不再改旧tag／资产。
-当前目标r4：指标全版本按结构启用；安装器补POSIX退出确认；按[升级计划](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)发布。
+当前正式版本为 `2.5.2-r4`；安装器 pin 及 meta 失败 UI fallback 均保持 `2.4.1`。
+上轮r3证据见[请求指标发布计划](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)；不移动旧tag或替换旧包。
+用户发布授权覆盖下方历史“不提交／不发布”；桌面重启放设置→通用，手机不变，不重启生产。
+PR #48及准确main CI通过：3100 UT／660 IT、28／25项平台条件跳过，70%门槛不变；原CI首败保留。
+正式v2.5.2-r4固定ed845e24；包187文件／9,052,239 bytes，公开原字节／digest与同SHA安装入口已核对。
+真实旧r3更新器已发现r4，旧r3 tag／资产未变；本轮源码、包与新提交未发现新增隐私泄露，不声称全历史已清理。
+指标全版本按结构启用、已实测2.5.3；安装器补POSIX退出确认。未升级CLI，首次生产停止异常仍未确认。
+本节为发布后记录，不再移tag／换包；完整证据及未验边界见[升级计划](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)。
 
 用户于 2026-11-11 选定玻璃 O、银灰 K 与冰蓝碎钻图标并要求发布，按
 [`docs/plans/app-icon-2.5.2-r2-release-v1-plan.md`](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md) 执行。
