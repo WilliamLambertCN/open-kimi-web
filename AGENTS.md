@@ -8,6 +8,7 @@
 ## 实施计划
 
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
+- [请求指标与重启发布](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)
 - [应用图标](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md)
 - [2.5.2 发布](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md)
 - [品牌与 2.5.2 适配](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md)
@@ -37,6 +38,8 @@
 - [低带宽大会话](docs/plans/large-session-low-bandwidth-v2-plan.md)
 - [分阶段诊断日志](docs/plans/large-session-debug-log-v1-plan.md)
 - [安装到桌面](docs/plans/pwa-install-v1-plan.md)
+- [请求指标与侧聊选模](docs/plans/request-metrics-sidechat-v1-plan.md)
+- [受管服务重启](docs/plans/service-restart-v1-plan.md)
 
 ## 项目边界
 
@@ -49,7 +52,7 @@
 
 ## 官方 2.5.2 与历史版本适配事实
 
-- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r2`；正式状态与线上证据见本轮发布计划和 Release。
+- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r3`；正式状态与线上证据见本轮发布计划和 Release。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   0.41.0 协议快照未重捕；下列旧版行为保留为历史，不是新版保证。
 - 精确 `2.5.2` 新增只读任务和最近页支持；不为列任务调用已删除的 GET `/status` 或恢复冷会话。

@@ -9,6 +9,7 @@ import { runProcess } from '../../packages/launcher/src/update/process.mjs';
 import { updateMain } from '../../packages/launcher/src/update/updateMain.mjs';
 import { acquireLock } from '../../packages/launcher/src/update/lock.mjs';
 import { exists } from '../../packages/launcher/src/update/files.mjs';
+import { runInstallProcess } from '../../scripts/install.mjs';
 import { put } from './updateFixture.mjs';
 
 const directories = [];
@@ -147,4 +148,23 @@ describe('owned updater tree cleanup does not touch independent services', () =>
     expect(await readFile(independent.sentinel, 'utf8')).toBe('unchanged');
     expect(await exists(release.path)).toBe(false);
   }, 15_000);
+});
+
+describe('installer owned process cleanup', () => {
+  it('stops its timed-out native tree without touching independent services', async () => {
+    const value = await fixture();
+    const independent = await independentFixture(value);
+    const task = runInstallProcess(process.execPath, [value.parent, value.script, value.pidFile], { timeoutMs: 1_000 });
+    const failure = task.catch((error) => error);
+    const ownedPid = await waitPid(value.pidFile);
+    cleanup.push(() => stopFixturePid(ownedPid));
+    const error = await failure;
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe('installer child timed out');
+    expect(error.keepLock).not.toBe(true);
+    expect(alive(ownedPid)).toBe(false);
+    expect(alive(independent.pid)).toBe(true);
+    expect(await (await fetch(independent.url)).text()).toBe('unrelated-service');
+    expect(await readFile(independent.sentinel, 'utf8')).toBe('unchanged');
+  }, 10_000);
 });

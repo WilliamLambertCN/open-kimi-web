@@ -1,0 +1,23 @@
+.chat .step-timing[data-okw-step-id] {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.chat .step-timing[data-okw-step-id]:not([data-okw-metrics-ready]),
+.step-timing[data-okw-metrics-ready] > .st-head,
+.step-timing[data-okw-metrics-ready] > .st-body {
+  display: none;
+}
+
+.okw-request-metrics {
+  max-width: 100%;
+  margin: 4px 0 6px;
+  color: var(--color-text-tertiary, var(--color-text-muted, #89919c));
+  font-size: 11px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
