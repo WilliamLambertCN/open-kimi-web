@@ -95,4 +95,22 @@
 
 ### 发布
 
-PR #48已创建，尚未合并或发布。待修复上述CI首败、通过required CI、准确main打包和线上核验后记录。
+- [PR #48](https://github.com/WilliamLambertCN/open-kimi-web/pull/48)已正常squash合入main，未使用admin绕过。
+  修复后develop／PR CI 43157790563／43157795807均通过；
+  [准确main CI 43158092249](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43158092249)也通过。
+  默认3100 UT／660 IT通过、28／25项平台条件跳过；lint、typecheck和pack通过，70%门槛不变。
+  main UT行92.65%／分支84.24%，IT行84.20%／分支72.04%；原首败仍按上节保留。
+- 正式main及tag目标：`ed845e248df28c0542e47ec357c19a39c38badd5`。
+  从该提交的独立工作树frozen安装、标准test:pack和正式pack通过；187个包文件均对照该提交核对。
+  177个文本文件定向检查未发现新增秘密、个人路径、内网地址、调试映射或缓存；此前源码与增量检查同样通过。
+  实际解包launcher请求准确2.5.3资源验证active、逐调用补丁、平均TPS／缓存、通用重启入口及map拒绝，共9项通过。
+- 正式[Release v2.5.2-r4](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r4)
+  于2026-11-12T05:00:38Z发布，非draft、非prerelease，并设为latest。
+  annotated tag对象 `f13d0d26581c7982999be124c214ab919b79ba7b` 指向上述main；提交与tag使用已确认公开noreply身份。
+  唯一资产 `open-kimi-web-2.5.2-r4.tgz`，id738137490、9,052,239 bytes；SHA-256：
+  `30481ce564462b09eea9cbbb3179c01cfb11fc078ed930b0c2bf9bb3a5c001ba`。
+- 已从公开链接重新下载，原字节、size和GitHub digest均与本地正式包相同。
+  同SHA的README及ps1／sh／mjs入口与Git blob一致，README两处命令解析新tag并传同revision及r4版本。
+  真实旧r3包中的latestRelease已发现r4；旧r3 Release／asset元信息及annotated tag目标不变。
+- 发布后记录只补本文及AGENTS，不移动r4 tag或重新打包。测试报告明确归档ignored cache；没有升级用户安装或重启生产。
+  用户更新后仍需在终端停止旧服务、运行 `kimi web --host` 并刷新网页；实体手机、macOS及未来结构不据此保证。
