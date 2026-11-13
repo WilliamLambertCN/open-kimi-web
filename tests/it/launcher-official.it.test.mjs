@@ -288,7 +288,7 @@ const PRESENTATION_ASSETS = [
   'mobileConversationTocNavigate.js', 'mobileConversationTocView.js',
   'mobileConversationToc.js', 'mobileConversationToc.css',
   'archivedSessionDelete.css', 'archivedSessionDelete.js', 'providerSorting.js', 'providerModelState.js',
-  'providerEnhancements.js',
+  'providerSave.js', 'providerEnhancements.js',
   'workspacePins.css', 'workspacePins.js', 'usage.css', 'usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js',
   'usage.js', 'usageBundle.js', 'themes.css', 'themes.js', 'backgrounds/aurora.png', 'backgrounds/twilight.png',
   'backgrounds/ember.png', 'backgrounds/mineral.png', 'backgrounds/nocturne.png',
@@ -396,7 +396,8 @@ describe('official mode end-to-end', () => {
       expect(indexText.indexOf('themes.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText).toContain('/__open-kimi-mobile/providerModelState.js');
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('providerModelState.js'));
-      expect(indexText.indexOf('providerModelState.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
+      expect(indexText.indexOf('providerModelState.js')).toBeLessThan(indexText.indexOf('providerSave.js'));
+      expect(indexText.indexOf('providerSave.js')).toBeLessThan(indexText.indexOf('providerEnhancements.js'));
       expect(indexText.indexOf('providerSorting.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('providerEnhancements.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
       expect(indexText.indexOf('presentation.js')).toBeLessThan(indexText.indexOf('<script type="module"'));

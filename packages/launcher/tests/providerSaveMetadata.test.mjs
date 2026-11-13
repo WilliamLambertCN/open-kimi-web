@@ -226,6 +226,56 @@ describe('provider saved-model option deltas', () => {
   });
 });
 
+describe('provider row identity changes', () => {
+  function renamedUi() {
+    const ui = installProviderSave({ config: { known: configured } });
+    return { ui, nameInput: ui.forms[0].querySelector('.pf-field input') };
+  }
+
+  it('renames a saved provider and serializes displayed options without native resync', async () => {
+    const { ui, nameInput } = renamedUi(); await loadConfig(ui);
+    const row = rowsOf(ui.forms[0])[0];
+    const marker = ui.doc.createElement('span'); row.append(marker);
+    change(ui, row, 'image_in', true); change(ui, row, 'tool_use', false);
+    const checks = checksOf(row);
+    expect(checks).toEqual(['image_in', 'thinking', 'low']);
+    nameInput.value = 'renamed-provider';
+    expect(checksOf(row)).toEqual(checks);
+    const body = saveBody([{ model: 'fixture-model', max_context_size: 131072,
+      capabilities: ['tool_use', 'image_in'], support_efforts: ['medium', 'high'], adaptive_thinking: true }],
+    'renamed-provider');
+    expect((await save(ui, body)).models[0]).toEqual({ ...body.models[0],
+      capabilities: ['thinking', 'future_capability', 'image_in'], support_efforts: ['low', 'future_effort'],
+      adaptive_thinking: false });
+    expect(checksOf(row)).toEqual(checks);
+    expect(row.contains(marker)).toBe(true);
+    expect(ui.state.exceededLimit).toBe(false);
+  });
+
+  it('renames a saved model id so reverting only the provider name keeps the previous row rules', async () => {
+    const { ui, nameInput } = renamedUi(); await loadConfig(ui);
+    const row = rowsOf(ui.forms[0])[0];
+    change(ui, row, 'thinking', false); change(ui, row, 'image_in', false);
+    const checks = checksOf(row);
+    expect(checks).toEqual(['tool_use', 'low']);
+    nameInput.value = 'renamed-provider';
+    row.querySelector('input:not([type="checkbox"])').value = 'renamed-model';
+    expect(checksOf(row)).toEqual(checks);
+    const native = { model: 'renamed-model', max_context_size: 131072, capabilities: ['tool_use', 'image_in'],
+      support_efforts: ['medium', 'high'], adaptive_thinking: true };
+    const displayed = { ...native, capabilities: ['tool_use', 'future_capability'],
+      support_efforts: ['low', 'future_effort'], adaptive_thinking: false };
+    expect((await save(ui, saveBody([native], 'renamed-provider'))).models[0]).toEqual(displayed);
+    nameInput.value = 'provider-fixture';
+    expect((await save(ui, saveBody([native]))).models[0]).toEqual(displayed);
+    row.querySelector('input:not([type="checkbox"])').value = 'fixture-model';
+    const restored = { ...native, model: 'fixture-model' };
+    expect((await save(ui, saveBody([restored]))).models[0]).toEqual({ ...restored, capabilities: ['tool_use'] });
+    expect(checksOf(row)).toEqual(checks);
+    expect(ui.state.exceededLimit).toBe(false);
+  });
+});
+
 describe('provider row and save boundaries', () => {
   it('pairs each native model and per-field edit after visual sorting', async () => {
     const first = configuredWire;

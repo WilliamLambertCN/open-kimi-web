@@ -15,6 +15,7 @@ test-results/
 *.crt
 *.cer
 tmp/
+.tmp/
 temp/
 .DS_Store
 packages/launcher/LICENSE

@@ -143,7 +143,7 @@ describe('localized provider controls', () => {
         <div class="pmt-grid pmt-head"></div><div class="pmt-grid"><input value=""><input value="131072"></div>
       </div></div><button>Add model</button></div>`);
     vi.spyOn(ui.view.Element.prototype, 'getClientRects').mockReturnValue([{ width: 640, height: 400 }]);
-    ['providerLocale', 'providerSorting', 'providerModelState', 'providerEnhancements'].forEach(ui.evaluate);
+    ['providerLocale', 'providerSorting', 'providerModelState', 'providerSave', 'providerEnhancements'].forEach(ui.evaluate);
     ui.fetch.mockResolvedValueOnce(Response.json({ code: 0, data: { models: {} } }));
     await ui.view.fetch('/api/v1/config');
     await settled(ui);

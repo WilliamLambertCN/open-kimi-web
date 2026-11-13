@@ -266,6 +266,17 @@ describe('atmospheric theme mutation observer', () => {
 });
 
 describe('atmospheric theme responsive controls', () => {
+  it('keeps provider errors readable only in atmospheric themes without changing their layout', () => {
+    const { view } = install();
+    const rules = [...view.document.querySelector('style').sheet.cssRules];
+    const banner = rules.find((rule) => rule.selectorText === 'html[data-okw-theme] :is(.pf, .pf-form) .ui-banner--danger');
+    expect(banner.style.length).toBe(3);
+    expect(banner.style.getPropertyValue('background')).toBe('var(--okw-raised)');
+    expect(banner.style.getPropertyValue('border-color')).toBe('var(--color-danger)');
+    expect(banner.style.getPropertyValue('color')).toBe('var(--color-text)');
+    expect(rules.filter((rule) => rule.selectorText?.includes('.ui-banner--danger'))).toEqual([banner]);
+  });
+
   it('backs only the native mobile preview with opaque Canvas without changing geometry or translucent tokens', () => {
     const { view } = install();
     const rules = [...view.document.querySelector('style').sheet.cssRules];
