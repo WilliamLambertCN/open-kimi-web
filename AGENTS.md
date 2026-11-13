@@ -7,6 +7,7 @@
 
 ## 实施计划
 
+- [公开历史隐私清理](docs/plans/privacy-history-cleanup-v1-plan.md)
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 - [请求指标与重启发布](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)
 - [请求指标升级兼容](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)
