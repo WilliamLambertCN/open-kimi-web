@@ -17,7 +17,7 @@ or a vendored transcript implementation.
   [the compatibility plan][compat260-plan] and `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.6.1-r1`, with exact `2.6.0` and `2.6.1` adaptation.
+- Published Open Kimi Web release: `2.6.1-r1`, with exact `2.6.0` and `2.6.1` adaptation.
   Follow [the Release page][current-release] and [the compatibility plan][compat260-plan] for current publication evidence.
   Earlier r4 evidence remains in [the metrics-upgrade plan][metrics-upgrade-plan].
   Metrics have no version gate; the launcher validates the actual entry bundle before rewriting its module graph.
