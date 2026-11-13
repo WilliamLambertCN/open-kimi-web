@@ -36,4 +36,14 @@
 清理后的准确 main 已通过 lint、typecheck、3128项UT、679项IT和实际pack；6项既有平台条件跳过。
 UT行／分支覆盖率92.76%／84.10%，IT为83.34%／70.78%；并发、超时及70%门槛不变。
 标准测试的代码范围仍为正式r4，不包含本地未发布2.6适配；网络fixture改动的25项定向测试另已通过。
-远端推送与保护恢复尚待执行；GitHub只读PR引用和旧SHA缓存不属于可由force push清除的对象。
+4个公开分支和26个tag已通过原子推送更新，每个引用均使用准确旧SHA的force-with-lease。
+main保护仅在推送窗口临时调整，随后恢复并回读确认；原有gate、线性历史等要求不变。
+清理后[main CI][main-ci]和[develop CI][develop-ci]均已通过，不引用旧历史的测试结果。
+26个Release的原资产未替换，最新版本仍为v2.5.2-r4；4个旧提交目标和说明中的旧SHA已更新。
+在线安装的3个入口脚本，以及tar.gz和zip中的22个协调器／辅助文件路径，均与新tag的Git内容一致。
+本地开发分支已迁移到新历史，迁移前后505个工作文件原字节不变，未发布功能与未提交改动保留。
+GitHub仍保留48个只读PR引用，旧提交API仍可返回原身份；这部分需要GitHub支持处理。
+未保证清除GitHub缓存、fork或他人克隆；本地旧历史备份仅保留在忽略目录，不推送。
+
+[main-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43419087765
+[develop-ci]: https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43419093615
