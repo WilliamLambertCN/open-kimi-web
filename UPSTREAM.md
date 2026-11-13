@@ -7,19 +7,20 @@ or a vendored transcript implementation.
 ## Current baseline
 
 - Upstream: [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code).
-- Inspected published package version: `2.5.2`.
-- Official release tag commit: `1c142a007c10e881602690def96057c23a2baa12`.
+- Inspected published package version: `2.6.1`.
+- Official release tag commit: `30e3ce442ae850a7461b80f2ce209cd73a301d02`.
 - Published package integrity:
-  `sha512-a7UuugqQuPBHB2ZMiu8ezAFIwJ0dn6xanuRnTqa2pXXu12ng7kvigAlXy47TxNKpnyj8vgaNStedTv4kbqSCuA==`.
+  `sha512-M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ==`.
 - Official npm runtime: Node `>=22.19.0`. The launcher's own minimum remains Node `>=22.0.0`.
-- Local server API compatibility target: `2.5.2`; no complete live protocol recapture was performed.
-  `protocolBaseline` and the 0.41.0 contracts remain historical. Targeted exact npm runtime checks are recorded in
-  [the local compatibility plan](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md) and `liveTestedServerVersions`.
-  Source tag inspection is separate from runtime acceptance. Publication follows the release plan below; user installations,
-  production, the installer pin and the metadata-failure UI fallback (`2.4.1`) are not automatically changed.
-- Open Kimi Web target: `2.5.2-r4`. Follow [the Release page][current-release] and
-  [the metrics-upgrade plan][metrics-upgrade-plan] for actual checks, CI, package and publication results.
-  This revision removes all metrics version gates and validates the actual entry bundle before rewriting its module graph.
+- Server API compatibility target: `2.6.1`; no complete live protocol recapture was performed.
+  `protocolBaseline` and the 0.41.0 contracts remain historical. Exact npm runtime checks are recorded in
+  [the compatibility plan][compat260-plan] and `liveTestedServerVersions`; they are not a full protocol guarantee.
+  Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
+  This adaptation does not upgrade user CLIs, restart production services or change networking.
+- Open Kimi Web release target: `2.6.1-r1`, with exact `2.6.0` and `2.6.1` adaptation.
+  Follow [the Release page][current-release] and [the compatibility plan][compat260-plan] for current publication evidence.
+  Earlier r4 evidence remains in [the metrics-upgrade plan][metrics-upgrade-plan].
+  Metrics have no version gate; the launcher validates the actual entry bundle before rewriting its module graph.
   It retains r3's per-call TTFT, average TPS, cache-hit rows, independent side-chat model selection,
   and managed-service restart in desktop General settings and mobile session settings.
   It retains r2's artwork and r1's exact upstream 2.5.2 adaptation, mobile directory, native sending and safe update.
@@ -107,7 +108,77 @@ The 2.5.2/2.5.3 adapter adds no history request or log scan.
 Exact local-backend and browser checks, retained first failures and current standard gates belong in the plan,
 not older release results.
 
-### Unreleased: 2.6.0 request metrics
+## Kimi Code 2.6.0/2.6.1 adaptation
+
+Follow [the compatibility plan][compat260-plan] for the `2.6.1-r1` release and its acceptance boundaries.
+The online installation commands and package/plugin version select `2.6.1-r1`.
+No existing official CLI is upgraded and no production service is started or restarted.
+
+The exact 2.6.1 release fixes long-session replay performance and usage-anchored token counting/compaction.
+Its 638 `dist-web` files are byte-identical to 2.6.0, including the entry bundle, so the UI and patch decisions stay the same.
+This does not prove that the user's minute-long EasyTier/local wait is resolved; record runtime checks separately.
+
+### Conversation, configuration and managed operations
+
+- Exact 2.6.0/2.6.1 use native turns/items: the initial ten main-agent turns arrive over WebSocket;
+  earlier pages use `GET /api/v1/sessions/:sid/agents/main/turns` with `before_ordinal` and native page sizes.
+  Forward these without the old one-turn transcript rewrite, fake state or an additional full-history request.
+- A separate presentation observer retains only short directory labels, exact IDs, order and timestamps.
+  It follows initial turns, earlier pages, live turn/item changes, undo and reconnect, rejecting stale-session/socket data.
+  Limits remain four sessions, 2,000 entries each and 2 MiB per observed response; skipped metadata never truncates native text.
+  Message timestamps and loading feedback use these native identities and paths, without Vue-private state or body storage.
+- Successful same-origin exact-2.6.0/2.6.1 metadata also allows `secondary_model: null` to follow the main model.
+  A normal model alias named `primary` is valid in 2.6.0/2.6.1, unlike the reserved legacy choice.
+  Preserve the existing pool and main model; old-version rules are not relaxed.
+- Exact 2.6.0/2.6.1 add read-only original cron tasks/history and managed-service restart.
+  Task browsing never resumes a cold session; create/remove reject before mutation, while edit, pause and independent task
+  models remain unavailable. Public generic debug and Remote Control remain blocked in the explicit scheduled-task mode.
+  Restart retains the existing authentication, busy checks, port/token/configuration and native reconnect behavior.
+- Installation prepares the fixed, integrity-checked official 2.6.1 package only when no usable CLI exists;
+  metadata-failure UI fallback also selects 2.6.1. Existing usable versions are not upgraded.
+  Known owned 2.6.0 and 2.4.1 remain reusable after identity/shell checks;
+  legacy 2.3.1/2.1.1 retain their identity/PTY requirements.
+
+### Duplicate-patch decisions
+
+- **Stop only for exact 2.6.0/2.6.1:** `foldingDefaults.js`. The native `kimi-web.activity-run-folding` initializer already treats
+  a missing preference as folded. OKW's old missing-only write adds no behavior; do not migrate existing preferences.
+  The script remains available to older UIs that still need it.
+- **Already delegated to upstream:** sending/queueing/steering has no extra OKW button or interception;
+  UI >=2.3.0 already omits the legacy Side Chat scroll guard. Do not restore those patches.
+- **Keep, because behavior differs:** per-call average TPS/cache-hit rows, pane-responsive width, mobile message directory,
+  message times, global mobile subagent and per-side-chat model selection, navigation/search and workspace ordering.
+  Upstream activity folding is not a substitute for these controls or the user-requested metrics formula.
+- **Keep image fallback:** normal raster/PDF previews already use native download/Blob, but the enhancement also handles
+  legacy/SVG `fs:read` truncated-base64 or 413 paths, validating complete same-origin bytes within its fallback bound.
+- **Keep notification guard and mobile reminders:** native notification sending can request permission again after dismissal;
+  OKW deduplicates concurrent requests and permits a dismissed prompt only from a direct user action.
+  Its completion/approval/question dialog and keyboard isolation are not the native system notification.
+- **Keep session-menu and archive enhancements pending a user decision:** native desktop context actions do not replace the
+  added three-dot entry; the native mobile menu still lacks Fork and Pin actions. Native settings now has archive deletion,
+  but it uses native confirmation/toasts/reactive removal, while OKW also covers completed sidebar rows and uses explicit
+  confirmation, error display and page reload. That is overlapping functionality, not identical interaction or scope.
+  The fork-prefix guard and recent-workspace default also differ from native title/default-order behavior.
+
+No differing enhancement is deleted in this round. Retain the listed differences for the user's decision rather than silently
+changing their workflow. Old-version compatibility files are not obsolete merely because a newer UI does not inject them.
+
+### Remaining limits
+
+Exact 2.6.0/2.6.1 no longer dispatch durable `llm.request` events: request configuration is written to an info logger instead.
+`usage.record.model` is the saved alias, and step records contain usage/timing but not the actual API model ID.
+Task history therefore omits an unrecorded actual model; usage totals stay counted but unresolved models remain unpriced.
+Do not map old calls through today's configuration or scan unrelated global logs to invent historical billing identities.
+Older recorded identities remain usable. This is an upstream evidence gap, not lost token totals.
+
+New opt-in diagnostics distinguish subscription, initial turns and earlier-page upstream waits without parsing full chat text.
+The proxy also releases duplicate waiting-phase cancellation listeners after response headers; restart tracking removes its
+paired terminal listener. Default listener limits, streaming cancellation and backpressure remain intact.
+Neither change proves that the user's minute-long native-backend wait is fixed. An isolated 2.6.0 late-attachment replay
+regression is recorded in the plan, but a modified official backend is not shipped or installed.
+Physical phones, the real EasyTier tunnel, arbitrary 400–500 MB sessions and all-platform installation remain unverified.
+
+### Request metrics
 
 Upstream 2.6.0 replaces transcript frames with conversation turns/items and `RequestDebugRow`.
 Ordinary conversation responses include per-step usage but omit timing; enabling all versions cannot restore removed fields.
@@ -126,9 +197,13 @@ Short bounded retries account for wire persistence lag. External `serve --target
 cache hit can still appear from supplied usage, but absent timing remains a dash rather than an estimate.
 The new `step-metrics-v3` asset namespace prevents reuse of immutable older patched modules.
 
-Targeted exact npm 2.6.0 backend/browser evidence and standard checks are recorded in
-[the upgrade plan][metrics-upgrade-plan]. This is not a new release or complete 2.6.0 acceptance for every OKW feature;
-installer pin, recent-page, cron and global-subagent gates are unchanged. No user installation or production is restarted.
+The earlier exact-2.6.0 metrics checks remain in [the upgrade plan][metrics-upgrade-plan].
+The [compatibility plan][compat260-plan] records exact-2.6.1 conversation, metrics, cron, restart and installation checks.
+The final local checks passed: lint, typecheck, 3249 unit tests, 705 integration tests and the actual package smoke check.
+Six existing platform-specific tests are skipped on Windows; concurrency and coverage thresholds are unchanged.
+These earlier local checks do not substitute for the exact release commit's CI and package verification;
+publication evidence is recorded separately in [the compatibility plan][compat260-plan].
+They are not proof that every protocol/device is compatible. This adaptation does not restart production services.
 
 ## Historical baseline records
 
@@ -144,7 +219,7 @@ installer pin, recent-page, cron and global-subagent gates are unchanged. No use
   Production-user upgrades are outside this isolated acceptance.
 - The earlier `2.1.1-r1` release is absent after withdrawal; its withdrawal history remains in CHANGELOG.
   The historical GitHub query found no assets on `r2`–`r4`; retain those historical tags and releases.
-  No further asset deletion is planned, and `r5` or other releases are not changed by this revision.
+  The 2.6.1-r1 publication withdraws older tgz assets after verifying the new package; tags and release notes remain.
 
 ## Official 2.3.2 through 2.4.1 changes
 
@@ -162,8 +237,9 @@ These are upstream features and policy changes, not new implementations by Open 
   `read.max_chars` is configurable. Built-in prompts and repeated reminders are reduced, with Web fixes.
 
 The launcher transparently proxies the official interaction protocol; it does not maintain a conversion layer,
-replace idle-session state, or claim these changes for older user-selected backends. Metadata failure now falls back
-to official UI `2.4.1`. The actual selected frontend version, including explicit pins, still drives Side Chat injection;
+replace idle-session state, or claim these changes for older user-selected backends.
+Metadata failure falls back to UI `2.6.1` in this release; explicit frontend pins still take precedence.
+The actual selected frontend version, including explicit pins, still drives Side Chat injection;
 UI >=2.3.0 retains native scrolling, while exact legacy 2.1.1/2.2.0 UI keeps its guard.
 Mobile reminder keys are isolated at window capture before native document capture: Escape only closes the reminder,
 Tab stays local and Enter/Space preserve default button clicks. Native shortcuts resume after closing; no hidden interaction
@@ -283,8 +359,9 @@ The version-limited task panel lists original sessions, saved tasks and recorded
 native create/remove after explicit restoration and confirmation. It keeps the original home and backend without another engine,
 live-log edits or an AI CRUD proxy. The modified-backend experiment and its dedicated-data chain remain withdrawn.
 Managed `kimi web --scheduled-tasks` explicitly opts in; ordinary startup remains disabled. External `serve --target`
-does not expose this capability. Exact 2.3.1/2.4.1/2.5.2 only support read-only tasks/history;
-WRITE remains exact 2.1.1/2.2.0. Unknown versions, including unlisted adjacent versions, reject.
+does not expose this capability. Exact 2.3.1/2.4.1/2.5.2 support read-only tasks/history;
+Version 2.6.1-r1 also supports exact 2.6.0/2.6.1. WRITE remains exact 2.1.1/2.2.0.
+Unknown versions, including unlisted adjacent versions, reject.
 The inspected 2.4.1 cron/debug core matches 2.3.1;
 this does not authorize writes. Historical 2.3.1 dual-backend QA found that a formal prompt returns HTTP 200/code 40931
 while another process holds the session lock. Direct debug cron add/remove/flush instead returns code 0 with initially
@@ -298,7 +375,7 @@ Historical exact-2.3.1 tests and real createLauncher QA passed: read=true/write=
 with no mutation or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404
 without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan].
 The exact-2.4.1 baseline checks remain in [the compatibility plan][compat241-plan];
-current CI and publication belong to [the 2.5.2-r4 release plan][metrics-upgrade-plan].
+current CI and publication belong to [the 2.6.1-r1 release plan][compat260-plan].
 Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
 Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
 protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
@@ -317,26 +394,27 @@ Both shut down normally with zero model calls and no process/listener leaks. Onl
 production. The 2.2.0 backend used the 2.1.1 static UI; complete 2.2.0 UI, migration/fork, physical devices and other platforms
 are not covered. Runtime RC failure uses targeted UT/TCP IT, not a real RC enablement test. Those historical UI and standard
 results remain in the earlier plan. The current release authorization supersedes that stage's no-publication restriction,
-not its version limits. Production restart, old release/tag/asset deletion and upgrades of users' actual Kimi remain out of scope.
+not its version limits. Production restart, release/tag deletion and upgrades of users' actual Kimi remain out of scope;
+old tgz withdrawal is authorized.
 
 Address advertising and certificate SAN enumeration now retain Hyper-V/vEthernet adapters while keeping existing
 internal, loopback, IPv6 link-local and other virtual-adapter filters. This does not change operating-system networking.
 
 ## Compatibility-first installation
 
-The `2.5.2-r4` installation target prepares fixed official Kimi `2.4.1` only when discovery confirms no usable
+The `2.6.1-r1` installation target prepares fixed official Kimi `2.6.1` only when discovery confirms no usable
 installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
 launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
 Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
 Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
 [the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
 The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
-current checks, CI and assets belong to [the 2.5.2-r4 release plan][metrics-upgrade-plan].
+current checks, CI and assets belong to [the 2.6.1-r1 release plan][compat260-plan].
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.5.2-r4` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.5.2-r4`.
+They resolve `v2.6.1-r1` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r1`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -362,15 +440,17 @@ a matching module-name substring alone is not sufficient. Unknown scripts and wr
 Candidates with no unambiguous priority require an explicit override; unknown PowerShell functions, scripts and argument-taking
 wrappers are not executed as guessed CLI commands. Discovery does not modify persisted PATH to search it.
 Working supported native/npm/recognized legacy console installations are reused without overwrite. Only confirmed absence
-prepares the verified `@moonshot-ai/kimi-code@2.4.1` tarball with fixed SHA-512 integrity.
-Exact owned 2.3.1 and 2.1.1 remain reusable only with their
-known version/integrity, package identity and unchanged entry/shim digests. Altered ownership records and partial installs reject.
+prepares the fixed SHA-512-verified official package, version 2.6.1.
+Exact owned 2.6.0, 2.4.1, 2.3.1 and 2.1.1 remain reusable with their known version/integrity, package identity
+and unchanged entry/shim digests. Known 2.6.0/2.4.1 reuse keeps its shell probe rather than requiring legacy PTY.
+Altered records and partial installs reject.
 Default ignore-scripts avoids official postinstall migration of old Python commands. Unowned dedicated prefixes are not resumed.
 Windows canonical npm shims validate JS targets for selected-Node checks and retain the cmd-aware runtime/takeover path;
 Windows PATH environment keys are normalized. CLI/Web health alone does not validate shell readiness.
 
-Official 2.4.1 has no node-pty dependency. Its exact supported npm identity requires a real Node `child_process` shell probe,
-not a missing-PTY success assumption or reintroduction of node-pty. Legacy owned 2.3.1/2.1.1 still require real PTY probes.
+Official 2.6.1, 2.6.0 and 2.4.1 have no node-pty dependency.
+Each supported npm identity requires a real Node `child_process` shell probe, not a missing-PTY success assumption
+or reintroduction of node-pty. Legacy owned 2.3.1/2.1.1 still require real PTY probes.
 Ownership is recorded only after the appropriate probe succeeds; repeats probe again, and damaged owned installations reject
 without automatic rebuild. Non-owned native/npm installs are not rebuilt. Linux Python 3, C/C++ and make requirements apply
 only to an audited legacy rebuild, not unconditionally to new 2.4.1 installs. The legacy rebuild audits fixed node-pty 1.1.0
@@ -391,7 +471,7 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.5.2-r4 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r1 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -419,9 +499,9 @@ Official Kimi that was already on PATH remains available; one that previously ne
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-After formal `2.5.2-r4` publication, existing older users use normal `update --check` and `update`.
+After formal `2.6.1-r1` publication, existing older users use normal `update --check` and `update`.
 No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
-tracking origin/main and a fast-forward. Restart and refresh remain manual; old tags and assets are not moved or replaced.
+tracking origin/main and a fast-forward. Restart and refresh remain manual; old tags remain, but old tgz assets are withdrawn.
 Updating does not enable the local CA or install phone trust; users explicitly run setup in the same home if desired.
 
 Previous acceptance covers the old scope only: real Node 22.23.3 download/digest checks and r9 package-only installation on
@@ -716,7 +796,7 @@ body. Scrolling back to the bottom resumes following. Other scroll containers
 and user-provided `--web-dir` builds are untouched.
 
 By default the launcher resolves the web bundle version from the target
-server, falling back to `2.4.1` when metadata is unavailable. The selected frontend version drives compatibility injection.
+server, falling back to `2.6.1` when metadata is unavailable. The selected frontend version drives compatibility injection.
 `--web-version` / `OPEN_KIMI_WEB_VERSION` pins the official frontend version;
 it does not pin or upgrade the backend. `--web-dir` / `OPEN_KIMI_WEB_DIR`
 serves a prepared build without injecting the presentation layer or theme picker.
@@ -796,7 +876,8 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [release252r1-plan]: docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md
 [release252r2-plan]: docs/plans/app-icon-2.5.2-r2-release-v1-plan.md
 [metrics-upgrade-plan]: docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r4
+[compat260-plan]: docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r1
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

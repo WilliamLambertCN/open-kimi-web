@@ -138,9 +138,9 @@ describe('subagent model metadata and effort compatibility', () => {
 describe('subagent 2.5.2 inheritance reset', () => {
   const follow = { model: '', effort: '' };
   const section = { defaultModel: 'fixture/fast', models: { 'fixture/fast': 'Retained pool' } };
-  it('enables native null only after observing exact same-origin 2.5.2 metadata', async () => {
+  it.each(['2.5.2', '2.6.0', '2.6.1'])('enables native null only after observing verified %s metadata', async (version) => {
     const ui = install();
-    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.5.2' }));
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
     await ui.authorize();
     expect(ui.api.patchFor(section, follow, [])).toEqual({ secondary_model: null });
     expect(ui.nativeFetch).toHaveBeenCalledTimes(1);
@@ -148,7 +148,7 @@ describe('subagent 2.5.2 inheritance reset', () => {
     await ui.authorize();
     expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
   });
-  it.each(['2.5.1', '2.5.3', '2.5.2-modified', undefined])('keeps %s fail-closed', async (version) => {
+  it.each(['2.5.1', '2.5.3', '2.5.2-modified', '2.6.2', '2.6.1-rc.1', undefined])('keeps %s fail-closed', async (version) => {
     const ui = install();
     ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
     await ui.authorize();
@@ -182,6 +182,22 @@ describe('subagent 2.5.2 inheritance reset', () => {
     expect(JSON.parse(ui.nativeFetch.mock.calls.at(-1)[1].body)).toEqual({ secondary_model: null });
     expect(cleared.default_model).toBe('fixture/main');
     expect(() => ui.api.verifySaved(config({ models: {} }), follow)).toThrow('saveMismatch');
+  });
+});
+
+describe('2.6 ordinary primary alias', () => {
+  it.each(['2.6.0', '2.6.1'])('keeps ordinary primary selectable with %s and never writes force', async (version) => {
+    const ui = install();
+    const configured = { models: { primary: { provider: 'fixture', model: 'actual-model', displayName: 'Real primary' } } };
+    const catalog = { items: [{ model: 'primary', display_name: 'Primary alias' }] };
+    expect(ui.api.modelsFor(configured, catalog)).toEqual([]);
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version })); await ui.authorize();
+    const models = ui.api.modelsFor(configured, catalog);
+    expect(models).toMatchObject([{ id: 'primary', provider: 'fixture', modelId: 'actual-model' }]);
+    expect(ui.api.patchFor(undefined, { model: 'primary', effort: '' }, models))
+      .toEqual({ secondary_model: { defaultModel: 'primary', defaultEffort: '' } });
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.5.2' })); await ui.authorize();
+    expect(ui.api.modelsFor(configured, catalog)).toEqual([]);
   });
 });
 

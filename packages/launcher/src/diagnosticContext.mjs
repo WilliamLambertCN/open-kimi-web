@@ -19,7 +19,8 @@ function routeFields(log, pathname) {
   if (exact) return { route: exact };
   const session = SESSION_ROUTE.exec(pathname);
   if (session) return {
-    route: session[2] === 'transcript' ? 'transcript' : 'session',
+    route: session[2] === 'transcript' ? 'transcript' : /^agents\/[A-Za-z0-9_-]{1,200}\/turns$/.test(session[2])
+      ? 'turns' : 'session',
     sessionTag: log.tag('session', session[1]),
   };
   const prefix = PREFIX_ROUTES.find(([start]) => pathname.startsWith(start));
@@ -32,12 +33,13 @@ function pageSize(params) {
   return Number(values[0]);
 }
 
-function transcriptFields(query, upstreamPath, originalPath) {
+function transcriptFields(query, upstreamPath, originalPath, turns = false) {
   const params = new URLSearchParams(query);
   const upstream = new URLSearchParams(upstreamPath.split('?')[1]);
   return {
-    main: params.getAll('agent_id').length === 1 && params.get('agent_id') === 'main',
-    before: params.has('before_turn'), after: params.has('after_turn'),
+    main: turns ? originalPath.split('?')[0].endsWith('/agents/main/turns')
+      : params.getAll('agent_id').length === 1 && params.get('agent_id') === 'main',
+    before: params.has(turns ? 'before_ordinal' : 'before_turn'), after: !turns && params.has('after_turn'),
     pageSize: pageSize(params), upstreamPageSize: pageSize(upstream), pagingApplied: upstreamPath !== originalPath,
   };
 }
@@ -50,6 +52,8 @@ export function requestFields(log, id, req, upstreamPath = req.url ?? '') {
     method: METHODS.has(req.method) ? req.method : 'other',
     ...routeFields(log, pathname),
   };
-  if (fields.route === 'transcript') Object.assign(fields, transcriptFields(query, upstreamPath, url));
+  if (fields.route === 'transcript' || fields.route === 'turns') {
+    Object.assign(fields, transcriptFields(query, upstreamPath, url, fields.route === 'turns'));
+  }
   return fields;
 }

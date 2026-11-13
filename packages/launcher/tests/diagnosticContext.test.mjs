@@ -51,6 +51,20 @@ describe('diagnostic request identity', () => {
     expect(fields(`${transcript}?agent_id=main&agent_id=main`).result.main).toBe(false);
   });
 
+  it.each(['main', 'agent-7'])('classifies 2.6.0 %s turns and cursor without recording identities', (agent) => {
+    const path = `/api/v1/sessions/private-session/agents/${agent}/turns`;
+    const { result } = fields(path + '?before_ordinal=37&page_size=10&agent_id=other-private');
+    expect(result).toMatchObject({ route: 'turns', main: agent === 'main', before: true, after: false,
+      pageSize: 10, upstreamPageSize: 10, pagingApplied: false });
+    expect(JSON.stringify(result)).not.toContain('private');
+    expect(JSON.stringify(result)).not.toContain('agent-7');
+  });
+
+  it('does not classify unrelated agent endpoints as turns', () => {
+    expect(fields('/api/v1/sessions/private/agents/main/turns/extra').result.route).toBe('session');
+    expect(fields('/api/v1/sessions/private/agents/main%2fturns').result.route).toBe('session');
+  });
+
   it('tolerates missing request metadata and does not emit arbitrary methods', () => {
     expect(requestFields({ tag: () => '1234567890abcdef' }, 1, {})).toMatchObject({ route: 'other', method: 'other' });
     expect(fields('/', 'SECRET_METHOD').result.method).toBe('other');

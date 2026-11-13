@@ -42,13 +42,13 @@ export function relayCloseCode(code) {
 function bridge(upstream, client, onClose, trace, blocked) {
   upstream.on('message', (data, isBinary) => {
     client.send(data, { binary: isBinary });
-    trace?.toClient(data, client.bufferedAmount);
+    trace?.toClient(data, client.bufferedAmount, isBinary);
   });
   client.on('message', (data, isBinary) => {
     if (upstream.readyState !== WebSocket.OPEN) return;
     if (blocked?.()) { client.close(1013, 'Service restarting'); return; }
     upstream.send(data, { binary: isBinary });
-    trace?.toUpstream(data, upstream.bufferedAmount);
+    trace?.toUpstream(data, upstream.bufferedAmount, isBinary);
   });
   upstream.on('close', (code, reason) => {
     onClose();

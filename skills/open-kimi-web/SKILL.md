@@ -11,23 +11,23 @@ description: |
 Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，
 在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
-本轮目标版本 `v2.5.2-r4`，兼容目标官方 `2.5.2`，发布状态以[正式 Release][current-release]为准。
-请求指标不查版本号，只在实际入口的全部代码结构匹配后启用；已实测官方2.5.2／2.5.3，其它协议范围不扩大。
+本轮目标版本 `v2.6.1-r1`，兼容目标官方 `2.6.1`，保留 `2.6.0` 支持；发布状态以[正式 Release][current-release]为准。
+请求指标不查版本号，只在实际入口的全部代码结构匹配后启用；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
 看终端 `request metrics: active` 或首页 `open-kimi-web-request-metrics` 确认状态；不只凭增强网址判断成功。
 保留逐调用 TTFT、包含等待的平均 TPS、缓存命中和历史位置；侧聊可独立选模。
 桌面“设置 → 通用”和手机会话设置可重启受管服务，忙时拒绝；不自动刷新草稿或重发消息。
-保留 r2 图标、r1 消息目录、实际版本、话题标签和官方 2.5.2 适配。
+手机目录与时间已适配2.6 turns/items，首屏使用原生WS，旧页沿用官方分页，不为目录复制正文或另拉完整历史。
 更新后须手动重启并刷新；系统缓存旧桌面图标时，可移除旧快捷方式再重新添加。
-精确 2.5.2 支持子代理恢复跟随主模型；全文索引关闭时解释开启方法，不自动开启。发送与插队交给官方。
-保留双端菜单、手机置顶、局域网 CA、脱敏日志、App 安装入口和普通 CLI 原样透传。
+精确2.5.2／2.6.0／2.6.1支持子代理恢复跟随；2.6允许普通primary别名。全文索引关闭时解释开启方法，不自动开启。
+保留双端菜单、手机置顶、局域网 CA、脱敏日志、App 安装入口和普通 CLI 原样透传；发送与插队交给官方。
 保留推理档位排序、Tower 条件说明及已有 Kimi 发现／运行时检查；不强制开启实验、不改当前选择或保存数组。
-本轮不新增付费调用、不擅自改用户配置、不升级实际官方 CLI，也不自动重启生产。
-安装器缺官方时仍固定 2.4.1，metadata 失败的 UI fallback 不变；保留 r1 的 Windows 原生句柄清理与退出确认。
+2.6只停用与官方完全相同的默认折叠补丁，有差异的增强保留；不将诊断或官方修复等同现场慢加载已解决。
+不擅自改用户配置、不升级实际官方CLI或重启生产；缺官方时校验安装2.6.1，metadata失败UI fallback也为2.6.1。
 保留 `2.3.1-r2` 新模型默认：仅 `video_in`、`image_out` 不选，其它能力、六档 effort 及 `adaptive_thinking` 选中。
 已有显式数组（含空数组）、未知值与 false 不自动改写；保留 r1 的发现选择、唯一可见表单及逐字段保存。
 默认是用户偏好，不保证模型服务支持。历史 Coding 对照为 low 成功、xhigh 400，修后 thinking:on 未显式 effort 成功；
 medium/high/max 未逐档验证，不依据默认勾选承诺这些参数可用。
-本轮验收、CI、包与线上结果见[发布计划][metrics-upgrade-plan]；未记录不视为通过。
+本轮验收、CI、包与线上结果见[发布计划][compat260-plan]；未记录不视为通过。
 [2.5.2-r1 发布记录][release252r1-plan]、[2.4.1-r3 发布记录][release241r3-plan]、[2.4.1-r2 发布记录][release241r2-plan]、
 [2.4.1-r1 适配计划][compat241-plan]、[2.3.1-r2 计划][r2-plan]及[其 Release][r2-release]保留历史证据。
 更早的 [r1 计划][current-plan]及下方 r9／r10 记录不代表本轮结果。
@@ -87,19 +87,19 @@ setup 建立稳定根并启用签发，不修改设备信任或网络，不启�
 
 优先提供[README 快速上手](https://github.com/WilliamLambertCN/open-kimi-web#快速上手)中的在线安装命令，
 无需克隆仓库或手动下载脚本。
-Windows PowerShell ≥ 5.1／macOS-Linux sh 从 `v2.5.2-r4` GitHub commit API 解析并校验真实 40 位十六进制 SHA。
-只下载该 SHA 入口，成功后用 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.5.2-r4`。
+Windows PowerShell ≥ 5.1／macOS-Linux sh 从 `v2.6.1-r1` GitHub commit API 解析并校验真实 40 位十六进制 SHA。
+只下载该 SHA 入口，成功后用 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.6.1-r1`。
 入口取同提交完整 coordinator／helpers；tag、SHA、下载或资产不可用即停，不回退 main／旧包，不复用旧 r10 SHA 或伪造将来 SHA。
 HTTPS 和同提交配对不是签名验证；正式发布前不说入口已在线可用。本地入口与 helpers 也必须同提交：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.5.2-r4
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.5.2-r4 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r1 --no-integrate
 ```
 
 ```sh
-sh scripts/install.sh --version 2.5.2-r4
-sh scripts/install.sh --version 2.5.2-r4 --no-integrate
+sh scripts/install.sh --version 2.6.1-r1
+sh scripts/install.sh --version 2.6.1-r1 --no-integrate
 ```
 
 - 无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi，仍需联网与标准 PATH curl／tar，不是离线安装。
@@ -109,10 +109,10 @@ sh scripts/install.sh --version 2.5.2-r4 --no-integrate
   Windows 持久 Machine／User PATH、APPDATA/npm 及所选 Node 旁标准命令，不递归扫盘或修改持久 PATH 来搜索。
   多份无明确优先级需显式 override；未知 PowerShell 函数／脚本／带参 wrapper 不执行，不猜新旧。
   先明确复用已有可用官方 CLI，不下载或升级它；坏、歧义、不支持候选拒绝，不当 missing 后另装。
-- 只有确认缺失才准备固定官方 `2.4.1` tarball／SHA-512，ignore-scripts 避免旧 Python 迁移。
-  旧 owned `2.3.1`／`2.1.1` 仅在精确 version／integrity、package 身份与 entry／shim digests 全通过后复用。
+- 只有确认缺失才准备固定官方 `2.6.1` tarball／SHA-512，ignore-scripts 避免旧 Python 迁移。
+  旧 owned `2.6.0`／`2.4.1`／`2.3.1`／`2.1.1` 仅在精确 version／integrity、package 身份与 entry／shim digests 全通过后复用。
   未知归属／坏 override／partial 拒绝，不自动续装。适当的真实 probe 成功才写 record；重复 probe，坏安装不自动重建。
-- 官方 `2.4.1` 无 node-pty，按精确身份做真实 Node `child_process` shell probe；不是任意缺 node-pty 都算成功。
+- 官方 `2.6.1`／`2.6.0`／`2.4.1` 无 node-pty，按精确身份做真实 Node `child_process` shell probe；不是任意缺 node-pty 都算成功。
   旧 owned 版仍需真实 PTY；Linux **只有 legacy rebuild** 需 Python 3、C／C++ 和 make，不再无条件要求新版装编译工具链。
   legacy rebuild 仅审计固定 node-pty 1.1.0／node-addon-api 7.1.1 并限定绝对目录，不跑根 Kimi 或其它包脚本，不 sudo／apt。
 - Windows Git Bash 仍必需，可用即复用，缺失才验证 portable Git；不改系统 Git，未知 `KIMI_SHELL_PATH` 报错。
@@ -124,13 +124,13 @@ sh scripts/install.sh --version 2.5.2-r4 --no-integrate
   本地薄入口 `--help` 不要求 Node、不联网、不写入，非法参数也在 runtime 前拒绝；独立入口须显式匹配 revision。
 - PATH 遮挡或 shell 不支持时按输出处理，不把包已安装当接管生效；不自动登录、启动生产服务、读真实会话或发付费调用。
   macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收；历史见[安装计划][install-plan]。
-  本轮只以[发布计划][metrics-upgrade-plan]的实际证据为准，不把旧 r9、本地 pack 或 Git Bash 当作全平台通过。
+  本轮只以[发布计划][compat260-plan]的实际证据为准，不把旧 r9、本地 pack 或 Git Bash 当作全平台通过。
 
-已有 Node ≥ 22／npm 可手动装 launcher，但不准备官方 Kimi；官方 npm `2.4.1` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
+已有 Node ≥ 22／npm 可手动装 launcher，但不准备官方 Kimi；官方 npm `2.6.1` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
 不需要 Corepack／pnpm；正式发布后使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.5.2-r4/open-kimi-web-2.5.2-r4.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.6.1-r1/open-kimi-web-2.6.1-r1.tgz
 ```
 
 仅用户明确需要源码开发且已有 Node ≥ 22／Git／Corepack 时，提供源码路线：
@@ -223,10 +223,12 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
   统一 interaction，移除 node-pty／session terminal，不把卸载当作 archive／delete。
 - `2.4.1` Read 默认 100,000 字符或约 25,000 tokens 先到为准，`read.max_chars` 可调；内置 prompt／重复提醒精简及 Web 修复。
 
-cron 默认 off，显式 `kimi web --scheduled-tasks` 才启用。READ 精确 `2.3.1`／`2.4.1`／`2.5.2` 只读，
+cron 默认 off，显式 `kimi web --scheduled-tasks` 才启用。
+READ 精确 `2.3.1`／`2.4.1`／`2.5.2`／`2.6.0`／`2.6.1` 只读；
 WRITE 仍只精确 `2.1.1`／`2.2.0` 且须显式恢复确认；未知与相邻未列版本拒绝。
 保留 transport／route 双写 gate、鉴权、冷会话不恢复和普通／编码 debug 封闭；不能与同实例 RC 并用，外部 target 不开放。
-不伪造 cron 编辑／暂停／独立任务模型；Tower 每任务模型不是 cron 模型能力。历史协议快照未为 2.4.1 重捕，实际验收见本轮计划。
+不伪造 cron 编辑／暂停／独立任务模型；Tower 每任务模型不是 cron 模型能力。
+历史协议快照未重捕，新版真实只读验收见[本轮计划][compat260-plan]。
 
 ## 撤销接管
 
@@ -257,12 +259,12 @@ Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保�
 ## 安装自更新（r8 起可用）
 
 `v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
-`2.5.2-r4` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.5.2-r4`。
+`2.6.1-r1` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.6.1-r1`。
 不要求同版重装、重跑安装器或追加 `--switch-installation`；源码仍须干净 main 跟踪 origin/main，只做快进。
 完成后用户自行重启旧 launcher／对应 backend 并刷新；独立 target 须重启实际后端，不自动开启 Tower。
 CA 需另行显式 setup，更新不会自动启用或导入手机证书。
 更新不升级用户已有官方 Kimi，官方功能取决于实际 backend；保留 `2.3.1-r2` 默认与已有显式模型配置。
-本轮 latest/update 与线上验收以[发布计划][metrics-upgrade-plan]实际记录为准，旧计划保留历史，不借旧记录写通过。
+本轮 latest/update 与线上验收以[发布计划][compat260-plan]实际记录为准，旧计划保留历史，不借旧记录写通过。
 旧 r7 发布包不含 update，须先手动升级至 r8 或更高版本，不能直接在 r7 上运行该命令。
 用户要求更新已具备该命令的 launcher 时，先运行：
 
@@ -290,9 +292,11 @@ open-kimi-web update --check
 
 ## 大会话加载诊断
 
-`2.4.1-r2` 起提供最近页优化；本版支持增强 UI 精确 2.3.1／2.4.1／2.5.2，main 无 cursor 最近页先取 1 轮。
-旧历史仍用官方分页，正文和实体不变；自定义 UI 和其它版本不改请求。
-无偏好时默认折叠工具活动，已有值不迁移；旧用户可在官方设置开启折叠。短首屏可用原生“加载更早消息”。
+`2.4.1-r2` 起提供最近页优化；增强 UI 精确 2.3.1／2.4.1／2.5.2 的 main 无 cursor 最近页先取 1 轮。
+准确 2.6.0／2.6.1 沿用官方首批 WS 十轮及 before_ordinal 旧页，不套用旧 transcript 改写。
+手机目录只保留有界短标签和定位信息，不存正文或另拉全会话；自定义 UI 和其它版本不改请求。
+无偏好时默认折叠工具活动，已有值不迁移；2.6.0／2.6.1 使用官方同义默认，不注入重复脚本。
+旧用户可在官方设置开启折叠，短首屏可用原生“加载更早消息”。
 不承诺自动预取或巨大单轮秒开，后端恢复、实体和解析仍可能慢；已有证据见[低带宽计划][low-bandwidth-plan]。
 发布状态以[正式 Release][current-release]为准，下方 r9 数据是历史结果，不代替本轮验收。
 
@@ -319,7 +323,7 @@ open-kimi-web update --check
 同供应商同名长 alias 前置真实唯一差异，保存完整值；不调用 Vue 私有实例或主模型写入回滚，不恢复编号原生 SELECT。
 读取官方 config／models，仅 POST `/api/v1/config` 的 `secondary_model` 并合并池，不写主模型、权限／其它配置或 localStorage。
 Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字段清除配置。
-本版仅对确认的精确 2.5.2 使用原生 `secondary_model: null` 恢复跟随主模型，其它版本不猜测支持。
+准确 2.5.2／2.6.0／2.6.1 使用原生 `secondary_model: null` 恢复跟随主模型，其它版本不猜测支持。
 取消不写、失败不假报成功；用户授权变更后才保存，不用付费模型调用验证。
 
 增强层 locale 以官方 `kimi-locale` 为准，本轮覆盖的英文系统 text／title／aria／placeholder 随语言切换刷新，
@@ -355,6 +359,8 @@ Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字�
 [pwa-plan]: ../../docs/plans/pwa-install-v1-plan.md
 [release252r1-plan]: ../../docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md
 [metrics-upgrade-plan]: ../../docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r4
+[compat260-plan]:
+  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r1
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
