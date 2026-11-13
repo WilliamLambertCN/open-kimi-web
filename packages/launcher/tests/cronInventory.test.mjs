@@ -123,7 +123,7 @@ describe('global native Cron inventory', () => {
     } });
   });
 
-  it.each(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2'])(
+  it.each(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'])(
     'reads actual %s runtime metadata for fork handling on each operation', async (version) => {
       const { inventory, home } = await fixture({ meta: { ...meta, server_version: version } });
       await wire(home, 'session-fixture', [line('cron.add', { task }), line('forked', { agentId: 'main' })]);
@@ -209,6 +209,33 @@ describe('cold native Cron history', () => {
       '/api/v1/meta', '/api/v1/sessions/session-fixture/profile',
     ]);
     expect(JSON.stringify(result)).not.toContain('Do not return');
+  });
+
+  it('keeps real 2.6 trigger outcomes without treating usage aliases as historical request model IDs', async () => {
+    const { inventory, home, fetchImpl } = await fixture({ meta: { ...meta, server_version: '2.6.0' } });
+    await wire(home, 'session-fixture', [
+      line('profile.bind', { agentId: 'main', modelAlias: 'saved-alias' }),
+      line('cron.add', { task }),
+      line('turn.prompt', { agentId: 'main', turnId: 0, input: [], origin: { kind: 'cron_job', jobId: task.id } }),
+      line('context.append_loop_event', { agentId: 'main', event: {
+        type: 'step.begin', uuid: 'fictional-step', turnId: '0', step: 1,
+      } }),
+      line('usage.record', { agentId: 'main', model: 'saved-alias', usage: { inputOther: 20, output: 10 } }),
+      line('context.append_loop_event', { agentId: 'main', event: {
+        type: 'step.end', uuid: 'fictional-step', turnId: '0', step: 1,
+        usage: { inputOther: 20, output: 10 }, llmFirstTokenLatencyMs: 12, llmStreamDurationMs: 24,
+      } }),
+      line('turn.ended', { agentId: 'main', turnId: 0, reason: 'completed', durationMs: 85, time: 1100 }),
+    ]);
+    expect(await inventory.history({ ...args, sessionId: 'session-fixture' })).toEqual({
+      available: true, hasMore: false, quality: { complete: false, reasons: ['server-missing'] }, items: [{
+        time: 1000, taskId: task.id, kind: 'started', inherited: false, turnId: 0,
+        endReason: 'completed', endedAt: 1100, durationMs: 85,
+      }],
+    });
+    expect(fetchImpl.mock.calls.map(([url]) => url.pathname)).toEqual([
+      '/api/v1/meta', '/api/v1/sessions/session-fixture/profile',
+    ]);
   });
 
   it('reports missing server journal as potentially missing history, without inventing successful runs', async () => {

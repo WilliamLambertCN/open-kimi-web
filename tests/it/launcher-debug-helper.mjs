@@ -23,7 +23,7 @@ const active = [];
 const eventNames = new Set([
   'launcher_start', 'launcher_stop', 'http_begin', 'http_upstream', 'http_first_byte', 'http_progress',
   'http_end', 'http_error', 'ws_begin', 'ws_ready', 'ws_first_frame', 'ws_progress', 'ws_end', 'ws_error',
-  'tls_error', 'client_error',
+  'tls_error', 'client_error', 'ws_subscribe', 'ws_subscribed', 'ws_turns',
 ]);
 
 export function own(cleanup) {

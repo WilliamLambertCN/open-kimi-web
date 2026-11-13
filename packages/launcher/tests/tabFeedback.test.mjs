@@ -113,7 +113,8 @@ describe('official tab interaction feedback', () => {
     expect(doc.querySelector('.okw-tab-feedback')).toBeNull();
   });
 
-  it('lets a selected session paint before an immediate response without changing Response or request arguments', async () => {
+  it.each(['transcript', 'agents/main/turns'])(
+    'lets a selected session paint before %s without changing Response or request arguments', async (endpoint) => {
     const response = new Response('C');
     const native = vi.fn(async () => response);
     const { view, doc, sessionClick } = install(native);
@@ -122,7 +123,7 @@ describe('official tab interaction feedback', () => {
     const init = { signal, credentials: 'same-origin' };
     const receiver = {};
     let delivered = false;
-    const request = view.fetch.call(receiver, '/api/v1/sessions/C/transcript', init).then((result) => {
+    const request = view.fetch.call(receiver, `/api/v1/sessions/C/${endpoint}`, init).then((result) => {
       delivered = true;
       return result;
     });
@@ -132,7 +133,7 @@ describe('official tab interaction feedback', () => {
     await paint();
     expect(await request).toBe(response);
     expect(native.mock.contexts[0]).toBe(receiver);
-    expect(native).toHaveBeenCalledWith('/api/v1/sessions/C/transcript', init);
+    expect(native).toHaveBeenCalledWith(`/api/v1/sessions/C/${endpoint}`, init);
   });
 });
 

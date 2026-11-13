@@ -67,7 +67,7 @@ describe('restricted Cron client contract', () => {
 
 });
 
-describe.each(['2.3.1', '2.4.1', '2.5.2'])('exact %s read-only client boundary', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'])('exact %s read-only client boundary', (version) => {
   it('reads task memory but rejects create/remove before all debug calls', async () => {
     const { client, fetchImpl } = fixture({ meta: { ...meta, server_version: version }, list: [task] });
     expect(await client.list(args)).toEqual([task]);

@@ -267,13 +267,18 @@
         if (inserted && !node.isConnected) meta.prepend(node);
       }
     };
+    const valueFor = (state, anchor, agent) => {
+      const old = agent?.times.get(anchor.dataset.turnId);
+      if (old || !state.root.closest('.panes.chat-scroll')) return old;
+      return window.__okwMobileTocMetadata?.time?.(anchor.dataset.turnId);
+    };
     const process = (state, anchor, agent) => {
       if (!anchor.isConnected || anchor.closest('.chat') !== state.root) {
         state.anchors.delete(anchor);
         return;
       }
       const role = anchor.matches('.u-bub') ? 'user' : 'assistant';
-      const value = agent?.times.get(anchor.dataset.turnId);
+      const value = valueFor(state, anchor, agent);
       const owner = role === 'user' ? anchor.closest('.u-turn') : anchor;
       if (!value || value.role !== role) {
         owner?.querySelectorAll('.okw-message-time').forEach(restore);
@@ -385,6 +390,10 @@
       }
     };
     const start = () => {
+      window.__okwMobileTocMetadata?.observe(() => {
+        chats.forEach((state) => state.anchors.forEach((anchor) => state.dirty.add(anchor)));
+        schedule();
+      });
       discover(document.body);
       new MutationObserver((records) => {
         checkRoute();

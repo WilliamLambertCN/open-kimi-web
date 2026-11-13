@@ -8,9 +8,11 @@
 ## 实施计划
 
 - [公开历史隐私清理](docs/plans/privacy-history-cleanup-v1-plan.md)
+- [官方 2.6 适配](docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md)
+- [分阶段诊断日志](docs/plans/large-session-debug-log-v1-plan.md)
+- [请求指标升级兼容](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 - [请求指标与重启发布](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)
-- [请求指标升级兼容](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)
 - [应用图标](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md)
 - [2.5.2 发布](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md)
 - [品牌与 2.5.2 适配](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md)
@@ -38,7 +40,6 @@
 - [新模型默认能力](docs/plans/provider-defaults-r2-release-v1-plan.md)
 - [2.4.1 适配](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md)
 - [低带宽大会话](docs/plans/large-session-low-bandwidth-v2-plan.md)
-- [分阶段诊断日志](docs/plans/large-session-debug-log-v1-plan.md)
 - [安装到桌面](docs/plans/pwa-install-v1-plan.md)
 - [请求指标与侧聊选模](docs/plans/request-metrics-sidechat-v1-plan.md)
 - [受管服务重启](docs/plans/service-restart-v1-plan.md)
@@ -52,16 +53,20 @@
 - 默认模式下载并服务官方 npm 包中的 `dist-web`。`--web-dir` / `OPEN_KIMI_WEB_DIR` 直接服务用户提供的构建，不注入本项目的展示脚本、主题或私有 UI 功能。
 - 不在 DOM 补丁中重建官方状态管理。能调用官方 API 或复用官方表单提交时，继续让官方后端成为唯一真相源。
 
-## 官方 2.5.2 与历史版本适配事实
+## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标是 Kimi Code `2.5.2`，本轮发布目标 `2.5.2-r4`；指标已实测2.5.3，其它协议范围不扩大。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，发布目标 `2.6.1-r1`；正式状态以 Release 为准，不把旧 CI 当作本轮结果。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
+  新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
+  仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。
+  两版准确npm包的638个网页文件逐字节相同，指标仍按完整结构启用，不按版本号过滤。
   0.41.0 协议快照未重捕；下列旧版行为保留为历史，不是新版保证。
 - 精确 `2.5.2` 新增只读任务和最近页支持；不为列任务调用已删除的 GET `/status` 或恢复冷会话。
   原生 agent／usage／goal／todo／task 独立 WS 帧直接透传，不补造旧 transcript 状态。
 - 全文搜索默认关闭时给出中英开启方法及扫描成本，不自动启用；普通标题筛选不受影响。
-- 手机全局子模型控件不因模型池只有一项隐藏。仅成功同源精确 `2.5.2` meta 允许显式提交 `secondary_model: null`，
-  按真实省略 section 的回包验证跟随主模型；旧版限制保留，不写 force／primary 或改主模型。
+- 手机全局子模型控件不因模型池只有一项隐藏。成功同源精确 `2.5.2`／`2.6.0`／`2.6.1` meta允许清除secondary_model为null。
+  按真实省略 section 的回包验证跟随主模型；仅2.6.0／2.6.1允许普通 `primary` 模型别名，旧版保留 reserved 规则。
+  不写 force、特殊 primary 选项或改主模型／模型池。
 - 注入代码不得依赖 Vue 的 `data-v-*`、构建哈希文件名或压缩变量名。使用稳定的语义类名、可见结构和
   官方请求结果。`2.1.1` 供应商表单使用 `.pf`、`.pf-field`、`.pmt` 与 `.pmt-grid`；
   归档设置页仍使用 `.archive-list`、`.archive-card`、`.archive-row`、`.archive-name`、
@@ -116,7 +121,8 @@
 6. 运行最少必要校验并记录结果。完成后检查 `git diff --check` 和 `git status --short`，清理临时进程与数据。
 7. 除非任务明确要求，不提交、不推送、不发布。
 
-README 保持简短：按用户最新要求先放界面预览，再在“快速上手”里给两段系统安装命令及启动方法。
+README 保持简短：先放界面预览，再在“快速上手”里给两段系统安装命令及启动方法。
+按用户追加要求，在根README快速上手直接展开源码安装命令，不放入折叠块，并与launcher README同步。
 只留必要的增强功能概览、截图、升级和常见问题，不在“快速上手”外重复安装说明。
 使用 humanizer-zh 优化文字，用动作说明用户能做什么，把压缩的术语展开为通俗句子，不为缩短篇幅堆砌名词。
 详细命令链接到 launcher README，兼容细节到 UPSTREAM，历史和验收不堆在首页。

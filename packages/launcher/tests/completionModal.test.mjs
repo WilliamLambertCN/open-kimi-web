@@ -1,16 +1,20 @@
 /** @vitest-environment jsdom */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const source = readFileSync(
   resolve('packages/launcher/src/mobile/completionModal.js'),
   'utf8',
-).replace('const SETTLE_DELAY_MS = 120;', 'const SETTLE_DELAY_MS = 0;');
+);
 const frames = [];
 const observers = [];
 
-const settle = () => new Promise((resolveWait) => setTimeout(resolveWait, 10));
+const settle = async () => {
+  await Promise.resolve();
+  await vi.runAllTimersAsync();
+};
+beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }));
 
 function installMedia(view, initialMatches) {
   let matches = initialMatches;
@@ -118,6 +122,8 @@ function install({
 afterEach(() => {
   observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove());
+  vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe('mobile completion frame parsing', () => {
