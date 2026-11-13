@@ -92,7 +92,7 @@
       return id === (entry.target || sessionId());
     };
     const matchRequest = (match, method) => {
-      const kind = match[2] === 'transcript' ? 'session' : 'panel';
+      const kind = match[2] === 'fs:read' ? 'panel' : 'session';
       if (method !== (kind === 'session' ? 'GET' : 'POST')) return;
       const entry = pending.get(kind);
       if (!entry) return;
@@ -106,7 +106,7 @@
       const url = new URL(raw, location.href);
       if (url.origin !== location.origin) return;
       const method = (init?.method ?? input.method ?? 'GET').toUpperCase();
-      const match = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/(transcript|fs:read)$/);
+      const match = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/(transcript|agents\/main\/turns|fs:read)$/);
       if (match) return matchRequest(match, method);
       if (method === 'GET' && url.pathname === '/api/v2/sessions') return pending.get('category');
     };

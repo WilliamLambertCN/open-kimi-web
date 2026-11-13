@@ -2,7 +2,7 @@
   const installed = Symbol.for('open-kimi-web.mobile-subagent-api');
   if (!window[installed]) {
     window[installed] = true;
-    const state = { authorization: '', canClear: false };
+    const state = { authorization: '', canClear: false, primaryAlias: false };
     const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
     const inherited = (section) => !section?.defaultModel && !section?.model && section?.models === undefined;
     const remember = (authorization) => {
@@ -19,11 +19,13 @@
       if (!apiUrl(resource)) return response;
       const url = new URL(resource instanceof Request ? resource.url : String(resource), location.href);
       if (url.pathname !== '/api/v1/meta') return response;
-      state.canClear = false;
+      state.canClear = false; state.primaryAlias = false;
       if (!response.ok || !validResponse(response)) return response;
       try {
         const envelope = await response.clone().json();
-        state.canClear = envelope?.code === 0 && envelope.data?.server_version === '2.5.2';
+        const version = envelope?.code === 0 ? envelope.data?.server_version : undefined;
+        state.canClear = ['2.5.2', '2.6.0', '2.6.1'].includes(version);
+        state.primaryAlias = ['2.6.0', '2.6.1'].includes(version);
       } catch {}
       return response;
     };
@@ -92,13 +94,14 @@
         supportEfforts: raw.support_efforts ?? model.supportEfforts,
       };
     };
+    const allowedModel = (id, raw) => object(raw) && typeof id === 'string' && (id !== 'primary' || state.primaryAlias);
     const modelsFor = (config, catalog) => {
       const models = new Map();
       for (const [id, raw] of Object.entries(config.models ?? {})) {
-        if (id !== 'primary' && object(raw)) models.set(id, modelInfo(id, raw));
+        if (allowedModel(id, raw)) models.set(id, modelInfo(id, raw));
       }
       for (const raw of catalog.items ?? []) {
-        if (!object(raw) || typeof raw.model !== 'string' || raw.model === 'primary') continue;
+        if (!allowedModel(raw?.model, raw)) continue;
         models.set(raw.model, catalogModel(raw, models.get(raw.model)));
       }
       return [...models.values()].sort((a, b) => a.label.localeCompare(b.label));

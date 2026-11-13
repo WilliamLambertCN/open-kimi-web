@@ -201,6 +201,7 @@ const required = [
   'src/httpDiagnostics.mjs',
   'src/transportDiagnostics.mjs',
   'src/wsDiagnostics.mjs',
+  'src/wsConversationDiagnostics.mjs',
   'src/update/updateMain.mjs',
   'src/update/windowsTreeCleanup.mjs',
   'src/update/windowsTreeCleanup.cs',
@@ -215,6 +216,7 @@ const required = [
   'src/mobile/providerLocale.js',
   'src/mobile/usageLocale.js',
   'src/mobile/effortOrder.js',
+  'src/mobile/conversationMetadata.js',
   'src/mobile/mobileSubagentModelApi.js',
   'src/mobile/mobileSubagentModelView.js',
   'src/mobile/mobileSubagentModel.js',
@@ -290,6 +292,22 @@ async function assertConversationAssets(pkgDir, launcher, html) {
   console.log('conversation assets ok: branding, mobile outline, per-request speeds and side chat model picker');
 }
 
+async function assertCurrentConversationAsset(pkgDir, launcher) {
+  const prefix = '/__open-kimi-mobile/';
+  const { addMobilePresentation } = await import(pathToFileURL(join(pkgDir, 'src/officialPresentation.mjs')).href);
+  for (const version of ['2.6.0', '2.6.1']) {
+    const current = addMobilePresentation('<html><head></head></html>', { officialWebVersion: version });
+    if (!current.includes(prefix + 'conversationMetadata.js') || current.includes(prefix + 'foldingDefaults.js') ||
+        current.includes(prefix + 'mobileConversationTocMetadata.js')) {
+      throw new Error(`installed ${version} presentation must use conversation metadata and native folding defaults`);
+    }
+  }
+  const metadata = await fetch(launcher.url + prefix + 'conversationMetadata.js');
+  if (!metadata.ok || !(await metadata.text()).includes('__okwMobileTocMetadata')) {
+    throw new Error('installed 2.6 conversation metadata asset is unavailable');
+  }
+}
+
 async function assertPwaAssets(pkgDir, publicDir, target) {
   const { createLauncher } = await import(pathToFileURL(join(pkgDir, 'src/serve.mjs')).href);
   const launcher = await createLauncher({ target, publicDir, host: '127.0.0.1', port: 0, interfaces: [],
@@ -301,6 +319,7 @@ async function assertPwaAssets(pkgDir, publicDir, target) {
       throw new Error('installed enhanced launcher did not inject its manifest');
     }
     await assertConversationAssets(pkgDir, launcher, html);
+    await assertCurrentConversationAsset(pkgDir, launcher);
     const response = await fetch(launcher.url + prefix + 'manifest.webmanifest');
     const manifest = await response.json();
     if (!response.headers.get('content-type')?.startsWith('application/manifest+json') ||

@@ -10,12 +10,15 @@ import { verifyOwnedPty } from './pty.mjs';
 import { findOfficialCandidate } from './officialCandidates.mjs';
 import { verifyOfficialShell } from './officialShell.mjs';
 
-export const OFFICIAL_VERSION = '2.4.1';
-export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz';
-export const OFFICIAL_INTEGRITY = 'z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw==';
+export const OFFICIAL_VERSION = '2.6.1';
+export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.6.1.tgz';
+export const OFFICIAL_INTEGRITY = 'M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ==';
 
+const SHELL_RELEASES = new Set(['2.4.1', '2.6.0', OFFICIAL_VERSION]);
 const OWNED_RELEASES = new Map([
   [OFFICIAL_VERSION, OFFICIAL_INTEGRITY],
+  ['2.6.0', 'C8gplTbSQsn+zxMkhyC+2MM2laf2E6YuEWqBt7UQMU2lqtr7JKi9zHIGNFuTgEXs5tIvS3HdU4HpmxneL3i7lg=='],
+  ['2.4.1', 'z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw=='],
   ['2.3.1', 'Ikk41ROPta1eQ6gCXOZd7Ag7fg8B0vawjwA0+MVMi8CphFBbvAz8emr7Lc9cI2dAbBSmvAX16U7Jc/+mPVw7Cg=='],
   ['2.1.1', 'xClqcnTQUKgKDbeOGPU78qcwxGzL8wA2rqWuOX3CLpyQ1/NhSX7jAh6hZo/JFwThSX8obkgef3uw/li5JaJNyw=='],
 ]);
@@ -127,7 +130,7 @@ async function verifyOwnedRuntime(ctx, paths) {
   if (!await ownedOfficial(ctx)) throw new Error('official dedicated prefix is missing; no automatic reinstall');
   const record = await stateJson(paths.record);
   await officialEntry(paths.kimi, ctx);
-  if (record.version === OFFICIAL_VERSION) await verifyOfficialShell(ctx, paths.root);
+  if (SHELL_RELEASES.has(record.version)) await verifyOfficialShell(ctx, paths.root);
   else await verifyOwnedPty(ctx, paths);
 }
 

@@ -55,6 +55,11 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
   const target = new URL(targetBase);
   const trace = responseDiagnostics(res);
   const isHttps = target.protocol === 'https:';
+  const stopWaiting = () => {
+    req.removeListener('aborted', cancelPending);
+    res.removeListener('close', cancelPending);
+  };
+  const cancelPending = () => { stopWaiting(); upstream.destroy(); };
   const upstream = (isHttps ? httpsRequest : httpRequest)(
     {
       protocol: target.protocol,
@@ -65,13 +70,14 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
       headers: buildProxyHeaders(req.headers, target),
     },
     (upRes) => {
+      stopWaiting();
       trace?.upstream(upRes.statusCode, upRes.headers);
       if (trace) upRes.once('error', (error) => trace.error(error));
       void sendResponse(req, res, {
         statusCode: upRes.statusCode ?? 502,
         headers: filterHeaders(upRes.headers),
         body: upRes,
-      }).catch(() => upstream.destroy());
+      }).then(() => upstream.destroy(), () => upstream.destroy());
     },
   );
   let timedOut = false;
@@ -81,7 +87,9 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
     upstream.destroy();
   });
   upstream.on('error', (error) => {
+    stopWaiting();
     trace?.error(error);
+    if (res.destroyed) return;
     if (res.headersSent) {
       res.destroy();
       return;
@@ -94,7 +102,7 @@ export function proxyRequest(req, res, targetBase, timeoutMs = UPSTREAM_TIMEOUT_
     res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
     res.end('Bad Gateway');
   });
-  req.on('aborted', () => upstream.destroy());
-  res.on('close', () => upstream.destroy());
+  req.once('aborted', cancelPending);
+  res.once('close', cancelPending);
   req.pipe(upstream);
 }

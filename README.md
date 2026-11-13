@@ -40,18 +40,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。版本目标 [v2.5.2-r4][current-release]，适配 Kimi Code `2.5.2`。
-> 不自动升级已有官方 Kimi；兼容范围见 [说明](UPSTREAM.md#kimi-code-252-adaptation)，发布状态以正式 Release 为准。
+> 非官方社区项目，与 Moonshot AI 无关联。[v2.6.1-r1][current-release] 适配 Kimi Code `2.6.1`，保留 `2.6.0` 支持。
+> 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-260261-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r4'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r1'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.5.2-r4
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.6.1-r1
 }
 ```
 
@@ -60,14 +60,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.5.2-r4'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r1'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.5.2-r4
+    sh -c "$script" install.sh --revision "$sha" --version 2.6.1-r1
 )
 ```
 
@@ -84,7 +84,22 @@ kimi web --host
 手机连接同一局域网，打开终端打印的 **Network** 链接。首次遇到证书警告，先与终端核对 SHA-256 指纹。
 **链接含登录凭据（token），拿到它的人能读写文件、执行命令。不要分享。**
 默认端口 `48627`，被占用时用 `kimi web --port <port>` 更换。
-[npm、源码安装及更多命令](packages/launcher/README.md#安装)
+[npm 安装及更多命令](packages/launcher/README.md#安装)
+
+### 源码安装（Windows PowerShell / macOS / Linux）
+
+需先准备 Node.js ≥ 22、Git、Corepack 和可运行的官方 Kimi；官方 npm 版需 Node.js ≥ 22.19.0，Windows 还需 Git Bash。
+
+```sh
+git clone --branch main https://github.com/WilliamLambertCN/open-kimi-web.git
+cd open-kimi-web
+corepack pnpm install --frozen-lockfile
+node packages/launcher/bin/open-kimi-web.mjs integrate install
+```
+
+已有源码时，在原仓库目录执行最后两条命令，不必重新克隆；安装直接使用该目录的当前代码，无需构建前端。
+已有其它安装时，按[切换说明](packages/launcher/README.md#升级)处理。
+安装后新开终端运行 `kimi web --host`；源码目录需要保留，安装不会启动或重启服务，也不升级官方 Kimi。
 
 ## 有哪些增强
 
@@ -98,11 +113,11 @@ kimi web --host
 - **模型与主题**：从服务商获取模型后选择添加，调整顺序、能力与思考强度，Max 放最后，不自动改写已有配置。
   可选五套主题或恢复官方外观；电脑从账号菜单、手机从设置进入“氛围主题”。
 - **请求与侧聊**：在每次回复或工具过程后查看 TTFT、包含等待的平均 TPS 和缓存命中率；侧聊可单独选模型。
-  指标按实际代码结构启用；已发布版实测 `2.5.2`／`2.5.3`，`2.6.0` 修复尚未发布，见 [兼容说明](UPSTREAM.md)。
+  指标按实际代码结构启用；`2.6.0`／`2.6.1` 已适配新版会话接口，见 [兼容说明](UPSTREAM.md)。
 - **连接**：HTTPS、Hyper-V 地址识别和传输压缩；源码与 npm 安装均可更新，也能恢复原命令入口。
   桌面“设置 → 通用”和手机会话设置可重启受管服务，忙碌时拒绝，不自动重发消息。
 
-启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2` 仅可查看任务与已有历史，不能编辑、暂停或单独选模型，
+启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2`／`2.6.0`／`2.6.1` 仅可查看任务与已有历史，不能编辑、暂停或单独选模型，
 也不能与同一 Kimi 服务的官方 Remote Control 同时开启。[使用限制](packages/launcher/README.md#统一导航与会话搜索)
 
 ## 安装到手机桌面
@@ -178,7 +193,7 @@ open-kimi-web update
 ```
 
 源码仓库已清理提交历史。旧克隆不能直接快进更新；先保留本地改动，再重新克隆，不要强制覆盖。
-一键／npm 安装不受影响，版本和下载包不变。
+一键／npm 安装不受历史清理影响，正常升级即可；旧版下载包已撤下，请使用最新版。
 
 只更新当前使用的 Open Kimi Web，不升级官方 Kimi、不修改会话或自动重启。
 完成后停止旧服务，重新运行 `kimi web --host`，再刷新网页。
@@ -208,4 +223,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.5.2-r4
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r1

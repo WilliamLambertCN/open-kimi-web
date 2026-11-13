@@ -75,6 +75,33 @@ describe('real debug-log WebSocket protocol and privacy', () => {
     assertWsCounts(requestEvents(await records(enabled), 0, 'ws'));
     await disabled.launcher.close();
   });
+});
+
+describe('real 2.6.0 conversation diagnostics', () => {
+  it('records 2.6.0 subscribe, response and turns without parsing or changing history content', async () => {
+    const turn = JSON.stringify({ type: 'turns', session_id: markers.session, agent_id: 'main',
+      event_created_at: '2026-01-01T00:00:00.000Z', turns: [{ text: markers.body.repeat(1000) }], has_more: true });
+    const context = await fixture({ upgrade: ({ req, socket, head, wss }) => {
+      wss.handleUpgrade(req, socket, head, (peer) => peer.once('message', (bytes) => {
+        const frame = JSON.parse(bytes.toString());
+        peer.send(JSON.stringify({ type: 'response', request_id: frame.request_id, code: 0 }));
+        peer.send(turn);
+      }));
+    } });
+    const ws = await openWs(context);
+    const received = [];
+    const complete = new Promise((resolve) => ws.on('message', (bytes) => {
+      received.push(bytes.toString()); if (received.length === 2) resolve();
+    }));
+    ws.send(JSON.stringify({ type: 'subscribe', request_id: markers.query, session_id: markers.session, agent_ids: ['main'] }));
+    await complete; expect(received[1]).toBe(turn); await closeWs(ws);
+    const rows = requestEvents(await records(context), 0, 'ws');
+    expect(rows.filter((row) => ['ws_subscribe', 'ws_subscribed', 'ws_turns'].includes(row.event)))
+      .toMatchObject([{ event: 'ws_subscribe', main: true }, { event: 'ws_subscribed', resultCode: 0 },
+        { event: 'ws_turns', frameBytes: Buffer.byteLength(turn), main: true }]);
+    expect(event(rows, 'ws_turns').sessionTag).toBe(event(rows, 'ws_subscribe').sessionTag);
+    expect(event(rows, 'ws_turns').subscribeMs).toBeGreaterThanOrEqual(event(rows, 'ws_subscribed').subscribeMs);
+  });
 
   it('records one rejected handshake without upstream headers, body or raw error text', async () => {
     const context = await fixture({ upgrade: ({ socket }) => {

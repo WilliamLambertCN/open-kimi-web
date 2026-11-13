@@ -56,7 +56,7 @@ beforeAll(async () => {
   ctx.npm = await adjacentNpm(ctx.node);
   if (process.env.OPEN_KIMI_TEST_OFFICIAL_ARCHIVE) {
     ctx.downloadOfficial = async (url) => {
-      expect(url).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.4.1.tgz');
+      expect(url).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.6.1.tgz');
       return readFile(process.env.OPEN_KIMI_TEST_OFFICIAL_ARCHIVE);
     };
   }
@@ -97,19 +97,19 @@ async function ready(url, child) {
 }
 
 describe('real pinned official npm dependency', () => {
-  it('keeps top-level scripts disabled, verifies real CLI/child_process shell and reuses owned 2.4.1', async () => {
+  it('keeps top-level scripts disabled, verifies real CLI/child_process shell and reuses owned 2.6.1', async () => {
     const progress = {};
     await prepareOfficial({ ...ctx, env: { ...ctx.env, OPEN_KIMI_REAL_KIMI: undefined, PATH: '' } },
       { kind: 'missing' }, stage, progress);
     const paths = officialPaths(ctx);
     const record = JSON.parse(await readFile(paths.record, 'utf8'));
-    expect(record).toMatchObject({ schema: 1, version: '2.4.1', entry: paths.entry });
+    expect(record).toMatchObject({ schema: 1, version: '2.6.1', entry: paths.entry });
     const manifest = JSON.parse(await readFile(join(paths.root, 'package.json'), 'utf8'));
-    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.4.1', engines: { node: '>=22.19.0' } });
+    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.6.1', engines: { node: '>=22.19.0' } });
     expect(manifest.dependencies?.['node-pty']).toBeUndefined();
     await verifyOfficialShell(ctx, paths.root);
     expect(await verifyPty(ctx, paths.root)).toBe('missing');
-    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.4.1');
+    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.6.1');
     expect(await ctx.run(ctx.node, [paths.entry, 'web', '--help'], { env: ctx.env })).toContain('--no-open');
     const found = await discoverOfficial({ ...ctx, env: { ...ctx.env, PATH: '' }, kimi: undefined });
     expect(found).toMatchObject({ kind: 'npm', path: paths.kimi });
