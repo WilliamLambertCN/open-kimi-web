@@ -44,8 +44,6 @@ describe('unique visible native provider form', () => {
 
   it.each([
     ['POST identity', (body) => ({ ...body, id: 'different-fixture' }), {}],
-    ['model identity', (body) => ({ ...body, models: [manualModel('different-model')] }), {}],
-    ['row count', (body) => ({ ...body, models: [...body.models, manualModel('another-model')] }), {}],
     ['PUT path', (body) => body, { method: 'PUT', path: '/api/v1/providers/different-fixture' }],
     ['PUT rename', (body) => ({ ...body, new_id: 'different-fixture' }),
       { method: 'PUT', path: '/api/v1/providers/provider-fixture' }],
@@ -73,6 +71,12 @@ describe('unique visible native provider form', () => {
     const body = saveBody([manualModel()]); const init = { method: 'POST', body: JSON.stringify(body) };
     await ui.view.fetch('https://other.invalid/api/v1/providers', init);
     expect(ui.nativeFetch.mock.calls.at(-1)).toEqual(['https://other.invalid/api/v1/providers', init]);
+  });
+
+  it('preserves a partial provider update that does not save any model rows', async () => {
+    const ui = installProviderSave(); await loadConfig(ui);
+    const body = { new_id: 'provider-fixture', type: 'openai' };
+    expect(await save(ui, body, { method: 'PUT', path: '/api/v1/providers/old-fixture' })).toEqual(body);
   });
 
   it('accepts an explicit rename only when new_id matches the visible form', async () => {

@@ -79,8 +79,8 @@ function install(options = {}) {
     const template = doc.createElement('template'); template.innerHTML = rowMarkup();
     form.querySelector('.pmt-foot').before(template.content.firstElementChild);
   });
-  const scripts = ['locale.js', 'providerLocale.js', 'providerSorting.js', 'providerModelState.js', 'providerEnhancements.js']
-    .map(source).join('\n');
+  const scripts = ['locale.js', 'providerLocale.js', 'providerSorting.js', 'providerModelState.js',
+    'providerSave.js', 'providerEnhancements.js'].map(source).join('\n');
   view.eval(`((location) => { ${scripts}\n})({ href: 'http://localhost/settings', origin: 'http://localhost' })`);
   const query = (selector) => form.querySelector(selector);
   const writes = () => nativeFetch.mock.calls.filter(([input]) => /\/api\/v1\/providers/.test(String(input)));

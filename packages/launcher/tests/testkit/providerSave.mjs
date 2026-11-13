@@ -71,8 +71,8 @@ export function installProviderSave({ forms = [{}], config = {}, listed = [] } =
     return Response.json({ code: 0 });
   });
   view.fetch = nativeFetch;
-  const scripts = ['providerLocale.js', 'providerSorting.js', 'providerModelState.js', 'providerEnhancements.js']
-    .map(source).join('\n');
+  const scripts = ['providerLocale.js', 'providerSorting.js', 'providerModelState.js',
+    'providerSave.js', 'providerEnhancements.js'].map(source).join('\n');
   view.eval(`((location) => { ${scripts}\n})({ href: 'http://localhost/settings', origin: 'http://localhost' })`);
   return { view, doc, nativeFetch, state, forms: [...doc.querySelectorAll('.pf')] };
 }

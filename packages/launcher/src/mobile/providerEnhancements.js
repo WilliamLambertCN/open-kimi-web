@@ -53,6 +53,8 @@
     duplicate: '该模型已经在列表中',
     failed: '模型拉取失败',
     drag: '拖动调整模型顺序',
+    modelMismatch: '模型列表已变化，本次未保存。请重新打开供应商表单后重试。',
+    catalogMismatch: '目录导入无法保存当前模型选项，本次未保存。请切换到手动添加后重试。',
   } : {
     capabilities: 'Model capabilities',
     efforts: 'Thinking efforts',
@@ -72,6 +74,8 @@
     duplicate: 'That model is already in the list',
     failed: 'Could not fetch models',
     drag: 'Drag to reorder model',
+    modelMismatch: 'The model list changed; save was cancelled. Reopen the provider form and try again.',
+    catalogMismatch: 'Catalog import cannot save these model options; nothing was saved. Switch to manual add and try again.',
   };
 
   const { bind: bindCopy, error: discoveryError, refresh: refreshCopy, text: setCopy } =
@@ -147,15 +151,19 @@
   const textInputs = (row) => Array.from(row.querySelectorAll('input:not([type="checkbox"])'));
   const sorting = window.OpenKimiProviderSorting;
 
+  const identityKey = (row, provider) => keyOf(provider, textInputs(row)[0]?.value?.trim() ?? '');
+
   const stateFor = (row, provider) => {
-    const model = textInputs(row)[0]?.value?.trim() ?? '';
-    const saved = modelConfigs.get(keyOf(provider, model));
+    const key = identityKey(row, provider);
+    const saved = modelConfigs.get(key);
     let state = rowStates.get(row);
     if (state) {
       state.saved ??= saved;
       return state;
     }
     state = modelState.create(saved);
+    state.origin = key;
+    state.baked = saved !== undefined;
     rowStates.set(row, state);
     return state;
   };
@@ -242,7 +250,7 @@
       bindCopy(hint, () => copy().savedEfforts(unlisted.join(', ')));
       efforts.fieldset.append(hint);
     }
-    if (!modelConfigs.has(keyOf(provider, model))) {
+    if (!modelConfigs.has(identityKey(row, provider))) {
       bindCopy(capabilities.fieldset, () => copy().unconfirmed, 'title');
       bindCopy(efforts.fieldset, () => copy().unconfirmed, 'title');
     }
@@ -423,58 +431,40 @@
     });
   }
 
-  const isProviderSave = (url, method) => (method === 'POST' && url.pathname === '/api/v1/providers') ||
-    (method === 'PUT' && /^\/api\/v1\/providers\/[^/]+$/.test(url.pathname));
-
-  const readBody = async (input, init) => {
-    const text = init?.body ?? (input instanceof Request ? await input.clone().text() : null);
-    if (typeof text !== 'string') return null;
-    try {
-      return JSON.parse(text);
-    } catch {
-      return null;
-    }
-  };
-
   const isVisible = (form) => {
     if (!form.getClientRects().length) return false;
     const { visibility } = window.getComputedStyle(form);
     return visibility !== 'hidden' && visibility !== 'collapse';
   };
-
-  const matchesProvider = (provider, body, url, method) => method === 'POST' ? body.id === provider :
-    body.new_id === provider || (!body.new_id && url.pathname === `/api/v1/providers/${encodeURIComponent(provider)}`);
-
-  const mayEnhanceSave = (url, method) => url.origin === location.origin && isProviderSave(url, method) && configLoaded;
-  const matchingModels = (form, models) => {
-    if (modelRows(form).length !== models.length) return null;
-    const mapped = sorting.mapModels(form, models);
-    return mapped.every(({ model, row }) => row && model?.model === textInputs(row)[0]?.value?.trim()) ? mapped : null;
-  };
-
-  const mergeProviderFields = async (input, init, url, method) => {
-    if (!mayEnhanceSave(url, method)) return [input, init];
+  const visibleForm = () => {
     const forms = Array.from(document.querySelectorAll(FORM_SELECTOR)).filter(isVisible);
-    if (forms.length !== 1 || !enhancedForms.has(forms[0])) return [input, init];
-    const form = forms[0];
-    const provider = inputValue(form, ['名称', 'Name']);
-    const body = await readBody(input, init);
-    if (!Array.isArray(body?.models) || !matchesProvider(provider, body, url, method)) return [input, init];
-    const mapped = matchingModels(form, body.models);
-    if (!mapped) return [input, init];
-    body.models = mapped.map(({ model, row }) => textInputs(row)[0].disabled ? model :
-      modelState.serialize(model, stateFor(row, provider)));
-    const nextInit = { ...init, body: JSON.stringify(body) };
-    if (input instanceof Request) return [new Request(input, nextInit), undefined];
-    return [input, nextInit];
+    return forms.length === 1 && enhancedForms.has(forms[0]) ? forms[0] : null;
   };
+  const mergeProviderFields = window.__okwProviderCreateSave({
+    currentForm: visibleForm,
+    isReady: () => configLoaded,
+    rowsOf: modelRows,
+    inputsOf: textInputs,
+    baseInput: (form) => fieldByLabel(form, ['Base URL'])?.querySelector('input'),
+    providerOf: (form) => inputValue(form, ['名称', 'Name']),
+    dispatchInput,
+    mapModels: sorting.mapModels,
+    serialize: (model, row, provider) => {
+      const state = stateFor(row, provider);
+      const stale = state.baked && state.origin !== identityKey(row, provider);
+      return modelState.serialize(model, stale ? { ...state, saved: null } : state);
+    },
+    copy,
+  });
 
   const nativeFetch = window.fetch;
   window.fetch = async function enhancedProviderFetch(input, init) {
     const url = requestUrl(input);
     const method = requestMethod(input, init);
     rememberAuthorization(input, init, url);
-    const [forwardedInput, forwardedInit] = await mergeProviderFields(input, init, url, method);
+    const merged = await mergeProviderFields(input, init, url, method);
+    if (merged instanceof Response) return merged;
+    const [forwardedInput, forwardedInit] = merged;
     const response = await nativeFetch.call(this, forwardedInput, forwardedInit);
     if (response.ok && url.origin === location.origin && method === 'GET' && (
       url.pathname === '/api/v1/config' || url.pathname === '/api/v1/models'
