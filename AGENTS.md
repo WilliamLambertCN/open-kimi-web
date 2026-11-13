@@ -55,7 +55,7 @@
 
 ## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标为准确 Kimi Code `2.6.1`，发布目标 `2.6.1-r1`；正式状态以 Release 为准，不把旧 CI 当作本轮结果。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，正式版 `2.6.1-r1`；准确 main CI、包和线上结果见本轮计划，不借旧 CI。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
   仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。

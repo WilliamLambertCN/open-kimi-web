@@ -20,8 +20,9 @@ develop 经 PR 和必需 CI 合入 main，再从准确 main 创建 GitHub tag／
 
 ## 当前交付状态
 
-本地兼容实现与验收已完成，现恢复功能 PR 和发布流程。发布结果另记，不提前声称资产已上线。
-源码命令入口已单独恢复，本次发布不启停生产服务；现场慢加载与适配验收分别记录。
+`v2.6.1-r1` 已从通过必需 CI 的准确 main 发布，公开包、同 SHA 安装入口和旧版更新发现核验通过。
+21 个旧 tgz 资产已撤下，27 个 Release 及全部 tag 保留；正式结果见末节。
+本次未启停生产服务，未升级用户官方 CLI；现场慢加载与适配验收分别记录。
 
 ### 追加跟进官方 2.6.1
 
@@ -246,3 +247,36 @@ develop 经 PR 和必需 CI 合入 main，再从准确 main 创建 GitHub tag／
 - 本地源码适配完成，未提交、推送、发布或重启生产；源码安装接管已按另一次授权恢复，不将两项授权混淆。
   现场一分钟慢加载尚未确认解决，保留2.6.1官方修复后的用户实测边界；不据隔离通过声称EasyTier已恢复。
   有差异的归档删除、Fork标题保护及默认recent排序等增强仍保留，未经用户选择不擅自删除。
+
+
+### v2.6.1-r1 正式发布与旧包撤下
+
+- [功能 PR #51](https://github.com/WilliamLambertCN/open-kimi-web/pull/51) 正常 squash 合入 main，
+  准确发布提交 `1e6f16e1d6377e50d33fe768585a0f4d71bfc1d1`。
+  [PR CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43450591058) 与
+  [准确 main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/43451051600) 全通过。
+  lint、typecheck、完整 UT／IT、coverage 和 pack 均保持既有门禁，不关闭分支保护或强推。
+- Ubuntu main：142个UT文件、3221项通过／28项既有平台跳过；UT Lines92.39%、Branches83.79%。
+  IT 35文件通过／2平台文件跳过，686项通过／25项既有平台条件跳过；Lines84.79%、Branches72.35%。
+  Windows本地3249 UT／705 IT及6项POSIX跳过的结果见前节，两平台数字不混用。
+- 从准确 main 的干净隔离worktree冻结安装并标准打包；准确版本的test:pack另通过CLI、真实HTTP／API、
+  新旧会话资源、PWA、CA、debug及进程收尾。不重复已有实图或全平台安装矩阵。
+  包共193文件、9,063,063 bytes；标准pnpm pack移除开发打包脚本，文本仅有Git正常行尾转换。
+  其它文件与干净发布checkout逐字节一致，公开内容检查无新增凭证、私人路径、缓存、备份或调试sourcemap。
+- annotated tag `v2.6.1-r1` 对象 `dc8a308bcbbf1a22eeb152e3f6849cd02d5bd872` 指向上述准确main。
+  [正式 latest Release](https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r1)
+  ID `444389116`，非草稿、非预发布；唯一资产 `open-kimi-web-2.6.1-r1.tgz`，ID `744124108`。
+  SHA-256为 `4893d6dabdebe4808e94cb0ba560a5c51374a07dc7642ae0423383c64a59bb09`。
+  公开下载与本地正式包逐字节一致，大小和GitHub digest一致，不替换已上传包或移动tag。
+- tag commit API、同SHA的PowerShell／sh／coordinator／关键helper均HTTP200且与Git原字节一致。
+  公开完整源码归档23,534,027 bytes，其中21个安装入口／helper逐字节匹配同一提交。
+  真实r4包的CLI在隔离npm prefix执行`update --check`退出0，联网发现2.6.1-r1及准确新包URL；
+  原隔离manifest仍为r4，未实际升级生产或重复整包安装。
+- 完成上述核验后，按精确asset ID删除21个旧tgz，总177,389,766 bytes；回读仅剩新包。
+  全部27个Release保留，原说明前增加旧包撤下及latest指引；所有远端tag在清理前后完全一致。
+  不删除用户安装、会话、配置、本地旧包、历史源码或其它附件，不发布npm registry。
+- main已正常合回develop，发布结果另作文档提交，不重写已发布提交或替换tag／资产。
+  分支保护保持strict gate、管理员约束及线性main，force push关闭；提交和tag使用noreply邮箱。
+  本轮未重启生产、升级用户官方CLI或改变网络。实体手机／真实EasyTier及现场慢加载仍按前述边界，不据发布判定解决。
+- 本轮临时脚本、报告、包与CI日志归档ignored `.cache/release-261/`；此前隐私历史清理和GitHub旧PR缓存边界不变。
+  此处的包清理不是全网缓存或历史副本清除，也不替代已泄露凭证的撤销或轮换。

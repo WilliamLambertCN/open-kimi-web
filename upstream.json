@@ -7,7 +7,7 @@
     "commit": "30e3ce442ae850a7461b80f2ce209cd73a301d02",
     "cliVersion": "2.6.1",
     "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.6.1",
-    "status": "2.6.1-r1 release target; publication tracked in evidence",
+    "status": "2.6.1-r1 published; exact CI and online verification recorded in evidence",
     "evidence": "docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md"
   },
   "minimumServerVersion": "0.43.1",
