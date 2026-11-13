@@ -5,12 +5,13 @@ import { debugLogRecord, safeErrorCode } from '../src/debugLogSchema.mjs';
 const events = [
   'launcher_start', 'launcher_stop', 'http_begin', 'http_upstream', 'http_first_byte', 'http_progress',
   'http_end', 'http_error', 'ws_begin', 'ws_ready', 'ws_first_frame', 'ws_progress', 'ws_end', 'ws_error',
-  'tls_error', 'client_error', 'log_dropped',
+  'tls_error', 'client_error', 'log_dropped', 'ws_subscribe', 'ws_subscribed', 'ws_turns',
 ];
 const numbers = [
   'elapsedMs', 'upstreamMs', 'firstByteMs', 'firstFrameMs', 'rawBytes', 'wireBytes', 'status', 'pageSize',
   'upstreamPageSize', 'closeCode', 'toClientMessages', 'toClientBytes', 'toClientMaxBytes', 'toUpstreamMessages',
   'toUpstreamBytes', 'toUpstreamMaxBytes', 'clientBufferedBytes', 'upstreamBufferedBytes', 'dropped',
+  'subscribeMs', 'frameBytes', 'resultCode',
 ];
 const booleans = ['enhanced', 'pagingSupported', 'pagingApplied', 'main', 'before', 'after', 'measured'];
 const errorCodes = [
@@ -23,7 +24,7 @@ const enums = {
   method: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'other'],
   route: [
     'transcript', 'sessions', 'session', 'meta', 'health', 'config', 'models', 'workspaces', 'search',
-    'files', 'usage', 'cron', 'extension', 'static', 'index', 'ws', 'other',
+    'files', 'usage', 'cron', 'extension', 'static', 'index', 'ws', 'other', 'turns',
   ],
   outcome: ['finished', 'aborted', 'error', 'closed', 'rejected', 'shutdown'],
   encoding: ['identity', 'gzip', 'other'],

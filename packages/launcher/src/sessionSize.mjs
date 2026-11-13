@@ -127,7 +127,7 @@ async function sessionPayload(response) {
   return payload.data;
 }
 
-async function authorizedWorkspace(sessionId, authorization, target, fetchImpl) {
+export async function authorizedWorkspace(sessionId, authorization, target, fetchImpl) {
   let response;
   try {
     response = await fetchImpl(new URL(`/api/v1/sessions/${encodeURIComponent(sessionId)}`, target), {

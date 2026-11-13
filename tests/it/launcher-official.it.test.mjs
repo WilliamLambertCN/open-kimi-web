@@ -181,7 +181,8 @@ function verifyNavigationAssetOrder(indexText) {
 
 function verifySideChatMetricsOrder(indexText) {
   const scripts = ['sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js',
-    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js', 'serviceRestartView.js', 'serviceRestart.js'];
+    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetricsConversation.js', 'requestMetrics.js',
+    'serviceRestartView.js', 'serviceRestart.js'];
   for (const [index, name] of scripts.entries()) {
     expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
     expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
@@ -270,7 +271,8 @@ async function verifyIndexRepresentation(url, response, text) {
 const PRESENTATION_ASSETS = [
   'serviceRestartView.js', 'serviceRestart.js', 'serviceRestart.css',
   'sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js', 'sideChatModel.css',
-  'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js', 'requestMetrics.css',
+  'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetricsConversation.js',
+  'requestMetrics.js', 'requestMetrics.css',
   'branding.js', 'branding.css',
   ...NAVIGATION_ASSETS,
   'pwaInstallView.js', 'pwaInstall.js', 'pwaInstall.css', 'manifest.webmanifest',
@@ -282,7 +284,8 @@ const PRESENTATION_ASSETS = [
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',
   'notificationPermission.js', 'completionModal.css', 'completionModal.js', 'questionCardLayout.js', 'presentation.js',
   'sessionSize.js', 'sessionSize.css', 'messageTimestamps.js', 'messageTimestamps.css', 'chatWidth.css',
-  'mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js', 'mobileConversationTocView.js',
+  'mobileConversationTocMetadata.js', 'conversationMetadata.js',
+  'mobileConversationTocNavigate.js', 'mobileConversationTocView.js',
   'mobileConversationToc.js', 'mobileConversationToc.css',
   'archivedSessionDelete.css', 'archivedSessionDelete.js', 'providerSorting.js', 'providerModelState.js',
   'providerEnhancements.js',

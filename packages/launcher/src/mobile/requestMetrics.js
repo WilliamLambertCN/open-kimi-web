@@ -59,7 +59,8 @@
       }
       const targets = new Map();
       for (const [id, slot] of slots) {
-        const request = requests.get(id);
+        const request = slot?.hasAttribute('data-okw-conversation')
+          ? window.__okwConversationMetrics?.request(slot, agent) : requests.get(id);
         if (slot && request && slot.dataset.okwStepState === request.state) targets.set(slot, request);
       }
       return targets;
@@ -100,8 +101,9 @@
     const start = () => {
       collect(document.body); schedule();
       new MutationObserver(changed).observe(document.body, { childList: true, subtree: true,
-        attributes: true, attributeFilter: ['data-okw-step-id', 'data-okw-step-state', 'class'] });
+        attributes: true, attributeFilter: ['data-okw-step-id', 'data-okw-step-state', 'data-okw-conversation', 'class'] });
       api.observe(schedule); window.__okwLocale?.observe(schedule);
+      window.__okwConversationMetrics?.observe(schedule);
       window.addEventListener('okw-sidechat-identity', schedule);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });

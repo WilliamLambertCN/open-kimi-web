@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { requestJson } from '../cron/transport.mjs';
 import { RestartError } from './http.mjs';
 
-const SUPPORTED = new Set(['2.3.1', '2.4.1', '2.5.2']);
+const SUPPORTED = new Set(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1']);
 const BUSY_QUERY = '/api/v2/sessions?activity.status=running&activity.status=approval&activity.status=question' +
   '&meta.archived=all&page_size=1&fields=id,archived';
 
@@ -75,7 +75,13 @@ function track(state, req, res) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return;
   state.writes += 1;
   let done = false;
-  const finish = () => { if (!done) { done = true; state.writes -= 1; } };
+  const finish = () => {
+    if (done) return;
+    done = true;
+    state.writes -= 1;
+    res.removeListener('finish', finish);
+    res.removeListener('close', finish);
+  };
   res.once('finish', finish); res.once('close', finish);
 }
 

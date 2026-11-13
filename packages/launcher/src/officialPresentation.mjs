@@ -11,10 +11,11 @@ const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navi
   'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
 const PWA_SCRIPTS = ['pwaInstallView.js', 'pwaInstall.js'];
 const SESSION_MENU_SCRIPTS = ['sessionActionsApi.js', 'desktopSessionMenu.js', 'mobileSessionMenu.js'];
-const TOC_SCRIPTS = ['mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js',
+const TOC_SCRIPTS = ['mobileConversationTocMetadata.js', 'conversationMetadata.js', 'mobileConversationTocNavigate.js',
   'mobileConversationTocView.js', 'mobileConversationToc.js'];
 const SIDECHAT_SCRIPTS = ['sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js'];
-const METRICS_SCRIPTS = ['requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js'];
+const METRICS_SCRIPTS = ['requestMetricsModel.js', 'requestMetricsTransport.js',
+  'requestMetricsConversation.js', 'requestMetrics.js'];
 const RESTART_SCRIPTS = ['serviceRestartView.js', 'serviceRestart.js'];
 const FILES = new Map([
   ...RESTART_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
@@ -182,9 +183,11 @@ function hasNativeSideChatScroll(version) {
 }
 
 export function addMobilePresentation(html, { officialWebVersion, requestMetricsState } = {}) {
-  const scriptNames = hasNativeSideChatScroll(officialWebVersion)
-    ? SCRIPTS.filter((name) => name !== 'sideChatScroll.js')
-    : SCRIPTS;
+  const conversation = ['2.6.0', '2.6.1'].includes(officialWebVersion);
+  const excluded = new Set([conversation ? 'mobileConversationTocMetadata.js' : 'conversationMetadata.js']);
+  if (hasNativeSideChatScroll(officialWebVersion)) excluded.add('sideChatScroll.js');
+  if (conversation) excluded.add('foldingDefaults.js');
+  const scriptNames = SCRIPTS.filter((name) => !excluded.has(name));
   const metricsMeta = ['active', 'incompatible-bundle', 'unavailable-bundle'].includes(requestMetricsState)
     ? `<meta name="open-kimi-web-request-metrics" content="${requestMetricsState}">\n` : '';
   const metadata = `<meta name="open-kimi-web-version" content="${APP_VERSION}">\n` + metricsMeta;

@@ -19,7 +19,7 @@ function fixture(extra = {}) {
     const state = await service.status(AUTH);
     return service.reserve(AUTH, async () => body ?? { instance: state.instance });
   };
-  return { service, reservation, prepare, stop, fetchImpl, reserve };
+  return { service, reservation, prepare, stop, fetchImpl: extra.fetchImpl ?? fetchImpl, reserve };
 }
 const req = (headers = {}) => Object.assign(new EventEmitter(), { headers, socket: {}, pause: vi.fn() });
 afterEach(() => vi.useRealTimers());
@@ -50,8 +50,9 @@ describe('service restart ownership and busy gate', () => {
     const newer = fixture({ fetchImpl: async () => response({ server_version: '9.0.0' }) });
     await expect(newer.reserve()).rejects.toMatchObject({ code: 'unmanaged-or-unsupported' });
   });
-  it('reserves once, blocks writes, and stops only after worker acknowledgement', async () => {
-    const f = fixture();
+  it.each(['2.5.2', '2.6.0', '2.6.1'])('reserves %s once and stops only after worker acknowledgement', async (version) => {
+    const f = fixture({ fetchImpl: vi.fn(async (url) => response(String(url).includes('/meta')
+      ? { server_version: version } : { items: [], total: 0, has_more: false })) });
     expect(await f.reserve()).toMatchObject({ phase: 'restarting' });
     expect(f.service.blocked()).toBe(true);
     expect(f.stop).not.toHaveBeenCalled();
@@ -82,12 +83,15 @@ describe('service restart failure boundaries', () => {
     await expect(f.reserve()).rejects.toMatchObject({ code: expect.stringMatching(/service-busy|idle-check-failed/) });
     expect(f.prepare).not.toHaveBeenCalled(); expect(f.service.blocked()).toBe(false);
   });
-  it('tracks writes until finish or close exactly once and leaves reads alone', async () => {
+  it.each(['finish', 'close'])('releases writes and both listeners exactly once on %s', async (event) => {
     const f = fixture(); const res = new EventEmitter();
     f.service.track({ method: 'POST' }, res);
     await expect(f.reserve()).rejects.toMatchObject({ code: 'request-in-flight' });
+    res.emit(event);
+    expect(res.listenerCount('finish')).toBe(0); expect(res.listenerCount('close')).toBe(0);
     res.emit('finish'); res.emit('close');
-    f.service.track({ method: 'GET' }, new EventEmitter());
+    const read = new EventEmitter(); f.service.track({ method: 'GET' }, read);
+    expect(read.eventNames()).toHaveLength(0);
     await f.reserve(); expect(f.prepare).toHaveBeenCalledOnce();
   });
   it('cancels on response failure and keeps serving after preparation failure', async () => {
