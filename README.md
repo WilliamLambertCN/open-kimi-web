@@ -177,6 +177,9 @@ open-kimi-web update --check
 open-kimi-web update
 ```
 
+源码仓库已清理提交历史。旧克隆不能直接快进更新；先保留本地改动，再重新克隆，不要强制覆盖。
+一键／npm 安装不受影响，版本和下载包不变。
+
 只更新当前使用的 Open Kimi Web，不升级官方 Kimi、不修改会话或自动重启。
 完成后停止旧服务，重新运行 `kimi web --host`，再刷新网页。
 [源码升级、切换目录或安装方式](packages/launcher/README.md#升级)
