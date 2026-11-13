@@ -9,6 +9,7 @@ import { createCronRouteService, serveCron } from './cron/routes.mjs';
 import { proxyRequest } from './httpProxy.mjs';
 import { localCaRouteForTls } from './localCaRoute.mjs';
 import { serveModelDiscovery } from './modelDiscovery.mjs';
+import { createRequestMetricsService, serveRequestMetrics } from './metrics/routes.mjs';
 import { addMobilePresentation, servePresentationAsset } from './officialPresentation.mjs';
 import { metricsHtml, prepareMetricsAssets, serveMetricsAssets } from './metricsAssets.mjs';
 import { serveSessionSize } from './sessionSize.mjs';
@@ -27,6 +28,7 @@ async function serveOfficialExtension(req, res, context) {
   if (!context.officialPresentation) return false;
   if (await serveCron(req, res, context.cronService)) return true;
   if (await serveSessionSize(req, res, context)) return true;
+  if (await serveRequestMetrics(req, res, context)) return true;
   if (await serveUsage(req, res, context.target, context.usageService, context.fetchImpl)) return true;
   return serveModelDiscovery(req, res, context.target);
 }
@@ -190,8 +192,9 @@ export async function createLauncher({
   const diagnostics = createTransportDiagnostics(debugLog);
   const { wss, handleUpgrade, closeConnections } = wsProxy(diagnostics, restart);
   const usageService = createUsageService({ usageHome, usageStorageDir, fetchImpl: usageFetch });
+  const requestMetricsService = createRequestMetricsService(usageHome);
   const context = { target, publicDir, officialPresentation, officialWebVersion, scheduledTasks, usageHome,
-    usageService, cronService, restart, localCaRoute, metrics, fetchImpl: usageFetch };
+    usageService, requestMetricsService, cronService, restart, localCaRoute, metrics, fetchImpl: usageFetch };
   const server = createServer(tls, requestListener(context, diagnostics), diagnostics);
   server.on('upgrade', (req, socket, head) => {
     // req.url carries the query string (the official web appends

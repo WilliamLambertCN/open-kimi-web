@@ -7,9 +7,9 @@
 
 ## 实施计划
 
+- [请求指标升级兼容](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)
 - [历史 0.43.1 适配](docs/plans/kimi-code-0.43.1-compatibility-v1-plan.md)
 - [请求指标与重启发布](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)
-- [请求指标升级兼容](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)
 - [应用图标](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md)
 - [2.5.2 发布](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md)
 - [品牌与 2.5.2 适配](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md)

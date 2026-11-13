@@ -103,9 +103,32 @@ Cache hit is `inputCacheRead / (inputOther + inputCacheRead + inputCacheCreation
 new writes are not hits and output is excluded.
 Require explicit nonnegative safe counts and a positive safe total; unavailable counts show a dash, not a fabricated zero.
 Client-observed average throughput is not model-only decoder speed; undisclosed internal reasoning is not recoverable.
-No full-history request or log scan is added.
+The 2.5.2/2.5.3 adapter adds no history request or log scan.
 Exact local-backend and browser checks, retained first failures and current standard gates belong in the plan,
 not older release results.
+
+### Unreleased: 2.6.0 request metrics
+
+Upstream 2.6.0 replaces transcript frames with conversation turns/items and `RequestDebugRow`.
+Ordinary conversation responses include per-step usage but omit timing; enabling all versions cannot restore removed fields.
+Timing is still persisted in the official local wire journal. Backend debug remains disabled.
+
+A second all-or-nothing structural adapter uses native item/debug slots, preserving grouping, folding and virtualization.
+It indexes each turn once per projection; no parallel conversation store or text matching is added.
+Each terminal step is bound to its exact turn/item, agent, step UUID/index and recorded end time.
+Usage comes from the ordinary official response; formulas above are unchanged. Missing timing stays unavailable.
+
+For a managed `kimi web` instance, an authenticated same-origin read-only endpoint reads only the selected agent journal.
+Reads start at the tail in 256 KiB blocks, at most 8 MiB/750 ms per scan, with bounded continuation and numeric-only caches.
+Recent metrics do not download or parse the entire session; old visible items can require additional bounded local scans.
+Symlinks, untrusted paths and changed files are rejected. No content, credentials or diagnostic fields are returned.
+Short bounded retries account for wire persistence lag. External `serve --target` instances have no trusted local home:
+cache hit can still appear from supplied usage, but absent timing remains a dash rather than an estimate.
+The new `step-metrics-v3` asset namespace prevents reuse of immutable older patched modules.
+
+Targeted exact npm 2.6.0 backend/browser evidence and standard checks are recorded in
+[the upgrade plan][metrics-upgrade-plan]. This is not a new release or complete 2.6.0 acceptance for every OKW feature;
+installer pin, recent-page, cron and global-subagent gates are unchanged. No user installation or production is restarted.
 
 ## Historical baseline records
 

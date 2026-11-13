@@ -14,7 +14,8 @@ const SESSION_MENU_SCRIPTS = ['sessionActionsApi.js', 'desktopSessionMenu.js', '
 const TOC_SCRIPTS = ['mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js',
   'mobileConversationTocView.js', 'mobileConversationToc.js'];
 const SIDECHAT_SCRIPTS = ['sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js'];
-const METRICS_SCRIPTS = ['requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js'];
+const METRICS_SCRIPTS = ['requestMetricsModel.js', 'requestMetricsTransport.js',
+  'requestMetricsConversation.js', 'requestMetrics.js'];
 const RESTART_SCRIPTS = ['serviceRestartView.js', 'serviceRestart.js'];
 const FILES = new Map([
   ...RESTART_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
