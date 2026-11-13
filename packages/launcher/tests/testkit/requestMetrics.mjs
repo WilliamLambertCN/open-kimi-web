@@ -43,7 +43,8 @@ const observe = (view) => {
   };
   return state;
 };
-export function setup(native = vi.fn(async () => response()), { html = assistant(), view: display = true } = {}) {
+export function setup(native = vi.fn(async () => response()),
+  { html = assistant(), view: display = true, conversationApi } = {}) {
   vi.useFakeTimers();
   const iframe = document.createElement('iframe'); document.body.append(iframe); frames.push(iframe);
   const view = iframe.contentWindow;
@@ -63,7 +64,10 @@ export function setup(native = vi.fn(async () => response()), { html = assistant
   Object.assign(view, { Request, Headers, Response, WebSocket: Socket, fetch: native, __fixtureLocation: location });
   doc.body.innerHTML = `<div class="panes chat-scroll"><div class="chat">${html}</div></div>`;
   const state = observe(view);
-  const install = () => sources.slice(0, display ? 3 : 2).forEach((source) =>
+  if (conversationApi) view.__okwUsageCreateApi = () => conversationApi;
+  const activeSources = [...sources.slice(0, 2),
+    readFileSync(resolve('packages/launcher/src/mobile/requestMetricsConversation.js'), 'utf8'), sources[2]];
+  const install = () => activeSources.slice(0, display ? 4 : 2).forEach((source) =>
     view.eval(`((location) => { ${source}\n})(window.__fixtureLocation)`));
   install();
   const load = async (path = '/api/v1/sessions/A/transcript?agent_id=main', reader = 'json', options) => {

@@ -112,12 +112,12 @@ async function expectSettled(ui) {
 }
 
 function expectPresentationTail(names) {
-  expect(names.slice(-21)).toEqual([
+  expect(names.slice(-22)).toEqual([
     'usageBundle.js', 'pwaInstallView.js', 'pwaInstall.js', 'questionCardLayout.js',
     'presentation.js', 'sessionSize.js', 'messageTimestamps.js', 'mobileConversationTocMetadata.js',
     'mobileConversationTocNavigate.js', 'mobileConversationTocView.js', 'mobileConversationToc.js',
     'sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js',
-    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js',
+    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetricsConversation.js', 'requestMetrics.js',
     'serviceRestartView.js', 'serviceRestart.js', 'branding.js',
   ]);
 }
@@ -238,9 +238,9 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(54);
-    expect(ui.names).toEqual(expect.arrayContaining(['navigationWorkspace.js', 'navigationSearchView.js',
-      'cronApi.js', 'cronView.js', 'cron.js', 'providerModelState.js', 'effortOrder.js',
+    expect(ui.names).toHaveLength(55);
+    expect(ui.names).toEqual(expect.arrayContaining(['requestMetricsConversation.js', 'navigationWorkspace.js',
+      'navigationSearchView.js', 'cronApi.js', 'cronView.js', 'cron.js', 'providerModelState.js', 'effortOrder.js',
       'locale.js', 'usageLocale.js', 'providerLocale.js', 'mobileSubagentModelApi.js',
       'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileWorkspaceSort.js',
       'imagePreviewGuard.js', 'tabFeedback.js']));

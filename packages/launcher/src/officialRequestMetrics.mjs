@@ -1,4 +1,6 @@
-export const METRICS_ASSET_PREFIX = '/__open-kimi-assets/step-metrics-v2';
+import { patchOfficialConversationMetrics } from './officialConversationMetrics.mjs';
+
+export const METRICS_ASSET_PREFIX = '/__open-kimi-assets/step-metrics-v3';
 const identifier = '[\\w$]+';
 const rule = (pattern, count, replace) => ({ pattern: new RegExp(pattern, 'g'), count, replace });
 const itemSlot = `default:${identifier}\\(\\(\\{item:(${identifier})(?:,index:${identifier})?\\}\\)=>` +
@@ -52,7 +54,7 @@ function timingHelpers(element) {
 }
 
 export function patchOfficialRequestMetrics(source) {
-  if (!source.includes('__name:"StepTimingDebug"')) return { text: source, patched: false };
+  if (!source.includes('__name:"StepTimingDebug"')) return patchOfficialConversationMetrics(source);
   const elements = [...source.matchAll(new RegExp(`(${identifier})\\("button",\\{type:"button",class:"st-head"`, 'g'))];
   const pending = [...source.matchAll(new RegExp(`kind:"activity-run",items:(${identifier})\\}` , 'g'))];
   if (elements.length !== 1 || pending.length !== 1) return { text: source, patched: false };

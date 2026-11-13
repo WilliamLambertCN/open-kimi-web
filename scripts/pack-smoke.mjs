@@ -226,6 +226,10 @@ const required = [
   'src/mobile/sideChatModel.css',
   'src/mobile/requestMetricsModel.js',
   'src/mobile/requestMetricsTransport.js',
+  'src/mobile/requestMetricsConversation.js',
+  'src/officialConversationMetrics.mjs',
+  'src/metrics/journal.mjs',
+  'src/metrics/routes.mjs',
   'src/mobile/requestMetrics.js',
   'src/mobile/requestMetrics.css',
   'src/mobile/serviceRestartView.js',
@@ -273,7 +277,8 @@ async function assertConversationAssets(pkgDir, launcher, html) {
   }
   const assets = ['branding.js', 'branding.css', 'mobileConversationToc.js', 'mobileConversationToc.css',
     'mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js', 'mobileConversationTocView.js',
-    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetrics.js', 'requestMetrics.css',
+    'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetricsConversation.js',
+    'requestMetrics.js', 'requestMetrics.css',
     'sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js', 'sideChatModel.css',
     'serviceRestartView.js', 'serviceRestart.js', 'serviceRestart.css'];
   for (const name of assets) {
