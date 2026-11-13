@@ -7,6 +7,7 @@
 
 ## 实施计划
 
+- [供应商预设保存与 2.6.1-r2 发布](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)
 - [公开历史隐私清理](docs/plans/privacy-history-cleanup-v1-plan.md)
 - [官方 2.6 适配](docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md)
 - [分阶段诊断日志](docs/plans/large-session-debug-log-v1-plan.md)
@@ -55,7 +56,8 @@
 
 ## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标为准确 Kimi Code `2.6.1`，正式版 `2.6.1-r1`；准确 main CI、包和线上结果见本轮计划，不借旧 CI。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布 `2.6.1-r2`；
+  [供应商保存与发布计划](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)记录本轮边界，不借旧 CI。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
   仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。
@@ -88,6 +90,11 @@
   必须排在官方 module script 之前。
 - 优先把一个功能放在独立 JS/CSS 中。不要把无关逻辑继续堆进 `presentation.js`、`presentation.css` 或 `providerEnhancements.js`。
 - `providerSorting.js` 只维护供应商表单中的视觉顺序，并把顺序交回官方表单保存；不能另建模型配置存储。鼠标和触摸都必须可用，拖拽不能打乱每行模型能力配置。
+- `providerSave.js` 在增强表单点击保存时通知官方提交完整模型列表；挂载、异步目录加载和取消不得提前标脏。
+  只处理同源、唯一可见且已就绪的增强表单，不接管独立 `.ap-import` 目录页或无模型的局部更新。
+  模型行数或身份不匹配时返回本地失败响应，由官方显示中英原因；不得静默漏存、写后补 PUT 或回显凭证。
+  已按保存配置渲染的行改名后须保存当前显示的选项，不能混入旧身份或预设的能力值。
+  回归须覆盖准确官方预设的保存分流及后端回读，不能只自造带完整 models 的请求。
 - `workspacePins.js` 只在当前浏览器保存经过校验的工作区 ID。不得把工作区名称、路径或会话内容写入 `localStorage`；置顶排序只影响展示。
 - `archivedSessionDelete.js` 只增强已归档页中能与官方响应唯一对应的会话行。确认对话框必须包含会话标题
   并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。

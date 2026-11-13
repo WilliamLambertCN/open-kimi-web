@@ -27,12 +27,14 @@ function install(responseFor) {
     navigator: { language: 'en' },
     queueMicrotask,
     Request,
+    Response,
     URL,
     window,
   };
   runInNewContext(sortingSource, context);
   runInNewContext(readFileSync(new URL('../src/mobile/providerModelState.js', import.meta.url), 'utf8'), context);
   runInNewContext(readFileSync(new URL('../src/mobile/providerLocale.js', import.meta.url), 'utf8'), context);
+  runInNewContext(readFileSync(new URL('../src/mobile/providerSave.js', import.meta.url), 'utf8'), context);
   runInNewContext(enhancementSource, context);
   return window.fetch;
 }
