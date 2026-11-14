@@ -277,7 +277,7 @@ const PRESENTATION_ASSETS = [
   ...NAVIGATION_ASSETS,
   'pwaInstallView.js', 'pwaInstall.js', 'pwaInstall.css', 'manifest.webmanifest',
   'icons/app-192.png', 'icons/app-512.png', 'icons/app-maskable-512.png', 'icons/apple-touch-180.png',
-  'locale.js', 'usageLocale.js', 'providerLocale.js', 'effortOrder.js', 'presentation.css',
+  'locale.js', 'usageLocale.js', 'providerLocale.js', 'touchTooltip.js', 'effortOrder.js', 'presentation.css',
   'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
   'sessionActionsApi.js', 'desktopSessionMenu.js', 'desktopSessionMenu.css', 'mobileSessionMenu.js', 'mobileSessionMenu.css',
   'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
