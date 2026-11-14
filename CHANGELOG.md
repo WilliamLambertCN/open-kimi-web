@@ -4,6 +4,17 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.6.1-r3] - 2026-11-14
+
+- 修复手机轻滑工作区或聊天文件路径后，悬停提示误触、重叠并残留的问题。
+  按实际触摸来源取消提示，滚动、点击、离开页面时清理；保留鼠标与键盘提示，不改主题配色和正常操作。
+- 保持官方 `2.6.1`／`2.6.0` 兼容及 r2 供应商保存修复，不修改后端、会话或模型配置。
+  更新后请手动重启旧服务并刷新网页，不自动重启。
+
+[修复与发布记录](docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md)。
+
+[open-kimi-web v2.6.1-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r3
+
 ## [open-kimi-web v2.6.1-r2] - 2026-11-14
 
 - 修复从预设添加供应商时，模型能力、思考档位和顺序显示可选却没有保存的问题。

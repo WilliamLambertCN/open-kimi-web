@@ -39,6 +39,7 @@ const FILES = new Map([
   ['icons/app-maskable-512.png', 'image/png'],
   ['icons/apple-touch-180.png', 'image/png'],
   ...LOCALE_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
+  ['touchTooltip.js', 'text/javascript; charset=utf-8'],
   ['effortOrder.js', 'text/javascript; charset=utf-8'],
   ...SUBAGENT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ...NAVIGATION_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
@@ -92,6 +93,7 @@ const FILES = new Map([
 const USAGE_SCRIPTS = ['usageApi.js', 'usageView.js', 'usageTrend.js', 'usageControllers.js', 'usage.js'];
 const SCRIPTS = [
   ...LOCALE_SCRIPTS,
+  'touchTooltip.js',
   'effortOrder.js',
   ...SUBAGENT_SCRIPTS,
   ...NAVIGATION_SCRIPTS,
