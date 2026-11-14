@@ -3,16 +3,16 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
 ---
 
 帮助用户安装独立 Open Kimi Web launcher 或管理接管。安装本插件不安装、启动或卸载 launcher。用户参数：$ARGUMENTS
-目标版本 `v2.6.1-r2`，兼容准确官方 `2.6.1`／`2.6.0`；CI、运行验收与发布状态以[正式 Release][current-release]及
-[本轮发布计划](../docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)的真实记录为准。
-2.6 兼容证据见[适配计划][compat260-plan]；未记录不视为通过，旧计划保留历史。
+目标版本 `v2.6.1-r3`，兼容准确官方 `2.6.1`／`2.6.0`；CI、运行验收与发布状态以[正式 Release][current-release]及
+[本轮发布计划](../docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md)的真实记录为准。
+2.6 兼容证据见[适配计划][compat260-plan]；上轮供应商保存见[上轮发布计划][provider-save-plan]，未记录不视为通过。
 
 严格按顺序执行：
 
 1. 先检查 `open-kimi-web --version` 是否可用；wrapper 可使用记录的私有 Node，不能仅因 PATH 中无 Node／npm 就拒绝。
    launcher 不可用时，优先提供[README 顶部的一键兼容式命令][install]，不要求预装 Node／npm／Corepack／pnpm／Git／Kimi。
-   命令从 `v2.6.1-r2` commit API 解析并校验真实 40 位十六进制 SHA，只下载同 SHA 入口，
-   传同一 `--revision` 和固定 `--version 2.6.1-r2`；tag／资产未发布时停止，不伪造或复用旧 SHA。
+   命令从 `v2.6.1-r3` commit API 解析并校验真实 40 位十六进制 SHA，只下载同 SHA 入口，
+   传同一 `--revision` 和固定 `--version 2.6.1-r3`；tag／资产未发布时停止，不伪造或复用旧 SHA。
    下载失败即停，不回退 main／旧包；不静默联网安装，不声称 npm registry 已发布本包。
    解释联网、标准 curl／tar 与共享官方 Node ≥ 22.19.0 前提。Windows Git Bash 仍必需；
    新官方 `2.6.1` 无 node-pty，按精确身份做真实 Node `child_process` shell probe，不再无条件要求 Linux 编译工具链。
@@ -45,5 +45,6 @@ chip 另要求会话已开启且非 Side Chat，缺 chip 不证明功能不存�
 
 [install]: https://github.com/WilliamLambertCN/open-kimi-web#readme
 [compat260-plan]: ../docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r3
+[provider-save-plan]: ../docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

@@ -7,6 +7,7 @@
 
 ## 实施计划
 
+- [触摸提示修复与 2.6.1-r3 发布](docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md)
 - [供应商预设保存与 2.6.1-r2 发布](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)
 - [公开历史隐私清理](docs/plans/privacy-history-cleanup-v1-plan.md)
 - [官方 2.6 适配](docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md)
@@ -56,8 +57,8 @@
 
 ## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布 `2.6.1-r2`；
-  [供应商保存与发布计划](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)记录本轮边界，不借旧 CI。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布 `2.6.1-r3`；
+  [触摸提示与发布计划](docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md)记录本轮边界，不借旧 CI。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
   仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。
@@ -95,6 +96,10 @@
   模型行数或身份不匹配时返回本地失败响应，由官方显示中英原因；不得静默漏存、写后补 PUT 或回显凭证。
   已按保存配置渲染的行改名后须保存当前显示的选项，不能混入旧身份或预设的能力值。
   回归须覆盖准确官方预设的保存分流及后端回读，不能只自造带完整 models 的请求。
+- `touchTooltip.js` 按实际触摸来源取消官方悬停提示，不按屏幕宽度禁用鼠标或键盘提示。
+  复用官方 mouseout／mouseleave 清理计时和浮层，不删除 tooltip DOM、不修改 Vue 状态、ARIA 或主题颜色。
+  在原输入事件完整派发后的 task 中清理；微任务可能早于浏览器后续 listener，回归须验证手指仍按住时也不弹出。
+  不阻止滚动、点击、编辑和文字选择，不全页扫描或新增 MutationObserver；覆盖混合输入、滚动和页面离开。
 - `workspacePins.js` 只在当前浏览器保存经过校验的工作区 ID。不得把工作区名称、路径或会话内容写入 `localStorage`；置顶排序只影响展示。
 - `archivedSessionDelete.js` 只增强已归档页中能与官方响应唯一对应的会话行。确认对话框必须包含会话标题
   并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。
@@ -157,6 +162,8 @@ README 保持简短：先放界面预览，再在“快速上手”里给两段�
 提交、推送、发布包或部署前，对实际公开范围做一次有针对性的检查；相关内容没有变化时不重复扫描。
 
 - 检查待提交 diff、发布文件清单、构建产物和将推送的提交历史，而不只看 `.gitignore`。
+- 合并后、打 tag 前核验准确 main 的作者、提交者和提交正文。GitHub squash 可能带回旧作者身份，
+  本地 `git config` 使用 noreply 不代表合并结果已脱敏；不得把未经检查的合并提交直接发布。
 - 检查 `.map`、`sourceMappingURL`、内联 sourcemap、`sourcesContent`/`sourceRoot`；默认不公开调试 sourcemap。
 - 检查真实 `.env`、`.npmrc`、token、Cookie、API Key、私钥、证书容器、日志、备份和缓存。不得在命令输出或报告中复述疑似秘密。
 - 检查真实用户名、个人绝对路径、内部地址、工作区名和敏感业务内容；示例使用相对路径、环境变量或通用占位符。
