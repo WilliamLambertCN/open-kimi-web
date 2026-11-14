@@ -162,6 +162,8 @@ README 保持简短：先放界面预览，再在“快速上手”里给两段�
 提交、推送、发布包或部署前，对实际公开范围做一次有针对性的检查；相关内容没有变化时不重复扫描。
 
 - 检查待提交 diff、发布文件清单、构建产物和将推送的提交历史，而不只看 `.gitignore`。
+- 合并后、打 tag 前核验准确 main 的作者、提交者和提交正文。GitHub squash 可能带回旧作者身份，
+  本地 `git config` 使用 noreply 不代表合并结果已脱敏；不得把未经检查的合并提交直接发布。
 - 检查 `.map`、`sourceMappingURL`、内联 sourcemap、`sourcesContent`/`sourceRoot`；默认不公开调试 sourcemap。
 - 检查真实 `.env`、`.npmrc`、token、Cookie、API Key、私钥、证书容器、日志、备份和缓存。不得在命令输出或报告中复述疑似秘密。
 - 检查真实用户名、个人绝对路径、内部地址、工作区名和敏感业务内容；示例使用相对路径、环境变量或通用占位符。
