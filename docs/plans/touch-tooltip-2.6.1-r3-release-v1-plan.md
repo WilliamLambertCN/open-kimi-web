@@ -13,7 +13,10 @@
 2. 同步注入清单、共存测试和 launcher-official 集成测试；保留既有视觉验收，不重复截图或整包安装。
 3. 将 launcher、插件、当前安装命令及发布文档同步为 `2.6.1-r3`；历史 r2 计划和记录保持原样。
 4. 检查实际待提交 diff、新提交身份和交付 tgz；不公开 ignored QA、个人路径、凭据或调试 sourcemap。
-5. 正常提交并推送 develop，经 PR 与既有 gate 合入 main，不关闭保护、不降低覆盖率或重写历史。
+5. 正常提交并推送 develop，经 PR 与既有 gate 合入 main，不降低覆盖率或绕过功能门禁。
+   若 GitHub squash 重新带入私人作者邮箱，按既有隐私清理授权仅修正本次合并提交身份及维护约束。
+   临时放行管理员与强推，使用精确旧 SHA 的 force-with-lease，立即恢复原保护并核验；不重写其它历史。
+   修正后的准确 main 仍须通过标准 CI 才发布。
 6. 从已通过 CI 的准确 main 标准打包，创建 annotated tag 和 GitHub 正式 latest Release，上传唯一新 tgz。
    核对远端 tag、Release、下载包内容和正常更新发现；不发布 npm registry、不执行生产更新或重启。
 7. 正常同步 main 回 develop，发布结果记录在 PR 与 Release，避免为记录结果再循环发布。
