@@ -11,7 +11,7 @@ description: |
 Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，
 在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
-本轮目标版本 `v2.6.1-r2`，兼容目标官方 `2.6.1`，保留 `2.6.0` 支持；发布状态以[正式 Release][current-release]为准。
+本轮目标版本 `v2.6.1-r3`，兼容目标官方 `2.6.1`，保留 `2.6.0` 支持；发布状态以[正式 Release][current-release]为准。
 请求指标不查版本号，只在实际入口的全部代码结构匹配后启用；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
 看终端 `request metrics: active` 或首页 `open-kimi-web-request-metrics` 确认状态；不只凭增强网址判断成功。
 保留逐调用 TTFT、包含等待的平均 TPS、缓存命中和历史位置；侧聊可独立选模。
@@ -27,7 +27,7 @@ Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 
 已有显式数组（含空数组）、未知值与 false 不自动改写；保留 r1 的发现选择、唯一可见表单及逐字段保存。
 默认是用户偏好，不保证模型服务支持。历史 Coding 对照为 low 成功、xhigh 400，修后 thinking:on 未显式 effort 成功；
 medium/high/max 未逐档验证，不依据默认勾选承诺这些参数可用。
-本轮供应商保存修复及发布见[发布计划](../../docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)。
+本轮手机触摸悬停提示修复及发布见[发布计划][touch-tooltip-plan]；上轮供应商保存见[供应商保存计划][provider-save-plan]。
 2.6 兼容结果见[适配计划][compat260-plan]；未记录的 CI、包与线上检查不视为通过。
 [2.5.2-r1 发布记录][release252r1-plan]、[2.4.1-r3 发布记录][release241r3-plan]、[2.4.1-r2 发布记录][release241r2-plan]、
 [2.4.1-r1 适配计划][compat241-plan]、[2.3.1-r2 计划][r2-plan]及[其 Release][r2-release]保留历史证据。
@@ -88,19 +88,19 @@ setup 建立稳定根并启用签发，不修改设备信任或网络，不启�
 
 优先提供[README 快速上手](https://github.com/WilliamLambertCN/open-kimi-web#快速上手)中的在线安装命令，
 无需克隆仓库或手动下载脚本。
-Windows PowerShell ≥ 5.1／macOS-Linux sh 从 `v2.6.1-r2` GitHub commit API 解析并校验真实 40 位十六进制 SHA。
-只下载该 SHA 入口，成功后用 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.6.1-r2`。
+Windows PowerShell ≥ 5.1／macOS-Linux sh 从 `v2.6.1-r3` GitHub commit API 解析并校验真实 40 位十六进制 SHA。
+只下载该 SHA 入口，成功后用 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.6.1-r3`。
 入口取同提交完整 coordinator／helpers；tag、SHA、下载或资产不可用即停，不回退 main／旧包，不复用旧 r10 SHA 或伪造将来 SHA。
 HTTPS 和同提交配对不是签名验证；正式发布前不说入口已在线可用。本地入口与 helpers 也必须同提交：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r2
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r3
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r3 --no-integrate
 ```
 
 ```sh
-sh scripts/install.sh --version 2.6.1-r2
-sh scripts/install.sh --version 2.6.1-r2 --no-integrate
+sh scripts/install.sh --version 2.6.1-r3
+sh scripts/install.sh --version 2.6.1-r3 --no-integrate
 ```
 
 - 无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi，仍需联网与标准 PATH curl／tar，不是离线安装。
@@ -131,7 +131,7 @@ sh scripts/install.sh --version 2.6.1-r2 --no-integrate
 不需要 Corepack／pnpm；正式发布后使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.6.1-r2/open-kimi-web-2.6.1-r2.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.6.1-r3/open-kimi-web-2.6.1-r3.tgz
 ```
 
 仅用户明确需要源码开发且已有 Node ≥ 22／Git／Corepack 时，提供源码路线：
@@ -260,12 +260,12 @@ Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保�
 ## 安装自更新（r8 起可用）
 
 `v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
-`2.6.1-r2` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.6.1-r2`。
+`2.6.1-r3` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.6.1-r3`。
 不要求同版重装、重跑安装器或追加 `--switch-installation`；源码仍须干净 main 跟踪 origin/main，只做快进。
 完成后用户自行重启旧 launcher／对应 backend 并刷新；独立 target 须重启实际后端，不自动开启 Tower。
 CA 需另行显式 setup，更新不会自动启用或导入手机证书。
 更新不升级用户已有官方 Kimi，官方功能取决于实际 backend；保留 `2.3.1-r2` 默认与已有显式模型配置。
-本轮发布以[正式 Release][current-release]及本轮供应商保存计划为准；旧计划保留历史，不借旧记录写通过。
+本轮发布以[正式 Release][current-release]及[本轮发布计划][touch-tooltip-plan]为准；旧计划保留历史，不借旧记录写通过。
 旧 r7 发布包不含 update，须先手动升级至 r8 或更高版本，不能直接在 r7 上运行该命令。
 用户要求更新已具备该命令的 launcher 时，先运行：
 
@@ -362,6 +362,8 @@ Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字�
 [metrics-upgrade-plan]: ../../docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
 [compat260-plan]:
   https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r2
+[touch-tooltip-plan]: ../../docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md
+[provider-save-plan]: ../../docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r3
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

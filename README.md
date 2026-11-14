@@ -40,18 +40,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。[v2.6.1-r2][current-release] 适配 Kimi Code `2.6.1`，保留 `2.6.0` 支持。
+> 非官方社区项目，与 Moonshot AI 无关联。[v2.6.1-r3][current-release] 适配 Kimi Code `2.6.1`，保留 `2.6.0` 支持。
 > 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-260261-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r2'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r3'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.6.1-r2
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.6.1-r3
 }
 ```
 
@@ -60,14 +60,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r2'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r3'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.6.1-r2
+    sh -c "$script" install.sh --revision "$sha" --version 2.6.1-r3
 )
 ```
 
@@ -110,6 +110,7 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
   [菜单操作与草稿保护](packages/launcher/README.md#会话三个点菜单)
 - **阅读与提醒**：聊天区随窗格宽度调整，显示会话记录大小和消息时间，完整预览图片，切换标签先显示加载状态。
   手机可点消息目录跳转旧消息，并显示完成、审批和提问提醒；提问卡片可拉高，发送和插队沿用官方操作。
+  手机触摸浏览不再误触悬停提示（2.6.1-r3）。
 - **模型与主题**：从服务商获取模型后选择添加，调整顺序、能力与思考强度，Max 放最后，不自动改写已有配置。
   可选五套主题或恢复官方外观；电脑从账号菜单、手机从设置进入“氛围主题”。
 - **请求与侧聊**：在每次回复或工具过程后查看 TTFT、包含等待的平均 TPS 和缓存命中率；侧聊可单独选模型。
@@ -223,4 +224,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r3
