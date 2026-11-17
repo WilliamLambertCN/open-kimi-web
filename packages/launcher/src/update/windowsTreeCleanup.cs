@@ -126,4 +126,15 @@ public static class OkwWindowsTreeCleanup
         }
         finally { foreach (var process in owned.Values) CloseHandle(process.Handle); }
     }
+
+    public static int Main(string[] args)
+    {
+        uint pid;
+        long earliest, latest;
+        if (args.Length != 3 || !uint.TryParse(args[0], out pid) || pid == 0 ||
+            !long.TryParse(args[1], out earliest) || !long.TryParse(args[2], out latest) || earliest > latest)
+            return 1;
+        try { Stop(pid, earliest, latest); return 0; }
+        catch (Exception error) { Console.Error.WriteLine(error.Message); return 1; }
+    }
 }

@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 
 const PREFIX = '/__open-kimi-mobile/session-size';
 const TOKEN = 'Bearer fixture-session-size-token';
@@ -48,7 +49,7 @@ beforeAll(async () => {
   await mkdir(base, { recursive: true });
   root = await mkdtemp(join(base, 'launcher-it-'));
   upstream = createServer(officialSession);
-  await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+  await listenHttp(upstream);
   upstreamUrl = `http://127.0.0.1:${upstream.address().port}`;
 });
 
@@ -65,7 +66,7 @@ async function launch(options = {}) {
   const usageFetch = vi.fn((url, init) => fetch(url, init));
   const launcher = await createLauncher({
     target: upstreamUrl, publicDir, usageFetch,
-    officialPresentation: true, host: '127.0.0.1', port: 0, ...options,
+    officialPresentation: true, host: '127.0.0.1', port: await availableHttpPort(), ...options,
   });
   return { launcher, usageFetch };
 }

@@ -10,6 +10,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { startFrontend } from '../../packages/launcher/src/frontend.mjs';
 import { frontendOptions } from '../../packages/launcher/src/integration/supervisor.mjs';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 import { disableLocalCa, setupLocalCa } from '../../packages/launcher/src/tls/localCaStore.mjs';
 
 const prefix = '/__open-kimi-mobile/tls/';
@@ -56,12 +57,12 @@ beforeAll(async () => {
   });
   wss = new WebSocketServer({ server: upstream });
   wss.on('connection', (ws) => ws.on('message', (data) => ws.send('echo:' + String(data))));
-  await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+  await listenHttp(upstream);
   tls = await setupLocalCa({ home, interfaces, host: '0.0.0.0' });
   const other = await setupLocalCa({ home: join(home, 'unrelated'), interfaces: {}, hostname: 'localhost' });
   wrongRoot = new X509Certificate(other.publicCa.certificate).toString();
   const env = { ...process.env, OPEN_KIMI_WEB_HOME: home, OPEN_KIMI_WEB_DIR: publicDir };
-  const options = frontendOptions({ hostBare: true, port: 0 }, upstream.address().port, env);
+  const options = frontendOptions({ hostBare: true, port: await availableHttpPort() }, upstream.address().port, env);
   frontend = await startFrontend({ ...options, interfaces, noTokenLink: true, log: () => {}, warn: () => {} });
 });
 afterAll(async () => {
@@ -144,12 +145,13 @@ describe('local CA mode compatibility', () => {
     await writeFile(certFile, tls.cert);
     await writeFile(keyFile, tls.key, { mode: 0o600 });
     const custom = await startFrontend({ target: frontendOptions({}, upstream.address().port).target,
-      host: '127.0.0.1', port: 0, publicDir, home, interfaces, noTokenLink: true,
+      host: '127.0.0.1', port: await availableHttpPort(), publicDir, home, interfaces, noTokenLink: true,
       https: true, certFile, keyFile, log: () => {}, warn: () => {} });
     extras.push(custom.launcher);
     expect(custom.tls.source).toBe('custom');
     expect((await get(custom.launcher.url + prefix + 'ca.cer', rootPem())).status).toBe(404);
-    const http = await createLauncher({ target: 'http://127.0.0.1:1', publicDir, host: '127.0.0.1', port: 0 });
+    const http = await createLauncher({ target: 'http://127.0.0.1:1', publicDir, host: '127.0.0.1',
+      port: await availableHttpPort() });
     extras.push(http);
     const response = await fetch(http.url + prefix + 'status');
     expect(response.status).toBe(404);
@@ -158,7 +160,7 @@ describe('local CA mode compatibility', () => {
   it('disables new CA selection without deleting the root or changing the running listener', async () => {
     await disableLocalCa({ home });
     const disabled = await startFrontend({ target: frontendOptions({}, upstream.address().port).target,
-      host: '127.0.0.1', port: 0, publicDir, interfaces, https: true, home,
+      host: '127.0.0.1', port: await availableHttpPort(), publicDir, interfaces, https: true, home,
       noTokenLink: true, log: () => {}, warn: () => {} });
     extras.push(disabled.launcher);
     expect(disabled.tls.source).toBe('managed');

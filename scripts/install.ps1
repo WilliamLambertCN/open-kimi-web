@@ -29,9 +29,15 @@ function Assert-OkwDirectory {
 function Get-OkwNodeInfo {
     param([string] $Node, [string] $ExpectedVersion = '')
     if (-not (Test-Path -LiteralPath $Node -PathType Leaf)) { return $null }
+    $program = @'
+const path = require('node:path');
+console.log(JSON.stringify({version:process.version,path:process.execPath}));
+process.argv = [process.execPath, path.join(path.dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js'), '--version'];
+require(process.argv[1]);
+'@
     $probe = New-Object Diagnostics.Process
     $probe.StartInfo.FileName = $Node
-    $probe.StartInfo.Arguments = '-p "JSON.stringify({version:process.version,path:process.execPath})"'
+    $probe.StartInfo.Arguments = '--input-type=commonjs -e "' + $program + '"'
     $probe.StartInfo.UseShellExecute = $false
     $probe.StartInfo.CreateNoWindow = $true
     $probe.StartInfo.RedirectStandardOutput = $true
@@ -40,19 +46,14 @@ function Get-OkwNodeInfo {
         if (-not $probe.Start()) { return $null }
         if (-not $probe.WaitForExit(15000)) { $probe.Kill(); return $null }
         if ($probe.ExitCode -ne 0) { return $null }
-        $info = $probe.StandardOutput.ReadToEnd() | ConvertFrom-Json
+        $lines = $probe.StandardOutput.ReadToEnd().Trim() -split '\r?\n'
+        if ($lines.Count -ne 2 -or $lines[1] -notmatch '^\d+\.\d+\.\d+$') { return $null }
+        $info = $lines[0] | ConvertFrom-Json
         if ($info.version -notmatch '^v(\d+\.\d+\.\d+)$') { return $null }
         if ([Version] $Matches[1] -lt [Version] '22.19.0') { return $null }
         if ($ExpectedVersion -and $info.version -ne $ExpectedVersion) { return $null }
         $npm = Join-Path (Split-Path -Parent $info.path) 'node_modules/npm/bin/npm-cli.js'
         if (-not (Test-Path -LiteralPath $npm -PathType Leaf)) { return $null }
-        $probe.StartInfo.FileName = $info.path
-        $probe.StartInfo.Arguments = '"' + $npm + '" --version'
-        if (-not $probe.Start()) { return $null }
-        if (-not $probe.WaitForExit(15000)) { $probe.Kill(); return $null }
-        if ($probe.ExitCode -ne 0 -or $probe.StandardOutput.ReadToEnd().Trim() -notmatch '^\d+\.\d+\.\d+$') {
-            return $null
-        }
         return [pscustomobject] @{ Node = $info.path; Npm = $npm; Version = $info.version }
     } catch { return $null } finally { $probe.Dispose() }
 }

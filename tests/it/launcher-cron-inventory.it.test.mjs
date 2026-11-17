@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createCronInventory } from '../../packages/launcher/src/cron/inventory.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 
 const authorization = 'Bearer fictional-cron-inventory-tcp-token';
 const workspaceId = 'wd_repo..backup_eaed49d41ffd';
@@ -59,7 +60,7 @@ async function fixture(version = '2.1.1') {
     dispatch(req, res, state);
   });
   resources.push({ home, server });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenHttp(server);
   const target = `http://127.0.0.1:${server.address().port}`;
   return { home, state, calls, target, inventory: createCronInventory({ home, target }) };
 }

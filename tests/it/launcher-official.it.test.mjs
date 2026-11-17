@@ -12,7 +12,10 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { startFrontend } from '../../packages/launcher/src/frontend.mjs';
+import { startFrontend as launchFrontend } from '../../packages/launcher/src/frontend.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
+
+const startFrontend = async (options) => launchFrontend({ ...options, port: await availableHttpPort() });
 
 const tar = promisify(execFile);
 
@@ -37,7 +40,7 @@ let fixtureIntegrity;
 let lastMetaAuth = null;
 
 function startFakeUpstream() {
-  return new Promise((resolveListen) => {
+  return new Promise((resolveListen, rejectListen) => {
     const server = createServer((req, res) => {
       const path = req.url.split('?')[0];
       if (path === '/api/v1/meta') {
@@ -59,7 +62,7 @@ function startFakeUpstream() {
       }
       res.writeHead(404).end();
     });
-    server.listen(0, '127.0.0.1', () => resolveListen(server));
+    listenHttp(server).then(() => resolveListen(server), rejectListen);
   });
 }
 
@@ -211,7 +214,8 @@ function verifyChatEnhancementOrder(indexText) {
   expect(indexText).toContain('/__open-kimi-mobile/mobileWorkspaceSort.css');
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeGreaterThan(indexText.indexOf('workspaceSortDefault.js'));
   expect(indexText.indexOf('mobileWorkspaceSort.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
-  const subagentScripts = ['effortOrder.js', 'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
+  const subagentScripts = ['effortOrder.js', 'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js',
+    'subagentPoolApi.js', 'subagentPoolView.js', 'subagentPool.js'];
   for (const name of subagentScripts) {
     expect(indexText).toContain(`/__open-kimi-mobile/${name}`);
     expect(indexText.indexOf(name)).toBeLessThan(indexText.indexOf('<script type="module"'));
@@ -281,6 +285,7 @@ const PRESENTATION_ASSETS = [
   'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
   'sessionActionsApi.js', 'desktopSessionMenu.js', 'desktopSessionMenu.css', 'mobileSessionMenu.js', 'mobileSessionMenu.css',
   'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
+  'subagentPoolApi.js', 'subagentPoolView.js', 'subagentPool.js', 'subagentPool.css',
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',
   'notificationPermission.js', 'completionModal.css', 'completionModal.js', 'questionCardLayout.js', 'presentation.js',
   'sessionSize.js', 'sessionSize.css', 'messageTimestamps.js', 'messageTimestamps.css', 'chatWidth.css',

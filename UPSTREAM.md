@@ -17,8 +17,8 @@ or a vendored transcript implementation.
   [the compatibility plan][compat260-plan] and `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.6.1-r3`, retaining exact `2.6.0` and `2.6.1` adaptation.
-  Follow [the Release page][current-release] for publication and the touch-tooltip section for this revision.
+- Open Kimi Web release target: `2.6.1-r4`, retaining exact `2.6.0` and `2.6.1` adaptation.
+  Follow [the Release page][current-release] for publication and the subagent-pool section for this revision.
   [The compatibility plan][compat260-plan] retains the r1 baseline evidence.
   Earlier r4 evidence remains in [the metrics-upgrade plan][metrics-upgrade-plan].
   Metrics have no version gate; the launcher validates the actual entry bundle before rewriting its module graph.
@@ -112,7 +112,7 @@ not older release results.
 ## Kimi Code 2.6.0/2.6.1 adaptation
 
 Follow [the compatibility plan][compat260-plan] for the `2.6.1-r1` release and its acceptance boundaries.
-The online installation commands and package/plugin version select `2.6.1-r3`.
+The online installation commands and package/plugin version select `2.6.1-r4`.
 No existing official CLI is upgraded and no production service is started or restarted.
 
 The exact 2.6.1 release fixes long-session replay performance and usage-anchored token counting/compaction.
@@ -205,6 +205,35 @@ Six existing platform-specific tests are skipped on Windows; concurrency and cov
 These earlier local checks do not substitute for the exact release commit's CI and package verification;
 publication evidence is recorded separately in [the compatibility plan][compat260-plan].
 They are not proof that every protocol/device is compatible. This adaptation does not restart production services.
+
+## Subagent pool editor (2.6.1-r4)
+
+Follow [the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md).
+Desktop Settings → Agent & Sessions → Subagents and mobile session settings share a candidate/description editor.
+It reads the complete official pool; two editable description templates never replace the pool with two models.
+Configured models can be added using the existing model picker, and the default candidate can be changed explicitly.
+A description guides model choice rather than enforcing a dispatch rule.
+A single-candidate pool still hides native tool selection.
+
+Exact 2.6.1 uses outer `secondary_model` with inner `defaultModel`, `defaultEffort` and `models` fields.
+The official configuration service recursively merges model descriptions, so omitted keys are not deletions.
+This editor never clears and rebuilds a pool, exposes no individual deletion, and keeps the main model and global effort.
+Legacy implicit candidates are carried into explicit maps with a declared default.
+It rereads before writing, rejects observed same-setting conflicts, posts only changed fields once, and verifies with a fresh GET.
+Other candidates and concurrent unrelated changes remain intact. The official API has no compare-and-swap operation;
+this is conflict detection, not a claim of atomic multi-client transactions.
+
+Isolated exact-backend/browser checks cover real persistence, native config-event updates and multi-candidate pools,
+manual additions, templates, both form factors, six appearances and narrow/landscape bounds, using fictional data only.
+Physical touch devices and soft keyboards are not claimed.
+No official backend, real user config or production service was changed.
+Windows default full-suite acceptance passes: 150 unit files/3351 tests and 35 integration files/706 tests;
+six existing platform-specific tests remain skipped. Coverage, lint, typecheck and installed-package smoke pass.
+Windows cleanup uses the same ownership algorithm, compiled directly by the system .NET Framework compiler,
+without PowerShell startup; compilation and execution share the unchanged three-second deadline.
+Installer probes still execute adjacent npm, and HTTP fixtures no longer depend on OS-assigned Fetch-blocked ports.
+No timeout, concurrency setting, assertion or coverage gate was weakened.
+This feature is in scope for the `2.6.1-r4` release; publication status is determined by [the formal Release][current-release].
 
 ## Historical baseline records
 
@@ -443,12 +472,13 @@ Broken, unsupported or ambiguous candidates are errors, not missing installation
 Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
 [the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
 The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
-current checks, CI and assets belong to [the 2.6.1-r1 release plan][compat260-plan].
+[the 2.6.1-r1 release plan][compat260-plan] retains the baseline evidence, and current checks, CI and assets belong to
+[the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md).
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.6.1-r3` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r3`.
+They resolve `v2.6.1-r4` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r4`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -505,7 +535,7 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r3 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r4 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -911,7 +941,7 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [release252r2-plan]: docs/plans/app-icon-2.5.2-r2-release-v1-plan.md
 [metrics-upgrade-plan]: docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
 [compat260-plan]: docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r3
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r4
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

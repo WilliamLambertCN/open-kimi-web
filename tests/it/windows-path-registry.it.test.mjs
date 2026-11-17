@@ -9,12 +9,7 @@ let valueName;
 
 async function removeProbe() {
   if (valueName === undefined) return;
-  const script =
-    "Remove-ItemProperty -Path 'HKCU:\\Environment' -Name $env:OPEN_KIMI_WEB_PATH_NAME " +
-    '-ErrorAction SilentlyContinue';
-  await runCapture('powershell', ['-NoProfile', '-Command', script], {
-    env: { ...process.env, OPEN_KIMI_WEB_PATH_NAME: valueName },
-  });
+  await runCapture('reg.exe', ['delete', 'HKCU\\Environment', '/v', valueName, '/f']);
   valueName = undefined;
 }
 
@@ -24,17 +19,9 @@ describe.skipIf(!isWindows)('Windows PATH registry reader', () => {
   it('preserves UTF-8 text and unexpanded environment references', async (context) => {
     valueName = `OPEN_KIMI_WEB_TEST_${randomUUID().replaceAll('-', '')}`;
     const expected = 'C:\\用户目录\\工具;%SystemRoot%\\System32';
-    const script =
-      "New-ItemProperty -Path 'HKCU:\\Environment' -Name $env:OPEN_KIMI_WEB_PATH_NAME " +
-      '-Value $env:OPEN_KIMI_WEB_PATH_VALUE -PropertyType ExpandString -Force | Out-Null';
-    const written = await runCapture('powershell', ['-NoProfile', '-Command', script], {
-      env: {
-        ...process.env,
-        OPEN_KIMI_WEB_PATH_NAME: valueName,
-        OPEN_KIMI_WEB_PATH_VALUE: expected,
-      },
-    });
-    if (written.code !== 0 && /registry access is not allowed/i.test(written.stderr)) {
+    const written = await runCapture('reg.exe', ['add', 'HKCU\\Environment', '/v', valueName,
+      '/t', 'REG_EXPAND_SZ', '/d', expected, '/f']);
+    if (written.code !== 0 && /access is denied/i.test(written.stderr)) {
       context.skip();
       return;
     }

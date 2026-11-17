@@ -174,8 +174,12 @@
       verifySaved(config, choice);
       return { section: config.secondary_model, models: latest.models };
     };
+    const writeSection = (section, signal) => request('config', {
+      method: 'POST', body: JSON.stringify({ secondary_model: section }), signal,
+    });
     window.__okwMobileSubagentApi = {
-      load, save, inherited, choiceFor, modelsFor, effortsFor, availableEfforts, patchFor, verifySaved,
+      load, save, inherited, choiceFor, modelsFor, effortsFor, availableEfforts, patchFor, verifySaved, writeSection,
+      supportedEffort,
     };
   }
 }
