@@ -247,11 +247,17 @@ const required = [
   'src/restart/routes.mjs',
   'src/restart/http.mjs',
   'src/mobile/navigationApi.js',
+  'src/mobile/navigationWorkspaceApi.js',
+  'src/mobile/navigationFolderApi.js',
+  'src/mobile/navigationFolder.js',
+  'src/mobile/navigationFolder.css',
   'src/mobile/navigationSearchView.js',
   'src/mobile/navigationSearch.js',
   'src/mobile/navigationWorkspace.js',
   'src/mobile/navigation.js',
   'src/mobile/navigation.css',
+  'src/mobile/desktopSessionView.js',
+  'src/mobile/desktopSessionView.css',
   'src/mobile/pwaInstallView.js',
   'src/mobile/pwaInstall.js',
   'src/mobile/pwaInstall.css',
@@ -286,7 +292,9 @@ async function assertConversationAssets(pkgDir, launcher, html) {
     'requestMetricsModel.js', 'requestMetricsTransport.js', 'requestMetricsConversation.js',
     'requestMetrics.js', 'requestMetrics.css',
     'sideChatModelIdentity.js', 'sideChatModelApi.js', 'sideChatModelView.js', 'sideChatModel.js', 'sideChatModel.css',
-    'serviceRestartView.js', 'serviceRestart.js', 'serviceRestart.css'];
+    'serviceRestartView.js', 'serviceRestart.js', 'serviceRestart.css',
+    'navigationWorkspaceApi.js', 'navigationFolderApi.js', 'navigationFolder.js', 'navigationFolder.css',
+    'desktopSessionView.js', 'desktopSessionView.css'];
   for (const name of assets) {
     const attribute = name.endsWith('.js') ? 'src' : 'href';
     if (!html.includes(`${attribute}="${prefix}${name}"`)) throw new Error(`installed page does not load ${name}`);

@@ -1,11 +1,31 @@
 /** @vitest-environment jsdom */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, install, switchLocale } from './testkit/subagentPool.mjs';
+import { cleanup, install, markup, switchLocale } from './testkit/subagentPool.mjs';
 
 afterEach(cleanup);
 const openDialog = async (ui) => ui.open(ui.doc.querySelector('.okw-pool-trigger'));
 
 describe('subagent pool real DOM observer', () => {
+  it('keeps the open dialog across session-status patches and reopens after the sheet remounts', async () => {
+    const ui = await install({ section: { defaultModel: 'fixture/under_score', models: { 'fixture/under_score': 'orig' } } });
+    await openDialog(ui);
+    ui.panel.querySelector('.sheet-body .card').textContent = 'ctx 5/128k · running';
+    ui.panel.querySelector('.sheet-body').insertAdjacentHTML('beforeend', '<div class="card">Status tick</div>');
+    await ui.settled();
+    expect(ui.dialog()?.hasAttribute('open')).toBe(true);
+    const sheetEntries = () => [...ui.doc.querySelectorAll('.sheet-root .okw-pool-entry')];
+    expect(sheetEntries()).toHaveLength(1);
+    const template = ui.doc.createElement('template');
+    template.innerHTML = markup('Settings', true);
+    ui.root.replaceWith(template.content.firstElementChild);
+    await ui.settled();
+    expect(ui.dialog()).toBeNull();
+    expect(sheetEntries()).toHaveLength(1);
+    const reopened = await ui.open(ui.doc.querySelector('.sheet-root .okw-pool-trigger'));
+    expect(reopened?.hasAttribute('open')).toBe(true);
+    expect(ui.cards()).toHaveLength(1);
+    expect(ui.posts).toEqual([]);
+  });
   it('converges after open, draft edits, picker filtering, default moves and locale swaps', async () => {
     const ui = await install({ section: { defaultModel: 'fixture/under_score',
       models: { 'fixture/under_score': 'orig', 'fixture/fast': 'keep' } } });

@@ -64,6 +64,43 @@ describe('subagent pool real settings layout', () => {
   });
 });
 
+describe('subagent pool open failure recovery', () => {
+  const dialogProto = (ui) => ui.doc.createElement('dialog').constructor.prototype;
+  const mobileOpen = async (ui) => {
+    ui.doc.querySelector('.sheet-body .okw-pool-trigger').click();
+    await ui.settled();
+    return ui.dialog();
+  };
+
+  it('reports an entry error and stays retryable when the native modal cannot open', async () => {
+    const ui = await install({ desktop: false, section: saving });
+    const proto = dialogProto(ui);
+    const healthy = proto.showModal;
+    proto.showModal = () => { throw new Error('fixture modal blocked'); };
+    expect(await mobileOpen(ui)).toBeNull();
+    expect(ui.entryError()?.hidden).toBe(false);
+    expect(ui.entryError().textContent).toContain('could not open');
+    delete proto.showModal;
+    expect(await mobileOpen(ui)).toBeNull();
+    expect(ui.entryError().hidden).toBe(false);
+    proto.showModal = healthy;
+    expect((await mobileOpen(ui))?.hasAttribute('open')).toBe(true);
+    expect(ui.entryError().hidden).toBe(true);
+    expect(ui.posts).toEqual([]);
+  });
+
+  it('releases the editor when something else closes the native dialog', async () => {
+    const ui = await install({ ...desktop, section: saving });
+    const opened = await openDesktop(ui);
+    opened.close();
+    await ui.settled();
+    expect(ui.dialog()).toBeNull();
+    expect(ui.entryError().hidden).toBe(true);
+    expect((await openDesktop(ui))?.hasAttribute('open')).toBe(true);
+    expect(ui.doc.querySelectorAll('.okw-pool-dialog')).toHaveLength(1);
+  });
+});
+
 describe('subagent pool saving lifecycle', () => {
   const saveWithRemovedRoot = async (onPost) => {
     const ui = await install({ ...desktop, section: saving });

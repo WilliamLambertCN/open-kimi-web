@@ -8,8 +8,9 @@ const APP_VERSION = packageInfo.version;
 const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js',
   'subagentPoolApi.js', 'subagentPoolView.js', 'subagentPool.js'];
 const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
-const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
-  'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
+const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationWorkspaceApi.js', 'navigationFolderApi.js', 'navigationFolder.js',
+  'navigationSearchView.js', 'navigationSearch.js', 'navigationWorkspace.js', 'navigation.js',
+  'cronApi.js', 'cronView.js', 'cron.js'];
 const PWA_SCRIPTS = ['pwaInstallView.js', 'pwaInstall.js'];
 const SESSION_MENU_SCRIPTS = ['sessionActionsApi.js', 'desktopSessionMenu.js', 'mobileSessionMenu.js'];
 const TOC_SCRIPTS = ['mobileConversationTocMetadata.js', 'conversationMetadata.js', 'mobileConversationTocNavigate.js',
@@ -31,6 +32,8 @@ const FILES = new Map([
   ['mobileConversationToc.css', 'text/css; charset=utf-8'],
   ...SESSION_MENU_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['desktopSessionMenu.css', 'text/css; charset=utf-8'],
+  ['desktopSessionView.js', 'text/javascript; charset=utf-8'],
+  ['desktopSessionView.css', 'text/css; charset=utf-8'],
   ['mobileSessionMenu.css', 'text/css; charset=utf-8'],
   ...PWA_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['pwaInstall.css', 'text/css; charset=utf-8'],
@@ -45,6 +48,7 @@ const FILES = new Map([
   ...SUBAGENT_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ...NAVIGATION_SCRIPTS.map((name) => [name, 'text/javascript; charset=utf-8']),
   ['navigation.css', 'text/css; charset=utf-8'],
+  ['navigationFolder.css', 'text/css; charset=utf-8'],
   ['cron.css', 'text/css; charset=utf-8'],
   ['mobileSubagentModel.css', 'text/css; charset=utf-8'],
   ['subagentPool.css', 'text/css; charset=utf-8'],
@@ -103,6 +107,7 @@ const SCRIPTS = [
   'workspaceSortDefault.js',
   'mobileWorkspaceSort.js',
   ...SESSION_MENU_SCRIPTS,
+  'desktopSessionView.js',
   'forkTitleGuard.js',
   'imagePreviewGuard.js',
   'tabFeedback.js',
@@ -133,10 +138,12 @@ const STYLES = [
   'themes.css',
   'branding.css',
   'navigation.css',
+  'navigationFolder.css',
   'pwaInstall.css',
   'cron.css',
   'mobileWorkspaceSort.css',
   'desktopSessionMenu.css',
+  'desktopSessionView.css',
   'mobileSessionMenu.css',
   'mobileSubagentModel.css',
   'subagentPool.css',
