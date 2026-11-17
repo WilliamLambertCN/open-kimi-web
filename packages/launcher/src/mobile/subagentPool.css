@@ -1,0 +1,200 @@
+.okw-pool-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md, 10px);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font: inherit;
+}
+.okw-pool-entry-main { display: grid; min-width: 0; gap: 4px; }
+.okw-pool-entry-label { font-size: var(--text-sm, 13px); font-weight: 500; }
+.okw-pool-entry.is-mobile { margin: 0 0 16px; }
+.okw-pool-note { margin: 0; color: var(--color-text-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.okw-pool-trigger, .okw-pool-dialog .ui-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.okw-pool-trigger { flex: none; }
+.okw-pool-trigger:hover, .okw-pool-dialog .ui-button:hover { background: var(--color-hover); }
+.okw-pool-dialog, .okw-pool-dialog * { box-sizing: border-box; }
+.okw-pool-dialog {
+  width: min(760px, calc(100% - 32px));
+  max-width: calc(100% - 32px);
+  max-height: min(880px, calc(100dvh - 32px));
+  padding: 0;
+  overflow: hidden;
+  border: var(--p-hairline, 1px) solid var(--color-line);
+  border-radius: var(--radius-xl, 16px);
+  color: var(--color-text);
+  background: linear-gradient(var(--color-surface-raised), var(--color-surface-raised)), var(--color-bg);
+  box-shadow: var(--shadow-xl, 0 20px 65px #0006);
+  font-family: var(--font-ui);
+  color-scheme: inherit;
+}
+.okw-pool-dialog:modal { overscroll-behavior: contain; }
+.okw-pool-dialog::backdrop { background: #0d111780; overflow: hidden; overscroll-behavior: contain; }
+.okw-pool-dialog[open] { display: flex; }
+.okw-pool-dialog [hidden] { display: none !important; }
+.okw-pool-form { display: flex; flex-direction: column; min-width: 0; min-height: 0; width: 100%; }
+.okw-pool-head {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--color-line);
+}
+.okw-pool-heading { min-width: 0; display: grid; gap: 2px; }
+.okw-pool-heading h2 { margin: 0; font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
+.okw-pool-dialog .okw-pool-close { flex: none; font-size: 23px; width: 36px; padding: 0; }
+.okw-pool-body {
+  min-height: 0;
+  padding: 16px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.okw-pool-content, .okw-pool-cards { display: grid; gap: 14px; min-width: 0; }
+.okw-pool-content { margin-top: 8px; }
+.okw-pool-card {
+  min-inline-size: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 16px 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface);
+}
+.okw-pool-model { max-width: 100%; padding: 0 6px; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.okw-pool-identity {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+.okw-pool-default { display: flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; min-height: 32px; }
+.okw-pool-default input { margin: 0; accent-color: var(--color-accent); flex: none; width: 16px; height: 16px; }
+.okw-pool-default span, .okw-pool-description-label { font-size: 13px; line-height: 1.5; }
+.okw-pool-description-label { display: block; margin: 10px 0 6px; }
+.okw-pool-description, .okw-pool-dialog .ui-input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line-strong, var(--color-line));
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-overlay, var(--color-surface));
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.okw-pool-description { display: block; min-height: 96px; resize: vertical; }
+.okw-pool-description::placeholder, .okw-pool-dialog .ui-input::placeholder { color: var(--color-text-faint); }
+.okw-pool-templates { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.okw-pool-templates .okw-pool-note { width: 100%; }
+.okw-pool-template { max-width: 100%; text-align: start; }
+.okw-pool-dialog .okw-pool-add { justify-self: start; }
+.okw-pool-limitation { padding-top: 2px; }
+.okw-pool-footer { flex: none; padding: 12px 22px 18px; border-top: 1px solid var(--color-line); }
+.okw-pool-status { margin: 0 0 10px; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.okw-pool-status:empty { display: none; }
+.okw-pool-status.is-error { color: var(--color-danger); }
+.okw-pool-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.okw-pool-dialog .ui-button--primary {
+  color: var(--color-text-on-accent);
+  background: var(--color-accent);
+  border-color: transparent;
+}
+.okw-pool-dialog button:disabled, .okw-pool-dialog fieldset:disabled { opacity: .55; cursor: default; }
+.okw-pool-dialog :is(button, textarea, input, .model-list):focus-visible, .okw-pool-trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.okw-pool-chooser { display: grid; gap: 12px; min-width: 0; }
+.okw-pool-back { justify-self: start; }
+.okw-pool-search-label { font-size: 13px; line-height: 1.5; }
+.okw-pool-dialog .mp { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.okw-pool-dialog .search-wrap { position: relative; }
+.okw-pool-dialog .ui-input { padding-inline-end: 48px; }
+.okw-pool-dialog .search-clear {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 36px;
+  height: calc(100% - 6px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 20px;
+  visibility: hidden;
+  cursor: pointer;
+}
+.okw-pool-dialog .search-clear.is-on { visibility: visible; }
+.okw-pool-dialog .chip-strip { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+.okw-pool-dialog .chip {
+  flex: none;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: var(--radius-full, 20px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.okw-pool-dialog .chip.is-active { color: var(--color-text); background: var(--color-selected); }
+.okw-pool-dialog .model-list { min-height: 80px; max-height: min(45dvh, 400px); overflow-y: auto; scrollbar-width: thin; }
+.okw-pool-dialog .model-row { display: flex; gap: 12px; padding: 10px 12px; border-radius: var(--radius-md); cursor: pointer; }
+.okw-pool-dialog .model-row:hover, .okw-pool-dialog .model-row.is-selected { background: var(--color-hover); }
+.okw-pool-dialog .model-main { min-width: 0; flex: 1; display: grid; gap: 3px; }
+.okw-pool-dialog .model-name { font-size: 14px; line-height: 1.5; }
+.okw-pool-dialog .model-meta { color: var(--color-text-muted); font-size: 12px; line-height: 1.5; }
+.okw-pool-dialog .model-name, .okw-pool-dialog .model-meta { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.okw-pool-dialog .empty { color: var(--color-text-muted); font-size: 13px; line-height: 1.6; }
+@media (max-width: 640px) {
+  .okw-pool-dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
+    margin: auto 0 0;
+    border-bottom: 0;
+    border-radius: var(--radius-xl, 16px) var(--radius-xl, 16px) 0 0;
+  }
+  .okw-pool-head { padding: 14px 16px 12px; }
+  .okw-pool-body { padding: 12px 16px 16px; }
+  .okw-pool-footer { padding: 12px 16px max(16px, env(safe-area-inset-bottom)); }
+  .okw-pool-card { padding-inline: 12px; }
+  .okw-pool-description, .okw-pool-dialog .ui-input { font-size: 16px; }
+}
+@media (pointer: coarse) {
+  .okw-pool-trigger, .okw-pool-dialog .ui-button, .okw-pool-default,
+  .okw-pool-dialog .chip, .okw-pool-dialog .model-row { min-height: 48px; }
+  .okw-pool-dialog .okw-pool-close { width: 48px; }
+  .okw-pool-dialog .ui-input { min-height: 54px; padding-inline-end: 54px; }
+  .okw-pool-dialog .search-clear { width: 48px; }
+}
+@media (max-width: 420px) {
+  .okw-pool-entry { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 14px; }
+  .okw-pool-trigger { align-self: flex-end; }
+}

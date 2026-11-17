@@ -8,7 +8,7 @@ import { verifyPty } from '../../scripts/install/pty.mjs';
 import { dependencyRoot } from '../../scripts/install/ptyAudit.mjs';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { createServer } from 'node:net';
+import { availableHttpPort } from '../testkit/httpPort.mjs';
 import { canonicalNpmCmd, discoverOfficial, officialPaths, prepareOfficial } from '../../scripts/install/official.mjs';
 import { verifyOfficialShell } from '../../scripts/install/officialShell.mjs';
 import { preparePty } from '../../scripts/install/pty.mjs';
@@ -66,11 +66,7 @@ beforeAll(async () => {
 afterAll(async () => { if (directory) await rm(directory, { recursive: true, force: true }); });
 
 async function freePort() {
-  const server = createServer();
-  server.listen(0, '127.0.0.1');
-  await once(server, 'listening');
-  const port = server.address().port;
-  await new Promise((done) => server.close(done));
+  const port = await availableHttpPort();
   return port === 58627 ? freePort() : port;
 }
 

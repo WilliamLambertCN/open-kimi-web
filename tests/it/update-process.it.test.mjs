@@ -11,6 +11,7 @@ import { acquireLock } from '../../packages/launcher/src/update/lock.mjs';
 import { exists } from '../../packages/launcher/src/update/files.mjs';
 import { runInstallProcess } from '../../scripts/install.mjs';
 import { put } from './updateFixture.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 
 const directories = [];
 const cleanup = [];
@@ -66,7 +67,7 @@ async function independentFixture(value) {
   cleanup.push(async () => { if (child.exitCode === null) { child.kill(); await once(child, 'exit'); } });
   const pid = await waitPid(path);
   const server = createServer((req, res) => res.end('unrelated-service'));
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenHttp(server);
   cleanup.push(() => new Promise((resolve) => server.close(resolve)));
   const sentinel = join(value.directory, 'official-data-sentinel');
   await put(sentinel, 'unchanged');

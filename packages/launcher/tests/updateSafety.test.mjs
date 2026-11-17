@@ -17,6 +17,12 @@ function windowsChild() {
   return child;
 }
 
+function windowsOptions(spawn) {
+  return { platform: 'win32', spawn, fs: {
+    access: async () => {}, mkdtemp: async () => 'fixture/native-cleanup', copyFile: async () => {}, rm: async () => {},
+  } };
+}
+
 const installation = { kind: 'local', root: 'fixture/root', entry: 'fixture/root/bin/open-kimi-web.mjs',
   owner: 'fixture', version: '2.1.1-r9', category: 'dependencies', ownerManifest: { dependencies: { fixture: '1' } } };
 const plan = { version: '2.1.1-r10', url: 'https://github.com/WilliamLambertCN/open-kimi-web/releases/download/' +
@@ -102,7 +108,7 @@ describe('platform-specific process tree cleanup', () => {
       queueMicrotask(() => killer.emit('close', 1));
       return killer;
     });
-    await expect(terminateTree(windowsChild(), { platform: 'win32', spawn }))
+    await expect(terminateTree(windowsChild(), windowsOptions(spawn)))
       .rejects.toMatchObject({ cleanupUnconfirmed: true });
     expect(spawn).toHaveBeenCalledOnce();
     await expect(terminateTree({ pid: 123 }, { platform: 'linux', kill: () => { throw new Error('permission denied'); } }))
@@ -113,7 +119,8 @@ describe('platform-specific process tree cleanup', () => {
     const killer = Object.assign(new EventEmitter(), { kill: vi.fn() });
     try {
       const spawn = vi.fn(() => killer);
-      const task = terminateTree(windowsChild(), { platform: 'win32', spawn });
+      killer.kill.mockImplementation(() => queueMicrotask(() => killer.emit('close', null)));
+      const task = terminateTree(windowsChild(), windowsOptions(spawn));
       const assertion = expect(task).rejects.toMatchObject({ cleanupUnconfirmed: true });
       await vi.advanceTimersByTimeAsync(3_000);
       await assertion;
