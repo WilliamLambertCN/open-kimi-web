@@ -102,32 +102,5 @@ if (!window[Symbol.for('open-kimi-web.navigation-api')]) {
     if (!response.ok || envelope?.code !== 0) throw new Error(failure(response.status, envelope));
     return page(envelope.data);
   };
-  const workspaceFailure = (status, code) => {
-    if (status === 401 || status === 403) return text('页面授权已失效，请刷新页面。', 'Authorization expired. Refresh the page.');
-    if (code === 40001) return text('请输入运行端的绝对目录路径。', 'Enter an absolute directory path on the server.');
-    if (code === 40409) return text('目录不存在、不可访问或不是文件夹。', 'The directory does not exist, is inaccessible or is not a folder.');
-    return text('无法添加工作空间，请检查服务连接后重试。', 'Could not add the workspace. Check the server connection and retry.');
-  };
-  const workspaceRoot = (input) => {
-    const root = input.trim().replace(/^(['"])([\s\S]*)\1$/, '$2');
-    if (!root) throw new Error(workspaceFailure(400, 40001));
-    return root;
-  };
-  window.__okwNavigationAddWorkspace = async (root, signal) => {
-    const authorization = state.authorization;
-    if (!authorization) throw new Error(text('页面授权尚未就绪，请刷新后重试。', 'Authorization is not ready. Refresh and retry.'));
-    const response = await window.fetch('/api/v1/workspaces', {
-      method: 'POST', signal, cache: 'no-store',
-      headers: { authorization, 'content-type': 'application/json' }, body: JSON.stringify({ root: workspaceRoot(root) }),
-    });
-    let envelope;
-    try { envelope = await response.json(); } catch { envelope = null; }
-    if (!response.ok || envelope?.code !== 0) throw new Error(workspaceFailure(response.status, envelope?.code));
-    const workspace = envelope.data;
-    if (typeof workspace?.id !== 'string' || typeof workspace.root !== 'string') {
-      throw new Error(text('工作空间响应格式无效。请刷新确认是否已添加。',
-        'Invalid workspace response. Refresh to confirm whether it was added.'));
-    }
-    return workspace;
-  };
+  window.__okwNavigationAuthorization = () => state.authorization;
 }

@@ -13,6 +13,7 @@
 }
 .okw-pool-entry-main { display: grid; min-width: 0; gap: 4px; }
 .okw-pool-entry-label { font-size: var(--text-sm, 13px); font-weight: 500; }
+.okw-pool-entry-error { margin: 2px 0 0; color: var(--color-danger); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
 .okw-pool-entry.is-mobile { margin: 0 0 16px; }
 .okw-pool-note { margin: 0; color: var(--color-text-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
 .okw-pool-trigger, .okw-pool-dialog .ui-button {

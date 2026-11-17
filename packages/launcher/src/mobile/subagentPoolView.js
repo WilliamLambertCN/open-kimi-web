@@ -12,6 +12,7 @@
     templates: '填入常用说明（可继续修改）', strong: '大哥 · 难题攻坚', fast: '小弟 · 快速执行',
     strongText: '适合复杂推理、疑难排查和方案审查；能力较强但响应较慢，简单执行任务优先交给更快的候选。',
     fastText: '适合目标明确的简单实现、批量修改与整理；执行较快但复杂推理能力有限，遇到难题及时交给更强的候选。',
+    openFailed: '候选池未能打开，请重试。',
     add: '添加候选模型', back: '返回候选池', choose: '从已配置模型中选择',
     search: '搜索模型或供应商…', noModels: '没有可添加的模型。请先在供应商设置中配置模型。',
     empty: '尚未配置独立候选池。添加模型后，可填写说明并选择默认候选。',
@@ -36,6 +37,7 @@
       'prefer a faster candidate for simple execution tasks.',
     fastText: 'Use for well-defined simple implementations, batch edits, and organization. ' +
       'Fast but weaker at complex reasoning; hand difficult problems to a stronger candidate.',
+    openFailed: 'The model pool could not open. Please try again.',
     add: 'Add candidate model', back: 'Back to pool', choose: 'Choose a configured model',
     search: 'Search models or providers…', noModels: 'No models available to add. Configure models in provider settings first.',
     empty: 'No separate pool yet. Add a model, write its description, and choose a default candidate.',
@@ -62,15 +64,17 @@
     const main = node('div', 'okw-pool-entry-main');
     const label = node('span', 'okw-pool-entry-label');
     const hint = node('span', 'okw-pool-note');
+    const error = node('p', 'okw-pool-entry-error'); error.hidden = true; attr(error, 'role', 'status');
     const trigger = button('okw-pool-trigger');
     attr(trigger, 'aria-haspopup', 'dialog');
-    main.append(label, hint);
+    main.append(label, hint, error);
     section.append(main, trigger);
-    return { section, label, hint, trigger };
+    return { section, label, hint, error, trigger };
   };
   const localizeEntry = (ui) => {
     const words = copy();
     text(ui.label, words.entry); text(ui.hint, words.entryHint); text(ui.trigger, words.manage);
+    text(ui.error, words.openFailed);
   };
   const build = () => {
     const root = node('dialog', 'okw-pool-dialog');

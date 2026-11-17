@@ -162,8 +162,9 @@ function verifyThemeSelectors(body) {
   }
 }
 
-const NAVIGATION_ASSETS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
-  'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js', 'navigation.css', 'cron.css'];
+const NAVIGATION_ASSETS = ['navigationApi.js', 'navigationWorkspaceApi.js', 'navigationFolderApi.js', 'navigationFolder.js',
+  'navigationSearchView.js', 'navigationSearch.js', 'navigationWorkspace.js', 'navigation.js',
+  'cronApi.js', 'cronView.js', 'cron.js', 'navigation.css', 'navigationFolder.css', 'cron.css'];
 
 function verifyNavigationAssetOrder(indexText) {
   const scripts = NAVIGATION_ASSETS.filter((name) => name.endsWith('.js'));
@@ -230,6 +231,9 @@ function verifyChatEnhancementOrder(indexText) {
     expect(indexText.indexOf(`${name}.js`)).toBeLessThan(indexText.indexOf('<script type="module"'));
   }
   expect(indexText.indexOf('sessionActionsApi.js')).toBeGreaterThan(indexText.indexOf('locale.js'));
+  expect(indexText).toContain('/__open-kimi-mobile/desktopSessionView.css');
+  expect(indexText.indexOf('desktopSessionView.js')).toBeGreaterThan(indexText.indexOf('locale.js'));
+  expect(indexText.indexOf('desktopSessionView.js')).toBeLessThan(indexText.indexOf('<script type="module"'));
   const tocScripts = ['mobileConversationTocMetadata.js', 'mobileConversationTocNavigate.js',
     'mobileConversationTocView.js', 'mobileConversationToc.js'];
   for (const [index, name] of tocScripts.entries()) {
@@ -284,6 +288,7 @@ const PRESENTATION_ASSETS = [
   'locale.js', 'usageLocale.js', 'providerLocale.js', 'touchTooltip.js', 'effortOrder.js', 'presentation.css',
   'foldingDefaults.js', 'workspaceSortDefault.js', 'mobileWorkspaceSort.js', 'mobileWorkspaceSort.css',
   'sessionActionsApi.js', 'desktopSessionMenu.js', 'desktopSessionMenu.css', 'mobileSessionMenu.js', 'mobileSessionMenu.css',
+  'desktopSessionView.js', 'desktopSessionView.css',
   'mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js', 'mobileSubagentModel.css',
   'subagentPoolApi.js', 'subagentPoolView.js', 'subagentPool.js', 'subagentPool.css',
   'forkTitleGuard.js', 'imagePreviewGuard.js', 'tabFeedback.js', 'tabFeedback.css', 'sideChatScroll.js',

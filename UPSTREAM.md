@@ -17,8 +17,9 @@ or a vendored transcript implementation.
   [the compatibility plan][compat260-plan] and `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.6.1-r4`, retaining exact `2.6.0` and `2.6.1` adaptation.
-  Follow [the Release page][current-release] for publication and the subagent-pool section for this revision.
+- Open Kimi Web release target: `2.6.1-r5`, retaining exact `2.6.0` and `2.6.1` adaptation.
+  Follow [the Release page][current-release] for publication and the workspace-navigation section for this revision;
+  the subagent-pool section below keeps the r4 record.
   [The compatibility plan][compat260-plan] retains the r1 baseline evidence.
   Earlier r4 evidence remains in [the metrics-upgrade plan][metrics-upgrade-plan].
   Metrics have no version gate; the launcher validates the actual entry bundle before rewriting its module graph.
@@ -112,7 +113,7 @@ not older release results.
 ## Kimi Code 2.6.0/2.6.1 adaptation
 
 Follow [the compatibility plan][compat260-plan] for the `2.6.1-r1` release and its acceptance boundaries.
-The online installation commands and package/plugin version select `2.6.1-r4`.
+The online installation commands and package/plugin version select `2.6.1-r5`.
 No existing official CLI is upgraded and no production service is started or restarted.
 
 The exact 2.6.1 release fixes long-session replay performance and usage-anchored token counting/compaction.
@@ -233,7 +234,28 @@ Windows cleanup uses the same ownership algorithm, compiled directly by the syst
 without PowerShell startup; compilation and execution share the unchanged three-second deadline.
 Installer probes still execute adjacent npm, and HTTP fixtures no longer depend on OS-assigned Fetch-blocked ports.
 No timeout, concurrency setting, assertion or coverage gate was weakened.
-This feature is in scope for the `2.6.1-r4` release; publication status is determined by [the formal Release][current-release].
+This feature first shipped in the `2.6.1-r4` release; that revision's publication was established by its formal Release.
+
+## Workspace duplicate prevention and navigation browsing (2.6.1-r5)
+
+Follow [the workspace-duplicate plan](docs/plans/workspace-duplicate-prevention-v1-plan.md).
+Both new-workspace dialogs read the official workspace list before POST; an already-registered root only reports
+"already exists" and sends no POST, without selecting, deleting or merging any existing entry. Pre-existing
+duplicate entries stay as they are. A new directory carries a stable namespaced idempotency key derived from the
+directory identity, so concurrent submissions and unknown-result retries resolve through the official backend.
+Root comparison normalizes common Windows separator, drive-letter case and trailing-separator forms; POSIX keeps
+case and backslashes, and roots are not folded through `..`. Symlink aliases and separate mounts are not merged.
+A failed or untrusted list read stops the submission; a saved result must return a valid ID with the same root.
+The dialogs can browse folders on the Kimi host through the official GET `/api/v1/fs:browse`, one directory per
+call, while the pasted-path input stays. Browsing is not a browser-local device picker and never creates
+directories, workspaces or trust; closing cancels pending reads and no listing, path or token is persisted.
+Desktop list headers add flat/project shortcut buttons that delegate to the native view menu; the active state
+follows native state and the original menu entry remains. No second list or preference store is introduced.
+The model-pool editor now releases its open-state lock if native `showModal` is missing or throws, shows a retryable
+entry error, and synchronizes native close events. These failure paths were reproduced and checked with trusted
+browser-emulated touch input in the complete app. The device-specific unresponsive click was not reproduced;
+its cause is still unconfirmed. This revision does not claim that every mobile opening problem is resolved.
+Acceptance, CI and publication for this revision belong to that plan; unrecorded checks are not passes.
 
 ## Historical baseline records
 
@@ -472,13 +494,15 @@ Broken, unsupported or ambiguous candidates are errors, not missing installation
 Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
 [the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
 The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
-[the 2.6.1-r1 release plan][compat260-plan] retains the baseline evidence, and current checks, CI and assets belong to
-[the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md).
+[the 2.6.1-r1 release plan][compat260-plan] retains the baseline evidence;
+[the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md) keeps the r4 record.
+Current checks, CI and assets belong to
+[the workspace-duplicate plan](docs/plans/workspace-duplicate-prevention-v1-plan.md).
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.6.1-r4` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r4`.
+They resolve `v2.6.1-r5` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r5`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -535,7 +559,7 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r4 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r5 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -941,7 +965,7 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [release252r2-plan]: docs/plans/app-icon-2.5.2-r2-release-v1-plan.md
 [metrics-upgrade-plan]: docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
 [compat260-plan]: docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r4
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r5
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
