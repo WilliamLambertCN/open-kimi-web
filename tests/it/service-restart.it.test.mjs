@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WebSocket, WebSocketServer } from 'ws';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 import { createRestartController } from '../../packages/launcher/src/restart/controller.mjs';
 
 const AUTH = 'Bearer fictional-restart-token';
@@ -31,7 +32,7 @@ async function fixture({ managed = true, enhanced = true } = {}) {
   });
   const wss = new WebSocketServer({ server: upstream });
   wss.on('connection', (ws) => ws.on('message', (data) => { state.frames.push(String(data)); ws.send(data); }));
-  await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+  await listenHttp(upstream);
   cleanups.push(async () => {
     for (const ws of wss.clients) ws.terminate();
     await new Promise((resolve) => wss.close(resolve)); upstream.closeAllConnections();
@@ -41,8 +42,8 @@ async function fixture({ managed = true, enhanced = true } = {}) {
   const prepare = vi.fn(async () => reservation); const stop = vi.fn();
   const control = createRestartController({ prepare: managed ? prepare : undefined, stop });
   const launcher = await createLauncher({ target: `http://127.0.0.1:${upstream.address().port}`,
-    publicDir, host: '127.0.0.1', port: 0, officialPresentation: enhanced, officialWebVersion: '2.5.2',
-    restartControl: control });
+    publicDir, host: '127.0.0.1', port: await availableHttpPort(), officialPresentation: enhanced,
+    officialWebVersion: '2.5.2', restartControl: control });
   cleanups.push(() => launcher.close());
   const call = async (path, options = {}) => {
     const response = await fetch(launcher.url + path, { ...options, headers: { authorization: AUTH, ...options.headers } });

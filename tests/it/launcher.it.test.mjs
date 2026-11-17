@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WebSocket, WebSocketServer } from 'ws';
 
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 
 let upstream;
 let upstreamUrl;
@@ -38,8 +39,8 @@ const allowedApiPaths = [
   '/api/v1/remote-control%23probe', '/api/v1/fs/report%23name:download'];
 const pathProbeHeaders = { 'x-path-policy-probe': 'yes', authorization: 'Bearer it-token' };
 
-function testLauncher(options = {}) {
-  return createLauncher({ target: upstreamUrl, publicDir, host: '127.0.0.1', port: 0, ...options });
+async function testLauncher(options = {}) {
+  return createLauncher({ target: upstreamUrl, publicDir, host: '127.0.0.1', port: await availableHttpPort(), ...options });
 }
 
 function opened(ws) {
@@ -55,7 +56,7 @@ function closeWs(ws) {
 }
 
 function startFakeUpstream() {
-  return new Promise((resolveListen) => {
+  return new Promise((resolveListen, rejectListen) => {
     const server = createServer((req, res) => {
       upstreamRequests.push({ method: req.method, url: req.url });
       if (req.headers['x-path-policy-probe'] === 'yes') {
@@ -106,9 +107,7 @@ function startFakeUpstream() {
         });
       });
     });
-    server.listen(0, '127.0.0.1', () => {
-      resolveListen({ server, wss, url: `http://127.0.0.1:${server.address().port}` });
-    });
+    listenHttp(server).then(() => resolveListen({ server, wss, url: `http://127.0.0.1:${server.address().port}` }), rejectListen);
   });
 }
 
@@ -120,7 +119,7 @@ beforeAll(async () => {
 
   upstream = await startFakeUpstream();
   upstreamUrl = upstream.url;
-  launcher = await createLauncher({ target: upstreamUrl, publicDir, host: '127.0.0.1', port: 0 });
+  launcher = await createLauncher({ target: upstreamUrl, publicDir, host: '127.0.0.1', port: await availableHttpPort() });
   launcherUrl = launcher.url;
 });
 
@@ -479,7 +478,7 @@ describe('shutdown', () => {
       req.socket.once('close', upstreamClosed);
       requestStarted();
     });
-    await new Promise((resolve) => stalled.listen(0, '127.0.0.1', resolve));
+    await listenHttp(stalled);
     const target = `http://127.0.0.1:${stalled.address().port}`;
     const temp = await testLauncher({ target, closeGraceMs: 25 });
     const response = fetch(`${temp.url}/api/v1/hang`).catch(() => null);

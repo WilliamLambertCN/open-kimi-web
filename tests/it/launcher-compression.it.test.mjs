@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { proxyRequest } from '../../packages/launcher/src/httpProxy.mjs';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 
 const HTML = Buffer.from([
   '<!doctype html><html><head><title>Compression fixture</title>',
@@ -19,10 +20,7 @@ const JSON_BODY = Buffer.from(JSON.stringify({ code: 0, data: { output: 'fiction
 const REST_PATH = '/api/v1/sessions/compression-fixture/transcript?page_size=10&before_turn=2';
 
 async function listen(server) {
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolve);
-  });
+  await listenHttp(server);
   return `http://127.0.0.1:${server.address().port}`;
 }
 
@@ -55,7 +53,7 @@ async function withLauncher(run, { handler = (_req, res) => res.writeHead(404).e
       target: await listen(upstream),
       publicDir,
       host: '127.0.0.1',
-      port: 0,
+      port: await availableHttpPort(),
       closeGraceMs: 25,
       officialPresentation,
     });

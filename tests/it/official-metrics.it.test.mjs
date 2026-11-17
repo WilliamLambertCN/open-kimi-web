@@ -4,9 +4,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { createLauncher as launch } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort } from '../testkit/httpPort.mjs';
 import { METRICS_ASSET_PREFIX as prefix } from '../../packages/launcher/src/officialRequestMetrics.mjs';
 import { fixturePrelude, nativeTimingFixture } from '../../packages/launcher/tests/testkit/officialRequestMetrics.mjs';
+
+const createLauncher = async (options) => launch({ ...options, port: await availableHttpPort() });
 
 const source = fixturePrelude + nativeTimingFixture + '\nexport const preloads=["assets/part.js"];' +
   '\nexport const load=()=>import("./part.js");\nexport const absolute=()=>import("/assets/part.js");';

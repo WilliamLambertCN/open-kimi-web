@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,31 +94,60 @@ if (Get-OkwNodeInfo $copy) { throw 'Unpaired npm accepted' }
     expect(result.stdout.trim()).toBe('no npm rejected');
   });
 
-  it.each(['v20.1.0', 'v22.18.99'])('rejects an actual %s executable probe', (version) => {
-    const result = ps(`
-$oldNode = Join-Path $env:FIXTURE 'old-node.exe'
-$source = 'public class Probe { public static void Main() {
-System.Console.WriteLine("{\\"version\\":\\"${version}\\",\\"path\\":\\"old-node.exe\\"}"); } }'
-Add-Type -TypeDefinition $source -OutputAssembly $oldNode -OutputType ConsoleApplication
-if (Get-OkwNodeInfo $oldNode) { throw 'Old Node accepted' }
-'old node rejected'
-`);
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout.trim()).toBe('old node rejected');
-  });
+});
 
-  it.each(['v22.19.0', 'v24.0.0'])('accepts an actual %s probe with adjacent npm', (version) => {
-    const path = process.execPath.replaceAll('\\', '/').replaceAll("'", "''");
+function nodeProbe(version) {
+  const info = JSON.stringify({ version, path: process.execPath.replaceAll('\\', '/') }).replaceAll('"', '\\"');
+  const input = join(root, 'node-probe.cs');
+  const executable = join(root, 'node-probe.exe');
+  writeFileSync(input, 'public class Probe { public static void Main() {' +
+    `System.Console.WriteLine("${info}");System.Console.WriteLine("10.9.4"); } }`);
+  const framework = join(process.env.SystemRoot || 'C:/Windows', 'Microsoft.NET');
+  const compiler = ['Framework64', 'Framework'].map((name) => join(framework, name, 'v4.0.30319/csc.exe')).find(existsSync);
+  if (!compiler) throw new Error('System compiler missing for executable fixture');
+  const result = spawnSync(compiler, ['/nologo', '/noconfig', '/target:exe', `/out:${executable}`, input], {
+    encoding: 'utf8', timeout: 30_000, windowsHide: true,
+  });
+  expect(result.status, result.stderr || result.stdout).toBe(0);
+  return executable;
+}
+
+windows.each([
+  ['v20.1.0', false], ['v22.18.99', false], ['v22.19.0', true], ['v24.0.0', true],
+])('PowerShell Node version %s', (version, accepted) => {
+  let executable;
+  beforeEach(() => { executable = nodeProbe(version); });
+  it('checks the actual executable probe', () => {
     const result = ps(`
-$fakeNode = Join-Path $env:FIXTURE 'node-probe.exe'
-$source = 'public class Probe { public static void Main() {
-System.Console.WriteLine("{\\"version\\":\\"${version}\\",\\"path\\":\\"${path}\\"}"); } }'
-Add-Type -TypeDefinition $source -OutputAssembly $fakeNode -OutputType ConsoleApplication
-if (-not (Get-OkwNodeInfo $fakeNode)) { throw 'Suitable Node rejected' }
-'accepted'
+$info = Get-OkwNodeInfo '${executable.replaceAll("'", "''")}'
+if ([bool] $info -ne $${accepted}) { throw 'Unexpected version verification result' }
+'checked'
 `);
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout.trim()).toBe('accepted');
+    expect(result.stdout.trim()).toBe('checked');
+  });
+});
+
+windows('PowerShell paired Node and npm verification', () => {
+  it.each([
+    ['valid', "console.log('10.9.4')", true],
+    ['invalid output', "console.log('not a version')", false],
+    ['broken', "throw new Error('fixture broken npm')", false],
+    ['unsuccessful', "console.log('10.9.4');process.exitCode=7", false],
+  ])('executes the selected Node with its actual %s adjacent npm CLI', (_, source, accepted) => {
+    const result = ps(`
+$directory = Join-Path $env:FIXTURE 'runtime with spaces & 100%'
+$bin = Join-Path $directory 'node_modules/npm/bin'
+New-Item -ItemType Directory -Path $bin -Force > $null
+$node = Join-Path $directory 'node.exe'
+Copy-Item -LiteralPath '${process.execPath.replaceAll("'", "''")}' -Destination $node
+Set-Content -LiteralPath (Join-Path $bin 'npm-cli.js') -Value '${source.replaceAll("'", "''")}'
+$info = Get-OkwNodeInfo $node
+if ([bool] $info -ne $${accepted}) { throw 'Unexpected runtime verification result' }
+'checked'
+`);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout.trim()).toBe('checked');
   });
 
   it.each(['--revision', '--revision main', '--revision 012345'])('rejects malformed arguments %s', (args) => {

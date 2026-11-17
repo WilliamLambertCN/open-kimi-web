@@ -9,6 +9,7 @@ import { WebSocketServer } from 'ws';
 
 import { createDebugLog } from '../../packages/launcher/src/debugLog.mjs';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 
 export const markers = {
   token: 'fictional-token-privacy-7351', cookie: 'fictional-cookie-privacy-7351',
@@ -69,12 +70,13 @@ export async function fixture({ handler, upgrade, debug = true, launcherOptions 
     }
     wss.handleUpgrade(req, socket, head, (ws) => ws.on('message', (data, binary) => ws.send(data, { binary })));
   });
-  await new Promise((done) => server.listen(0, '127.0.0.1', done));
+  await listenHttp(server);
   const log = debug ? await createDebugLog({ enabled: true, home }) : undefined;
   if (debug) expect(log?.file).toBeTypeOf('string');
   own(() => log?.close());
   const launcher = await createLauncher({
-    target: `http://127.0.0.1:${server.address().port}`, publicDir, host: '127.0.0.1', port: 0,
+    target: `http://127.0.0.1:${server.address().port}`, publicDir, host: '127.0.0.1',
+    port: await availableHttpPort(),
     interfaces: {}, officialPresentation: true, officialWebVersion: '2.4.1', debugLog: log, ...launcherOptions,
   });
   own(() => launcher.close());

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createCronRouteService, serveCron, CRON_PREFIX } from '../../packages/launcher/src/cron/routes.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 
 const authorization = 'Bearer fictional-http-cron-token';
 const now = new Date(2026, 9, 19, 8).getTime();
@@ -37,7 +38,7 @@ function json(res, data, code = 0) {
 }
 
 async function listen(server) {
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenHttp(server);
   servers.push(server);
   return `http://127.0.0.1:${server.address().port}`;
 }

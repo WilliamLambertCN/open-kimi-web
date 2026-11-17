@@ -3,6 +3,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 
 const active = [];
 const basePath = '/api/v1/sessions/qa-session_1/transcript';
@@ -24,10 +25,10 @@ async function start(options = {}, handler) {
     res.writeHead(200, { 'content-type': 'application/json', 'content-length': responseBody.length });
     res.end(responseBody);
   });
-  await new Promise((done) => upstream.listen(0, '127.0.0.1', done));
+  await listenHttp(upstream);
   active.push(() => new Promise((done) => { upstream.closeAllConnections(); upstream.close(done); }));
   const launcher = await createLauncher({ target: `http://127.0.0.1:${upstream.address().port}`,
-    publicDir: '.', host: '127.0.0.1', port: 0, interfaces: [], officialPresentation: true,
+    publicDir: '.', host: '127.0.0.1', port: await availableHttpPort(), interfaces: [], officialPresentation: true,
     officialWebVersion: '2.4.1', ...options });
   active.push(() => launcher.close());
   return { launcher, received };

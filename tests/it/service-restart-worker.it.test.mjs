@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { get } from 'node:http';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,6 +9,19 @@ import { expect, it } from 'vitest';
 import { processAlive } from '../../packages/launcher/src/restart/worker.mjs';
 import { terminateTree } from '../../packages/launcher/src/update/treeCleanup.mjs';
 import { recordProcessStart } from '../../packages/launcher/src/update/windowsTreeCleanup.mjs';
+
+function responseText(port) {
+  return new Promise((resolve, reject) => {
+    const request = get({ hostname: '127.0.0.1', port, signal: AbortSignal.timeout(1000) }, (response) => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => { body += chunk; });
+      response.on('error', reject);
+      response.on('end', () => resolve(body));
+    });
+    request.on('error', reject);
+  });
+}
 
 it('keeps the replacement server alive after its detached restart worker exits', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'okw-restart-worker-'));
@@ -37,8 +51,7 @@ it('keeps the replacement server alive after its detached restart worker exits',
     const code = await new Promise((resolve, reject) => { parent.once('exit', resolve); parent.once('error', reject); });
     expect(code).toBe(0); status = JSON.parse(await readFile(statusPath, 'utf8'));
     await delay(200);
-    const response = await fetch(`http://127.0.0.1:${port}`, { signal: AbortSignal.timeout(1000) });
-    expect(await response.text()).toBe('fictional-replacement'); expect(processAlive(status.pid)).toBe(true);
+    expect(await responseText(port)).toBe('fictional-replacement'); expect(processAlive(status.pid)).toBe(true);
   } finally {
     status ??= await readFile(statusPath, 'utf8').then(JSON.parse).catch(() => undefined);
     if (status && processAlive(status.pid)) {

@@ -11,6 +11,7 @@ import { checkedRun } from '../../packages/launcher/src/update/process.mjs';
 import { resolveTool } from '../../packages/launcher/src/update/toolResolver.mjs';
 import { exists } from '../../packages/launcher/src/update/files.mjs';
 import { globalRoot, identityOptions, networkInjectedRun, packageFixture, put, supportFixture } from './updateFixture.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 
 let directory;
 let oldTgz;
@@ -68,7 +69,7 @@ beforeAll(async () => {
     else if (req.url === '/redirect-r10.tgz') { res.writeHead(302, { Location: '/open-kimi-web-2.1.1-r10.tgz' }); res.end(); }
     else res.end('independent upstream unchanged');
   });
-  await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+  await listenHttp(upstream);
   upstreamUrl = `http://127.0.0.1:${upstream.address().port}`;
   for (const name of ['integration-state', 'official-data', 'certificate-sentinel']) {
     await put(join(directory, name), `${name}:unchanged`);

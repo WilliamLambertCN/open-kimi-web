@@ -21,6 +21,24 @@ function liveChild() {
 }
 
 describe.skipIf(process.platform !== 'win32')('Windows native updater ownership checks', () => {
+  it('confirms concurrent owned cleanups without stopping an independent process', async () => {
+    const independent = liveChild();
+    await once(independent.stdout, 'data');
+    const owned = Array.from({ length: 4 }, () => {
+      const started = Date.now() - 1;
+      const child = liveChild();
+      recordProcessStart(child, started);
+      return child;
+    });
+    await Promise.all(owned.map((child) => once(child.stdout, 'data')));
+    const exited = owned.map((child) => once(child, 'exit'));
+    await Promise.all(owned.map((child) => terminateTree(child)));
+    await Promise.all(exited);
+    for (const child of owned) expect(() => process.kill(child.pid, 0)).toThrow();
+    expect(independent.exitCode).toBeNull();
+    expect(() => process.kill(independent.pid, 0)).not.toThrow();
+  });
+
   it('refuses a real live process whose creation time is outside the recorded spawn window', async () => {
     const child = liveChild();
     await once(child.stdout, 'data');

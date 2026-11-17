@@ -22,6 +22,7 @@ import { superviseWeb } from '../../packages/launcher/src/integration/supervisor
 import { wrapMain } from '../../packages/launcher/src/integration/wrapMain.mjs';
 import { terminateTree } from '../../packages/launcher/src/update/treeCleanup.mjs';
 import { recordProcessStart } from '../../packages/launcher/src/update/windowsTreeCleanup.mjs';
+import { availableHttpPort } from '../testkit/httpPort.mjs';
 
 const FAKE_KIMI = fileURLToPath(
   new URL('../../packages/launcher/tests/integration/fakeKimi.mjs', import.meta.url),
@@ -134,7 +135,7 @@ describe('supervised kimi web', () => {
       const record = join(root, 'record.json');
       const supervised = superviseWeb({
         realKimi: 'fake-kimi',
-        web: WEB_DEFAULTS,
+        web: { ...WEB_DEFAULTS, port: await availableHttpPort() },
         env: env({ FAKE_RECORD: record }),
         deps: deps(),
       });
@@ -321,7 +322,7 @@ describe('supervisor environment options', () => {
       let stop;
       const supervised = superviseWeb({
         realKimi: 'fake-kimi',
-        web: { ...WEB_DEFAULTS, noOpen: false },
+        web: { ...WEB_DEFAULTS, port: await availableHttpPort(), noOpen: false },
         env: env({
           OPEN_KIMI_WEB_DIR: envPublicDir,
           OPEN_KIMI_WEB_VERSION: '1.2.3',

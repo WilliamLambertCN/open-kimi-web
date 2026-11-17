@@ -78,7 +78,7 @@
     section.append(card);
     return { section, trigger, label, summary };
   };
-  const buildPicker = () => {
+  const buildPicker = (prefix = 'okw-subagent') => {
     const picker = element('div', 'mp mp--sheet');
     const searchWrap = element('div', 'search-wrap');
     const search = element('input', 'ui-input ui-input--md okw-subagent-search');
@@ -91,7 +91,7 @@
     searchWrap.append(search, clear);
     const chips = element('div', 'chip-strip');
     const list = element('div', 'model-list');
-    list.id = 'okw-subagent-list';
+    list.id = `${prefix}-list`;
     list.tabIndex = 0;
     attr(list, 'role', 'listbox');
     attr(search, 'aria-controls', list.id);
@@ -198,7 +198,7 @@
     }
     const filtered = models.filter((model) => (state.provider === null || state.provider === model.provider) &&
       [model.label, model.provider, model.id].some((value) => value.toLowerCase().includes(query)));
-    return state.provider === null && !query
+    return state.allowFollow !== false && state.provider === null && !query
       ? [{ id: '', label: copy().follow, provider: '' }, ...filtered] : filtered;
   };
   const syncChildren = (parent, nodes) => {
@@ -228,7 +228,7 @@
     let row = ui.rows.get(model.id);
     if (row) return row;
     row = element('div', 'model-row');
-    row.id = `okw-subagent-option-${ui.rows.size}`;
+    row.id = `${ui.list.id}-option-${ui.rows.size}`;
     row.dataset.model = model.id;
     row.tabIndex = -1;
     attr(row, 'role', 'option');
@@ -334,6 +334,6 @@
     text(ui.summary, choice.model ? `${model?.label || choice.model} · ${identity}${effort}` : copy().follow);
     attr(ui.summary, 'title', ui.summary.textContent);
   };
-  window.__okwMobileSubagentView = { copy, effortLabel, text, attr, build, localize, renderSummary,
+  window.__okwMobileSubagentView = { copy, effortLabel, text, attr, build, buildPicker, localize, renderSummary,
     renderPicker, renderActivity, renderEfforts };
 }

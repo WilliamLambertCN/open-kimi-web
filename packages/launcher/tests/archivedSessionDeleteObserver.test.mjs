@@ -238,7 +238,7 @@ describe('archived delete observer convergence', () => {
 
   it('settles with all injected scripts, 100 messages, and Original theme', async () => {
     const ui = install({ allScripts: true, extraMessages: 100 });
-    expect(ui.names).toHaveLength(57);
+    expect(ui.names).toHaveLength(60);
     expect(ui.names).toEqual(expect.arrayContaining(['requestMetricsConversation.js', 'navigationWorkspace.js',
       'navigationSearchView.js', 'cronApi.js', 'cronView.js', 'cron.js', 'providerModelState.js', 'providerSave.js',
       'effortOrder.js', 'locale.js', 'usageLocale.js', 'providerLocale.js', 'mobileSubagentModelApi.js',

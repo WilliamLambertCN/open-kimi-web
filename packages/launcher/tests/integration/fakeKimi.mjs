@@ -107,24 +107,24 @@ function handle(req, res) {
   res.writeHead(404).end();
 }
 
-function startWeb() {
+async function startWeb() {
+  const { listenHttp } = await import('../../../../tests/testkit/httpPort.mjs');
   const server = createServer(handle);
-  server.listen(0, '127.0.0.1', () => {
-    if (env.FAKE_KIMI_CREATE_TOKEN !== undefined) {
-      writeFileSync(join(kimiHome(), 'server.token'), `${env.FAKE_KIMI_CREATE_TOKEN}\n`);
-    }
-    mkdirSync(join(kimiHome(), 'server', 'instances'), { recursive: true });
-    writeFileSync(registryFile(), JSON.stringify({
-      server_id: serverId,
-      pid: process.pid,
-      host: '127.0.0.1',
-      port: server.address().port,
-      started_at: new Date().toISOString(),
-      heartbeat_at: new Date().toISOString(),
-      host_version: '9.9.9-fake',
-    }));
-    console.log(`fake kimi web listening on 127.0.0.1:${server.address().port}`);
-  });
+  await listenHttp(server);
+  if (env.FAKE_KIMI_CREATE_TOKEN !== undefined) {
+    writeFileSync(join(kimiHome(), 'server.token'), `${env.FAKE_KIMI_CREATE_TOKEN}\n`);
+  }
+  mkdirSync(join(kimiHome(), 'server', 'instances'), { recursive: true });
+  writeFileSync(registryFile(), JSON.stringify({
+    server_id: serverId,
+    pid: process.pid,
+    host: '127.0.0.1',
+    port: server.address().port,
+    started_at: new Date().toISOString(),
+    heartbeat_at: new Date().toISOString(),
+    host_version: '9.9.9-fake',
+  }));
+  console.log(`fake kimi web listening on 127.0.0.1:${server.address().port}`);
   process.on('SIGTERM', () => cleanup(0));
   process.on('SIGINT', () => cleanup(0));
 }
