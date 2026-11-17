@@ -2,7 +2,10 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { createLauncher as launch } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort } from '../testkit/httpPort.mjs';
+
+const createLauncher = async (options) => launch({ ...options, port: await availableHttpPort() });
 
 let directory;
 let launcher;

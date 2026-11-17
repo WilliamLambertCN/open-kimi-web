@@ -5,7 +5,8 @@ import { sendResponse } from './responseCompression.mjs';
 
 const PREFIX = '/__open-kimi-mobile/';
 const APP_VERSION = packageInfo.version;
-const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js'];
+const SUBAGENT_SCRIPTS = ['mobileSubagentModelApi.js', 'mobileSubagentModelView.js', 'mobileSubagentModel.js',
+  'subagentPoolApi.js', 'subagentPoolView.js', 'subagentPool.js'];
 const LOCALE_SCRIPTS = ['locale.js', 'usageLocale.js', 'providerLocale.js'];
 const NAVIGATION_SCRIPTS = ['navigationApi.js', 'navigationSearchView.js', 'navigationSearch.js',
   'navigationWorkspace.js', 'navigation.js', 'cronApi.js', 'cronView.js', 'cron.js'];
@@ -46,6 +47,7 @@ const FILES = new Map([
   ['navigation.css', 'text/css; charset=utf-8'],
   ['cron.css', 'text/css; charset=utf-8'],
   ['mobileSubagentModel.css', 'text/css; charset=utf-8'],
+  ['subagentPool.css', 'text/css; charset=utf-8'],
   ['presentation.css', 'text/css; charset=utf-8'],
   ['foldingDefaults.js', 'text/javascript; charset=utf-8'],
   ['workspaceSortDefault.js', 'text/javascript; charset=utf-8'],
@@ -137,6 +139,7 @@ const STYLES = [
   'desktopSessionMenu.css',
   'mobileSessionMenu.css',
   'mobileSubagentModel.css',
+  'subagentPool.css',
   'workspacePins.css',
   'archivedSessionDelete.css',
   'completionModal.css',

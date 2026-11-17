@@ -5,6 +5,7 @@ import { constants, gunzipSync, gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { sendResponse } from '../../packages/launcher/src/responseCompression.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 
 const BODY = Buffer.from(JSON.stringify({ output: 'fictional tool result\n'.repeat(65536) }));
 const TYPES = { 'content-type': 'application/json' };
@@ -13,7 +14,7 @@ const servers = [];
 
 async function listen(handler) {
   const server = createServer(handler);
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenHttp(server);
   servers.push(server);
   return `http://127.0.0.1:${server.address().port}`;
 }

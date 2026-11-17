@@ -11,6 +11,7 @@ import { startFrontend } from '../../packages/launcher/src/frontend.mjs';
 import { pidAlive } from '../../packages/launcher/src/integration/registryDiscovery.mjs';
 import { managedBackendWebArgs } from '../../packages/launcher/src/integration/supervisor.mjs';
 import { wrapMain } from '../../packages/launcher/src/integration/wrapMain.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 
 const FAKE_KIMI = fileURLToPath(new URL('../../packages/launcher/tests/integration/fakeKimi.mjs', import.meta.url));
 const TOKEN = 'fixture-entry-token-private-marker';
@@ -160,7 +161,9 @@ async function assertNoListener(origin) {
 
 describe('managed wrapper real diagnostic entry', () => {
   it.each(MODES)('$name controls the real supervisor/frontend/sink chain', { timeout: 30_000 }, async (mode) => {
-    const running = remember(wrapMain(['web', '--port', '0', '--no-open', ...mode.flags], entryDeps(fixtureEnv(mode.envValue))));
+    const port = await availableHttpPort();
+    const running = remember(wrapMain(['web', '--port', String(port), '--no-open', ...mode.flags],
+      entryDeps(fixtureEnv(mode.envValue))));
     await expect.poll(localUrl, { timeout: 15_000, interval: 50 }).toBeDefined();
     const url = new URL(localUrl());
     expect(url.hash.startsWith('#token=')).toBe(true);
@@ -194,7 +197,7 @@ async function localBackend() {
       res.writeHead(404).end();
     }
   });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenHttp(server);
   fixture.closers.push(() => new Promise((resolve) => server.close(resolve)));
   return `http://127.0.0.1:${server.address().port}`;
 }
@@ -205,7 +208,7 @@ describe('standalone serve real diagnostic entry', () => {
     const env = fixtureEnv(mode.envValue);
     const args = parseArgs(['node', 'open-kimi-web', 'serve', '--target', target,
       '--web-dir', fixture.publicDir, '--no-token-link', ...mode.flags], env);
-    const { launcher } = await startFrontend({ ...args, ...entryDeps(env), port: 0 });
+    const { launcher } = await startFrontend({ ...args, ...entryDeps(env), port: await availableHttpPort() });
     fixture.closers.push(() => launcher.close());
     const metadata = await exerciseProxy(launcher.url, TOKEN);
     await launcher.close();

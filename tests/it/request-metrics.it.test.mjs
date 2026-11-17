@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 import { conversationFixture } from '../../packages/launcher/tests/testkit/officialConversationMetrics.mjs';
 import { METRICS_ASSET_PREFIX } from '../../packages/launcher/src/officialRequestMetrics.mjs';
 
@@ -43,9 +44,10 @@ beforeAll(async () => {
     const workspace_id = id === 'escape' ? '../outside' : 'work';
     res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ code: 0, data: { id, workspace_id } }));
   });
-  await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+  await listenHttp(upstream);
   target = `http://127.0.0.1:${upstream.address().port}`;
-  launcher = await createLauncher({ publicDir, target, usageHome: home, host: '127.0.0.1', port: 0, interfaces: {},
+  launcher = await createLauncher({ publicDir, target, usageHome: home, host: '127.0.0.1',
+    port: await availableHttpPort(), interfaces: {},
     officialPresentation: true, officialWebVersion: '2.6.0' });
 });
 afterAll(async () => {
@@ -105,8 +107,8 @@ describe('authenticated local conversation request metrics', () => {
     expect((await send(payload({ session: 'escape' }))).status).toBe(404);
   });
   it('never treats an external target as a trusted local home', async () => {
-    const other = await createLauncher({ publicDir, target, host: '127.0.0.1', port: 0, interfaces: {},
-      officialPresentation: true });
+    const other = await createLauncher({ publicDir, target, host: '127.0.0.1', port: await availableHttpPort(),
+      interfaces: {}, officialPresentation: true });
     try {
       expect(await (await send(payload(), {}, other.url)).json()).toEqual({
         available: false, reason: 'unmanaged_target', items: [], pending: false,

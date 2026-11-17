@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createCronClient } from '../../packages/launcher/src/cron/client.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 
 const authorization = 'Bearer fictional-cron-tcp-token';
 const now = new Date(2026, 9, 19, 8).getTime();
@@ -46,7 +47,7 @@ async function startFixture(overrides = {}) {
     }
     await dispatch(req, res, body, state);
   });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenHttp(server);
   servers.push(server);
   const target = `http://127.0.0.1:${server.address().port}`;
   return { target, client: createCronClient({ target }), state, calls };
@@ -185,7 +186,7 @@ describe('real TCP mutation response and redirect boundaries', () => {
   it('refuses redirects without forwarding authorization to the redirect destination', async () => {
     const destination = await startFixture();
     const redirector = createServer((req, res) => res.writeHead(307, { location: destination.target + req.url }).end());
-    await new Promise((resolve) => redirector.listen(0, '127.0.0.1', resolve));
+    await listenHttp(redirector);
     servers.push(redirector);
     const client = createCronClient({ target: `http://127.0.0.1:${redirector.address().port}` });
     await expect(client.list(args)).rejects.toMatchObject({ code: 'redirect' });
