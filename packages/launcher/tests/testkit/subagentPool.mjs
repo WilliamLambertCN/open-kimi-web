@@ -127,6 +127,7 @@ const interact = (view, doc, settled) => {
   const click = (name) => { button(name).click(); return dialog(); };
   const entries = () => [...doc.querySelectorAll('.okw-pool-entry')];
   const triggers = () => [...doc.querySelectorAll('.okw-pool-trigger')];
+  const entryError = () => doc.querySelector('.okw-pool-entry-error');
   const cards = () => [...dialog().querySelectorAll('.okw-pool-card')];
   const cardFor = (alias) => cards().find((card) => card.dataset.model === alias);
   const description = (alias) => cardFor(alias)?.querySelector('.okw-pool-description');
@@ -147,7 +148,7 @@ const interact = (view, doc, settled) => {
     return event;
   };
   return {
-    dialog, open, button, click, entries, triggers, cards, cardFor, description, write, radioFor,
+    dialog, open, button, click, entries, triggers, entryError, cards, cardFor, description, write, radioFor,
     searchInput, typeSearch, key,
     pickerRows: () => [...dialog().querySelectorAll('.okw-pool-chooser .model-row')],
     chips: () => [...dialog().querySelectorAll('.chip')],

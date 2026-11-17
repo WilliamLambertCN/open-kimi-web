@@ -9,11 +9,15 @@
     let current;
     const settingsSelector = '.sheet-root:not(.okw-subagent-overlay), .ui-dialog';
     const ignored = '.okw-pool-dialog, .okw-pool-entry, .a-msg, .sc-body, .chat-scroll, .okw-subagent-overlay';
+    const detach = (state) => {
+      state.closed = true; state.controller?.abort();
+      state.ui.root.remove();
+      if (current === state) current = null;
+    };
     const close = (state, restore = true) => {
       if (state.busy === 'saving') return;
-      state.closed = true; state.controller?.abort();
-      state.ui.root.close(); state.ui.root.remove();
-      if (current === state) current = null;
+      if (state.ui.root.hasAttribute('open')) state.ui.root.close();
+      detach(state);
       if (restore && state.trigger.isConnected) state.trigger.focus({ preventScroll: true });
     };
     const eventsFor = (state) => ({
@@ -115,6 +119,7 @@
       ui.form.addEventListener('submit', (event) => { event.preventDefault(); save(state); });
       [ui.close, ui.cancel].forEach((node) => node.addEventListener('click', () => close(state)));
       ui.root.addEventListener('cancel', (event) => { event.preventDefault(); close(state); });
+      ui.root.addEventListener('close', () => detach(state));
       ui.retry.addEventListener('click', () => state.draft ? save(state) : load(state));
       ui.add.addEventListener('click', () => togglePicker(state, true));
       ui.back.addEventListener('click', () => togglePicker(state, false));
@@ -134,7 +139,14 @@
       state.pickerState = { ui: state.ui, allowFollow: false, choice: { model: '' }, search: '',
         provider: null, selected: 0, visible: [], busy: false, data: { models: [] } };
       current = state; connect(state); document.body.append(state.ui.root); render(state);
-      state.ui.root.showModal(); state.ui.close.focus({ preventScroll: true }); load(state);
+      mount.ui.error.hidden = true;
+      try {
+        if (typeof state.ui.root.showModal !== 'function') throw new Error('missing');
+        state.ui.root.showModal();
+      } catch {
+        detach(state); mount.ui.error.hidden = false; return;
+      }
+      state.ui.close.focus({ preventScroll: true }); load(state);
     };
     const panelTitle = (panel) => panel.getAttribute('aria-label') ?? panel.querySelector('.sheet-title')?.textContent;
     const mobileTarget = (root) => {

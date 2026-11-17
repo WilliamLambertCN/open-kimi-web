@@ -1,0 +1,61 @@
+.okw-desktop-view-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-05, 2px);
+  width: fit-content;
+  margin-top: var(--space-1, 4px);
+  padding: 2px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-hover);
+}
+
+.okw-desktop-view-switch .okw-desktop-view-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-05, 2px) var(--space-2, 8px);
+  border: 0;
+  border-radius: calc(var(--radius-sm, 6px) - 2px);
+  background: transparent;
+  color: var(--faint);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-section-label);
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--duration-base, 160ms) var(--ease-out, ease-out),
+    color var(--duration-base, 160ms) var(--ease-out, ease-out);
+}
+
+.okw-desktop-view-switch .okw-desktop-view-btn:hover {
+  color: var(--dim);
+}
+
+.okw-desktop-view-switch .okw-desktop-view-btn[aria-pressed='true'] {
+  background: var(--color-well);
+  color: var(--dim);
+  box-shadow: 0 0 0 var(--p-hairline, 0.5px) var(--line);
+}
+
+.okw-desktop-view-switch .okw-desktop-view-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--p-focus-ring);
+}
+
+.okw-desktop-view-switch[data-okw-view-reason] {
+  background: transparent;
+}
+
+.okw-desktop-view-switch[data-okw-view-reason] .okw-desktop-view-btn {
+  color: var(--faint);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.okw-desktop-view-switch[data-okw-view-reason] .okw-desktop-view-btn[aria-pressed='true'] {
+  color: var(--dim);
+  text-decoration: none;
+}

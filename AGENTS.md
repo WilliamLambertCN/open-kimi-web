@@ -7,6 +7,7 @@
 
 ## 实施计划
 
+- [工作空间重复创建修复](docs/plans/workspace-duplicate-prevention-v1-plan.md)
 - [子代理候选池与描述编辑](docs/plans/subagent-pool-editor-v1-plan.md)
 - [触摸提示修复与 2.6.1-r3 发布](docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md)
 - [供应商预设保存与 2.6.1-r2 发布](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)
@@ -58,8 +59,8 @@
 
 ## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布 `2.6.1-r4`；
-  [候选池与发布计划](docs/plans/subagent-pool-editor-v1-plan.md)记录本轮边界，不借旧 CI。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布目标为 `2.6.1-r5`；
+  [工作空间与导航计划](docs/plans/workspace-duplicate-prevention-v1-plan.md)记录本轮边界，不借旧 CI。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
   仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。
@@ -102,10 +103,17 @@
   不通过清空重建实现删除，不用 `primary` 伪造继承。两套说明模板不自动删减池或分配模型角色。
   双端共用编辑器；桌面在实际子智能体段定位，2.6.1 位于“智能体与会话”，不是通用页。
   设置 tab 的 `style.display` 切换须触发定向更新；不得因流式聊天扫描设置或丢失正在编辑的草稿。
+  原生弹层打开异常必须释放当前打开状态并在入口提示可重试；原生关闭事件须同步清理，不能留下无响应的入口。
+- `desktopSessionView.js` 快捷按钮委托官方列表视图菜单，不重建列表或另写偏好存储，原排序入口保留。
+  活动状态复用官方存储键；手机和没有原生视图菜单的项目管理页不挂载，不在聊天流式变化时扫描侧栏。
 - `touchTooltip.js` 按实际触摸来源取消官方悬停提示，不按屏幕宽度禁用鼠标或键盘提示。
   复用官方 mouseout／mouseleave 清理计时和浮层，不删除 tooltip DOM、不修改 Vue 状态、ARIA 或主题颜色。
   在原输入事件完整派发后的 task 中清理；微任务可能早于浏览器后续 listener，回归须验证手指仍按住时也不弹出。
   不阻止滚动、点击、编辑和文字选择，不全页扫描或新增 MutationObserver；覆盖混合输入、滚动和页面离开。
+- `navigationWorkspaceApi.js` 创建前读取官方工作空间列表，按根目录身份避免重复；新目录带稳定幂等键，失败不回退无键提交。
+  Windows 形状路径比较大小写和分隔符，POSIX 保留大小写；不自动合并历史重复、符号链接或挂载别名。
+  `navigationFolderApi.js` 只调用官方运行端目录浏览接口；选择仅填表，确认添加才登记，不创建会话、文件夹或信任。
+  路径、目录列表和授权不另行持久化；关闭取消未完成的浏览，不能用手机本地目录选择冒充运行端文件树。
 - `workspacePins.js` 只在当前浏览器保存经过校验的工作区 ID。不得把工作区名称、路径或会话内容写入 `localStorage`；置顶排序只影响展示。
 - `archivedSessionDelete.js` 只增强已归档页中能与官方响应唯一对应的会话行。确认对话框必须包含会话标题
   并明确不可撤销；取消不发请求，重复点击只发一次，失败保留行并显示可读错误，成功后移除或刷新行。
