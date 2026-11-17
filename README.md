@@ -23,6 +23,10 @@
 
 ![模型选择中的供应商导航](docs/images/feature-provider-navigation-desktop.png)
 
+当前 `2.6.1` 界面：桌面列表可直接切换平铺 / 按项目（虚构演示数据）。
+
+<img src="docs/images/feature-desktop-view-switch.png" alt="桌面列表的平铺与按项目按钮" width="300" />
+
 以下旧版截图包含 OKW 曾添加的“插队”按钮。新版已移除重复按钮，发送与插队使用官方界面。
 
 <p>
@@ -40,18 +44,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。[v2.6.1-r4][current-release] 适配 Kimi Code `2.6.1`，保留 `2.6.0` 支持。
+> 非官方社区项目，与 Moonshot AI 无关联。[v2.6.1-r5][current-release] 适配 Kimi Code `2.6.1`，保留 `2.6.0` 支持。
 > 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-260261-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r4'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r5'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.6.1-r4
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.6.1-r5
 }
 ```
 
@@ -60,14 +64,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r4'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r5'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.6.1-r4
+    sh -c "$script" install.sh --revision "$sha" --version 2.6.1-r5
 )
 ```
 
@@ -103,7 +107,8 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 
 ## 有哪些增强
 
-- **手机操作**：搜索会话、输入目录路径创建工作空间、平铺所有会话并选择排序，为子代理选择模型。
+- **会话导航**：电脑和手机都能浏览或粘贴运行端目录新建工作空间，同一目录已登记时只提示已存在，不再重复添加。
+  手机可搜索会话、平铺所有会话并选择排序、为子代理选模型；电脑列表标题旁有平铺／按项目两个按钮，点一下就能换视图。
 - **会话菜单**：电脑三个点打开原生 Fork／分叉菜单；手机三个点可分叉、置顶或取消置顶，
   已置顶会话在列表顶部“已置顶／Pinned”区。置顶只留在本浏览器、同一站点，不跨 IP 同步。
   仍可置顶工作区、按最近活动排序，分叉会话保留 `Fork:` 标记；归档会话永久删除前会再次确认。
@@ -239,4 +244,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r4
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r5

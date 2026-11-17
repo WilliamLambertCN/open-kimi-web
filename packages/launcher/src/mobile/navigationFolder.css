@@ -1,0 +1,40 @@
+.okw-folder-browser {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  min-width: 0;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface, Canvas);
+}
+.okw-folder-browser[hidden], .okw-folder-browser [hidden] { display: none; }
+.okw-folder-browser h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.okw-folder-tools { display: flex; gap: 8px; }
+.okw-folder-path { margin: 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.okw-folder-list { margin: 0; padding: 0; max-height: min(32dvh, 280px); overflow: auto; list-style: none; }
+.okw-navigation-search-panel .okw-folder-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.okw-folder-entry::before {
+  content: '';
+  flex: none;
+  width: 15px;
+  height: 11px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  color: var(--color-text-muted);
+}
+.okw-navigation-search-panel .okw-folder-entry:hover { background: var(--color-hover); }
+.okw-workspace-browse { align-self: flex-start; }
+@media (pointer: coarse) {
+  .okw-navigation-workspace-panel button { min-height: 48px; }
+}

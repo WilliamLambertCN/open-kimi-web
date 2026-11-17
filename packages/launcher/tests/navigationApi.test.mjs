@@ -75,64 +75,13 @@ describe('official navigation search API', () => {
     await expect(ui.window.__okwNavigationSearch({ query: 'fixture' })).rejects.toThrow('Invalid search response');
   });
 });
-describe('official workspace registration API', () => {
-  it('adds a workspace only through the official validated directory registration API', async () => {
-    const ui = install(() => envelope({ id: 'fictional', root: '/workspace/demo' })); await ui.authorize();
-    const controller = new AbortController();
-    await ui.window.__okwNavigationAddWorkspace(' /workspace/demo ', controller.signal);
-    const [url, options] = ui.native.mock.calls.at(-1);
-    expect(url).toBe('/api/v1/workspaces'); expect(options.method).toBe('POST');
-    expect(options.signal).toBe(controller.signal); expect(JSON.parse(options.body)).toEqual({ root: '/workspace/demo' });
-  });
-  it.each([
-    ['Windows copy-as-path', '  "C:\\Fixture Projects\\demo"  ', 'C:\\Fixture Projects\\demo'],
-    ['Windows single quotes', " 'D:\\Fixture Projects\\demo' ", 'D:\\Fixture Projects\\demo'],
-    ['POSIX', '  /srv/fixture project/demo  ', '/srv/fixture project/demo'],
-    ['quoted POSIX', " '/srv/fixture project/demo' ", '/srv/fixture project/demo'],
-    ['embedded quotes', '/srv/it\'s/"demo"', '/srv/it\'s/"demo"'],
-    ['unmatched opening quote', '"C:\\Fixture Projects\\demo', '"C:\\Fixture Projects\\demo'],
-    ['unmatched closing quote', '/srv/fixture"', '/srv/fixture"'],
-    ['mismatched quotes', '\'/srv/fixture"', '\'/srv/fixture"'],
-    ['one outer pair only', '\'"/srv/fixture"\'', '"/srv/fixture"'],
-  ])('normalizes %s without interpreting the server path on the browser OS', async (_, input, expected) => {
-    const ui = install(() => envelope({ id: 'fictional', root: expected })); await ui.authorize();
-    const workspace = await ui.window.__okwNavigationAddWorkspace(input);
-    const [url, options] = ui.native.mock.calls.at(-1);
-    expect(url).toBe('/api/v1/workspaces'); expect(options.method).toBe('POST');
-    expect(options.headers.authorization).toBe('Bearer fictional-only');
-    expect(options.cache).toBe('no-store'); expect(JSON.parse(options.body)).toEqual({ root: expected });
-    expect(workspace.root).toBe(expected); expect(ui.native).toHaveBeenCalledTimes(2);
-  });
-  it.each(['', '  \n\t ', '""', " '' "])(
-    'does not send an empty normalized workspace path (%j)', async (input) => {
-      const ui = install(); await ui.authorize(); ui.native.mockClear();
-      await expect(ui.window.__okwNavigationAddWorkspace(input)).rejects.toThrow('absolute directory path');
-      expect(ui.native).not.toHaveBeenCalled();
-    },
-  );
-  it('does not register a workspace before official page authorization is ready', async () => {
+describe('navigation authorization sharing', () => {
+  it('shares only the current in-memory authorization with the workspace API', async () => {
     const ui = install();
-    await expect(ui.window.__okwNavigationAddWorkspace('/fixture')).rejects.toThrow('Authorization is not ready');
-    expect(ui.native).not.toHaveBeenCalled();
-  });
-  it.each([[40001, 'absolute'], [40409, 'not exist'], [50001, 'Could not add']])(
-    'reports workspace validation error %s without leaking server paths', async (code, message) => {
-      const ui = install(() => new Response(JSON.stringify({ code, msg: 'private server path' }))); await ui.authorize();
-      await expect(ui.window.__okwNavigationAddWorkspace('/fixture')).rejects.toThrow(message);
-    },
-  );
-  it.each([401, 403])('reports workspace HTTP %s as expired authorization', async (status) => {
-    const ui = install(() => new Response('{}', { status })); await ui.authorize();
-    await expect(ui.window.__okwNavigationAddWorkspace('/fixture')).rejects.toThrow('Authorization expired');
-  });
-  it.each([{}, { id: 42, root: '/fixture' }, { id: 'fictional', root: null }])(
-    'requires the official workspace identity and root in the successful response (%j)', async (data) => {
-      const ui = install(() => envelope(data)); await ui.authorize();
-      await expect(ui.window.__okwNavigationAddWorkspace('/fixture')).rejects.toThrow('Invalid workspace response');
-    },
-  );
-  it('rejects invalid JSON without reporting a successful workspace registration', async () => {
-    const ui = install(() => new Response('not json')); await ui.authorize();
-    await expect(ui.window.__okwNavigationAddWorkspace('/fixture')).rejects.toThrow('Could not add');
+    expect(ui.window.__okwNavigationAuthorization()).toBe('');
+    await ui.authorize();
+    expect(ui.window.__okwNavigationAuthorization()).toBe('Bearer fictional-only');
+    await ui.window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer fictional-next' } });
+    expect(ui.window.__okwNavigationAuthorization()).toBe('Bearer fictional-next');
   });
 });
