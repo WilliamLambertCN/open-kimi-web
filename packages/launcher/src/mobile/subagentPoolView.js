@@ -59,6 +59,26 @@
     result.type = 'button';
     return result;
   };
+  const numeric = (value) => Number.parseFloat(value) || 0;
+  const fitDescription = (field) => {
+    if (window.CSS?.supports?.('field-sizing', 'content')) {
+      field.style.removeProperty('height');
+      field.style.removeProperty('overflow-y');
+      return;
+    }
+    const style = window.getComputedStyle(field);
+    const lineHeight = Number.parseFloat(style.lineHeight);
+    if (!Number.isFinite(lineHeight) || lineHeight <= 0) return;
+    const chrome = ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth']
+      .reduce((total, key) => total + numeric(style[key]), 0);
+    const minimum = Math.ceil(lineHeight + chrome);
+    const maximum = Math.ceil((lineHeight * 2) + chrome);
+    field.style.height = 'auto';
+    const contentHeight = Math.max(minimum, field.scrollHeight);
+    field.style.height = `${Math.min(contentHeight, maximum)}px`;
+    field.style.overflowY = contentHeight > maximum ? 'auto' : 'hidden';
+  };
+  const resizeDescriptions = (ui) => ui.cardNodes.forEach((card) => fitDescription(card.description));
   const entry = (mobile) => {
     const section = node('div', `okw-pool-entry${mobile ? ' is-mobile' : ''}`);
     const main = node('div', 'okw-pool-entry-main');
@@ -123,7 +143,7 @@
     const defaultText = node('span'); defaultLabel.append(radio, defaultText);
     const descriptionLabel = node('label', 'okw-pool-description-label');
     const description = node('textarea', 'okw-pool-description');
-    description.id = `okw-pool-description-${index}`; description.rows = 3; descriptionLabel.htmlFor = description.id;
+    description.id = `okw-pool-description-${index}`; description.rows = 1; descriptionLabel.htmlFor = description.id;
     const templates = node('div', 'okw-pool-templates');
     const templateHint = node('span', 'okw-pool-note');
     const strong = button('okw-pool-template'); const fast = button('okw-pool-template');
@@ -131,7 +151,10 @@
     templates.append(templateHint, strong, fast);
     root.append(legend, identity, defaultLabel, descriptionLabel, description, templates);
     radio.addEventListener('change', () => { if (radio.checked) events.default(alias); });
-    description.addEventListener('input', () => events.description(alias, description.value));
+    description.addEventListener('input', () => {
+      fitDescription(description);
+      events.description(alias, description.value);
+    });
     strong.addEventListener('click', () => events.template(alias, 'strongText'));
     fast.addEventListener('click', () => events.template(alias, 'fastText'));
     return { root, legend, identity, radio, defaultText, descriptionLabel, description, templateHint, strong, fast };
@@ -145,6 +168,7 @@
     text(ui.descriptionLabel, words.description); attr(ui.description, 'placeholder', words.placeholder);
     const value = state.draft.entries.get(alias);
     if (ui.description.value !== value) ui.description.value = value;
+    fitDescription(ui.description);
     text(ui.templateHint, words.templates); text(ui.strong, words.strong); text(ui.fast, words.fast);
     ui.root.disabled = !!state.busy;
   };
@@ -199,5 +223,7 @@
     attr(ui.root, 'aria-busy', !!state.busy);
     renderVisibility(state); renderButtons(state);
   };
-  window.__okwSubagentPoolView = { copy, entry, localizeEntry, build, renderCards, localize, renderState };
+  window.__okwSubagentPoolView = {
+    copy, entry, localizeEntry, build, renderCards, localize, renderState, resizeDescriptions,
+  };
 }

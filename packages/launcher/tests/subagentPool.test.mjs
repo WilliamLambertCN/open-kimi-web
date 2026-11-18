@@ -1,6 +1,10 @@
 /** @vitest-environment jsdom */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fixtureConfig, install, requestLog, switchLocale } from './testkit/subagentPool.mjs';
+
+const styles = readFileSync(resolve('packages/launcher/src/mobile/subagentPool.css'), 'utf8');
 
 afterEach(cleanup);
 const pool = {
@@ -84,6 +88,19 @@ describe('subagent pool entries and scopes', () => {
 });
 
 describe('subagent pool candidate cards', () => {
+  it('uses flat candidates and compact one-to-two-line description fields', async () => {
+    const ui = await install({ section: pool });
+    await openMobile(ui);
+    const descriptions = ui.cards().map((card) => card.querySelector('.okw-pool-description'));
+    expect(descriptions.every((field) => field.rows === 1)).toBe(true);
+    expect(styles).toMatch(/\.okw-pool-card\s*\{[^}]*border:\s*0[^}]*background:\s*transparent/su);
+    expect(styles).toMatch(/\.okw-pool-card\s*\{[^}]*border-bottom:\s*1px solid var\(--color-line\)/su);
+    expect(styles).toMatch(/\.okw-pool-description\s*\{[^}]*field-sizing:\s*content/su);
+    expect(styles).toMatch(/\.okw-pool-description\s*\{[^}]*max-height:\s*calc\(3em \+ 11px\)/su);
+    expect(styles).toMatch(/\.okw-pool-description\s*\{[^}]*overflow-y:\s*auto[^}]*resize:\s*none/su);
+    expect(styles).toMatch(/\.okw-pool-description\s*\{[^}]*border:\s*0[^}]*background:\s*transparent/su);
+    expect(styles).not.toMatch(/\.okw-pool-description\s*\{[^}]*surface-overlay/su);
+  });
   it('shows every saved candidate with descriptions, the default and the retained effort', async () => {
     const ui = await install({ section: pool });
     await openMobile(ui);
