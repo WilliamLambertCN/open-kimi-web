@@ -4,6 +4,18 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.6.1-r6] - 2026-11-18
+
+- 子代理候选池改成扁平分隔列表，去掉候选项与说明字段的重复外框、圆角和独立蓝灰背景，继续使用官方主题变量。
+- 说明短内容显示一行，最多显示两行；超出后在字段内部滚动，禁止拖拽放大，窗口宽度变化时重新适配高度。
+- 已检查桌面 Original 浅色、桌面／手机 Nocturne 深色及一行、两行、长说明；不改候选池数据、默认候选、模板或保存协议。
+- 保持准确官方 `2.6.1`／`2.6.0` 兼容范围，不升级官方 CLI，不自动重启生产服务。
+  更新后须手动重启旧服务并刷新页面。
+
+[布局、验证与发布记录](docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md)。
+
+[open-kimi-web v2.6.1-r6]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r6
+
 ## [open-kimi-web v2.6.1-r5] - 2026-11-18
 
 - 双端新建工作空间先检查已登记目录，同一目录不再重复添加；新目录使用官方幂等键，避免并发或重试产生额外条目。

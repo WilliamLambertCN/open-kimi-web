@@ -11,6 +11,7 @@
     const ignored = '.okw-pool-dialog, .okw-pool-entry, .a-msg, .sc-body, .chat-scroll, .okw-subagent-overlay';
     const detach = (state) => {
       state.closed = true; state.controller?.abort();
+      if (state.resize) window.removeEventListener('resize', state.resize);
       state.ui.root.remove();
       if (current === state) current = null;
     };
@@ -131,6 +132,8 @@
         renderPicker(state); ui.search.focus();
       });
       ui.root.addEventListener('keydown', (event) => { navigate(state, event); event.stopPropagation(); });
+      state.resize = () => view.resizeDescriptions(ui);
+      window.addEventListener('resize', state.resize);
     };
     const open = (mount) => {
       if (current) return;
