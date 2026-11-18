@@ -39,7 +39,7 @@
   --okw-session-actions-width: calc(2 * var(--icon-button-sm, 28px) + 2px);
 }
 
-.side .se:has(.okw-desktop-session-menu) > .row > .act > .ha:where(:not(.okw-sidebar-archive-actions)) {
+.side .se:has(.okw-desktop-session-menu) > .row > .act > .ha {
   visibility: visible;
   opacity: 0;
   pointer-events: none;
@@ -69,6 +69,15 @@
 .side .se:has(.okw-desktop-session-menu):has(.okw-sidebar-archive-delete) .t {
   --sb-fade: calc(96px + var(--icon-button-sm, 28px) + 2px);
   --sb-fade-len: 20px;
+}
+
+@media (hover: hover) {
+  .side .se:not(:hover):not(:focus-within):has(
+    > .row > .act > .ha > .ui-tip.okw-sidebar-archive-actions
+  ) > .row > .left > .t {
+    --sb-fade: 0px;
+    --sb-fade-len: 16px;
+  }
 }
 
 @media (hover: none) {
