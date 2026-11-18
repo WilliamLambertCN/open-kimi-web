@@ -17,9 +17,9 @@ or a vendored transcript implementation.
   [the compatibility plan][compat260-plan] and `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.6.1-r6`, retaining exact `2.6.0` and `2.6.1` adaptation.
-  Follow [the Release page][current-release] for publication and the subagent-pool-layout section for this revision;
-  the workspace-navigation and original pool-editor sections below keep the r5 and r4 records.
+- Open Kimi Web release target: `2.6.1-r7`, retaining exact `2.6.0` and `2.6.1` adaptation.
+  Follow [the Release page][current-release] for publication and the completed-sidebar-width section for this revision;
+  the subagent-pool-layout, workspace-navigation and original pool-editor sections below keep the r6, r5 and r4 records.
   [The compatibility plan][compat260-plan] retains the r1 baseline evidence.
   Earlier r4 evidence remains in [the metrics-upgrade plan][metrics-upgrade-plan].
   Metrics have no version gate; the launcher validates the actual entry bundle before rewriting its module graph.
@@ -113,7 +113,7 @@ not older release results.
 ## Kimi Code 2.6.0/2.6.1 adaptation
 
 Follow [the compatibility plan][compat260-plan] for the `2.6.1-r1` release and its acceptance boundaries.
-The online installation commands and package/plugin version select `2.6.1-r6`.
+The online installation commands and package/plugin version select `2.6.1-r7`.
 No existing official CLI is upgraded and no production service is started or restarted.
 
 The exact 2.6.1 release fixes long-session replay performance and usage-anchored token counting/compaction.
@@ -247,6 +247,21 @@ This revision changes presentation only. It does not change the pool shape, defa
 save protocol or the exact 2.6.0/2.6.1 compatibility boundary. Complete-page checks use fictional data across desktop
 Original, desktop Nocturne and mobile Nocturne; physical phones and soft keyboards are not claimed. Current gates, CI,
 package privacy review and publication belong to the r6 plan; older release results are not reused.
+
+## Completed sidebar title width (2.6.1-r7)
+
+Follow [the completed-sidebar-width plan][completed-sidebar-plan]. Official 2.6.1 normally gives an idle session title all
+space before the timestamp and reserves action width only during hover. The archived-session enhancement puts reopen and
+permanent-delete controls inside the official `.ui-tip`, while the desktop session menu is a sibling in `.ha`; the previous
+rule applied the combined action fade even while that action area was hidden. Completed rows therefore appeared to stop well
+before their timestamp.
+
+On precise-pointer devices an idle row with that exact wrapper now restores the native zero action fade. Hover and
+`:focus-within` keep the full action reservation; no-hover devices keep actions visible. The rule changes neither list DOM nor
+view/sort preferences, timestamps, archive requests or session menu behavior. Accurate 2.6.1 scoped markup was checked in
+Chromium for flat/grouped views, short/long labels, 260/296/340 px sidebars, Original light and Nocturne dark. Physical touch
+devices and other browser engines are not claimed. Current gates, CI, package privacy review and publication belong to the r7
+plan; older release results are not reused.
 
 ## Workspace duplicate prevention and navigation browsing (2.6.1-r5)
 
@@ -508,13 +523,13 @@ Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-cl
 The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
 [the 2.6.1-r1 release plan][compat260-plan] retains the baseline evidence;
 [the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md) keeps the r4 record.
-Current checks, CI and assets belong to [the r6 layout plan][layout-plan].
-The workspace-duplicate plan keeps the r5 record.
+Current checks, CI and assets belong to [the r7 completed-sidebar plan][completed-sidebar-plan].
+The r6 layout plan and workspace-duplicate plan keep the r6 and r5 records.
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.6.1-r6` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r6`.
+They resolve `v2.6.1-r7` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r7`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -571,7 +586,7 @@ this is not an all-platform claim.
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r6 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r7 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -978,7 +993,8 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [metrics-upgrade-plan]: docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
 [compat260-plan]: docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
 [layout-plan]: docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r6
+[completed-sidebar-plan]: docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r7
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

@@ -9,8 +9,10 @@ const selector = '.okw-desktop-session-menu';
 const frames = []; const observers = [];
 const tick = () => new Promise((done) => setTimeout(done, 0));
 function rowMarkup(kind = '') {
-  const actions = kind === 'done' ? '<button class="reopen-btn">Reopen</button>' :
-    '<button class="pin-btn">Pin</button><button class="complete-btn">Complete</button>';
+  const actions = kind === 'done'
+    ? '<span class="ui-tip okw-sidebar-archive-actions"><button class="reopen-btn">Reopen</button>' +
+      '<button class="okw-sidebar-archive-delete">Delete</button></span>'
+    : '<button class="pin-btn">Pin</button><button class="complete-btn">Complete</button>';
   return `<div class="se ${kind}"><div class="row"><span class="lead">•</span>` +
     '<div class="left"><span class="t"><span class="t-inner">Same title</span></span></div>' +
     `<span class="act"><span class="ts">now</span><span class="ha">${actions}</span></span></div>` +
@@ -118,6 +120,9 @@ describe('desktop session menu entry', () => {
     await settled(test.state);
     expect(test.doc.querySelectorAll(selector)).toHaveLength(4);
     expect(test.doc.querySelectorAll(`.side .se > .row > .act > .ha > ${selector}`)).toHaveLength(4);
+    expect(test.doc.querySelectorAll('.se.done > .row > .act > .ha > .ui-tip.okw-sidebar-archive-actions'))
+      .toHaveLength(1);
+    expect(test.doc.querySelector('.se.done .ui-tip').nextElementSibling.matches(selector)).toBe(true);
     expect(nodes.every((node) => node.isConnected)).toBe(true);
     expect(test.doc.querySelector('.se').hasAttribute('data-session-id')).toBe(false);
     const button = test.doc.querySelector(selector);
@@ -392,9 +397,11 @@ describe('desktop session menu lifecycle', () => {
   it('uses semantic theme tokens, focus-within reveal, title spacing and archive-action coexistence', () => {
     expect(css).toContain('var(--icon-button-sm'); expect(css).toContain('var(--p-focus-ring)');
     expect(css).toContain('var(--color-hover)'); expect(css).toContain('var(--color-text-muted)');
-    expect(css).toContain(':focus-within'); expect(css).toContain(':where(:not(.okw-sidebar-archive-actions))');
+    expect(css).toContain(':focus-within'); expect(css).toContain('> .row > .act > .ha');
     expect(css).toContain('min-width: var(--okw-session-actions-width)'); expect(css).toContain('--sb-fade: 0px');
-    expect(css).toContain('@media (hover: none)'); expect(css).toContain(':has(.okw-sidebar-archive-delete)');
+    expect(css).toContain('@media (hover: hover)'); expect(css).toContain('@media (hover: none)');
+    expect(css).toContain(':has(.okw-sidebar-archive-delete)');
+    expect(css).toMatch(/\.se:not\(:hover\):not\(:focus-within\):has\([\s\S]*\.ui-tip\.okw-sidebar-archive-actions/iu);
     expect(css).not.toMatch(/data-v-|#[\da-f]{3,8}\b|!important/iu);
     expect(source).not.toMatch(/data-session-id|localStorage|\/api\/|data-v-|\.click\(/u);
   });
