@@ -7,6 +7,7 @@
 
 ## 实施计划
 
+- [已完成侧栏宽度与 2.6.1-r7 发布](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)
 - [子代理候选池布局与 2.6.1-r6 发布](docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md)
 - [工作空间重复创建修复](docs/plans/workspace-duplicate-prevention-v1-plan.md)
 - [子代理候选池与描述编辑](docs/plans/subagent-pool-editor-v1-plan.md)
@@ -60,8 +61,8 @@
 
 ## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布目标为 `2.6.1-r6`；
-  [候选池布局与发布计划](docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md)记录本轮边界，不借旧 CI。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布目标为 `2.6.1-r7`；
+  [已完成侧栏宽度与发布计划](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)记录本轮边界，不借旧 CI。
   `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
   仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。

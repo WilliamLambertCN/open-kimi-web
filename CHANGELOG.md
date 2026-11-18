@@ -4,6 +4,19 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.6.1-r7] - 2026-11-18
+
+- 修复桌面“已完成”会话标题在操作按钮隐藏时仍提前渐隐、日期前留下大块空白的问题。
+  静止时标题使用日期前的完整可用宽度；鼠标悬停、键盘聚焦和无悬停设备仍为恢复、删除和会话菜单保留空间。
+- 已检查准确官方 `2.6.1` 侧栏结构下的平铺／按项目、短长标题、260／296／340 px 宽度及
+  Original 浅色／Nocturne 深色，不修改日期、排序、会话状态或归档协议。
+- 保持准确官方 `2.6.1`／`2.6.0` 兼容范围，不升级官方 CLI，不自动重启生产服务。
+  更新后须手动重启旧服务并刷新页面。
+
+[修复、验证与发布记录](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)。
+
+[open-kimi-web v2.6.1-r7]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r7
+
 ## [open-kimi-web v2.6.1-r6] - 2026-11-18
 
 - 子代理候选池改成扁平分隔列表，去掉候选项与说明字段的重复外框、圆角和独立蓝灰背景，继续使用官方主题变量。
