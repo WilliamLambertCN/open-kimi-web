@@ -61,9 +61,9 @@
 
 ## 官方 2.6.0／2.6.1 与历史版本适配事实
 
-- 当前兼容目标为准确 Kimi Code `2.6.1`，本轮发布目标为 `2.6.1-r7`；
-  [已完成侧栏宽度与发布计划](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)记录本轮边界，不借旧 CI。
-  `UPSTREAM.md`、`upstream.json` 和本轮计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
+- 当前兼容目标为准确 Kimi Code `2.6.1`，发布目标为 `2.6.1-r8`；指标行不再提供悬停说明，不改变指标计算。
+  [已完成侧栏宽度与发布计划](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)是 r7 历史记录，不借旧 CI。
+  `UPSTREAM.md`、`upstream.json` 和历史计划区分源码审计、真实 npm 后端与虚构 API 的完整 app 验收。
   新版 turns/items 的短目录不保存正文或另拉全会话；保留原生首批 WS、旧页 before_ordinal、重连及撤销。
   仅2.6.0／2.6.1停用重复 foldingDefaults；有差异补丁保留待用户决定，旧版路径不删。
   两版准确npm包的638个网页文件逐字节相同，指标仍按完整结构启用，不按版本号过滤。

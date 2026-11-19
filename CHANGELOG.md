@@ -4,6 +4,15 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.6.1-r8] - 2026-11-20
+
+- 移除逐次请求指标行的鼠标悬停解释，保留 TTFT、平均 TPS、缓存命中率及其计算方式。
+  历史消息与实时指标都不再显示该提示；其他按钮的提示不受影响。
+- 保持官方 `2.6.1`／`2.6.0` 兼容范围，不升级官方 CLI，也不自动重启已有服务。
+  更新后须手动重启旧服务并刷新页面。
+
+[open-kimi-web v2.6.1-r8]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r8
+
 ## [open-kimi-web v2.6.1-r7] - 2026-11-18
 
 - 修复桌面“已完成”会话标题在操作按钮隐藏时仍提前渐隐、日期前留下大块空白的问题。
