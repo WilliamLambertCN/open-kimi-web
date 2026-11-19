@@ -1,13 +1,12 @@
 # Open Kimi Web 2.4.1-r3 推送与发布
 
-用户明确授权“推送吧，发布”。当前远端 latest 为 v2.4.1-r2，r3 不存在；develop 与 main 均与远端一致。
-本次发布已完成的双端分叉菜单、手机置顶，以及工作树内已完成验收但未发布的局域网 CA 与手机证书安装指引。
-不纳入原 .tmp/、ignored cache、真实会话、证书或凭据；不改变官方兼容基线 2.4.1。
+发布范围包括已验收的双端分叉菜单、手机置顶、局域网 CA 与手机证书安装指引。
+发布前远端 latest 为 v2.4.1-r2，r3 尚不存在；develop 与 main 均与远端一致，官方兼容基线保持 2.4.1。
+不纳入临时数据、缓存、真实会话、证书或凭据。
 
 ## 执行顺序
 
-1. 本文作为完整发布基线，由 AGENTS.md 链接。
-   此次用户授权覆盖功能计划此前不提交／不发布的阶段限制，不包含生产重启、修改设备信任或旧版本。
+1. 本文作为完整发布基线，由 AGENTS.md 链接；不涉及生产重启、修改设备信任或旧版本。
 2. 以 packages/launcher/package.json 与 kimi.plugin.json 为版本入口，同步为 2.4.1-r3。
    更新 README.md、packages/launcher/README.md、skills/open-kimi-web/SKILL.md、UPSTREAM.md 和 CHANGELOG.md。
    按补充要求重排 README：界面预览置于最前，一键安装两段在线命令归入“快速上手”，去掉重复介绍。
