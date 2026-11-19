@@ -9,19 +9,9 @@
     const words = () => window.__okwLocale?.current() === 'zh' ? {
       title: '模型请求统计', average: '平均 TPS', cache: '缓存命中',
       failed: '失败', interrupted: '已中断', missing: '未提供',
-      note: 'TTFT：从本次请求构建到首段生成内容返回，流式思考也算首段。' +
-        '平均 TPS：官方输出 token 数除以请求总耗时（TTFT＋后续流式耗时），不含工具执行或其它调用。' +
-        '思考 token 不重复计数；缺少计时或总耗时不足 50 ms 时不估算。这不是模型纯解码速度。' +
-        '缓存命中：从缓存读取的输入 token 占全部输入 token 的比例，新写入缓存不算命中；缺少用量时显示 —。',
     } : {
       title: 'Model request metrics', average: 'Avg TPS', cache: 'Cache hit',
       failed: 'Failed', interrupted: 'Interrupted', missing: 'Unavailable',
-      note: 'TTFT: request build to first generated content, including streamed reasoning. ' +
-        'Avg TPS: official output tokens divided by total request seconds (TTFT plus streaming). ' +
-        'Tools and other calls are excluded. ' +
-        'Reasoning tokens are not added again; no estimate for missing timing or totals under 50 ms. ' +
-        'This is not model-only decoder speed. ' +
-        'Cache hit: cached input tokens divided by all input tokens; new cache writes are not hits. Missing usage is shown as —.',
     };
     const agentFor = (chat) => {
       if (chat.closest('.sc')) return window.__okwSideChatModel?.identity(chat.closest('.sc'))?.agent ?? null;
@@ -43,7 +33,6 @@
       const copy = words();
       const label = labelFor(request, copy);
       if (node.textContent !== label) node.textContent = label;
-      if (node.title !== copy.note) node.title = copy.note;
       const missing = [request.ttft, request.tps, request.cacheHitRate].includes(null) ? ` · ${copy.missing}` : '';
       const accessible = `${copy.title} · ${label}${missing}`;
       if (node.getAttribute('aria-label') !== accessible) node.setAttribute('aria-label', accessible);
