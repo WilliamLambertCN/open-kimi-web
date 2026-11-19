@@ -36,9 +36,11 @@ describe('conversation-native per-request metrics', () => {
     const api = vi.fn(); const raw = value({ timing: { first_token_ms: 500, stream_ms: 1500 } });
     const test = setup(undefined, { html: assistant('reply', slot(raw)), conversationApi: api });
     await settle(test); expect(label(test)).toContain('Avg TPS 50.0'); expect(api).not.toHaveBeenCalled();
+    expect(test.doc.querySelector('.okw-request-metrics').hasAttribute('title')).toBe(false);
     test.locale('zh'); await test.settle(); expect(label(test)).toContain('平均 TPS 50.0');
     test.doc.querySelector('.chat').innerHTML = assistant('remount', slot(raw));
     await test.settle(); expect(label(test)).toContain('缓存命中 75.00%');
+    expect(test.doc.querySelector('.okw-request-metrics').hasAttribute('title')).toBe(false);
   });
   it('does not confuse absent timing, cache zero, unavailable local source or incomplete usage', async () => {
     const api = vi.fn(async () => ({ available: false, reason: 'unmanaged_target', items: [], pending: false }));

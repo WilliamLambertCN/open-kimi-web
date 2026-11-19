@@ -4,6 +4,11 @@ import { setup, cleanup, response, envelope, turn, step, assistant, timingSlot, 
 
 afterEach(cleanup);
 const label = (test) => test.doc.querySelector('.okw-request-metrics')?.textContent;
+const expectMetric = (node, text, accessible) => {
+  expect(node.hasAttribute('title')).toBe(false);
+  expect(node.textContent).toBe(text);
+  expect(node.getAttribute('aria-label')).toBe(accessible);
+};
 const complete = (stepId, ordinal, extra = {}) => step({ stepId, ordinal, ...extra });
 const calls = (count) => Array.from({ length: count }, (_, i) => complete(`s${i}`, i));
 const merged = (count) => '<div class="a-msg" data-turn-id="first-thought"><div class="history-window">' +
@@ -16,8 +21,11 @@ describe('request metrics at exact native model-step boundaries', () => {
   it('adds one compact line beside its own response, preserving actions and source text', async () => {
     const test = setup(); const message = test.doc.querySelector('.a-msg');
     const footer = message.querySelector('.a-msg-ft'); const click = vi.fn(); footer.querySelector('button').onclick = click;
-    await test.load(); expect(label(test)).toBe('TTFT 1.20 s · Avg TPS 31.3 tok/s · Cache hit 75.00%');
-    expect(message.querySelector('.okw-request-metrics').title).toContain('TTFT plus streaming');
+    footer.querySelector('button').title = 'Copy message';
+    await test.load();
+    const text = 'TTFT 1.20 s · Avg TPS 31.3 tok/s · Cache hit 75.00%';
+    expectMetric(message.querySelector('.okw-request-metrics'), text, `Model request metrics · ${text}`);
+    expect(footer.querySelector('button').title).toBe('Copy message');
     expect(message.querySelector('.step-timing').nextElementSibling).toBe(footer);
     expect(message.lastElementChild).toBe(footer); expect(footer.textContent).toContain('08:00');
     footer.querySelector('button').click(); expect(click).toHaveBeenCalledOnce();
@@ -40,16 +48,17 @@ describe('request metrics at exact native model-step boundaries', () => {
       { state: 'interrupted', llmTiming: undefined, usage: undefined })] })]))),
     { html: assistant() + assistant('f1', timingSlot('s1', 'interrupted')) });
     await test.load();
-    expect([...test.doc.querySelectorAll('.okw-request-metrics')].map((node) => node.textContent)).toEqual([
-      'TTFT 1.20 s · Avg TPS 31.3 tok/s · Cache hit 75.00%', 'TTFT — · Avg TPS — · Cache hit — · Interrupted',
-    ]);
+    const metrics = test.doc.querySelectorAll('.okw-request-metrics');
+    const english = 'TTFT 1.20 s · Avg TPS 31.3 tok/s · Cache hit 75.00%';
+    const interrupted = 'TTFT — · Avg TPS — · Cache hit — · Interrupted';
+    expectMetric(metrics[0], english, `Model request metrics · ${english}`);
+    expectMetric(metrics[1], interrupted, `Model request metrics · ${interrupted} · Unavailable`);
     test.locale('zh'); await flush();
-    expect(label(test)).toBe('TTFT 1.20 s · 平均 TPS 31.3 tok/s · 缓存命中 75.00%');
-    expect(test.doc.querySelectorAll('.okw-request-metrics')[1].textContent)
-      .toBe('TTFT — · 平均 TPS — · 缓存命中 — · 已中断');
-    const note = test.doc.querySelector('.okw-request-metrics').title;
-    expect(note).toContain('流式思考也算首段'); expect(note).toContain('TTFT＋后续流式耗时');
-    expect(note).toContain('新写入缓存不算命中'); await test.settle();
+    const chinese = 'TTFT 1.20 s · 平均 TPS 31.3 tok/s · 缓存命中 75.00%';
+    const interruptedZh = 'TTFT — · 平均 TPS — · 缓存命中 — · 已中断';
+    expectMetric(metrics[0], chinese, `模型请求统计 · ${chinese}`);
+    expectMetric(metrics[1], interruptedZh, `模型请求统计 · ${interruptedZh} · 未提供`);
+    await test.settle();
   });
   it('distinguishes missing cache usage from explicit zero and keeps cache independent of timing', async () => {
     const test = setup(vi.fn(async () => response(envelope([turn({ steps: [step({ usage: { output: 100 } })] })]))));
@@ -59,9 +68,13 @@ describe('request metrics at exact native model-step boundaries', () => {
     test.emit(socket, 'transcript.ops', { seq: 1, ops: [{ op: 'step.upsert', turnId: 't0', step: step({
       llmTiming: undefined, usage: { inputOther: 10, inputCacheRead: 0, inputCacheCreation: 5, output: 100 },
     }) }] });
-    await test.settle(); expect(label(test)).toBe('TTFT — · Avg TPS — · Cache hit 0.00%');
+    await test.settle();
+    const updated = 'TTFT — · Avg TPS — · Cache hit 0.00%';
+    expectMetric(test.doc.querySelector('.okw-request-metrics'), updated, `Model request metrics · ${updated} · Unavailable`);
     test.emit(socket, 'transcript.ops', { seq: 2, ops: [{ op: 'step.upsert', turnId: 't0', step: step() }] });
-    await test.settle(); expect(label(test)).toBe('TTFT 1.20 s · Avg TPS 31.3 tok/s · Cache hit 75.00%');
+    await test.settle();
+    const restored = 'TTFT 1.20 s · Avg TPS 31.3 tok/s · Cache hit 75.00%';
+    expectMetric(test.doc.querySelector('.okw-request-metrics'), restored, `Model request metrics · ${restored}`);
     expect(test.doc.querySelectorAll('.okw-request-metrics')).toHaveLength(1);
   });
 });
