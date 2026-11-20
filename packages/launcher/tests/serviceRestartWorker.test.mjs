@@ -1,7 +1,9 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { prepareRestart, restartCommand } from '../src/restart/launch.mjs';
-import { launchReplacement, restartWorker, waitForParentExit } from '../src/restart/worker.mjs';
+import {
+  launchReplacement, restartWorker, runRestartWorker, waitForParentExit, waitForReplacementSlots,
+} from '../src/restart/worker.mjs';
 
 const command = { cwd: '/fictional/work', args: ['entry.mjs', '__wrap', 'web', '--host', '--no-open'],
   execArgv: [], port: 48627 };
@@ -31,6 +33,9 @@ describe('restart worker preparation', () => {
     expect(fork.mock.calls[0][2]).toMatchObject({ detached: true, cwd: command.cwd, env, execArgv: [] });
     const commit = prepared.commit(); c.emit('message', { type: 'unrelated' });
     c.emit('message', { type: 'committed' }); expect(await commit).toBe(true);
+    expect(c.disconnect).not.toHaveBeenCalled();
+    prepared.release();
+    expect(c.send).toHaveBeenCalledWith({ type: 'release' }, expect.any(Function));
     expect(c.disconnect).toHaveBeenCalledOnce(); expect(c.unref).toHaveBeenCalledOnce();
   });
   it('cancels uncommitted workers and refuses dead workers', async () => {
@@ -86,9 +91,11 @@ describe('replacement readiness and bounded recovery', () => {
     c.emit('error', new Error('fictional failure')); await expect(task).rejects.toThrow('replacement-startup-failed');
     expect(terminate).toHaveBeenCalledWith(c, {});
     const launch = vi.fn().mockRejectedValueOnce(new Error('replacement-startup-failed')).mockResolvedValueOnce();
-    await restartWorker(command, { wait: vi.fn(), sleep: vi.fn(), launch }); expect(launch).toHaveBeenCalledTimes(2);
+    await restartWorker(command, { wait: vi.fn(), slots: vi.fn(), sleep: vi.fn(), launch });
+    expect(launch).toHaveBeenCalledTimes(2);
     const unsafe = vi.fn(async () => { throw new Error('replacement-cleanup-unconfirmed'); });
-    await expect(restartWorker(command, { wait: vi.fn(), launch: unsafe })).rejects.toThrow('cleanup-unconfirmed');
+    await expect(restartWorker(command, { wait: vi.fn(), slots: vi.fn(), launch: unsafe }))
+      .rejects.toThrow('cleanup-unconfirmed');
     expect(unsafe).toHaveBeenCalledOnce();
   });
   it('refuses recovery if a replacement already exited and its descendants cannot be confirmed stopped', async () => {
@@ -102,5 +109,69 @@ describe('replacement readiness and bounded recovery', () => {
     const launch = vi.fn();
     await expect(restartWorker(command, { wait: async () => { throw new Error('still-running'); }, launch }))
       .rejects.toThrow('still-running'); expect(launch).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('cancellable armed restart worker', () => {
+  it('allows cancellation after ACK without disconnecting or releasing the replacement early', async () => {
+    const c = child(); const task = prepareRestart(command, { fork: () => c });
+    c.emit('message', { type: 'prepared' }); const ready = await task;
+    const committed = ready.commit(); c.emit('message', { type: 'committed' });
+    expect(await committed).toBe(true); expect(c.disconnect).not.toHaveBeenCalled();
+    ready.cancel(); ready.cancel();
+    expect(c.send.mock.calls.filter(([message]) => message.type === 'cancel')).toHaveLength(1);
+    expect(c.disconnect).toHaveBeenCalledOnce(); expect(await ready.commit()).toBe(false);
+  });
+
+  it('does not start a replacement while the acknowledged parent is still connected', async () => {
+    const channel = child(); const restart = vi.fn(async () => {}); const exit = vi.fn();
+    runRestartWorker(channel, { restart, exit, parentPid: 4444 });
+    channel.emit('message', { type: 'prepare', command }); channel.emit('message', { type: 'commit' });
+    expect(channel.send).toHaveBeenCalledWith({ type: 'committed' }, expect.any(Function));
+    expect(restart).not.toHaveBeenCalled();
+    channel.emit('disconnect'); await Promise.resolve();
+    expect(restart).toHaveBeenCalledWith(command, { parentPid: 4444 }); expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it('survives a lost ACK when the parent exits, but discards an unarmed worker', async () => {
+    const channel = child(); const restart = vi.fn(async () => {}); const exit = vi.fn();
+    channel.send.mockImplementation((_message, callback) => callback?.(new Error('parent disappeared')));
+    runRestartWorker(channel, { restart, exit });
+    channel.emit('message', { type: 'prepare', command }); channel.emit('message', { type: 'commit' });
+    expect(exit).not.toHaveBeenCalled(); channel.emit('disconnect'); await Promise.resolve();
+    expect(restart).toHaveBeenCalledOnce();
+    const unarmed = child(); runRestartWorker(unarmed, { restart, exit }); unarmed.emit('disconnect');
+    expect(restart).toHaveBeenCalledOnce(); expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it('cancels an armed worker without launching and bounds preparation with no parent', async () => {
+    vi.useFakeTimers(); const channel = child(); const restart = vi.fn(); const exit = vi.fn();
+    runRestartWorker(channel, { restart, exit });
+    channel.emit('message', { type: 'prepare', command }); channel.emit('message', { type: 'commit' });
+    channel.emit('message', { type: 'cancel' }); channel.emit('disconnect');
+    expect(exit).toHaveBeenCalledWith(0); expect(restart).not.toHaveBeenCalled();
+    const idle = child(); runRestartWorker(idle, { restart, exit });
+    await vi.advanceTimersByTimeAsync(20_000); expect(exit).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('replacement address release and backend ownership', () => {
+  const managed = { ...command, host: '127.0.0.1', backend: { host: '127.0.0.1', port: 58627, pid: 4444 } };
+  it('waits for both owned listener slots rather than racing the old launcher close', async () => {
+    const released = vi.fn().mockResolvedValueOnce(false).mockResolvedValue(true); const sleep = vi.fn();
+    await waitForReplacementSlots(managed, { alive: () => false, released, sleep });
+    expect(sleep).toHaveBeenCalledOnce();
+    expect(released.mock.calls.map(([address]) => address.port)).toEqual([48627, 58627, 48627, 58627]);
+  });
+
+  it('refuses a surviving backend or occupied address without starting or killing anything', async () => {
+    const launch = vi.fn(); const released = vi.fn(async () => true);
+    await expect(restartWorker(managed, { wait: vi.fn(), launch, alive: () => true, released, sleep: vi.fn() }))
+      .rejects.toThrow('original-backend-still-running');
+    expect(launch).not.toHaveBeenCalled(); expect(released).not.toHaveBeenCalled();
+    await expect(waitForReplacementSlots(managed, { alive: () => false, released: () => false, sleep: vi.fn() }))
+      .rejects.toThrow('restart-address-in-use');
+    expect(launch).not.toHaveBeenCalled();
   });
 });

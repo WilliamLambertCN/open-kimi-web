@@ -4,7 +4,7 @@ import { addMobilePresentation } from '../src/officialPresentation.mjs';
 const html = '<html><head><script type="module" src="/assets/index.js"></script></head></html>';
 const prefix = '/__open-kimi-mobile/';
 describe('conversation presentation resource boundary', () => {
-  it.each(['2.6.0', '2.6.1'])('selects %s conversation resources before boot without rewriting folding', (version) => {
+  it.each(['2.6.0', '2.6.1', '2.7.2'])('selects %s conversation resources before boot without rewriting folding', (version) => {
     const text = addMobilePresentation(html, { officialWebVersion: version });
     expect(text).toContain(prefix + 'conversationMetadata.js');
     for (const old of ['mobileConversationTocMetadata.js', 'foldingDefaults.js', 'sideChatScroll.js']) {
@@ -15,6 +15,11 @@ describe('conversation presentation resource boundary', () => {
     for (const different of ['imagePreviewGuard.js', 'notificationPermission.js', 'messageTimestamps.js']) {
       expect(text).toContain(prefix + different);
     }
+  });
+  it('leaves destructive actions to native session rows on 2.7.2 only', () => {
+    const injection = (officialWebVersion) => addMobilePresentation(html, { officialWebVersion });
+    expect(injection('2.7.2')).not.toContain(prefix + 'archivedSessionDelete.js');
+    expect(injection('2.6.1')).toContain(prefix + 'archivedSessionDelete.js');
   });
   it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.2', '2.6.1-rc.1', undefined])('preserves legacy resources for %s', (version) => {
     const text = addMobilePresentation(html, { officialWebVersion: version });

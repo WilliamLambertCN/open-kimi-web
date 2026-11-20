@@ -85,9 +85,13 @@ afterEach(async () => {
 });
 
 describe('real TCP restricted Cron client', () => {
-  it.each(['2.3.1', '2.4.1'])('reads %s task memory but rejects writes before any debug mutation over TCP', async (version) => {
+  it.each(['2.3.1', '2.4.1', '2.7.2'])(
+  'reads %s task memory but rejects writes before any debug mutation over TCP', async (version) => {
     const saved = task(1);
-    const { client, state, calls } = await startFixture({ meta: { ...meta, server_version: version }, tasks: [saved] });
+    const actualMeta = version === '2.7.2'
+      ? { server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false }
+      : { ...meta, server_version: version };
+    const { client, state, calls } = await startFixture({ meta: actualMeta, tasks: [saved] });
     expect(await client.list(args)).toEqual([saved]);
     await expect(client.create({ ...args, init })).rejects.toMatchObject({ code: 'read-only-version' });
     await expect(client.remove({ ...args, id: saved.id })).rejects.toMatchObject({ code: 'read-only-version' });
@@ -157,6 +161,9 @@ describe('real TCP restricted Cron client', () => {
     expect(calls.some((call) => /addTask|\/now$|\/list$/.test(call.path))).toBe(false);
   });
 
+});
+
+describe('real TCP Cron serialization', () => {
   it('serializes same-session creates across client instances and rejects task 51', async () => {
     const { client, target, state, calls } = await startFixture({ tasks: Array.from({ length: 49 }, (_, i) => task(i + 1)) });
     const second = createCronClient({ target });

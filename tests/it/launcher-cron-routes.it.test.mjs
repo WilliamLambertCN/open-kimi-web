@@ -57,9 +57,10 @@ async function fixture({ enabled = true, version = '2.2.0', onUnsafeBackend, hom
       res.writeHead(401, { 'content-type': 'application/json' }).end(JSON.stringify({ code: 40101 }));
     } else if (method === 'meta') {
       if (state.hold) await state.hold;
-      json(res, { server_version: version, backend: 'v2', dangerous_bypass_auth: false });
+      json(res, { server_version: version, dangerous_bypass_auth: false,
+        ...(version === '2.7.2' ? { kimi_agent_protocol_version: '1.0.0' } : { backend: 'v2' }) });
     } else if (method === 'remote-control') json(res, state.rc);
-    else if (inventoryCall(req, res)) return;
+    else if (inventoryCall(req, res, version)) return;
     else if (!state.loaded) json(res, null, 40401);
     else nativeCall({ req, res, state, method, body });
   });
@@ -74,18 +75,26 @@ async function fixture({ enabled = true, version = '2.2.0', onUnsafeBackend, hom
   return { origin, state };
 }
 
-function inventoryCall(req, res) {
+function inventoryCall(req, res, version) {
   const url = new URL(req.url, 'http://127.0.0.1');
-  if (url.pathname === '/api/v2/sessions') {
-    const item = { id: 'http-fixture', workspace: { id: 'fixture-workspace', cwd: '/fictional/workspace' },
-      meta: { archived: false, title: 'Fictional inventory session' }, activity: { model: null } };
-    const next = url.searchParams.has('page_token');
-    json(res, { items: next ? [] : [item], has_more: !next, next_page_token: next ? null : 'next+opaque/value=' });
+  const unified = version === '2.7.2';
+  if (url.pathname === (unified ? '/api/v1/sessions' : '/api/v2/sessions')) {
+    const item = unified ? { id: 'http-fixture', workspace_id: 'fixture-workspace', cwd: '/fictional/workspace',
+      title: 'Fictional inventory session', archived: false, activity: 'idle', pending_interaction: 'none' }
+      : { id: 'http-fixture', workspace: { id: 'fixture-workspace', cwd: '/fictional/workspace' },
+        meta: { archived: false, title: 'Fictional inventory session' }, activity: { model: null } };
+    inventoryPage(url, res, item, unified);
   } else if (url.pathname === '/api/v1/debug/sessionManager/list') json(res, []);
-  else if (url.pathname === '/api/v1/sessions/http-fixture/profile') {
+  else if (url.pathname === '/api/v1/sessions/http-fixture' + (unified ? '' : '/profile')) {
     json(res, { id: 'http-fixture', workspace_id: 'fixture-workspace' });
   } else return false;
   return true;
+}
+
+function inventoryPage(url, res, item, unified) {
+  if (unified) return json(res, { items: [item], total: 1, has_more: false });
+  const next = url.searchParams.has('page_token');
+  json(res, { items: next ? [] : [item], has_more: !next, next_page_token: next ? null : 'next+opaque/value=' });
 }
 
 function nativeCall({ req, res, state, method, body }) {
@@ -179,7 +188,7 @@ describe('Cron assets and read-only inventory on TCP', () => {
   });
 });
 
-describe.each(['2.3.1', '2.4.1'])('Cron %s read-only HTTP on TCP', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.7.2'])('Cron %s read-only HTTP on TCP', (version) => {
   it('serves cold inventory/history and live snapshots while rejecting both HTTP writes without debug mutations',
     async () => {
       const home = await fixtureHome();

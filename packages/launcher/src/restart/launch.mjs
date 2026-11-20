@@ -8,7 +8,8 @@ export function restartCommand(web, argv = process.argv) {
   if (!args[0] || args[1] !== '__wrap' || args[2] !== 'web') throw new Error('restart-entry-unavailable');
   if (!args.includes('--no-open')) args.push('--no-open');
   if (web.port === 0) throw new Error('restart-requires-fixed-port');
-  return { args, execArgv: [...process.execArgv], cwd: process.cwd(), port: web.port ?? 48627 };
+  return { args, execArgv: [...process.execArgv], cwd: process.cwd(), port: web.port ?? 48627,
+    host: web.hostBare ? '127.0.0.1' : web.host ?? '127.0.0.1' };
 }
 
 function disconnect(child) {
@@ -28,7 +29,6 @@ function commitWorker(child) {
       settled = true;
       clearTimeout(timer);
       child.off('message', acknowledged); child.off('exit', failed); child.off('error', failed);
-      if (ok) { disconnect(child); child.unref(); }
       resolve(ok);
     };
     const acknowledged = (message) => { if (message?.type === 'committed') done(true); };
@@ -39,20 +39,41 @@ function commitWorker(child) {
   });
 }
 
+function reservationFor(child) {
+  let canceled = false;
+  let committed;
+  return {
+    ready: () => !canceled && child.connected && child.exitCode === null,
+    commit() {
+      if (canceled) return Promise.resolve(false);
+      committed ??= commitWorker(child);
+      return committed;
+    },
+    cancel() {
+      if (canceled) return;
+      canceled = true;
+      if (child.connected) send(child, { type: 'cancel' }, () => {});
+      disconnect(child); child.unref();
+    },
+    release() {
+      if (canceled) return;
+      send(child, { type: 'release' }, () => {});
+      disconnect(child); child.unref();
+    },
+  };
+}
+
 export async function prepareRestart(command, options = {}) {
   const child = (options.fork ?? fork)(WORKER, [], {
     cwd: command.cwd, env: options.env ?? process.env, detached: true,
     stdio: ['ignore', 'ignore', 'ignore', 'ipc'], execArgv: [], windowsHide: true,
   });
+  const reservation = reservationFor(child);
   return new Promise((resolve, reject) => {
     let settled = false;
-    const cancel = () => {
-      if (child.connected) send(child, { type: 'cancel' }, () => {});
-      disconnect(child); child.unref();
-    };
     const fail = () => {
       if (settled) return;
-      settled = true; clearTimeout(timer); cancel(); reject(new Error('restart-worker-unavailable'));
+      settled = true; clearTimeout(timer); reservation.cancel(); reject(new Error('restart-worker-unavailable'));
     };
     const timer = setTimeout(fail, 8000);
     child.on('error', fail);
@@ -60,7 +81,7 @@ export async function prepareRestart(command, options = {}) {
     child.on('message', (message) => {
       if (message?.type !== 'prepared' || settled) return;
       settled = true; clearTimeout(timer);
-      resolve({ cancel, commit: () => commitWorker(child) });
+      resolve(reservation);
     });
     child.once('spawn', () => send(child, { type: 'prepare', command }, (error) => { if (error) fail(); }));
   });

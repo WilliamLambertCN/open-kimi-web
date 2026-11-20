@@ -14,7 +14,7 @@ function install(response = () => new Response(JSON.stringify({ tasks: [task] })
     authorize: () => window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer fictional-only' } }) };
 }
 describe('read-only cron browser adapter', () => {
-  it.each(['2.3.1', '2.4.1', '2.5.2'])(
+  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])(
     'retains %s read-only capabilities and rejects write/restore callbacks before requests', async (version) => {
     const test = install(); await test.authorize();
     const value = { available: true, version, reason: 'read-only-version',
@@ -29,6 +29,18 @@ describe('read-only cron browser adapter', () => {
     expect(test.fetch).toHaveBeenCalledTimes(before);
     test.fetch.mockResolvedValueOnce(new Response(JSON.stringify({ tasks: [task], source: 'live' })));
     await expect(test.api.list('s')).resolves.toEqual({ tasks: [task], source: 'live' });
+  });
+
+  it('treats exact 2.7.2 as read-only even if the capability reason is omitted', async () => {
+    const test = install(); await test.authorize();
+    test.fetch.mockResolvedValueOnce(Response.json({ available: true, version: '2.7.2',
+      capabilities: { list: true, create: true, remove: true } }));
+    await test.api.capabilities(); const before = test.fetch.mock.calls.length;
+    await expect(test.api.create('s', { cron: '7 * * * *', prompt: 'Fixture' }))
+      .rejects.toMatchObject({ code: 'read-only-version' });
+    await expect(test.api.remove('s', 'id')).rejects.toMatchObject({ code: 'read-only-version' });
+    await expect(test.api.restore('s', true)).rejects.toMatchObject({ code: 'read-only-version' });
+    expect(test.fetch).toHaveBeenCalledTimes(before);
   });
 
   it('keeps a server-side read-only rejection known when the browser has not fetched capabilities', async () => {
@@ -111,7 +123,7 @@ describe('native cron inventory DTO validation', () => {
     const quality = { complete: false, reasons: ['main-wire-missing'] };
     const session = { id: 'native/session', title: 'Fixture session', workspace: { id: 'workspace', name: 'Fixture workspace' },
       archived: true, loaded: null, model: null, modelSource: 'unknown', tasks: [task], quality };
-    const inventory = { items: [session], hasMore: true, cursor: 'opaque-next' };
+    const inventory = { items: [session], total: 61, hasMore: true, cursor: 'opaque-next' };
     test.fetch.mockResolvedValueOnce(new Response(JSON.stringify(inventory)));
     await expect(test.api.sessions()).resolves.toEqual(inventory);
     const history = { available: true, items: [{ time: 1792371780000, taskId: task.id, kind: 'started', turnId: 3,
@@ -124,7 +136,8 @@ describe('native cron inventory DTO validation', () => {
   });
   it('rejects malformed or incomplete DTOs instead of accepting them as empty inventory or history', async () => {
     const test = install(); await test.authorize();
-    const malformed = [{ items: [], hasMore: true, cursor: null }, { items: [{ id: 's', tasks: [] }], hasMore: false }];
+    const malformed = [{ items: [], hasMore: true, cursor: null }, { items: [{ id: 's', tasks: [] }], hasMore: false },
+      ...[-1, 1.5, Number.MAX_SAFE_INTEGER + 1, '61', null].map((total) => ({ items: [], hasMore: false, total }))];
     for (const value of malformed) {
       test.fetch.mockResolvedValueOnce(new Response(JSON.stringify(value)));
       await expect(test.api.sessions()).rejects.toMatchObject({ code: 'invalid-response', outcomeUnknown: false });

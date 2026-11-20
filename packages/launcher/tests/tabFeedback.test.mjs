@@ -154,7 +154,9 @@ describe('tab feedback request binding', () => {
     expect(doc.querySelector('.okw-tab-feedback')).toBeNull();
   });
 
-  it('handles classification races and failures without changing the official tab selection', async () => {
+  it.each([
+    ['/api/v2/sessions', 'meta.archived'], ['/api/v1/sessions', 'archived'],
+  ])('handles classification races and failures on %s without changing native selection', async (path, filter) => {
     const old = deferred();
     const current = deferred();
     const { view, doc } = install(vi.fn().mockReturnValueOnce(old.promise).mockReturnValueOnce(current.promise));
@@ -163,12 +165,12 @@ describe('tab feedback request binding', () => {
     expect(done.getAttribute('aria-selected')).toBe('false');
     done.setAttribute('aria-selected', 'true');
     open.setAttribute('aria-selected', 'false');
-    const oldRead = view.fetch('/api/v2/sessions?meta.archived=true');
+    const oldRead = view.fetch(`${path}?${filter}=true`);
     await paint();
     open.click();
     open.setAttribute('aria-selected', 'true');
     done.setAttribute('aria-selected', 'false');
-    const newRead = view.fetch('/api/v2/sessions?meta.archived=false');
+    const newRead = view.fetch(`${path}?${filter}=false`);
     const rejected = expect(newRead).rejects.toThrow('classification failure');
     await paint();
     old.resolve(new Response('Done'));

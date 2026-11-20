@@ -12,6 +12,7 @@ const authorization = 'Bearer fictional-inventory-token';
 const args = { authorization };
 const workspaceId = 'wd_fixture_0123456789ab';
 const meta = { server_version: '2.1.1', backend: 'v2', dangerous_bypass_auth: false };
+const unifiedMeta = { server_version: '2.7.2', kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false };
 const task = { id: 'deadbeef', cron: '7 9 * * *', prompt: 'Fictional reminder', createdAt: 100 };
 const line = (type, fields = {}) => ({ type, time: 1000, ...fields });
 const native = (id, fields = {}) => ({
@@ -19,6 +20,14 @@ const native = (id, fields = {}) => ({
   meta: { title: `Fixture ${id}`, archived: false }, activity: { status: 'idle', model: null }, ...fields,
 });
 const page = (items, hasMore = false, cursor = null) => ({ items, has_more: hasMore, next_page_token: cursor });
+const unified = (id, fields = {}) => ({
+  id, workspace_id: workspaceId, cwd: 'C:\\fictional\\workspace-name', title: `Fixture ${id}`, archived: false,
+  activity: 'idle', pending_interaction: 'none', created_at: '2026-11-20T00:00:00.000Z',
+  updated_at: '2026-11-20T00:00:00.000Z', ...fields,
+});
+const unifiedPage = (items, total = items.length, cursor) => ({
+  items, total, has_more: cursor !== undefined, ...(cursor === undefined ? {} : { next_page_token: cursor }),
+});
 const envelope = (data, code = 0) => Response.json({ code, data });
 
 async function fixture(overrides = {}) {
@@ -28,10 +37,11 @@ async function fixture(overrides = {}) {
   const fetchImpl = vi.fn(async (url, options) => {
     let value;
     if (url.pathname === '/api/v1/meta') value = values.meta;
-    else if (url.pathname === '/api/v2/sessions') value = values.directory;
+    else if (['/api/v2/sessions', '/api/v1/sessions'].includes(url.pathname)) value = values.directory;
     else if (url.pathname === '/api/v1/debug/sessionManager/list') value = values.loaded;
-    else if (/^\/api\/v1\/sessions\/[^/]+\/profile$/.test(url.pathname)) {
-      value = values.profile ?? { id: url.pathname.split('/').at(-2), workspace_id: workspaceId };
+    else if (/^\/api\/v1\/sessions\/[^/]+(?:\/profile)?$/.test(url.pathname)) {
+      const id = url.pathname.split('/')[4];
+      value = values.profile ?? { id, workspace_id: workspaceId };
     } else throw new Error('Unexpected cold-read request');
     return typeof value === 'function' ? value(url, options) : envelope(value);
   });
@@ -129,6 +139,98 @@ describe('global native Cron inventory', () => {
       await wire(home, 'session-fixture', [line('cron.add', { task }), line('forked', { agentId: 'main' })]);
       expect((await inventory.sessions(args)).items[0].tasks).toHaveLength(version === '2.1.1' ? 1 : 0);
     });
+});
+
+describe('exact 2.7.2 unified Cron inventory', () => {
+  it('retains all 61 sessions when the last session updates between keyset pages, including creation-time ties', async () => {
+    const rows = Array.from({ length: 61 }, (_, index) => unified(`unified-${index}`, {
+      archived: index % 2 === 0, title: `First line\nFixture ${index}`,
+      created_at: new Date(1000 * (61 - Math.floor(index / 3))).toISOString(),
+      updated_at: new Date(1000 * (61 - index)).toISOString(),
+    }));
+    const directory = (url) => {
+      const raw = url.searchParams.get('page_token');
+      if (raw !== null) rows[60].updated_at = new Date(100000).toISOString();
+      const key = url.searchParams.get('sort') === 'created_at_desc' ? 'created_at' : 'updated_at';
+      const sorted = rows.toSorted((a, b) => b[key].localeCompare(a[key]) || b.id.localeCompare(a.id));
+      const anchor = raw === null ? null : JSON.parse(Buffer.from(raw, 'base64url').toString()).k;
+      const remaining = sorted.filter((item) => anchor === null || Date.parse(item[key]) < anchor[0] ||
+        Date.parse(item[key]) === anchor[0] && item.id < anchor[1]);
+      const items = remaining.slice(0, 20);
+      const last = items.at(-1);
+      const cursor = remaining.length > 20 ? Buffer.from(JSON.stringify({ v: 1, f: 'fixture',
+        k: [Date.parse(last[key]), last.id] })).toString('base64url') : undefined;
+      return envelope(unifiedPage(items, rows.length, cursor));
+    };
+    const { inventory, home, fetchImpl } = await fixture({ meta: unifiedMeta, directory });
+    await wire(home, 'unified-60', [line('cron.add', { task })]);
+    const items = [];
+    const totals = [];
+    let cursor;
+    do {
+      const result = await inventory.sessions({ ...args, ...(cursor === undefined ? {} : { cursor }) });
+      items.push(...result.items); totals.push(result.total); cursor = result.cursor;
+    } while (cursor !== null);
+    expect(items).toHaveLength(61);
+    expect(items.map((item) => item.id)).toEqual(rows.toSorted((a, b) =>
+      b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id)).map((item) => item.id));
+    expect(totals).toEqual([61, 61, 61, 61]);
+    expect(items[60]).toMatchObject({ archived: true, title: 'First line\nFixture 60', loaded: false,
+      workspace: { id: workspaceId, name: 'workspace-name' }, tasks: [task], quality: { complete: true } });
+    const urls = fetchImpl.mock.calls.filter(([url]) => url.pathname === '/api/v1/sessions').map(([url]) => url);
+    expect(urls).toHaveLength(4);
+    expect(urls.every((url) => url.searchParams.get('sort') === 'created_at_desc')).toBe(true);
+    expect(urls.every((url) => url.searchParams.get('archived') === 'all')).toBe(true);
+    expect(urls.every((url) => url.searchParams.get('page_size') === '20')).toBe(true);
+    expect(urls[0].searchParams.has('page_token')).toBe(false);
+    expect(urls.slice(1).every((url) => url.searchParams.has('page_token'))).toBe(true);
+    expect(fetchImpl.mock.calls.every(([url]) => !/v2|profile|status|resume|agentCronService/.test(url.pathname))).toBe(true);
+  });
+
+});
+
+describe('exact 2.7.2 unified Cron protocol', () => {
+  it('uses the saved model instead of mistaking activity for the removed live-model domain', async () => {
+    const { inventory, home } = await fixture({ meta: unifiedMeta,
+      directory: unifiedPage([unified('loaded', { activity: 'background' })]),
+      loaded: [{ id: 'loaded', kind: 'session', accessor: {} }] });
+    await wire(home, 'loaded', [line('profile.bind', { agentId: 'main', modelAlias: 'saved-alias' })]);
+    expect((await inventory.sessions(args)).items[0]).toMatchObject({
+      loaded: true, model: 'saved-alias', modelSource: 'saved',
+    });
+  });
+
+  it('reads the cold session from GET /sessions/:id rather than the removed profile read', async () => {
+    const { inventory, home, fetchImpl } = await fixture({ meta: unifiedMeta });
+    await wire(home, 'session-fixture', [line('cron.add', { task }), line('turn.prompt', {
+      agentId: 'main', turnId: 0, origin: { kind: 'cron_job', jobId: task.id },
+    }), line('turn.ended', { agentId: 'main', turnId: 0, reason: 'completed' })]);
+    expect(await inventory.history({ ...args, sessionId: 'session-fixture' })).toMatchObject({ available: true,
+      items: [{ taskId: task.id, kind: 'started', endReason: 'completed' }] });
+    expect(fetchImpl.mock.calls.map(([url]) => url.pathname)).toEqual([
+      '/api/v1/meta', '/api/v1/sessions/session-fixture',
+    ]);
+  });
+
+  it.each([native('legacy'), unified('unsafe', { workspace_id: '../other' }), unified('bad-cwd', { cwd: null }),
+    unified('bad-title', { title: null }), unified('bad-archive', { archived: 'true' })])(
+    'rejects an unverified unified directory item %#', async (item) => {
+      const { inventory } = await fixture({ meta: unifiedMeta, directory: unifiedPage([item]) });
+      await expect(inventory.sessions(args)).rejects.toMatchObject({ code: 'invalid-response' });
+    });
+
+  it.each([{ items: [], has_more: false }, unifiedPage([unified('one')], 0),
+    unifiedPage([], 1, 'next'), { ...unifiedPage([unified('one')], 2, 'next'), next_page_token: null }])(
+    'rejects incomplete unified pagination %#', async (directory) => {
+      const { inventory } = await fixture({ meta: unifiedMeta, directory });
+      await expect(inventory.sessions(args)).rejects.toMatchObject({ code: 'invalid-response' });
+    });
+
+  it('rejects a repeated opaque cursor rather than presenting the same page again', async () => {
+    const { inventory } = await fixture({ meta: unifiedMeta,
+      directory: unifiedPage([unified('one')], 2, 'same') });
+    await expect(inventory.sessions({ ...args, cursor: 'same' })).rejects.toMatchObject({ code: 'invalid-response' });
+  });
 });
 
 describe('native directory compatibility regressions', () => {

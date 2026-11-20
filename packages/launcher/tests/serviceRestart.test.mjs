@@ -50,7 +50,7 @@ describe('service restart ownership and busy gate', () => {
     const newer = fixture({ fetchImpl: async () => response({ server_version: '9.0.0' }) });
     await expect(newer.reserve()).rejects.toMatchObject({ code: 'unmanaged-or-unsupported' });
   });
-  it.each(['2.5.2', '2.6.0', '2.6.1'])('reserves %s once and stops only after worker acknowledgement', async (version) => {
+  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'])('stops %s only after worker acknowledgement', async (version) => {
     const f = fixture({ fetchImpl: vi.fn(async (url) => response(String(url).includes('/meta')
       ? { server_version: version } : { items: [], total: 0, has_more: false })) });
     expect(await f.reserve()).toMatchObject({ phase: 'restarting' });
@@ -105,6 +105,12 @@ describe('service restart failure boundaries', () => {
     const f = fixture(); await f.reserve(); f.reservation.commit.mockResolvedValue(false);
     await f.service.commit(); expect(f.stop).not.toHaveBeenCalled(); expect(f.service.blocked()).toBe(false);
     await expect(f.reserve()).rejects.toMatchObject({ code: 'restart-pending' });
+  });
+  it('does not commit a legacy restart after the launcher closes while waiting for its ACK', async () => {
+    const f = fixture(); await f.reserve(); let acknowledge;
+    f.reservation.commit.mockImplementation(() => new Promise((resolve) => { acknowledge = resolve; }));
+    const committed = f.service.commit(); f.service.close(); acknowledge(true); await committed;
+    expect(f.reservation.cancel).toHaveBeenCalledOnce(); expect(f.stop).not.toHaveBeenCalled();
   });
   it('disables closed controllers and cancels uncommitted workers', async () => {
     const f = fixture(); await f.reserve(); f.service.close();

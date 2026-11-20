@@ -3,6 +3,7 @@ export class RestartError extends Error {
 }
 
 export function sendRestartJson(res, status, body) {
+  if (res.destroyed) return;
   const bytes = Buffer.from(JSON.stringify(body));
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8', 'content-length': bytes.length,

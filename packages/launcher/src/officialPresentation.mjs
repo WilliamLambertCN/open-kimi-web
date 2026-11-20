@@ -197,10 +197,11 @@ function hasNativeSideChatScroll(version) {
 }
 
 export function addMobilePresentation(html, { officialWebVersion, requestMetricsState } = {}) {
-  const conversation = ['2.6.0', '2.6.1'].includes(officialWebVersion);
+  const conversation = ['2.6.0', '2.6.1', '2.7.2'].includes(officialWebVersion);
   const excluded = new Set([conversation ? 'mobileConversationTocMetadata.js' : 'conversationMetadata.js']);
   if (hasNativeSideChatScroll(officialWebVersion)) excluded.add('sideChatScroll.js');
   if (conversation) excluded.add('foldingDefaults.js');
+  if (officialWebVersion === '2.7.2') excluded.add('archivedSessionDelete.js');
   const scriptNames = SCRIPTS.filter((name) => !excluded.has(name));
   const metricsMeta = ['active', 'incompatible-bundle', 'unavailable-bundle'].includes(requestMetricsState)
     ? `<meta name="open-kimi-web-request-metrics" content="${requestMetricsState}">\n` : '';

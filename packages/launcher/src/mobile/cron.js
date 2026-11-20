@@ -12,6 +12,19 @@
     }
     return page;
   };
+  const inventoryCountMismatch = (total, count, hasMore) => total !== undefined &&
+    (hasMore ? count >= total : count !== total);
+  const acceptInventory = (state, page, append) => {
+    if (!append) { state.sessions = []; state.sessionsTotal = page.total; state.sessionsIncomplete = false; }
+    const sessions = new Map(state.sessions.map((item) => [item.id, item]));
+    const count = sessions.size + page.items.length;
+    for (const item of page.items) sessions.set(item.id, item);
+    state.sessions = [...sessions.values()];
+    state.sessionsIncomplete ||= sessions.size !== count || state.sessionsTotal !== page.total ||
+      inventoryCountMismatch(state.sessionsTotal, sessions.size, page.hasMore);
+    state.sessionsMore = page.hasMore === true; state.sessionsCursor = page.cursor;
+    state.inventoryStatus = state.sessionsIncomplete ? 'sessions-incomplete' : state.sessions.length ? '' : 'sessions-empty';
+  };
   const validRecord = (record) => record && ['string', 'number'].includes(typeof record.time) &&
     typeof record.taskId === 'string' && typeof record.kind === 'string';
   const history = (page) => {
@@ -35,7 +48,7 @@
   };
   const needsLive = (state) => state.unknown || state.sessions.find((item) => item.id === state.sid)?.loaded === true;
   const readOnlyVersion = (value) => value.reason === 'read-only-version' ||
-    ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'].includes(value.version);
+    ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'].includes(value.version);
   const readOnly = (state) => {
     state.readOnly = true; state.canCreate = false; state.canRemove = false; state.canRestore = false;
     state.formOpen = false; state.confirmation = null; state.globalStatus = 'read-only-version';
@@ -97,9 +110,7 @@
       try {
         const page = inventory(await api.sessions(append ? state.sessionsCursor : undefined));
         if (!current(epoch)) return;
-        state.sessions = append ? [...state.sessions, ...page.items] : page.items;
-        state.sessionsMore = page.hasMore === true; state.sessionsCursor = page.cursor;
-        state.inventoryStatus = state.sessions.length ? '' : 'sessions-empty';
+        acceptInventory(state, page, append);
       } catch { if (current(epoch)) state.inventoryStatus = 'sessions-unavailable'; }
       if (current(epoch)) render();
     };
@@ -182,7 +193,7 @@
     cancelNew: () => { ctx.state.formOpen = false; ctx.render(); ctx.ui.create.focus(); },
     cancelConfirm: () => { ctx.state.confirmation = null; ctx.render(); ctx.ui.close.focus(); },
     sessionsMore: () => {
-      if (ctx.state.busy || ctx.state.unknown) return;
+      if (ctx.state.busy || ctx.state.unknown || !ctx.state.sessionsMore) return;
       ctx.state.busy = true;
       void ctx.loadSessions(ctx.state.epoch, true).finally(() => { ctx.state.busy = false; ctx.render(); });
     },
@@ -211,6 +222,7 @@
   };
   window.__okwCronCreateController = (api) => {
     const state = { opened: false, busy: false, unknown: false, epoch: 0, sessions: [], tasks: [], history: [],
+      sessionsTotal: undefined, sessionsIncomplete: false, sessionsMore: false, sessionsCursor: null,
       taskSource: '', taskQuality: null, historyQuality: null,
       sid: '', taskId: '', globalStatus: '', inventoryStatus: '', taskStatus: 'choose', historyStatus: '',
       available: false, readOnly: false, canCreate: false, canRemove: false, canRestore: false,
