@@ -11,7 +11,7 @@ description: |
 Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，
 在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
-本轮目标版本 `v2.6.1-r8`，兼容目标官方 `2.6.1`，保留 `2.6.0` 支持；发布状态以[正式 Release][current-release]为准。
+本轮目标版本 `v2.6.1-r9`，兼容目标官方 `2.6.1`，保留 `2.6.0` 支持；发布状态以[正式 Release][current-release]为准。
 请求指标不查版本号，只在实际入口的全部代码结构匹配后启用；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
 看终端 `request metrics: active` 或首页 `open-kimi-web-request-metrics` 确认状态；不只凭增强网址判断成功。
 保留逐调用 TTFT、包含等待的平均 TPS、缓存命中和历史位置；侧聊可独立选模。
@@ -88,19 +88,19 @@ setup 建立稳定根并启用签发，不修改设备信任或网络，不启�
 
 优先提供[README 快速上手](https://github.com/WilliamLambertCN/open-kimi-web#快速上手)中的在线安装命令，
 无需克隆仓库或手动下载脚本。
-Windows PowerShell ≥ 5.1／macOS-Linux sh 从 `v2.6.1-r8` GitHub commit API 解析并校验真实 40 位十六进制 SHA。
-只下载该 SHA 入口，成功后用 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.6.1-r8`。
+Windows PowerShell ≥ 5.1／macOS-Linux sh 从 `v2.6.1-r9` GitHub commit API 解析并校验真实 40 位十六进制 SHA。
+只下载该 SHA 入口，成功后用 PowerShell script block／`sh -c` 执行，传同一 `--revision` 与固定 `--version 2.6.1-r9`。
 入口取同提交完整 coordinator／helpers；tag、SHA、下载或资产不可用即停，不回退 main／旧包，不复用旧 r10 SHA 或伪造将来 SHA。
 HTTPS 和同提交配对不是签名验证；正式发布前不说入口已在线可用。本地入口与 helpers 也必须同提交：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r8
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r8 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r9
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r9 --no-integrate
 ```
 
 ```sh
-sh scripts/install.sh --version 2.6.1-r8
-sh scripts/install.sh --version 2.6.1-r8 --no-integrate
+sh scripts/install.sh --version 2.6.1-r9
+sh scripts/install.sh --version 2.6.1-r9 --no-integrate
 ```
 
 - 无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi，仍需联网与标准 PATH curl／tar，不是离线安装。
@@ -131,7 +131,7 @@ sh scripts/install.sh --version 2.6.1-r8 --no-integrate
 不需要 Corepack／pnpm；正式发布后使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.6.1-r8/open-kimi-web-2.6.1-r8.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.6.1-r9/open-kimi-web-2.6.1-r9.tgz
 ```
 
 仅用户明确需要源码开发且已有 Node ≥ 22／Git／Corepack 时，提供源码路线：
@@ -260,7 +260,7 @@ Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保�
 ## 安装自更新（r8 起可用）
 
 `v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
-`2.6.1-r8` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.6.1-r8`。
+`2.6.1-r9` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.6.1-r9`。
 不要求同版重装、重跑安装器或追加 `--switch-installation`；源码仍须干净 main 跟踪 origin/main，只做快进。
 历史清理前的旧克隆不能快进：先备份改动，再重新克隆并按 README 切换接管，不强制覆盖。
 完成后用户自行重启旧 launcher／对应 backend 并刷新；独立 target 须重启实际后端，不自动开启 Tower。
@@ -350,6 +350,6 @@ Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字�
 [upstream-menu]:
   https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#session-menus-and-opt-in-local-ca-in-241-r3
 [changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r8
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r9
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

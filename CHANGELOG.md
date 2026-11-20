@@ -4,6 +4,14 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.6.1-r9] - 2026-11-20
+
+- 使用官方 `2.6.3` 网页时，已收到的聊天正文不再排队平滑显示；追底时，屏内工具组结束后不会突然收起。
+  仍可手动折叠。安装基线保持 `2.6.1`，不升级官方 CLI，不代表已全面适配 `2.6.3`。
+- 更新后重启 Open Kimi Web 并刷新网页，无需迁移会话。
+
+[open-kimi-web v2.6.1-r9]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r9
+
 ## [open-kimi-web v2.6.1-r8] - 2026-11-20
 
 - 移除逐次请求指标行的鼠标悬停解释，保留 TTFT、平均 TPS、缓存命中率及其计算方式。
