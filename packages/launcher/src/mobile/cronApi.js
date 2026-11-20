@@ -14,8 +14,11 @@
   const validSession = (value) => typeof value?.id === 'string' && !!value.id && typeof value.title === 'string' &&
     validWorkspace(value.workspace) && validSessionState(value) && Array.isArray(value.tasks) &&
     value.tasks.every(validTask) && validQuality(value.quality);
+  const validInventoryTotal = (value) => value.total === undefined ||
+    Number.isSafeInteger(value.total) && value.total >= value.items.length;
   const validSessions = (value) => Array.isArray(value?.items) && value.items.every(validSession) &&
-    typeof value.hasMore === 'boolean' && (!value.hasMore || typeof value.cursor === 'string' && !!value.cursor);
+    typeof value.hasMore === 'boolean' && (!value.hasMore || typeof value.cursor === 'string' && !!value.cursor) &&
+    validInventoryTotal(value);
   const validModel = (value) => typeof value?.model === 'string' && typeof value.provider === 'string' &&
     ['number', 'string'].includes(typeof value.time) && (value.alias === undefined || typeof value.alias === 'string');
   const validRecordModels = (value) => value === undefined || Array.isArray(value) && value.every(validModel);
@@ -30,7 +33,8 @@
     const assertWritable = () => { if (readOnly) throw error('read-only-version'); };
     const capabilities = async () => {
       const data = required(await request('cron-capabilities'), (value) => typeof value?.available === 'boolean');
-      readOnly = data.reason === 'read-only-version' || ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'].includes(data.version);
+      readOnly = data.reason === 'read-only-version' ||
+        ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'].includes(data.version);
       return data;
     };
     return {

@@ -1,13 +1,13 @@
 import { assertCronReadVersion } from './compatibility.mjs';
 import { CronClientError } from './errors.mjs';
 import { createScanBudget, readCronServerJournal, readCronWire, safeCronPathId } from './journal.mjs';
+import { readLoadedSessions } from './loadedSessions.mjs';
 import { createCronProjection } from './projection.mjs';
 import { loopbackOrigin, requestJson } from './transport.mjs';
 import { strictRecord, validateOperation } from './validation.mjs';
 
 const PAGE_SIZE = 20;
 const MAX_CURSOR_BYTES = 4096;
-const LIVE_PATH = '/api/v1/debug/sessionManager/list';
 const META_PATH = '/api/v1/meta';
 const recordOf = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const displayText = (value, max) => typeof value === 'string' && value.length <= max &&
@@ -34,10 +34,12 @@ async function runtimeVersion(context, authorization) {
   return assertCronReadVersion(await requestJson(context.fetchImpl, context.origin + META_PATH, authorization));
 }
 
-function directoryUrl(origin, cursor) {
-  const url = new URL('/api/v2/sessions', origin);
-  url.searchParams.set('meta.archived', 'all');
+function directoryUrl(origin, cursor, version) {
+  const unified = version === '2.7.2';
+  const url = new URL(unified ? '/api/v1/sessions' : '/api/v2/sessions', origin);
+  url.searchParams.set(unified ? 'archived' : 'meta.archived', 'all');
   url.searchParams.set('page_size', String(PAGE_SIZE));
+  if (unified) url.searchParams.set('sort', 'created_at_desc');
   if (cursor !== undefined) url.searchParams.set('page_token', cursor);
   return url;
 }
@@ -57,26 +59,38 @@ function validateDirectoryItem(item) {
   return item;
 }
 
-function validateDirectory(data) {
+function unifiedDirectoryItem(item) {
+  if (!recordOf(item) || !safeCronPathId(item.id) || !safeCronPathId(item.workspace_id) ||
+      !displayText(item.cwd, 16 * 1024) || !displayText(item.title, 16 * 1024) || typeof item.archived !== 'boolean') {
+    throw new CronClientError('invalid-response');
+  }
+  return { id: item.id, workspace: { id: item.workspace_id, cwd: item.cwd },
+    meta: { title: item.title, archived: item.archived }, activity: { model: null } };
+}
+
+function validateUnifiedPage(data, cursor) {
+  if (!Number.isSafeInteger(data.total) || data.total < data.items.length) throw new CronClientError('invalid-response');
+  if (data.has_more && (!data.items.length || data.next_page_token === cursor)) {
+    throw new CronClientError('invalid-response');
+  }
+}
+
+function directoryItems(data) {
   if (!recordOf(data) || !Array.isArray(data.items) || data.items.length > PAGE_SIZE ||
       typeof data.has_more !== 'boolean') throw new CronClientError('invalid-response');
+  return data.items;
+}
+
+function validateDirectory(data, version, cursor) {
+  const rows = directoryItems(data);
   if (data.has_more && !safeCursor(data.next_page_token)) {
     throw new CronClientError('invalid-response');
   }
-  const items = data.items.map(validateDirectoryItem);
+  if (version === '2.7.2') validateUnifiedPage(data, cursor);
+  const items = rows.map(version === '2.7.2' ? unifiedDirectoryItem : validateDirectoryItem);
   if (new Set(items.map((item) => item.id)).size !== items.length) throw new CronClientError('invalid-response');
-  return { items, hasMore: data.has_more, cursor: data.has_more ? data.next_page_token : null };
-}
-
-function validateLoaded(data) {
-  if (!Array.isArray(data)) return null;
-  const loaded = new Set();
-  for (const handle of data) {
-    if (!recordOf(handle) || !safeCronPathId(handle.id) || handle.kind !== 'session' ||
-        !recordOf(handle.accessor) || Object.keys(handle.accessor).length !== 0 || loaded.has(handle.id)) return null;
-    loaded.add(handle.id);
-  }
-  return loaded;
+  return { items, hasMore: data.has_more, cursor: data.has_more ? data.next_page_token : null,
+    ...(version === '2.7.2' ? { total: data.total } : {}) };
 }
 
 function workspaceName(workspace) {
@@ -115,12 +129,12 @@ async function inventoryItem(context, item, version, loaded, budget) {
 async function listSessions(context, args) {
   const version = await runtimeVersion(context, args.authorization);
   const directory = validateDirectory(await requestJson(context.fetchImpl,
-    directoryUrl(context.origin, args.cursor), args.authorization));
-  const loaded = validateLoaded(await requestJson(context.fetchImpl, context.origin + LIVE_PATH, args.authorization));
+    directoryUrl(context.origin, args.cursor, version), args.authorization), version, args.cursor);
+  const loaded = await readLoadedSessions(context.fetchImpl, context.origin, args.authorization);
   const budget = createScanBudget();
   const items = [];
   for (const item of directory.items) items.push(await inventoryItem(context, item, version, loaded, budget));
-  return { items, hasMore: directory.hasMore, cursor: directory.cursor };
+  return { ...directory, items };
 }
 
 function unavailable(reason) {
@@ -129,8 +143,9 @@ function unavailable(reason) {
 
 async function readHistory(context, args) {
   const version = await runtimeVersion(context, args.authorization);
+  const suffix = version === '2.7.2' ? '' : '/profile';
   const session = await requestJson(context.fetchImpl,
-    `${context.origin}/api/v1/sessions/${encodeURIComponent(args.sessionId)}/profile`, args.authorization);
+    `${context.origin}/api/v1/sessions/${encodeURIComponent(args.sessionId)}${suffix}`, args.authorization);
   if (!recordOf(session) || session.id !== args.sessionId || !safeCronPathId(session.workspace_id)) {
     throw new CronClientError('invalid-response');
   }

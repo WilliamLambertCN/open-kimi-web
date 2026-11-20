@@ -64,6 +64,18 @@ describe('verified official metrics assets', () => {
     expect(metricsHtml(html, result)).toContain(`src="${streamingPrefix}/assets/main.js"`);
     expect(() => metricsHtml(html + 'changed', result)).toThrow('official bundle changed');
   });
+  it('keeps exact 2.7.2 native streaming while preparing compatible metrics', async () => {
+    await writeFile(join(publicDir, 'assets/main.js'), source + streaming);
+    const result = await prepareMetricsAssets(publicDir, true, '2.7.2');
+    expect(result).toMatchObject({ state: 'active', prefix, streamingState: 'disabled' });
+    expect(result.patched).toContain('__okwTimingSlots');
+    expect(result.patched).toContain(streaming);
+    expect(metricsHtml(html, result)).toContain(`src="${prefix}/assets/main.js"`);
+    expect(metricsHtml(html, result)).not.toContain(streamingPrefix);
+    expect(await prepareMetricsAssets(publicDir, false, '2.7.2')).toEqual({ state: 'disabled' });
+    await writeFile(join(publicDir, 'assets/main.js'), streaming);
+    expect(await prepareMetricsAssets(publicDir, true, '2.7.2')).toEqual({ state: 'incompatible-bundle' });
+  });
   it('keeps metrics when streaming structure is incompatible and combines both when compatible', async () => {
     await writeFile(join(publicDir, 'assets/main.js'), source);
     const original = await prepareMetricsAssets(publicDir, true, '2.6.3');

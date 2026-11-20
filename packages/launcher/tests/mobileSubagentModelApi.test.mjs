@@ -138,7 +138,7 @@ describe('subagent model metadata and effort compatibility', () => {
 describe('subagent 2.5.2 inheritance reset', () => {
   const follow = { model: '', effort: '' };
   const section = { defaultModel: 'fixture/fast', models: { 'fixture/fast': 'Retained pool' } };
-  it.each(['2.5.2', '2.6.0', '2.6.1'])('enables native null only after observing verified %s metadata', async (version) => {
+  it.each(['2.5.2', '2.6.0', '2.6.1', '2.7.2'])('enables native null only for verified %s', async (version) => {
     const ui = install();
     ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
     await ui.authorize();
@@ -186,7 +186,7 @@ describe('subagent 2.5.2 inheritance reset', () => {
 });
 
 describe('2.6 ordinary primary alias', () => {
-  it.each(['2.6.0', '2.6.1'])('keeps ordinary primary selectable with %s and never writes force', async (version) => {
+  it.each(['2.6.0', '2.6.1', '2.7.2'])('keeps ordinary primary selectable with %s and never writes force', async (version) => {
     const ui = install();
     const configured = { models: { primary: { provider: 'fixture', model: 'actual-model', displayName: 'Real primary' } } };
     const catalog = { items: [{ model: 'primary', display_name: 'Primary alias' }] };

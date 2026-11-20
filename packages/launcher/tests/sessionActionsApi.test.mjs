@@ -337,6 +337,11 @@ const unpinned = { id: 'not-pinned-1', meta: { title: 'Do not cache' }, workspac
 describe('bounded observation of pinned session metadata', () => {
   it.each([
     ['v1 flat', '/api/v1/sessions?include_archived=false', { items: [pinnedV1, unpinned] }],
+    ['unified v1 flat', '/api/v1/sessions?archived=false&has_prompt=true',
+      { items: [{ ...pinnedV1, metadata: undefined, cwd: workspace.cwd, activity: 'idle' }, unpinned],
+        total: 51, has_more: true, next_page_token: 'next==' }],
+    ['unified v1 grouped', '/api/v1/sessions?view=by_workspace&group_page_size=5&archived=false&page_token=next%3D%3D',
+      { groups: [{ workspace_id: workspace.id, sessions: [pinnedV1, unpinned], total: 71 }], total: 51, has_more: false }],
     ['v2 flat', '/api/v2/sessions?view=flat', { items: [pinnedV2, unpinned] }],
     ['v2 grouped', '/api/v2/sessions?view=by_workspace', { groups: [{ workspace, sessions: [pinnedV2, unpinned] }] }],
   ])('projects only pinned ID, title and cwd from %s while leaving native bodies readable', async (_, url, data) => {
@@ -350,6 +355,17 @@ describe('bounded observation of pinned session metadata', () => {
     expect(listener).toHaveBeenCalledTimes(1); expect(ui.localStorage.setItem).not.toHaveBeenCalled();
     expect(ui.localStorage.getItem.mock.calls.every(([key]) => key === storageKey)).toBe(true);
     expect(ui.native).toHaveBeenCalledTimes(2);
+  });
+  it('does not replace local pinned metadata with a remote session sharing its ID', async () => {
+    const ui = install({ stored: '["pin-1"]' });
+    ui.native.mockResolvedValueOnce(envelope({ items: [{ ...pinnedV1, host_id: 'fictional-remote' }],
+      total: 1, has_more: false }));
+    await ui.window.fetch('/api/v1/sessions?archived=false&hosts=include'); await tick();
+    expect(ui.api.record('pin-1')).toBeUndefined();
+    ui.native.mockResolvedValueOnce(envelope({ groups: [{ workspace_id: 'fictional-workspace',
+      host_id: 'fictional-remote', sessions: [pinnedV1], total: 1 }], total: 1, has_more: false }));
+    await ui.window.fetch('/api/v1/sessions?archived=false&view=by_workspace&hosts=include'); await tick();
+    expect(ui.api.record('pin-1')).toBeUndefined(); expect(ui.native).toHaveBeenCalledTimes(2);
   });
   it('uses last_prompt or the exact ID as display fallbacks without caching other session fields', async () => {
     const ui = install({ stored: '["pin-1","pin-2"]' });
@@ -365,6 +381,8 @@ describe('bounded observation of pinned session metadata', () => {
   it.each([
     ['/api/v1/sessions/pin-1/transcript/main', 'GET'], ['/api/v2/sessions/pin-1/transcript', 'GET'],
     ['/api/v1/sessions', 'POST'], ['https://other.invalid/api/v2/sessions', 'GET'],
+    ['/api/v1/sessions?archived=true&fields=id,archived', 'GET'],
+    ['/api/v1/sessions/pin-1/agents/main/turns', 'GET'],
   ])('never clones transcript, mutation or cross-origin responses (%s %s)', async (url, method) => {
     const ui = install({ stored: '["pin-1"]' }); const response = envelope({ items: [pinnedV2] });
     const clone = vi.spyOn(response, 'clone'); ui.native.mockResolvedValueOnce(response);

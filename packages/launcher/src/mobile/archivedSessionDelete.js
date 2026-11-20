@@ -3,6 +3,7 @@
   const archivedSessions = new Map();
   const archivedRequestIds = new Map();
   const archivedRequestGenerations = new Map();
+  let archivedListing = null;
   const rowSessions = new WeakMap();
   const boundRows = new Set();
   const pendingIds = new Set();
@@ -22,11 +23,7 @@
   };
 
   const isChinese = () => currentLocale() === 'zh';
-
-  const deletePath = (sessionId) => (
-    `/api/v1/sessions/${encodeURIComponent(sessionId)}:delete`
-  );
-
+  const deletePath = (sessionId) => `/api/v1/sessions/${encodeURIComponent(sessionId)}:delete`;
   const copy = () => isChinese() ? {
     remove: '永久删除',
     removeShort: '删除',
@@ -63,57 +60,86 @@
 
   const formatMinute = (value) => {
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return String(value ?? '');
     const two = (part) => String(part).padStart(2, '0');
     const day = `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
     return `${day} ${two(date.getHours())}:${two(date.getMinutes())}`;
   };
 
-  // Wire normalization deliberately rejects every malformed field independently.
-  // eslint-disable-next-line complexity
+  const archivedWire = (item) => item?.meta && item?.workspace
+    ? { ...item.meta, id: item.id, metadata: { cwd: item.workspace.cwd } } : item;
+  const validArchived = (item) => item?.archived === true && typeof item.id === 'string' && /^[\w-]{1,256}$/.test(item.id);
+  const archivedTitle = (item) => {
+    const title = item.title ?? item.last_prompt;
+    return typeof title === 'string' && title ? title : item.id.slice(0, 12);
+  };
+  const projectArchived = (item) => {
+    if (!validArchived(item) || item.host_id) return null;
+    const cwd = item.cwd ?? item.metadata?.cwd;
+    const time = item.archived_at ?? item.updated_at;
+    if (typeof cwd !== 'string' || !cwd || !time || !Number.isFinite(new Date(time).getTime())) return null;
+    return { id: item.id, title: archivedTitle(item), cwd, time: formatMinute(time) };
+  };
+  const completeGroups = (groups) => !groups || groups.every((group) => !group.host_id && group.total === group.sessions?.length);
+  const completePage = (data, groups, items, sessions) => sessions.length === items.length &&
+    completeGroups(groups) && !data.unavailable_hosts?.length;
+  const singleLegacyPage = (data, groups, requestKey) => archivedListing.legacy && !groups &&
+    data.total === undefined && data.has_more === false && requestKey === archivedListing.firstRequest;
   const rememberArchived = (body, requestKey) => {
-    const items = body?.data?.items ?? body?.items;
+    if (!body || (body.code !== undefined && body.code !== 0)) return;
+    const data = body.data ?? body;
+    if (typeof data.has_more === 'boolean') archivedListing.paginated = true;
+    const groups = Array.isArray(data.groups) ? data.groups : null;
+    const items = groups ? groups.flatMap((group) => group.sessions ?? []) : data.items;
     if (!Array.isArray(items)) return;
-    const nextIds = new Set();
-    for (const item of items) {
-      const v2 = item?.meta && item?.workspace;
-      const archived = v2 ? item.meta.archived : item?.archived;
-      if (archived !== true || typeof item.id !== 'string') continue;
-      nextIds.add(item.id);
-      const title = v2 ? item.meta.title ?? item.meta.last_prompt : item.title;
-      archivedSessions.set(item.id, {
-        id: item.id,
-        title: typeof title === 'string' && title !== '' ? title : item.id.slice(0, 12),
-        cwd: v2
-          ? (typeof item.workspace.cwd === 'string' ? item.workspace.cwd : '')
-          : (typeof item?.metadata?.cwd === 'string' ? item.metadata.cwd : ''),
-        time: formatMinute(v2
-          ? item.meta.archived_at ?? item.meta.updated_at
-          : item.archived_at ?? item.updated_at),
-      });
+    const sessions = items.map(archivedWire).map(projectArchived).filter(Boolean);
+    sessions.forEach((session) => archivedSessions.set(session.id, session));
+    archivedRequestIds.set(requestKey, {
+      ids: new Set(sessions.map((session) => session.id)),
+      keys: new Set(groups ? groups.map((group) => group.workspace_id ?? group.workspace?.id) : items.map((item) => item.id)),
+      full: completePage(data, groups, items, sessions),
+      total: data.total, more: data.has_more, singlePage: singleLegacyPage(data, groups, requestKey),
+    });
+  };
+  const isArchivedListRequest = (url) => {
+    if (url.searchParams.get('fields')) return false;
+    if (url.pathname === '/api/v1/sessions') {
+      return url.searchParams.get('archived_only') === 'true' || url.searchParams.get('archived') === 'true';
     }
-    archivedRequestIds.set(requestKey, nextIds);
+    return url.pathname === '/api/v2/sessions' && url.searchParams.get('meta.archived') === 'true';
+  };
+  const beginListing = (url) => {
+    const query = new URL(url);
+    const cursors = ['page_token', 'page', 'before_id', 'after_id', 'cursor'];
+    const continuation = cursors.some((key) => url.searchParams.has(key) &&
+      (key !== 'page' || Number(url.searchParams.get(key)) > 1));
+    cursors.forEach((key) => query.searchParams.delete(key));
+    query.searchParams.sort();
+    if (archivedListing?.query !== query.href || !continuation) {
+      archivedRequestIds.clear();
+      const filters = ['workspace_id', 'has_prompt', 'exclude_empty', 'busy', 'activity', 'updated_after', 'updated_before',
+        'workspace.id', 'meta.has_prompt', 'activity.status', 'meta.updated_after', 'meta.updated_before'];
+      const unfiltered = !filters.some((key) => url.searchParams.has(key));
+      archivedListing = { query: query.href, paginated: url.searchParams.get('archived') === 'true',
+        legacy: url.pathname === '/api/v1/sessions' && url.searchParams.get('archived_only') === 'true',
+        start: !continuation && unfiltered, firstRequest: `${url.pathname}${url.search}` };
+    }
+    return archivedListing;
   };
 
-  const isArchivedListRequest = (url) => (
-    url.pathname === '/api/v1/sessions' && url.searchParams.get('archived_only') === 'true'
-  ) || (
-    url.pathname === '/api/v2/sessions' && url.searchParams.get('meta.archived') === 'true'
-  );
-
-  const observeResponse = async (input, init, response, requestGeneration) => {
+  const sameOriginResponse = (response) => !response.redirected &&
+    (!response.url || new URL(response.url).origin === location.origin);
+  const observeResponse = async (input, init, response, request) => {
     try {
       const url = requestUrl(input);
       rememberAuthorization(input, init, url);
       if (
         url.origin !== location.origin ||
         !isArchivedListRequest(url) ||
-        requestMethod(input, init) !== 'GET' ||
-        !response.ok
+        requestMethod(input, init) !== 'GET' || !response.ok || !sameOriginResponse(response)
       ) return;
       const requestKey = `${url.pathname}${url.search}`;
       const body = await response.clone().json();
-      if (archivedRequestGenerations.get(requestKey) !== requestGeneration) return;
+      if (request?.listing !== archivedListing || archivedRequestGenerations.get(requestKey) !== request.generation) return;
       rememberArchived(body, requestKey);
       queueMicrotask(enhance);
     } catch {
@@ -124,20 +150,23 @@
   const nativeFetch = window.fetch;
   window.fetch = async function archivedSessionFetch(input, init) {
     let requestKey = null;
-    let requestGeneration = null;
+    let request = null;
     try {
       const url = requestUrl(input);
       if (
         url.origin === location.origin &&
         isArchivedListRequest(url) &&
         requestMethod(input, init) === 'GET'
-      ) requestKey = `${url.pathname}${url.search}`;
+      ) {
+        requestKey = `${url.pathname}${url.search}`;
+        request = { listing: beginListing(url) };
+      }
     } catch {
       // The original fetch handles malformed URLs.
     }
     if (requestKey !== null) {
-      requestGeneration = (archivedRequestGenerations.get(requestKey) ?? 0) + 1;
-      archivedRequestGenerations.set(requestKey, requestGeneration);
+      request.generation = (archivedRequestGenerations.get(requestKey) ?? 0) + 1;
+      archivedRequestGenerations.set(requestKey, request.generation);
       archivedRequestIds.delete(requestKey);
       pendingArchivedRequests += 1;
       clearVisibleRowSessions();
@@ -152,7 +181,7 @@
       }
       throw error;
     }
-    const observation = observeResponse(input, init, response, requestGeneration);
+    const observation = observeResponse(input, init, response, request);
     if (requestKey !== null) {
       void observation.finally(() => {
         pendingArchivedRequests -= 1;
@@ -168,7 +197,6 @@
   };
 
   const rowKey = (cwd, title, time) => `${cwd}\u0000${title}\u0000${time}`;
-
   const availableByKey = () => {
     const grouped = new Map();
     for (const session of archivedSessions.values()) {
@@ -217,6 +245,7 @@
     document.querySelectorAll('.archive-list .archive-card').forEach((card) => {
       const cwd = card.querySelector('.archive-workspace .path')?.textContent?.trim() ?? '';
       card.querySelectorAll('.archive-row').forEach((row) => {
+        if (row.querySelector('button.ui-button--danger')) return clearRowSession(row);
         const key = rowKey(cwd, row.querySelector('.archive-name')?.textContent?.trim() ?? '', rowTime(row));
         const remembered = rowSessions.get(row);
         if (remembered && deletedIds.has(remembered.id) && rememberedKey(row) === key) {
@@ -251,7 +280,17 @@
     return rowsByTitle;
   };
 
-  const activeArchivedIds = () => new Set([...archivedRequestIds.values()].flatMap((ids) => [...ids]));
+  const activeArchivedIds = () => {
+    const pages = [...archivedRequestIds.values()];
+    if (archivedListing?.paginated) {
+      const keys = new Set(pages.flatMap((page) => [...page.keys]));
+      const singlePage = pages.length === 1 && pages[0].singlePage;
+      const complete = archivedListing.start && pages.length > 0 && pages.some((page) => page.more === false) &&
+        pages.every((page) => page.full && (singlePage || page.total === keys.size));
+      if (!complete) return new Set();
+    }
+    return new Set(pages.flatMap((page) => [...page.ids]));
+  };
 
   const pruneStaleSessions = (rowsByKey, activeIds) => {
     for (const [id, session] of archivedSessions) {
@@ -281,7 +320,7 @@
     const archiveRowsByKey = collectArchiveRowsByKey();
     const sidebarRowsByTitle = collectSidebarRowsByTitle();
     const activeIds = activeArchivedIds();
-    pruneStaleSessions(archiveRowsByKey, activeIds);
+    pruneStaleSessions(archiveRowsByKey, new Set([...archivedRequestIds.values()].flatMap((page) => [...page.ids])));
     const sessionsByKey = availableByKey();
     for (const [key, rows] of archiveRowsByKey) {
       const sessions = sessionsByKey.get(key) ?? [];
@@ -333,9 +372,13 @@
     button.className.includes('okw-sidebar-archive-delete') ? labels.removeShort : labels.remove
   );
 
-  // This keeps the destructive request and all of its UI rollback in one place.
+  const canDelete = (row, id) => {
+    if (pendingArchivedRequests > 0 || row.isConnected === false) return false;
+    matchRows();
+    return !pendingIds.has(id) && activeArchivedIds().has(id) && rowSessions.get(row)?.id === id;
+  };
   const deleteSession = async (row, session, removeButton) => {
-    if (pendingIds.has(session.id)) return;
+    if (!canDelete(row, session.id)) return;
     const labels = copy();
     if (!window.confirm(labels.confirm(session.title))) return;
     if (!pageAuthorization) {

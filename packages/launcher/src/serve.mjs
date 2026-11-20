@@ -47,7 +47,11 @@ async function serveLocalControl(req, res, context) {
   return context.localCaRoute(req, res);
 }
 
-function wsProxy(diagnostics, restart) { return createWsProxy(diagnostics, restart?.blocked); }
+function wsProxy(diagnostics, restart) {
+  const proxy = createWsProxy(diagnostics, restart?.blocked);
+  restart?.transport({ quiesce: proxy.quiesce });
+  return proxy;
+}
 
 function restartService(officialPresentation, restartControl, target) {
   if (!officialPresentation) return null;
@@ -128,7 +132,7 @@ function closeLauncher({ server, wss, closeConnections, cronService, diagnostics
   let closing;
   async function close() {
     try {
-      restart?.close();
+      await restart?.close();
       closeConnections();
       for (const client of wss.clients) client.terminate();
       await closeServer(server, closeGraceMs);

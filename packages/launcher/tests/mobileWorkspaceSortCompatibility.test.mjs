@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const source = readFileSync(resolve('packages/launcher/src/mobile/mobileWorkspaceSort.js'), 'utf8');
 const locale = readFileSync(resolve('packages/launcher/src/mobile/locale.js'), 'utf8');
+const presentation = readFileSync(resolve('packages/launcher/src/mobile/presentation.js'), 'utf8');
 const frames = [];
 const observers = [];
 const SORT = 'open-kimi-web.mobile-workspace-sort';
@@ -24,6 +25,8 @@ function install(paths, options = {}) {
   const values = new Map([[ORDER, '["b","a"]'], ...Object.entries(options.stored ?? {})]);
   const storage = { getItem: vi.fn((key) => values.get(key) ?? null), setItem: vi.fn((key, value) => values.set(key, value)) };
   Object.defineProperty(view, 'localStorage', { value: storage });
+  view.Response = Response;
+  view.Headers = Headers;
   doc.body.innerHTML = `<div class="sheet-root"><div class="sheet-panel"><div class="sheet-body">
     <div class="actions"><button class="newrow">New chat</button></div>
     <div class="view-tabs"><button aria-selected="true">Grouped</button></div>
@@ -47,6 +50,12 @@ function install(paths, options = {}) {
   const location = { href: 'http://localhost/', origin: 'http://localhost' };
   view.__sortLocation = location;
   view.eval(locale);
+  if (options.withPresentation) {
+    doc.body.insertAdjacentHTML('afterbegin', '<div class="app mobile"><div class="topbar"><div class="tb-main">' +
+      '<span class="dir">Fictional project</span></div><span class="st">Idle</span></div></div>');
+    location.pathname = '/sessions/session_a';
+    view.eval(`((location) => { ${presentation}\n})(window.__sortLocation)`);
+  }
   view.eval(`((location) => { ${source}\n})(window.__sortLocation)`);
   const select = () => doc.querySelector('.okw-mobile-workspace-sort select');
   const groups = () => [...doc.querySelectorAll('.mgroup')];
@@ -179,5 +188,77 @@ describe('shared official locale for mounted workspace sort', () => {
       expect(ui.select()).toBe(select); expect(select.value).toBe('name'); expect(ui.groups()).toEqual(nodes);
     }
     expect(ui.nativeFetch).not.toHaveBeenCalled(); expect(ui.storage.setItem).not.toHaveBeenCalled();
+  });
+});
+
+const groupedSession = (index) => ({
+  id: `session_${index}`, workspace_id: `workspace_${index}`, title: `Fictional ${index}`,
+  cwd: `/fictional/project-${index}`, activity: 'idle', updated_at: '2026-11-20T10:00:00.000Z', archived: false,
+});
+const groupedWire = (index, total = 1) => ({
+  workspace_id: `workspace_${index}`, sessions: [groupedSession(index)], total,
+});
+const listPath = '/api/v1/sessions?view=by_workspace&group_page_size=5&archived=false&has_prompt=true';
+
+describe('unified v1 mobile list metadata', () => {
+  it('keeps identities from more than 50 groups across native pages without fetching bodies or moving nodes', async () => {
+    const paths = Array.from({ length: 51 }, (_, index) => `/fictional/project-${index}`);
+    const ui = install(paths, { stored: { [ORDER]: '["workspace_50","workspace_0"]' } });
+    const nodes = ui.groups();
+    await respond(ui, listPath, { groups: Array.from({ length: 50 }, (_, index) => groupedWire(index)),
+      total: 51, has_more: true, next_page_token: 'fictional-page==' });
+    expect(ui.select().options[2].disabled).toBe(true);
+    await respond(ui, `${listPath}&page_token=fictional-page%3D%3D`, {
+      groups: [groupedWire(50)], total: 51, has_more: false,
+    });
+    expect(ui.select().options[2].disabled).toBe(false);
+    ui.choose('desktop');
+    expect(ui.groups()).toEqual(nodes); expect(nodes[50].style.order).toBe('0'); expect(nodes[0].style.order).toBe('1');
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(2);
+    expect(ui.storage.setItem.mock.calls).toEqual([[SORT, 'desktop']]);
+    expect([...ui.values.keys()]).toEqual([ORDER, SORT]); await settled(ui);
+    await respond(ui, listPath, { groups: [groupedWire(50)], total: 1, has_more: false });
+    expect(ui.select().options[2].disabled).toBe(true); await settled(ui);
+  });
+  it('rejects conflicting grouped paths and distinct remote IDs sharing one path', async () => {
+    const ui = install(['/fictional/project-0']);
+    await respond(ui, listPath, { groups: [{ ...groupedWire(0), sessions: [groupedSession(0),
+      { ...groupedSession(0), id: 'another', cwd: '/different' }] }], total: 1, has_more: false });
+    expect(ui.select().options[2].disabled).toBe(true);
+    await respond(ui, listPath, { groups: [groupedWire(0), { ...groupedWire(0), workspace_id: 'remote_workspace' }],
+      total: 2, has_more: false });
+    expect(ui.select().options[2].disabled).toBe(true);
+    await respond(ui, '/api/v1/workspaces', { items: [{ id: 'a', root: '/fictional/project-0' }] });
+    await respond(ui, listPath, { groups: [{ ...groupedWire(0), host_id: 'fictional-remote' }], total: 1, has_more: false });
+    expect(ui.select().options[2].disabled).toBe(true); expect(ui.nativeFetch).toHaveBeenCalledTimes(4);
+    expect(ui.storage.setItem).not.toHaveBeenCalled(); await settled(ui);
+  });
+  it('uses grouped totals and listed git metadata while retaining counts from earlier pages', async () => {
+    const ui = install(['/fictional/a', '/fictional/b'], { withPresentation: true, stored: { 'kimi-locale': 'en' } });
+    const current = { id: 'session_a', workspace_id: 'a', metadata: { cwd: '/fictional/a' }, git: { branch: 'feature/demo' } };
+    const summary = () => ui.doc.querySelector('.okw-workspace-summary').textContent;
+    await respond(ui, listPath, { groups: [{ workspace_id: 'a', sessions: [current], total: 73 }],
+      total: 51, has_more: true, next_page_token: 'next' });
+    expect(summary()).toBe('Idle · feature/demo · 73 sessions');
+    await respond(ui, `${listPath}&page_token=next`, { groups: [{ workspace_id: 'b', sessions: [
+      { id: 'session_b', workspace_id: 'b', metadata: { cwd: '/fictional/b' } },
+    ], total: 12 }], total: 51, has_more: false });
+    expect(summary()).toBe('Idle · feature/demo · 73 sessions');
+    await respond(ui, '/api/v1/sessions?workspace_id=a&archived=false', {
+      items: [{ ...current, git: { branch: 'new-branch' } }], total: 73, has_more: true,
+    });
+    expect(summary()).toBe('Idle · new-branch · 73 sessions');
+    await respond(ui, listPath, { groups: [{ workspace_id: 'a', sessions: [current], total: 999 }] }, { code: 40922 });
+    expect(summary()).toBe('Idle · new-branch · 73 sessions');
+    await respond(ui, listPath, { groups: [], total: 0, has_more: false });
+    expect(summary()).toBe('Idle · new-branch');
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(5); expect(ui.storage.setItem).not.toHaveBeenCalled(); await settled(ui);
+  });
+  it.each([
+    ['projection', `${listPath}&fields=id,archived`, { groups: [{ workspace_id: 'a', sessions: [{ id: 's' }], total: 1 }] }],
+    ['flat', '/api/v1/sessions?archived=false', { items: [groupedSession(0)], total: 1, has_more: false }],
+  ])('does not guess workspace identity from %s data', async (_, path, data) => {
+    const ui = install(['/fictional/project-0']); await respond(ui, path, data);
+    expect(ui.select().options[2].disabled).toBe(true); expect(ui.nativeFetch).toHaveBeenCalledTimes(1); await settled(ui);
   });
 });

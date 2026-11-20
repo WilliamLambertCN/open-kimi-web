@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
 
 import { vi } from 'vitest';
 
-const source = readFileSync(new URL('../../src/mobile/archivedSessionDelete.js', import.meta.url), 'utf8');
+const source = readFileSync(resolve('packages/launcher/src/mobile/archivedSessionDelete.js'), 'utf8');
 
 class FakeElement {
   constructor(className = '') {
@@ -129,18 +130,21 @@ export const archivedItemV2 = (id, { archived = true, title = 'Archived title' }
   },
 });
 
+export const archivedItemV1 = (id, { title = 'Archived title', ...fields } = {}) => ({
+  id, title, workspace_id: 'workspace_test', archived: true, archived_at: new Date(ARCHIVED_AT).toISOString(),
+  updated_at: new Date(ARCHIVED_AT).toISOString(), cwd: 'C:\\work', activity: 'idle', ...fields,
+});
+export const unifiedArchivedResponse = (data, code = 0) => new Response(JSON.stringify({ code, data }), { status: 200 });
+
+export const archivedItemLegacyV1 = (id, { title = 'Archived title', ...fields } = {}) => ({
+  id, workspace_id: 'workspace_test', title, archived: true, archived_at: new Date(ARCHIVED_AT).toISOString(),
+  updated_at: new Date(ARCHIVED_AT).toISOString(), busy: false, metadata: { cwd: 'C:\\work' }, ...fields,
+});
+
 function archivedResponseV1(archived = true, items) {
   return new Response(JSON.stringify({
     code: 0,
-    data: {
-      items: items ?? [{
-        id: 'session_archived',
-        title: 'Archived title',
-        archived,
-        archived_at: ARCHIVED_AT,
-        metadata: { cwd: 'C:\\work' },
-      }],
-    },
+    data: { items: items ?? [archivedItemLegacyV1('session_archived', { archived })], has_more: false },
   }), { status: 200, headers: { 'content-type': 'application/json' } });
 }
 
@@ -166,12 +170,19 @@ function listResponse(input, archived, apiItems) {
   const items = typeof apiItems === 'function' ? apiItems(url) : apiItems;
   if (url.includes('archived_only=true')) return archivedResponseV1(archived, items);
   if (url.includes('meta.archived=true')) return archivedResponseV2(archived, items);
+  if (new URL(url, 'http://localhost').searchParams.get('archived') === 'true') {
+    return unifiedArchivedResponse({ items: items ?? [archivedItemV1('session_archived', { archived })],
+      total: items?.length ?? 1, has_more: false });
+  }
   return null;
 }
 
-const listUrl = (apiVersion) => apiVersion === 'v1'
-  ? 'http://localhost/api/v1/sessions?archived_only=true'
-  : 'http://localhost/api/v2/sessions?sort=meta.updated_at_desc&meta.archived=true';
+const listUrls = {
+  v1: 'http://localhost/api/v1/sessions?archived_only=true',
+  unified: 'http://localhost/api/v1/sessions?sort=updated_at_desc&archived=true',
+};
+const listUrl = (apiVersion) => listUrls[apiVersion] ??
+  'http://localhost/api/v2/sessions?sort=meta.updated_at_desc&meta.archived=true';
 
 const listHeaders = (authorization) => authorization === ''
   ? {}

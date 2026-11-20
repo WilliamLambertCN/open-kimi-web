@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  archivedItemV1,
   archivedItemV2,
   archivedResponseV2,
+  unifiedArchivedResponse,
   deferred,
   FakeSidebarRow,
   install,
@@ -276,5 +278,116 @@ describe('archived session delete failures', () => {
     expect(ui.sidebarRemove.disabled).toBe(false);
     expect(ui.sidebarRemove.textContent).toBe('Delete');
     expect(ui.window.location.reload).not.toHaveBeenCalled();
+  });
+});
+
+async function unifiedPage(ui, data, suffix = '', code = 0) {
+  const response = unifiedArchivedResponse(data, code);
+  ui.nativeFetch.mockResolvedValueOnce(response);
+  expect(await ui.window.fetch(`${ui.archivedUrl}${suffix}`, { headers: { authorization: 'Bearer page-token' } })).toBe(response);
+  await settleObservation(); ui.mutate();
+  expect(response.bodyUsed).toBe(false);
+}
+const flatPage = (items, total = items.length, has_more = false) => ({ items, total, has_more });
+
+describe('unified v1 archived pagination identity', () => {
+  it('keeps top-level ISO archive metadata and confirmed deletion, cancel, failure and duplicate guards', async () => {
+    const ui = await install({ apiVersion: 'unified', confirm: false });
+    expect(ui.remove).toBeDefined(); expect(ui.sidebarRemove).toBeDefined();
+    ui.remove.dispatch('click'); expect(ui.nativeFetch).toHaveBeenCalledTimes(1);
+    ui.window.confirm.mockReturnValue(true);
+    ui.nativeFetch.mockResolvedValueOnce(new Response('{"code":50000,"msg":"Fixture failure"}', { status: 500 }));
+    ui.remove.dispatch('click'); await settleObservation();
+    expect(ui.card.row.removed).toBe(false); expect(ui.remove.disabled).toBe(false);
+    const pending = deferred(); ui.nativeFetch.mockReturnValueOnce(pending.promise);
+    ui.remove.dispatch('click'); ui.sidebarRemove.dispatch('click'); ui.remove.dispatch('click');
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(3);
+    pending.resolve(new Response('{"code":0,"data":{"deleted":true}}')); await settleObservation();
+    expect(ui.card.row.removed).toBe(true); expect(ui.window.location.reload).toHaveBeenCalledTimes(1);
+    expect(ui.nativeFetch.mock.calls.at(-1)[0]).toBe('/api/v1/sessions/session_archived:delete');
+  });
+  it('waits for all 51 native flat entries and an omitted last-page token before enabling a unique row', async () => {
+    const ui = await install({ apiVersion: 'unified', apiItems: [] });
+    const items = Array.from({ length: 50 }, (_, index) => archivedItemV1(index ? `session_${index}` : 'session_archived',
+      { title: index ? `Fictional ${index}` : 'Archived title' }));
+    await unifiedPage(ui, { ...flatPage(items, 51, true), next_page_token: 'next==' });
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
+    await unifiedPage(ui, flatPage([archivedItemV1('last', { title: 'Last fictional' })], 51), '&page_token=next%3D%3D');
+    expect(ui.card.row.querySelector('.okw-archive-actions')).not.toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).not.toBeNull();
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(3);
+  });
+  it('does not infer uniqueness from page 2, missing pages, changing totals or filtered lists', async () => {
+    const ui = await install({ apiVersion: 'unified', apiItems: [] });
+    const item = archivedItemV1('session_archived');
+    for (const [data, suffix] of [
+      [flatPage([item], 1), '&page=2'], [flatPage([item], 3, true), ''],
+      [flatPage([archivedItemV1('other')], 3), '&page_token=missing'],
+      [flatPage([item]), '&workspace_id=workspace_test'], [flatPage([item]), '&has_prompt=true'],
+      [flatPage([item]), '&busy=false'], [flatPage([item]), '&exclude_empty=true'],
+    ]) {
+      await unifiedPage(ui, data, suffix);
+      expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+      expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
+    }
+  });
+  it('rejects duplicate visible keys discovered on the last page rather than binding the first session', async () => {
+    const ui = await install({ apiVersion: 'unified', apiItems: [] });
+    await unifiedPage(ui, { ...flatPage([archivedItemV1('session_archived')], 2, true), next_page_token: 'next' });
+    await unifiedPage(ui, flatPage([archivedItemV1('duplicate')], 2), '&page_token=next');
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(3);
+  });
+  it('reads real grouped entries but rejects a truncated group even when the outer page is complete', async () => {
+    const ui = await install({ apiVersion: 'unified', apiItems: [] });
+    const group = { workspace_id: 'workspace_test', sessions: [archivedItemV1('session_archived')], total: 2 };
+    await unifiedPage(ui, { groups: [group], total: 1, has_more: false }, '&view=by_workspace&group_page_size=1');
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    await unifiedPage(ui, { groups: [{ ...group, total: 1 }], total: 1, has_more: false },
+      '&view=by_workspace&group_page_size=1');
+    expect(ui.card.row.querySelector('.okw-archive-actions')).not.toBeNull();
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(3);
+  });
+  it('drops old confirmation after refresh errors and will not let a detached old button delete', async () => {
+    const ui = await install({ apiVersion: 'unified' }); const old = ui.remove;
+    await unifiedPage(ui, flatPage([archivedItemV1('session_archived')]), '', 40922);
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    old.dispatch('click'); await settleObservation(); expect(ui.nativeFetch).toHaveBeenCalledTimes(2);
+    expect(ui.window.confirm).not.toHaveBeenCalled();
+  });
+});
+
+describe('unified v1 destructive metadata boundaries', () => {
+  it('does not infer a complete local list when remote hosts are unavailable', async () => {
+    const ui = await install({ apiVersion: 'unified' });
+    await unifiedPage(ui, { ...flatPage([archivedItemV1('session_archived')]), unavailable_hosts: ['fictional-remote'] },
+      '&hosts=include');
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
+  });
+  it('keeps legacy archive parameter aliases fail-closed when pagination metadata is present', async () => {
+    const ui = await install({ apiVersion: 'v1' });
+    await unifiedPage(ui, { ...flatPage([archivedItemV1('session_archived')], 51, true), next_page_token: 'next' });
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
+  });
+  it('rechecks an altered native row at click time before its observer runs', async () => {
+    const ui = await install({ apiVersion: 'unified' });
+    ui.card.row.title.textContent = 'Replacement row'; ui.remove.dispatch('click'); await settleObservation();
+    expect(ui.window.confirm).not.toHaveBeenCalled(); expect(ui.nativeFetch).toHaveBeenCalledTimes(1);
+  });
+  it.each([
+    ['ID projection', { id: 'session_archived', archived: true }],
+    ['missing cwd', archivedItemV1('session_archived', { cwd: undefined })],
+    ['missing time', archivedItemV1('session_archived', { archived_at: undefined, updated_at: undefined })],
+    ['unarchived entry', archivedItemV1('session_archived', { archived: false })],
+    ['remote host session', archivedItemV1('session_archived', { host_id: 'fictional-remote' })],
+  ])('does not assign destructive identity to %s', async (_, item) => {
+    const ui = await install({ apiVersion: 'unified', apiItems: [] });
+    await unifiedPage(ui, flatPage([item]));
+    expect(ui.card.row.querySelector('.okw-archive-actions')).toBeNull();
+    expect(ui.sidebarRows[0].querySelector('.okw-sidebar-archive-delete')).toBeNull();
   });
 });

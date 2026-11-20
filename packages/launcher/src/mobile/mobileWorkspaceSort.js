@@ -8,6 +8,7 @@
   const sheets = new Map();
   let workspaces = [];
   let groupedWorkspaces = [];
+  const groupedListings = new Map();
   let home = null;
 
   const readStorage = (key) => {
@@ -63,13 +64,22 @@
     return [...records].flatMap(([id, roots]) => [...roots].map((root) => ({ id, root, valid: roots.size === 1 })));
   };
   const identify = (groups) => {
-    const records = identities();
-    const candidates = groups.map((node) => {
-      const path = node.querySelector('.mgh-path')?.textContent.trim() ?? '';
-      return records.filter(({ root }) => path && shortPath(root).trim() === path);
+    const paths = new Map();
+    identities().forEach(({ id, root, valid }) => {
+      const path = shortPath(root).trim();
+      paths.set(path, paths.has(path) || !valid ? null : id);
     });
-    const ids = candidates.map((matches) => matches.length === 1 && matches[0].valid ? matches[0].id : null);
-    return ids.map((id) => id && ids.filter((other) => other === id).length === 1 ? id : null);
+    groupedWorkspaces.forEach(({ root, remote }) => {
+      if (remote) paths.set(shortPath(root).trim(), null);
+    });
+    const counts = new Map();
+    const ids = groups.map((node) => {
+      const path = node.querySelector('.mgh-path')?.textContent.trim() ?? '';
+      const id = path ? paths.get(path) : null;
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+      return id;
+    });
+    return ids.map((id) => id && counts.get(id) === 1 ? id : null);
   };
   const clearList = (list) => {
     if (!list) return;
@@ -224,6 +234,18 @@
       if (!workspaces.some(({ id, root }) => id === item.id && root === item.root)) workspaces.push(item);
     });
   };
+  const groupWorkspaces = (groups) => groups.flatMap((group) => {
+    if (group?.workspace) return project([group.workspace], 'cwd');
+    if (!Array.isArray(group?.sessions)) return [];
+    return group.sessions.flatMap((session) => project([{
+      id: group.workspace_id, root: session?.cwd ?? session?.metadata?.cwd,
+    }], 'root').map((item) => ({ ...item, remote: Boolean(group.host_id || session?.host_id) })));
+  });
+  const rememberGroups = (data, _method, ticket) => {
+    if (!Array.isArray(data.groups)) return;
+    ticket.listing.pages.set(ticket.page, groupWorkspaces(data.groups));
+    groupedWorkspaces = [...ticket.listing.pages.values()].flat();
+  };
   const projections = {
     '/api/v1/workspaces': (data, method) => {
       if (method === 'POST') rememberWorkspace(data);
@@ -232,15 +254,14 @@
     '/api/v1/fs:home': (data) => {
       if (typeof data.home === 'string') home = data.home;
     },
-    '/api/v2/sessions': (data) => {
-      if (Array.isArray(data.groups)) groupedWorkspaces = project(data.groups.map((group) => group?.workspace), 'cwd');
-    },
+    '/api/v1/sessions': rememberGroups,
+    '/api/v2/sessions': rememberGroups,
   };
-  const remember = (url, body, method) => {
+  const remember = ({ url, method, ticket }, body) => {
     if (!body || (body.code !== undefined && body.code !== 0)) return;
     const data = body.data ?? body;
     if (!data || typeof data !== 'object') return;
-    projections[url.pathname](data, method);
+    projections[url.pathname](data, method, ticket);
     refresh();
   };
   const isRequest = (input) => typeof Request !== 'undefined' && input instanceof Request;
@@ -250,21 +271,63 @@
     const url = new URL(isRequest(input) ? input.url : String(input), location.href);
     if (method !== 'GET' && (method !== 'POST' || url.pathname !== '/api/v1/workspaces')) return null;
     if (url.origin !== location.origin || !projections[url.pathname]) return null;
-    if (url.pathname === '/api/v2/sessions' && url.searchParams.get('view') !== 'by_workspace') return null;
+    if (url.pathname.endsWith('/sessions') && url.searchParams.get('view') !== 'by_workspace') return null;
     return url;
   };
+  const listingDomain = (url) => JSON.stringify([url.pathname, ...[
+    'view', 'archived', 'archived_only', 'include_archive', 'meta.archived', 'workspace_id', 'workspace.id',
+    'has_prompt', 'meta.has_prompt', 'fields', 'include', 'hosts',
+  ].map((key) => url.searchParams.getAll(key))]);
+  const trackGroups = (url) => {
+    const query = new URL(url);
+    const pageUrl = new URL(url);
+    const cursors = ['page_token', 'page', 'before_id', 'after_id', 'cursor'];
+    const continuation = cursors.some((key) => url.searchParams.has(key) &&
+      (key !== 'page' || Number(url.searchParams.get(key)) > 1));
+    cursors.forEach((key) => query.searchParams.delete(key));
+    query.searchParams.sort();
+    pageUrl.searchParams.sort();
+    const key = listingDomain(url);
+    let listing = groupedListings.get(key);
+    if (continuation && listing?.query !== query.href) return null;
+    if (!continuation) {
+      listing = { query: query.href, requests: new Map(), pages: new Map() };
+      groupedListings.set(key, listing);
+    }
+    const page = continuation ? pageUrl.href : query.href;
+    const ticket = { key, listing, page };
+    listing.requests.set(page, ticket);
+    return ticket;
+  };
+  const observedRequest = (input, init) => {
+    try {
+      const url = observedUrl(input, init);
+      if (!url) return null;
+      const grouped = url.pathname.endsWith('/sessions');
+      const ticket = grouped ? trackGroups(url) : null;
+      if (grouped && !ticket) return null;
+      return { url, method: requestMethod(input, init), ticket };
+    } catch { return null; }
+  };
+  const currentRequest = (request) => request && (!request.ticket ||
+    (groupedListings.get(request.ticket.key) === request.ticket.listing &&
+      request.ticket.listing.requests.get(request.ticket.page) === request.ticket));
   const sameOriginResponse = (response) => !response.redirected &&
     (!response.url || new URL(response.url).origin === location.origin);
+  const observeResponse = async (request, response) => {
+    if (!currentRequest(request) || !response.ok) return;
+    try {
+      if (!sameOriginResponse(response)) return;
+      const body = await response.clone().json();
+      if (currentRequest(request)) remember(request, body);
+    } catch { /* Official requests and responses are never changed. */ }
+  };
   const nativeFetch = window.fetch;
   if (typeof nativeFetch === 'function') {
     window.fetch = async function mobileWorkspaceSortFetch(input, init) {
+      const request = observedRequest(input, init);
       const response = await nativeFetch.apply(this, arguments);
-      try {
-        const url = observedUrl(input, init);
-        if (url && response.ok && sameOriginResponse(response)) {
-          void response.clone().json().then((body) => remember(url, body, requestMethod(input, init))).catch(() => {});
-        }
-      } catch { /* Official requests and responses are never changed. */ }
+      void observeResponse(request, response);
       return response;
     };
   }

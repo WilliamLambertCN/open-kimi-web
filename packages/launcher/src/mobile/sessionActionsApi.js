@@ -23,11 +23,11 @@
     const project = (item) => {
       const meta = item.meta ?? item;
       return { id: item.id, title: displayString(meta.title ?? meta.last_prompt, item.id),
-        cwd: displayString(item.workspace?.cwd ?? item.metadata?.cwd, '') };
+        cwd: displayString(item.cwd ?? item.workspace?.cwd ?? item.metadata?.cwd, '') };
     };
     const remember = (item) => {
       const id = item?.id;
-      if (!validId(id) || !safePins().includes(id)) return;
+      if (!validId(id) || item.host_id || !safePins().includes(id)) return;
       const next = project(item);
       if (JSON.stringify(records.get(id)) === JSON.stringify(next)) return;
       records.set(id, next); notify();
@@ -36,7 +36,9 @@
       if (body?.code !== 0) return;
       const data = body.data;
       if (Array.isArray(data?.items)) data.items.forEach(remember);
-      else if (Array.isArray(data?.groups)) data.groups.forEach((group) => group.sessions?.forEach(remember));
+      else if (Array.isArray(data?.groups)) data.groups.forEach((group) => {
+        if (!group.host_id) group.sessions?.forEach(remember);
+      });
       else remember(data);
     };
     const observedHeaders = ['authorization', 'x-kimi-client-id', 'x-kimi-client-name', 'x-kimi-client-version',
@@ -59,7 +61,8 @@
       const url = new URL(request?.url ?? String(input), location.href);
       if (url.origin !== location.origin || !url.pathname.startsWith('/api/')) return false;
       captureHeaders(request, options);
-      return requestMethod(request, options) === 'GET' && sessionResponsePath(url.pathname);
+      return requestMethod(request, options) === 'GET' && sessionResponsePath(url.pathname) &&
+        !url.searchParams.get('fields');
     };
     const sameOriginResponse = (response) => !response.redirected &&
       (!response.url || new URL(response.url).origin === location.origin);

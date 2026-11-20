@@ -74,6 +74,19 @@ function terminate(upstream) {
   if (upstream.readyState !== WebSocket.CLOSED) upstream.terminate();
 }
 
+function upstreamClosed(upstream) {
+  if (upstream.readyState === WebSocket.CLOSED) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const done = () => { clearTimeout(timer); resolve(); };
+    const timer = setTimeout(() => {
+      upstream.off('close', done);
+      terminate(upstream);
+      reject(new Error('restart-websocket-close-timeout'));
+    }, 2000);
+    upstream.once('close', done);
+  });
+}
+
 function rejectHandshake(socket, status = 400) {
   const reason = STATUS_CODES[status] ?? 'Bad Request';
   socket.end(
@@ -105,7 +118,7 @@ function acceptUpgrade(context, cleanup, abandon) {
     wss.handleUpgrade(req, socket, head, (client) => {
       accepted = true;
       cleanup();
-      active.set(upstream, trace);
+      active.set(upstream, { trace, client });
       bridge(upstream, client, () => active.delete(upstream), trace, blocked);
       trace?.ready();
     });
@@ -196,12 +209,30 @@ export function createWsProxy(diagnostics, blocked) {
       terminate(upstream);
     }
     pending.clear();
-    for (const [upstream, trace] of active) {
+    for (const [upstream, { trace }] of active) {
       trace?.end('shutdown');
       terminate(upstream);
     }
     active.clear();
   }
 
-  return { wss, handleUpgrade, closeConnections };
+  async function quiesce() {
+    const closed = [];
+    for (const [upstream, { socket }] of pending) {
+      closed.push(upstreamClosed(upstream));
+      socket.destroy();
+      upstream.on('error', () => {});
+      terminate(upstream);
+    }
+    for (const [upstream, { client, trace }] of active) {
+      closed.push(upstreamClosed(upstream));
+      trace?.end('restart');
+      client.close(1013, 'Service restarting');
+      upstream.close(1013, 'Service restarting');
+    }
+    await Promise.all(closed);
+    if (closed.length) await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  return { wss, handleUpgrade, closeConnections, quiesce };
 }

@@ -6,21 +6,25 @@ const mobile = window.matchMedia('(max-width: 640px)');
   const gitBySession = new Map();
   let workspaces = [];
   let sessionListing = null;
+  const listingRequests = new Map();
+  let requestOrder = 0;
 
   const currentSessionId = () => {
     const match = location.pathname.match(/^\/sessions\/([^/?#]+)/);
     return match ? decodeURIComponent(match[1]) : null;
   };
 
+  const workspacePathCount = (groups, cwd) => {
+    const matches = cwd ? groups.filter((group) => [group.workspace.cwd, group.workspace.root].includes(cwd)) : [];
+    return matches.length === 1 ? matches[0].total : null;
+  };
   const workspaceCount = (listing, session) => {
-    const groups = Array.isArray(listing?.groups) ? listing.groups : [];
-    const match = groups.find((group) => {
-      const workspace = group?.workspace ?? {};
-      return (session?.workspace_id && workspace.id === session.workspace_id) ||
-        (session?.metadata?.cwd && (workspace.cwd === session.metadata.cwd || workspace.root === session.metadata.cwd));
-    });
-    if (Number.isFinite(match?.total)) return match.total;
-    return null;
+    const groups = listing?.groups ?? [];
+    if (session?.host_id) return null;
+    const id = session?.workspace_id;
+    const exact = id ? groups.find((group) => group.workspace.id === id) : null;
+    if (exact) return exact.total;
+    return workspacePathCount(groups, session?.metadata?.cwd);
   };
 
   const ensureHeaderNode = (main, className, prepend = false) => {
@@ -83,8 +87,9 @@ const mobile = window.matchMedia('(max-width: 640px)');
   };
   const renderObservedHeaderState = () => {
     const sessionId = currentSessionId();
-    const name = textOf(document.querySelector('.app.mobile .topbar .dir'));
-    const workspace = sessionId ? null : workspaces.find((item) => item.name === name) ?? null;
+    const workspaceRoute = location.pathname.match(/^\/workspaces\/([^/?#]+)/);
+    const workspaceId = workspaceRoute ? decodeURIComponent(workspaceRoute[1]) : null;
+    const workspace = workspaces.find((item) => item.workspace_id === workspaceId) ?? null;
     renderHeaderState({
       session: sessionId ? sessions.get(sessionId) ?? null : null,
       git: sessionId ? gitBySession.get(sessionId) ?? null : null,
@@ -93,63 +98,79 @@ const mobile = window.matchMedia('(max-width: 640px)');
     });
   };
 
-  const rememberSession = (id, data) => {
+  const rememberSession = (id, data, order) => {
+    if ((sessions.get(id)?.order ?? 0) > order) return;
     sessions.set(id, {
-      workspace_id: typeof data?.workspace_id === 'string' ? data.workspace_id : null,
-      metadata: { cwd: typeof data?.metadata?.cwd === 'string' ? data.metadata.cwd : null },
+      workspace_id: stringOrNull(data?.workspace_id),
+      host_id: stringOrNull(data?.host_id),
+      metadata: { cwd: stringOrNull(data?.cwd ?? data?.metadata?.cwd) },
+      order,
     });
+  };
+  const rememberGit = (id, branch, order) => {
+    if ((gitBySession.get(id)?.order ?? 0) > order) return;
+    gitBySession.set(id, { branch, order });
   };
 
   const stringOrNull = (value) => typeof value === 'string' ? value : null;
 
+  const groupCwd = (group) => {
+    const items = Array.isArray(group?.sessions) ? group.sessions : [];
+    const paths = [...new Set(items.map((item) => stringOrNull(item?.cwd ?? item?.metadata?.cwd)).filter(Boolean))];
+    return paths.length === 1 ? paths[0] : null;
+  };
   const normalizeGroup = (group) => {
     const workspace = group?.workspace ?? {};
     return {
       workspace: {
-        id: stringOrNull(workspace.id),
-        cwd: stringOrNull(workspace.cwd),
+        id: stringOrNull(group?.workspace_id ?? workspace.id),
+        cwd: stringOrNull(workspace.cwd) ?? groupCwd(group),
         root: stringOrNull(workspace.root),
       },
       total: Number.isFinite(group?.total) ? group.total : null,
     };
   };
 
-  const rememberV2Session = (item) => {
-    if (typeof item?.id !== 'string' || typeof item?.git?.branch !== 'string') return;
-    gitBySession.set(item.id, { branch: item.git.branch });
+  const rememberListedSession = (item, order) => {
+    if (typeof item?.id !== 'string' || item.host_id) return;
+    if (typeof item.workspace_id === 'string') rememberSession(item.id, item, order);
+    if (typeof item.git?.branch === 'string') rememberGit(item.id, item.git.branch, order);
   };
 
   const rememberWorkspaces = (data) => {
     const items = Array.isArray(data?.items) ? data.items : [];
     workspaces = items.map((item) => ({
       workspace_id: stringOrNull(item?.id),
-      name: stringOrNull(item?.name),
       metadata: { cwd: stringOrNull(item?.root ?? item?.cwd) },
     }));
   };
 
-  const rememberListing = (data) => {
-    if (Array.isArray(data?.items)) data.items.forEach(rememberV2Session);
-    if (Array.isArray(data?.groups)) {
-      data.groups.forEach((group) => group?.sessions?.forEach(rememberV2Session));
-    }
-    if (!Array.isArray(data?.groups) || data.groups.length === 0) return;
-    sessionListing = {
-      groups: data.groups.map(normalizeGroup),
-    };
+  const rememberListing = (data, ticket, order) => {
+    if (Array.isArray(data?.items)) data.items.forEach((item) => rememberListedSession(item, order));
+    if (!Array.isArray(data?.groups)) return;
+    data.groups.forEach((group) => {
+      if (!group?.host_id && Array.isArray(group?.sessions)) {
+        group.sessions.forEach((item) => rememberListedSession(item, order));
+      }
+    });
+    const { listing, page } = ticket;
+    listing.pages.set(page, data.groups.filter((group) => !group.host_id).map(normalizeGroup));
+    const groups = new Map();
+    listing.requests.forEach((_request, key) => {
+      (listing.pages.get(key) ?? []).forEach((group) => groups.set(group.workspace.id, group));
+    });
+    sessionListing = { groups: [...groups.values()] };
   };
 
-  const rememberResponse = (url, method, data) => {
+  const rememberResponse = ({ url, method, ticket, order }, data) => {
     const sessionMatch = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)$/);
     const gitMatch = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/fs:git_status$/);
     if (sessionMatch && (method === 'GET' || method === 'POST')) {
-      rememberSession(decodeURIComponent(sessionMatch[1]), data);
+      rememberSession(decodeURIComponent(sessionMatch[1]), data, order);
     } else if (gitMatch) {
-      gitBySession.set(decodeURIComponent(gitMatch[1]), {
-        branch: typeof data?.branch === 'string' ? data.branch : null,
-      });
-    } else if (url.pathname === '/api/v2/sessions') {
-      rememberListing(data);
+      rememberGit(decodeURIComponent(gitMatch[1]), stringOrNull(data?.branch), order);
+    } else if (['/api/v1/sessions', '/api/v2/sessions'].includes(url.pathname) && method === 'GET') {
+      rememberListing(data, ticket, order);
     } else if (url.pathname === '/api/v1/workspaces') {
       rememberWorkspaces(data);
     }
@@ -190,20 +211,65 @@ const mobile = window.matchMedia('(max-width: 640px)');
     });
   };
 
-  const isObservedPath = (pathname) => pathname === '/api/v2/sessions' ||
-    pathname === '/api/v1/workspaces' ||
+  const isObservedPath = (pathname) => ['/api/v1/sessions', '/api/v2/sessions', '/api/v1/workspaces'].includes(pathname) ||
     /^\/api\/v1\/sessions\/[^/]+(?:\/fs:git_status)?$/.test(pathname);
 
-  const observeResponse = async (input, init, response) => {
-    if (!mobile.matches || !response.ok) return;
+  const listingDomain = (url) => JSON.stringify([url.pathname, ...[
+    'view', 'archived', 'archived_only', 'include_archive', 'meta.archived', 'workspace_id', 'workspace.id',
+    'has_prompt', 'meta.has_prompt', 'fields', 'include', 'hosts',
+  ].map((key) => url.searchParams.getAll(key))]);
+  const trackListing = (url) => {
+    const query = new URL(url);
+    const pageUrl = new URL(url);
+    const cursors = ['page_token', 'page', 'before_id', 'after_id', 'cursor'];
+    const continuation = cursors.some((key) => url.searchParams.has(key) &&
+      (key !== 'page' || Number(url.searchParams.get(key)) > 1));
+    cursors.forEach((key) => query.searchParams.delete(key));
+    query.searchParams.sort();
+    pageUrl.searchParams.sort();
+    const key = listingDomain(url);
+    let listing = listingRequests.get(key);
+    if (continuation && listing?.query !== query.href) return null;
+    if (!continuation) {
+      listing = { query: query.href, requests: new Map(), pages: new Map() };
+      listingRequests.set(key, listing);
+    }
+    const page = continuation ? pageUrl.href : query.href;
+    const ticket = { key, listing, page };
+    listing.requests.set(page, ticket);
+    return ticket;
+  };
+  const observedRequest = (input, init) => {
     try {
       const url = requestUrl(input);
-      if (url.origin !== location.origin) return;
-      if (!isObservedPath(url.pathname)) return;
       const method = requestMethod(input, init);
+      if (url.origin !== location.origin || !isObservedPath(url.pathname)) return null;
+      if (!['GET', 'POST'].includes(method)) return null;
+      const order = ++requestOrder;
+      if (url.pathname.endsWith('/sessions')) {
+        if (method !== 'GET') return null;
+        const ticket = trackListing(url);
+        return ticket ? { url, method, ticket, order } : null;
+      }
+      return { url, method, ticket: null, order };
+    } catch { return null; }
+  };
+  const currentRequest = (request) => request && (!request.ticket ||
+    (listingRequests.get(request.ticket.key) === request.ticket.listing &&
+      request.ticket.listing.requests.get(request.ticket.page) === request.ticket));
+  const sameOriginResponse = (response) => !response.redirected &&
+    (!response.url || new URL(response.url).origin === location.origin);
+  const rememberBody = (request, body) => {
+    if (body?.code !== undefined && body.code !== 0) return;
+    rememberResponse(request, body?.data ?? body);
+    renderObservedHeaderState();
+  };
+  const observeResponse = async (request, response) => {
+    if (!mobile.matches || !response.ok || !currentRequest(request)) return;
+    try {
+      if (!sameOriginResponse(response)) return;
       const body = await response.clone().json();
-      rememberResponse(url, method, body?.data ?? body);
-      renderObservedHeaderState();
+      if (currentRequest(request)) rememberBody(request, body);
     } catch {
       // Presentation data is optional; the official response remains untouched.
     }
@@ -211,9 +277,10 @@ const mobile = window.matchMedia('(max-width: 640px)');
 
   const nativeFetch = window.fetch;
   window.fetch = async function observedFetch(input, init) {
+    const request = observedRequest(input, init);
     const response = await nativeFetch.apply(this, arguments);
     const explained = await explainMissingWorkspace(input, init, response);
-    void observeResponse(input, init, explained);
+    void observeResponse(request, explained);
     return explained;
   };
 

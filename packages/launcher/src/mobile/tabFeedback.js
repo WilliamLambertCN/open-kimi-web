@@ -108,7 +108,7 @@
       const method = (init?.method ?? input.method ?? 'GET').toUpperCase();
       const match = url.pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/(transcript|agents\/main\/turns|fs:read)$/);
       if (match) return matchRequest(match, method);
-      if (method === 'GET' && url.pathname === '/api/v2/sessions') return pending.get('category');
+      if (method === 'GET' && ['/api/v1/sessions', '/api/v2/sessions'].includes(url.pathname)) return pending.get('category');
     };
     const nativeFetch = window.fetch;
     if (typeof nativeFetch === 'function') {
