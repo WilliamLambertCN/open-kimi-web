@@ -114,3 +114,21 @@ describe('real restart controller, supervisor and detached worker chain', () => 
     direct.send('direct-client-still-works'); expect(await echoed).toBe('direct-client-still-works');
   });
 });
+
+
+it.each([
+  ['survive', 'restart-exit-unconfirmed'], ['lost-live', 'restart-outcome-unknown'],
+])('never escalates or replaces a surviving backend with mode=%s', { timeout: 30000 }, async (mode, code) => {
+  const f = await fixture(mode);
+  expect(await f.restart()).toMatchObject({ status: 503, body: { error: code } });
+  expect(processAlive(f.backend.pid)).toBe(true); expect(processAlive(f.child.pid)).toBe(true);
+  expect((await f.call(servicePath + 'status')).body).toMatchObject({
+    instance: f.status.body.instance, phase: 'ready', lastError: code,
+  });
+  const ws = await wsAt(f.origin); expect(ws.readyState).toBe(WebSocket.OPEN);
+  expect((await f.call('/api/v1/fixture', { method: 'POST' })).status).toBe(200);
+  expect(await records(join(f.home, 'server', 'instances'))).toHaveLength(1);
+  const shutdowns = (await readdir(f.root)).filter((name) => name.startsWith('shutdown-'));
+  expect(shutdowns).toHaveLength(1);
+  expect(JSON.parse(await readFile(join(f.root, shutdowns[0]), 'utf8')).conditional).toBe(true);
+});

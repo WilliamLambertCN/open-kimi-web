@@ -441,3 +441,40 @@ describe('supervisor conditional restart ownership', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 });
+
+
+it('does not turn a concurrent termination signal into forced shutdown after an unknown conditional result', async () => {
+  const f = startupFixture(); let control; let resolveShutdown; let started;
+  const pending = new Promise((resolve) => { resolveShutdown = resolve; });
+  const requested = new Promise((resolve) => { started = resolve; });
+  const reservation = { commit: vi.fn(async () => true), release: vi.fn(), cancel: vi.fn() };
+  f.deps.argv = ['node', '/fixture/entry.mjs', '__wrap', 'web'];
+  f.deps.prepareRestart = vi.fn(async () => reservation); f.deps.pidAlive = () => f.child.exitCode === null;
+  f.deps.sleep = vi.fn(async () => {});
+  f.deps.waitStop = undefined;
+  f.deps.fetch = vi.fn(async (url) => {
+    const parsed = new URL(url);
+    if (parsed.pathname === '/api/v1/meta') return Response.json({ code: 0, data: { server_version: '2.7.2' } });
+    if (parsed.pathname === '/api/v1/sessions') return Response.json({ code: 0,
+      data: { items: [], total: 0, has_more: false } });
+    if (parsed.pathname === '/api/v1/shutdown') { expect(parsed.search).toBe('?if_idle=true'); started(); return pending; }
+    return Response.json({});
+  });
+  const close = vi.fn(async () => {}); let frontendReady;
+  const ready = new Promise((resolve) => { frontendReady = resolve; });
+  startFrontend.mockImplementationOnce(async (options) => {
+    control = options.restartControl; control.configure(options.target); control.transport({ quiesce: async () => {} });
+    frontendReady(); return mockedFrontend(close);
+  });
+  const supervised = superviseWeb({ realKimi: '/fixture/official-kimi', web: { noOpen: true }, env: f.env, deps: f.deps });
+  await ready; const status = await control.status('Bearer fixture');
+  const attempt = control.reserve('Bearer fixture', async () => ({ instance: status.instance }));
+  const failure = expect(attempt).rejects.toMatchObject({ code: 'restart-outcome-unknown' });
+  await requested; process.listeners('SIGTERM').at(-1)();
+  resolveShutdown(Response.json({ code: 0, data: {} })); await failure;
+  await vi.waitFor(() => expect(f.deps.warn).toHaveBeenCalledWith(expect.stringMatching(/keeping the original/)));
+  expect(f.child.kill).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled();
+  expect(reservation.cancel).toHaveBeenCalledOnce(); expect(control.blocked()).toBe(false);
+  expect(f.deps.fetch.mock.calls.filter(([url]) => new URL(url).pathname === '/api/v1/shutdown')).toHaveLength(1);
+  f.child.exitCode = 0; f.child.emit('exit', 0, null); await expect(supervised).resolves.toBe(0);
+});

@@ -64,7 +64,7 @@ async function prepare(state, header) {
   await assertIdle(state, header);
   assertNoWrites(state);
   state.phase = 'checking';
-  const details = state.conditional ? { backend: state.backend.address } : {};
+  const details = state.backend ? { backend: state.backend.address } : {};
   state.reservation = await state.prepare(details);
   assertNoWrites(state);
   await assertIdle(state, header);

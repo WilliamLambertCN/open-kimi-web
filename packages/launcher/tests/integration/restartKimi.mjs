@@ -39,9 +39,9 @@ function shutdown(url, res) {
   writeFileSync(join(root, `shutdown-${process.pid}.json`), JSON.stringify(record));
   if (!record.conditional) { reply(res, { ok: false }); return; }
   const ok = state.mode !== 'busy' && wss.clients.size === 0;
-  if (state.mode === 'lost') res.destroy();
+  if (state.mode.startsWith('lost')) res.destroy();
   else reply(res, { ok });
-  if (ok && state.mode !== 'survive') setTimeout(stop, 20);
+  if (ok && !['survive', 'lost-live'].includes(state.mode)) setTimeout(stop, 20);
 }
 
 const server = createServer(handle);

@@ -11,6 +11,7 @@ function isServicePath(raw) {
 }
 
 function restartFailure(res, error) {
+  if (res.destroyed) return;
   const known = error instanceof RestartError;
   sendRestartJson(res, known ? error.status : 503, { error: known ? error.code : 'restart-unavailable' });
 }
@@ -34,6 +35,9 @@ async function restartResponse(req, res, controller) {
     });
     responding = true;
     sendRestartJson(res, 202, body);
+  } catch (error) {
+    if (responding) await controller.cancel();
+    throw error;
   } finally { if (!responding) res.off('close', onClose); }
 }
 
