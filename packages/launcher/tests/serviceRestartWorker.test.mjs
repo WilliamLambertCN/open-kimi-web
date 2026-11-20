@@ -149,10 +149,10 @@ describe('cancellable armed restart worker', () => {
     vi.useFakeTimers(); const channel = child(); const restart = vi.fn(); const exit = vi.fn();
     runRestartWorker(channel, { restart, exit });
     channel.emit('message', { type: 'prepare', command }); channel.emit('message', { type: 'commit' });
-    channel.emit('message', { type: 'cancel' });
+    channel.emit('message', { type: 'cancel' }); channel.emit('disconnect');
     expect(exit).toHaveBeenCalledWith(0); expect(restart).not.toHaveBeenCalled();
     const idle = child(); runRestartWorker(idle, { restart, exit });
-    await vi.advanceTimersByTimeAsync(20_000); expect(exit).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(20_000); expect(exit).toHaveBeenCalledTimes(3);
   });
 });
 

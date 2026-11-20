@@ -11,7 +11,6 @@ function isServicePath(raw) {
 }
 
 function restartFailure(res, error) {
-  if (res.destroyed) return;
   const known = error instanceof RestartError;
   sendRestartJson(res, known ? error.status : 503, { error: known ? error.code : 'restart-unavailable' });
 }

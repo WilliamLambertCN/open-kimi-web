@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { describe, expect, it, vi } from 'vitest';
 import { createRestartController } from '../src/restart/controller.mjs';
 
@@ -106,11 +107,26 @@ describe('exact 2.7.2 conditional restart', () => {
 });
 
 describe('conditional restart cancellation and concurrency', () => {
+  it('rejects an in-flight API read that may restore a session, without quiescing any WS', async () => {
+    const f = fixture(); const res = new EventEmitter();
+    f.control.track({ method: 'GET', url: '/api/v1/sessions/fictional' }, res);
+    await expect(f.reserve()).rejects.toMatchObject({ code: 'request-in-flight' });
+    expect(f.quiesce).not.toHaveBeenCalled(); expect(f.prepare).not.toHaveBeenCalled();
+    res.emit('finish'); expect(res.listenerCount('close')).toBe(0);
+  });
+
   it('does not quiesce or shut down when worker acknowledgement is absent', async () => {
     const f = fixture(); f.reservation.commit.mockResolvedValue(false);
     await expect(f.reserve()).rejects.toMatchObject({ code: 'restart-prepare-failed' });
     expect(f.quiesce).not.toHaveBeenCalled(); expect(f.reservation.cancel).toHaveBeenCalledOnce();
     expect(f.control.blocked()).toBe(false);
+  });
+
+  it('does not submit shutdown when the armed worker dies while proxy WS are closing', async () => {
+    const f = fixture(); f.reservation.ready = vi.fn(() => false);
+    await expect(f.reserve()).rejects.toMatchObject({ code: 'restart-prepare-failed' });
+    expect(f.fetchImpl.mock.calls.some(([url]) => url.pathname === '/api/v1/shutdown')).toBe(false);
+    expect(f.reservation.cancel).toHaveBeenCalledOnce(); expect(f.stop).not.toHaveBeenCalled();
   });
 
   it('cancels a disconnected caller before the official POST, including after worker ACK', async () => {

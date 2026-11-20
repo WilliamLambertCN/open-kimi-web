@@ -106,6 +106,12 @@ describe('service restart failure boundaries', () => {
     await f.service.commit(); expect(f.stop).not.toHaveBeenCalled(); expect(f.service.blocked()).toBe(false);
     await expect(f.reserve()).rejects.toMatchObject({ code: 'restart-pending' });
   });
+  it('does not commit a legacy restart after the launcher closes while waiting for its ACK', async () => {
+    const f = fixture(); await f.reserve(); let acknowledge;
+    f.reservation.commit.mockImplementation(() => new Promise((resolve) => { acknowledge = resolve; }));
+    const committed = f.service.commit(); f.service.close(); acknowledge(true); await committed;
+    expect(f.reservation.cancel).toHaveBeenCalledOnce(); expect(f.stop).not.toHaveBeenCalled();
+  });
   it('disables closed controllers and cancels uncommitted workers', async () => {
     const f = fixture(); await f.reserve(); f.service.close();
     expect(f.reservation.cancel).toHaveBeenCalledOnce();

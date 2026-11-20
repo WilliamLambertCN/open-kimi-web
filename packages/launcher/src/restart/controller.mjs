@@ -83,6 +83,7 @@ async function stopIdleBackend(state, header, signal) {
   state.phase = 'quiescing';
   await state.quiesce();
   assertRequest(state, signal);
+  if (state.reservation.ready?.() === false) throw new RestartError('restart-prepare-failed', 503);
   if (!state.backend.alive()) throw new RestartError('backend-unavailable', 502);
   state.phase = 'stopping';
   state.shutdownSent = true;
@@ -124,6 +125,7 @@ async function commit(state) {
   state.retryAfter = Date.now() + 30_000;
   try {
     if (!state.conditional && !await state.reservation.commit()) { cancel(state, 'restart-prepare-failed'); return; }
+    if (state.closed && !state.backendExited) { cancel(state, 'restart-canceled'); return; }
     state.reservation.release?.();
     finishOperation(state);
     state.stop({ backendExited: state.backendExited });

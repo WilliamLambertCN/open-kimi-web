@@ -43,6 +43,7 @@ function reservationFor(child) {
   let canceled = false;
   let committed;
   return {
+    ready: () => !canceled && child.connected && child.exitCode === null,
     commit() {
       if (canceled) return Promise.resolve(false);
       committed ??= commitWorker(child);

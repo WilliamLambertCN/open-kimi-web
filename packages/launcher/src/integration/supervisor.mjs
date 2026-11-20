@@ -1,7 +1,7 @@
 // Supervisor for the intercepted `kimi web`: spawn the official server on
 // its fixed loopback port, discover and verify it via the registry,
-// then front it with the OpenWeb launcher. One process exits → the other is
-// shut down; SIGINT/SIGTERM tries the authenticated shutdown endpoint first.
+// then front it with the OpenWeb launcher. Ordinary termination requests the
+// shutdown endpoint; conditional restart observes owned exit without escalation.
 import { spawn } from 'node:child_process';
 import { dirname } from 'node:path';
 

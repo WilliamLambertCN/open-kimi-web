@@ -112,6 +112,7 @@ async function launchWithRetry(command, { launch, sleep, options }) {
 export function runRestartWorker(channel = process, options = {}) {
   let command;
   let committed = false;
+  let canceled = false;
   const parentPid = options.parentPid ?? process.ppid;
   const exit = (code = 0) => { clearTimeout(timer); (options.exit ?? process.exit)(code); };
   const timer = setTimeout(() => exit(), 20000);
@@ -119,9 +120,9 @@ export function runRestartWorker(channel = process, options = {}) {
     clearTimeout(timer);
     (options.restart ?? restartWorker)(command, { parentPid }).then(() => exit(), () => exit(1));
   };
-  channel.on('disconnect', () => { if (committed) start(); else exit(); });
+  channel.on('disconnect', () => { if (committed && !canceled) start(); else exit(); });
   channel.on('message', (message) => {
-    if (message?.type === 'cancel') { clearTimeout(timer); exit(); return; }
+    if (message?.type === 'cancel') { canceled = true; clearTimeout(timer); exit(); return; }
     if (message?.type === 'prepare' && !command) {
       command = message.command;
       channel.send({ type: 'prepared' });
