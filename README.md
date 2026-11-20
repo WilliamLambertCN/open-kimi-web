@@ -1,12 +1,13 @@
 # Open Kimi Web
 
-在手机和电脑的浏览器里使用官方 Kimi Code，补充移动操作、模型用量统计和主题。
+![20 秒演示：从桌面图标打开，手机发起测试，查看首字延迟、输出速度和本地费用估算](docs/images/mobile-workflow.gif)
 
-## 界面预览
+手机发任务，电脑跑 Kimi Code。开场取自桌面 Chromium 启动器，随后是手机尺寸的真实网页。用量为演示数据，费用是本地估算。
 
-<img src="docs/images/app-icon.png" alt="新版图标：冰蓝玻璃 O、银灰 K 与蓝色碎钻" width="96" />
+<details>
+<summary>更多界面截图：桌面、手机与五套主题</summary>
 
-下列截图使用基于官方 `0.41.0` 的旧版界面，当前按钮和布局细节可能不同；图中均为虚构演示数据。
+下列主题截图使用基于官方 `0.41.0` 的旧版界面，当前按钮和布局细节可能不同；图中均为虚构演示数据。
 
 ![夜幕主题：工作区列表与对话界面](docs/images/theme-nocturne-desktop.png)
 
@@ -15,9 +16,6 @@
   <img src="docs/images/theme-ember-mobile.png" alt="余烬主题：模型选择" width="31%" />
   <img src="docs/images/theme-aurora-mobile.png" alt="极光主题：主题切换" width="31%" />
 </p>
-
-<details>
-<summary>更多操作与主题截图</summary>
 
 选择模型时，可以用手指滑动、鼠标拖动、滚轮或键盘浏览不同服务商的标签。
 
