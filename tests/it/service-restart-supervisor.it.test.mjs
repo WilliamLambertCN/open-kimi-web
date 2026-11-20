@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { WebSocket } from 'ws';
 import { processAlive } from '../../packages/launcher/src/restart/worker.mjs';
-import { terminateTree } from '../../packages/launcher/src/update/treeCleanup.mjs';
 import { recordProcessStart } from '../../packages/launcher/src/update/windowsTreeCleanup.mjs';
 import { availableHttpPort } from '../testkit/httpPort.mjs';
 
@@ -20,6 +19,20 @@ afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) awai
 async function records(dir) {
   return Promise.all((await readdir(dir)).filter((name) => name.endsWith('.json'))
     .map(async (name) => JSON.parse(await readFile(join(dir, name), 'utf8'))));
+}
+
+async function cleanupFixture(root, home) {
+  const launch = await readFile(join(root, 'launcher.json'), 'utf8').then(JSON.parse).catch(() => null);
+  const backends = await records(join(home, 'server', 'instances'));
+  for (const backend of backends) {
+    if (!processAlive(backend.pid)) continue;
+    const response = await fetch(`http://127.0.0.1:${backend.port}/__fixture/stop`, { method: 'POST',
+      headers: { authorization: AUTH }, signal: AbortSignal.timeout(2000) });
+    await response.text();
+  }
+  await expect.poll(() => backends.every((backend) => !processAlive(backend.pid)), { timeout: 10000 }).toBe(true);
+  if (launch) await expect.poll(() => !processAlive(launch.pid), { timeout: 10000 }).toBe(true);
+  await rm(root, { recursive: true, force: true });
 }
 
 async function fixture(mode) {
@@ -55,19 +68,7 @@ async function fixture(mode) {
     const response = await fetch(origin + path, { ...options, headers: { authorization: AUTH, ...options.headers } });
     return { status: response.status, body: await response.json() };
   };
-  cleanups.push(async () => {
-    const launch = await readFile(join(root, 'launcher.json'), 'utf8').then(JSON.parse).catch(() => null);
-    if (launch && processAlive(launch.pid)) {
-      const owned = { pid: launch.pid, exitCode: null, signalCode: null }; recordProcessStart(owned, launch.created - 1000);
-      await terminateTree(owned);
-    }
-    for (const row of await records(join(home, 'server', 'instances'))) {
-      if (!processAlive(row.pid)) continue;
-      const owned = { pid: row.pid, exitCode: null, signalCode: null }; recordProcessStart(owned, row.started_at - 1000);
-      await terminateTree(owned);
-    }
-    await rm(root, { recursive: true, force: true });
-  });
+  cleanups.push(() => cleanupFixture(root, home));
   await expect.poll(async () => (await call(servicePath + 'status').catch(() => null))?.status,
     { timeout: 15000, message: stderr }).toBe(200);
   const status = await call(servicePath + 'status');

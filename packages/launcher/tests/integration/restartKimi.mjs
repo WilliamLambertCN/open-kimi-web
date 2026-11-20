@@ -21,6 +21,9 @@ function handle(req, res) {
   const url = new URL(req.url, 'http://127.0.0.1');
   if (url.pathname === '/api/v1/healthz') { reply(res, { ok: true }); return; }
   if (req.headers.authorization !== `Bearer ${token}`) { res.writeHead(401).end(); return; }
+  if (url.pathname === '/__fixture/stop' && req.method === 'POST') {
+    reply(res, { ok: true }); setTimeout(stop, 20); return;
+  }
   if (url.pathname === '/api/v1/meta') {
     reply(res, { server_version: '2.7.2', server_id: id }); return;
   }
