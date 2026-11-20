@@ -182,7 +182,7 @@ export async function createLauncher({
   restartControl,
 }) {
   assertCronPresentation(scheduledTasks, officialPresentation);
-  const metrics = await prepareMetricsAssets(publicDir, officialPresentation);
+  const metrics = await prepareMetricsAssets(publicDir, officialPresentation, officialWebVersion);
   const restart = restartService(officialPresentation, restartControl, target);
   const localCaRoute = localCaRouteForTls(tls);
   const cronService = createCronRouteService({
@@ -219,6 +219,7 @@ export async function createLauncher({
     accessUrls,
     tls: tlsSummary(tls),
     requestMetricsState: metrics.state,
+    streamingState: metrics.streamingState,
     close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs, restart }),
   };
 }

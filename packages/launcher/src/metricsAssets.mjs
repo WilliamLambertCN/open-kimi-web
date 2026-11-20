@@ -1,6 +1,8 @@
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { extname, isAbsolute, relative, sep } from 'node:path';
-import { METRICS_ASSET_PREFIX, metricsAssetPaths, patchOfficialRequestMetrics } from './officialRequestMetrics.mjs';
+import { METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX, metricsAssetPaths,
+  patchOfficialRequestMetrics } from './officialRequestMetrics.mjs';
+import { patchOfficialStreaming } from './officialStreaming.mjs';
 import { resolveStaticPath, serveStatic } from './staticFiles.mjs';
 
 const SOURCE_LIMIT = 16 * 1024 * 1024;
@@ -25,19 +27,23 @@ function moduleEntry(html) {
   return /^\/?assets\/[^?#]+\.js$/.test(src ?? '') ? '/' + src.replace(/^\//, '') : null;
 }
 
-export async function prepareMetricsAssets(publicDir, enabled) {
+export async function prepareMetricsAssets(publicDir, enabled, version) {
   if (!enabled) return { state: 'disabled' };
+  const failure = (state) => version === '2.6.3' ? { state, streamingState: state } : { state };
   try {
     const root = await realpath(publicDir);
     const index = await readBundleFile(root, '/index.html');
     const entry = moduleEntry(index.text);
-    if (!entry) return { state: 'incompatible-bundle' };
+    if (!entry) return failure('incompatible-bundle');
     const source = await readBundleFile(root, entry);
-    const result = patchOfficialRequestMetrics(source.text);
-    return result.patched ? { state: 'active', index: index.text, entry, file: source.file,
-      original: source.text, patched: result.text } : { state: 'incompatible-bundle' };
+    const metrics = patchOfficialRequestMetrics(source.text);
+    const streaming = patchOfficialStreaming(metrics.text, version);
+    if (!metrics.patched && !streaming.patched) return failure('incompatible-bundle');
+    return { state: metrics.patched ? 'active' : 'incompatible-bundle', index: index.text, entry, file: source.file,
+      original: source.text, patched: streaming.text, prefix: streaming.patched ? STREAMING_ASSET_PREFIX : METRICS_ASSET_PREFIX,
+      streamingState: version === '2.6.3' ? (streaming.patched ? 'active' : 'incompatible-bundle') : 'disabled' };
   } catch {
-    return { state: 'unavailable-bundle' };
+    return failure('unavailable-bundle');
   }
 }
 
@@ -49,30 +55,31 @@ export function metricsStartupMessage(metrics) {
   const state = metricsPresentationState(metrics);
   if (state === 'disabled') return null;
   return state === 'active' ? 'request metrics: active (bundle structure verified; no version restriction)' :
-    `request metrics: unavailable (${state}); original official UI retained`;
+    `request metrics: unavailable (${state}); official metrics rendering retained`;
 }
 
 export function metricsHtml(html, metrics) {
-  if (metricsPresentationState(metrics) !== 'active') return html;
+  if (!metrics?.prefix) return html;
   if (html !== metrics.index) throw new Error('official bundle changed; restart the launcher');
-  return metricsAssetPaths(html);
+  return metricsAssetPaths(html, metrics.prefix);
 }
 
 export async function serveMetricsAssets(req, res, { publicDir, metrics }) {
   const path = (req.url ?? '').split('?')[0];
-  if (path !== METRICS_ASSET_PREFIX && !path.startsWith(`${METRICS_ASSET_PREFIX}/`)) return false;
+  const prefix = [METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX].find((value) =>
+    path === value || path.startsWith(`${value}/`));
+  if (!prefix) return false;
   const transformAsset = (source, file) => {
-    if (path.slice(METRICS_ASSET_PREFIX.length) === metrics.entry || file === metrics.file) {
+    if (path.slice(prefix.length) === metrics.entry || file === metrics.file) {
       if (file !== metrics.file || source !== metrics.original) throw new Error('official bundle changed; restart the launcher');
-      return metricsAssetPaths(metrics.patched);
+      return metricsAssetPaths(metrics.patched, prefix);
     }
-    return metricsAssetPaths(source);
+    return metricsAssetPaths(source, prefix);
   };
-  if (metricsPresentationState(metrics) === 'active' && path.startsWith(`${METRICS_ASSET_PREFIX}/assets/`) &&
-      await serveStatic(publicDir, req, res, undefined, {
-        urlPath: path.slice(METRICS_ASSET_PREFIX.length),
-        transformAsset: (source, file) => ['.js', '.css'].includes(extname(file)) ? transformAsset(source, file) : source,
-      })) return true;
+  if (metrics.prefix === prefix && path.startsWith(`${prefix}/assets/`) && await serveStatic(publicDir, req, res, undefined, {
+    urlPath: path.slice(prefix.length),
+    transformAsset: (source, file) => ['.js', '.css'].includes(extname(file)) ? transformAsset(source, file) : source,
+  })) return true;
   res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' }).end('Not Found');
   return true;
 }

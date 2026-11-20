@@ -1,6 +1,7 @@
 import { patchOfficialConversationMetrics } from './officialConversationMetrics.mjs';
 
 export const METRICS_ASSET_PREFIX = '/__open-kimi-assets/step-metrics-v3';
+export const STREAMING_ASSET_PREFIX = '/__open-kimi-assets/streaming-v2';
 const identifier = '[\\w$]+';
 const rule = (pattern, count, replace) => ({ pattern: new RegExp(pattern, 'g'), count, replace });
 const itemSlot = `default:${identifier}\\(\\(\\{item:(${identifier})(?:,index:${identifier})?\\}\\)=>` +
@@ -66,7 +67,7 @@ export function patchOfficialRequestMetrics(source) {
   return { text: text + timingHelpers(elements[0][1]), patched: true };
 }
 
-export function metricsAssetPaths(source) {
+export function metricsAssetPaths(source, prefix = METRICS_ASSET_PREFIX) {
   return source.replace(/(["'`(])(\/?)assets\//g, (_, start, slash) =>
-    `${start}${slash}${METRICS_ASSET_PREFIX.slice(1)}/assets/`);
+    `${start}${slash}${prefix.slice(1)}/assets/`);
 }

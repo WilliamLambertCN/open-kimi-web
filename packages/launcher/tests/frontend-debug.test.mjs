@@ -107,6 +107,17 @@ describe('startFrontend metrics status', () => {
     });
 });
 
+describe('startFrontend streaming status', () => {
+  it.each(['active', 'incompatible-bundle', 'unavailable-bundle'])('announces streaming status %s', async (state) => {
+    createLauncher.mockResolvedValueOnce({ ...fixtureLauncher(), streamingState: state });
+    const opts = fixtureOptions({ publicDir: undefined, webVersion: '2.6.3' });
+    await startFrontend(opts);
+    const output = state === 'active' ? opts.log : opts.warn;
+    const status = state === 'active' ? 'active' : 'unavailable';
+    expect(output).toHaveBeenCalledWith(expect.stringContaining(`streaming display: ${status}`));
+  });
+});
+
 describe('startFrontend diagnostic startup lifetime', () => {
   it('reuses the same logger through a successful port retry without closing it', async () => {
     const logger = fixtureLogger();

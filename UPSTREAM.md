@@ -17,7 +17,7 @@ or a vendored transcript implementation.
   `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.6.1-r8`, retaining exact `2.6.0` and `2.6.1` adaptation.
+- Open Kimi Web release target: `2.6.1-r9`, retaining exact `2.6.0` and `2.6.1` adaptation.
   Follow [the Release page][current-release] for publication. Request metric rows no longer show a native hover tooltip;
   their values, calculation and accessible labels are unchanged. The sections below retain the r7, r6, r5 and r4 records.
   The r1 baseline and earlier r4 metrics evidence are historical.
@@ -32,6 +32,19 @@ or a vendored transcript implementation.
   Existing workspace, native trust, session ownership, model confirmation, mobile model, locale, gzip,
   statistics and safe self-update boundaries remain unchanged. No user CLI upgrade or production restart is automatic.
 - Machine-readable inspected versions, exact integrity values and historical contracts: `upstream.json`.
+
+## Kimi Code 2.6.3 streaming display (2.6.1-r9)
+
+For exact official `2.6.3`, the launcher validates the chat Markdown render structure and disables its incremental
+smoothing. Already received text is displayed without waiting for the smoothing queue; streaming, Markdown parsing,
+completion state and model speed remain upstream-owned. This focused change does not claim full 2.6.3 compatibility.
+
+When a running tool group finishes while visible in a chat that follows the latest output, it stays expanded
+until it leaves the viewport or the reader collapses it. This does not change the saved folding preference,
+reserve empty space or write scroll positions. The activity component is checked separately before applying this change.
+
+The adapter is independent of request metrics and uses a separate revisioned asset namespace. If the version or
+structure does not match, it retains the original rendering. Custom web directories are not modified.
 
 ## Kimi Code 2.5.2 adaptation
 
@@ -106,7 +119,7 @@ older release results.
 
 ## Kimi Code 2.6.0/2.6.1 adaptation
 
-The online installation commands and package/plugin version select `2.6.1-r8`.
+The online installation commands and package/plugin version select `2.6.1-r9`.
 No existing official CLI is upgraded and no production service is started or restarted.
 
 The exact 2.6.1 release fixes long-session replay performance and usage-anchored token counting/compaction.
@@ -507,8 +520,8 @@ Historical r10/r1/r2 installation results and the later r1 and r4–r7 checks ar
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.6.1-r8` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r8`.
+They resolve `v2.6.1-r9` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
+Only a successful download is executed, with the same `--revision` and fixed `--version 2.6.1-r9`.
 Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
 PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
 The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
@@ -564,7 +577,7 @@ Release assets retain matching SHA-256 checks. Actual platform checks have limit
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r8 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.6.1-r9 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -948,7 +961,7 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [release241r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r8
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r9
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
