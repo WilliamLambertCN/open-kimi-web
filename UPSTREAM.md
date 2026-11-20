@@ -13,33 +13,28 @@ or a vendored transcript implementation.
   `sha512-M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ==`.
 - Official npm runtime: Node `>=22.19.0`. The launcher's own minimum remains Node `>=22.0.0`.
 - Server API compatibility target: `2.6.1`; no complete live protocol recapture was performed.
-  `protocolBaseline` and the 0.41.0 contracts remain historical. Exact npm runtime checks are recorded in
-  [the compatibility plan][compat260-plan] and `liveTestedServerVersions`; they are not a full protocol guarantee.
+  `protocolBaseline` and the 0.41.0 contracts remain historical. Exact npm runtime checks are summarized below and in
+  `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select `2.6.1`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
 - Open Kimi Web release target: `2.6.1-r8`, retaining exact `2.6.0` and `2.6.1` adaptation.
   Follow [the Release page][current-release] for publication. Request metric rows no longer show a native hover tooltip;
   their values, calculation and accessible labels are unchanged. The sections below retain the r7, r6, r5 and r4 records.
-  [The compatibility plan][compat260-plan] retains the r1 baseline evidence.
-  Earlier r4 evidence remains in [the metrics-upgrade plan][metrics-upgrade-plan].
+  The r1 baseline and earlier r4 metrics evidence are historical.
   Metrics have no version gate; the launcher validates the actual entry bundle before rewriting its module graph.
   It retains r3's per-call TTFT, average TPS, cache-hit rows, independent side-chat model selection,
   and managed-service restart in desktop General settings and mobile session settings.
   It retains r2's artwork and r1's exact upstream 2.5.2 adaptation, mobile directory, native sending and safe update.
   Earlier menus, local CA, logs and PWA remain. Windows process cleanup and same-instance port discovery are strengthened.
   Publication status is determined by the formal Release; unrecorded or pending checks are not passes.
-  [The 2.5.2-r1 release plan][release252r1-plan], [the 2.4.1-r3 plan][release241r3-plan],
-  [the 2.4.1-r2 plan][release241r2-plan],
-  [the 2.4.1-r1 compatibility plan][compat241-plan],
-  [the 2.3.1-r2 plan][r2-plan], [r2 Release][r2-release], [r1 workspace/release plan][current-plan]
-  and r1 hotfix evidence remain historical, not current acceptance.
+  The 2.5.2-r1, 2.4.1-r3/r2/r1, 2.3.1-r2 and r1 workspace and hotfix results are historical,
+  not current acceptance. The [2.3.1-r2 Release][r2-release] also remains a historical record.
   Existing workspace, native trust, session ownership, model confirmation, mobile model, locale, gzip,
   statistics and safe self-update boundaries remain unchanged. No user CLI upgrade or production restart is automatic.
 - Machine-readable inspected versions, exact integrity values and historical contracts: `upstream.json`.
 
 ## Kimi Code 2.5.2 adaptation
 
-Follow [the local compatibility plan](docs/plans/branding-and-2.5.2-compatibility-v1-plan.md).
 The exact npm package and tagged source, not the historical protocol snapshots, establish this target.
 The [official 2.5.2 changelog][official-252-changelog] records these upstream changes:
 
@@ -73,13 +68,12 @@ The local launcher adapts only the affected integration points:
 
 Isolated unmodified-backend checks cover authentication, HTTP workspace registration, saved configuration/readback,
 read-only cron/cold state, history paging and reconnect. Complete-app checks use fictional REST/WS for desktop/mobile
-Original, Nocturne and Aurora layouts. Results, retained first failures and standard gates belong in the plan;
+Original, Nocturne and Aurora layouts. Earlier results and first failures do not replace release-specific standard gates;
 physical-phone acceptance, arbitrary 400–500 MB sessions and a full protocol recapture are not claimed.
-Publication follows [the release plan][metrics-upgrade-plan]; user CLI, production, installer pin and fallback remain unchanged.
+Publication requires its own verification; user CLI, production, installer pin and fallback remain unchanged.
 
 ## Per-call metrics presentation (2.5.2-r4)
 
-Follow [the local metrics/side-chat plan](docs/plans/request-metrics-sidechat-v1-plan.md).
 Exact npm `2.5.2` records step usage and timing, but its ordinary Web hides native timing rows and merges multiple calls
 inside one assistant container. A container/frame ID is not a model-call boundary.
 The launcher applies an all-or-nothing static presentation adapter: preserve native step identity,
@@ -93,7 +87,7 @@ A mismatch or unreadable bundle retains the original graph; startup logs and pag
 The private namespace never falls back to SPA HTML, even when metrics are inactive or a custom directory is selected.
 Exact npm 2.5.2/2.5.3 assets and an unmodified 2.5.3 backend with a local fictional provider have been checked.
 This does not widen cron, recent-page or global-subagent protocol support; future structure changes can still disable metrics.
-See [the upgrade plan][metrics-upgrade-plan] for current evidence; custom web directories receive no presentation injection.
+Custom web directories receive no presentation injection.
 Calls without a rendered assistant frame, or whose duplicate content upstream removed, do not create extra orphan statistics.
 
 Display one row for each exact session/agent/step location, including loaded history;
@@ -107,12 +101,11 @@ new writes are not hits and output is excluded.
 Require explicit nonnegative safe counts and a positive safe total; unavailable counts show a dash, not a fabricated zero.
 Client-observed average throughput is not model-only decoder speed; undisclosed internal reasoning is not recoverable.
 The 2.5.2/2.5.3 adapter adds no history request or log scan.
-Exact local-backend and browser checks, retained first failures and current standard gates belong in the plan,
-not older release results.
+Exact local-backend and browser checks, retained first failures and current standard gates are distinct from
+older release results.
 
 ## Kimi Code 2.6.0/2.6.1 adaptation
 
-Follow [the compatibility plan][compat260-plan] for the `2.6.1-r1` release and its acceptance boundaries.
 The online installation commands and package/plugin version select `2.6.1-r8`.
 No existing official CLI is upgraded and no production service is started or restarted.
 
@@ -177,7 +170,7 @@ New opt-in diagnostics distinguish subscription, initial turns and earlier-page 
 The proxy also releases duplicate waiting-phase cancellation listeners after response headers; restart tracking removes its
 paired terminal listener. Default listener limits, streaming cancellation and backpressure remain intact.
 Neither change proves that the user's minute-long native-backend wait is fixed. An isolated 2.6.0 late-attachment replay
-regression is recorded in the plan, but a modified official backend is not shipped or installed.
+issue was reproduced with late attachment forced; a modified official backend is not shipped or installed.
 Physical phones, the real EasyTier tunnel, arbitrary 400–500 MB sessions and all-platform installation remain unverified.
 
 ### Request metrics
@@ -199,17 +192,15 @@ Short bounded retries account for wire persistence lag. External `serve --target
 cache hit can still appear from supplied usage, but absent timing remains a dash rather than an estimate.
 The new `step-metrics-v3` asset namespace prevents reuse of immutable older patched modules.
 
-The earlier exact-2.6.0 metrics checks remain in [the upgrade plan][metrics-upgrade-plan].
-The [compatibility plan][compat260-plan] records exact-2.6.1 conversation, metrics, cron, restart and installation checks.
+Earlier checks covered exact-2.6.0 metrics and exact-2.6.1 conversation, metrics, cron, restart and installation.
 The final local checks passed: lint, typecheck, 3249 unit tests, 705 integration tests and the actual package smoke check.
 Six existing platform-specific tests are skipped on Windows; concurrency and coverage thresholds are unchanged.
 These earlier local checks do not substitute for the exact release commit's CI and package verification;
-publication evidence is recorded separately in [the compatibility plan][compat260-plan].
+publication requires separate evidence.
 They are not proof that every protocol/device is compatible. This adaptation does not restart production services.
 
 ## Subagent pool editor (2.6.1-r4)
 
-Follow [the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md).
 Desktop Settings → Agent & Sessions → Subagents and mobile session settings share a candidate/description editor.
 It reads the complete official pool; two editable description templates never replace the pool with two models.
 Configured models can be added using the existing model picker, and the default candidate can be changed explicitly.
@@ -238,7 +229,7 @@ This feature first shipped in the `2.6.1-r4` release; that revision's publicatio
 
 ## Subagent pool layout (2.6.1-r6)
 
-Follow [the layout and release plan][layout-plan]. Candidate entries use a flat, theme-colored divider list instead of
+Candidate entries use a flat, theme-colored divider list instead of
 nested cards. Description fields use a transparent single-underline treatment, grow from one to two lines and keep longer
 text in an internal scroll area. A native `field-sizing: content` path and a measured fallback preserve the same bound after
 window-width changes. Buttons and non-description controls retain visible focus treatment.
@@ -246,11 +237,11 @@ window-width changes. Buttons and non-description controls retain visible focus 
 This revision changes presentation only. It does not change the pool shape, default candidate, templates, conflict checks,
 save protocol or the exact 2.6.0/2.6.1 compatibility boundary. Complete-page checks use fictional data across desktop
 Original, desktop Nocturne and mobile Nocturne; physical phones and soft keyboards are not claimed. Current gates, CI,
-package privacy review and publication belong to the r6 plan; older release results are not reused.
+package privacy review and publication require r6-specific evidence; older release results are not reused.
 
 ## Completed sidebar title width (2.6.1-r7)
 
-Follow [the completed-sidebar-width plan][completed-sidebar-plan]. Official 2.6.1 normally gives an idle session title all
+Official 2.6.1 normally gives an idle session title all
 space before the timestamp and reserves action width only during hover. The archived-session enhancement puts reopen and
 permanent-delete controls inside the official `.ui-tip`, while the desktop session menu is a sibling in `.ha`; the previous
 rule applied the combined action fade even while that action area was hidden. Completed rows therefore appeared to stop well
@@ -260,12 +251,11 @@ On precise-pointer devices an idle row with that exact wrapper now restores the 
 `:focus-within` keep the full action reservation; no-hover devices keep actions visible. The rule changes neither list DOM nor
 view/sort preferences, timestamps, archive requests or session menu behavior. Accurate 2.6.1 scoped markup was checked in
 Chromium for flat/grouped views, short/long labels, 260/296/340 px sidebars, Original light and Nocturne dark. Physical touch
-devices and other browser engines are not claimed. Current gates, CI, package privacy review and publication belong to the r7
-plan; older release results are not reused.
+devices and other browser engines are not claimed. Gates, CI, package privacy review and publication require r7-specific
+evidence; older release results are not reused.
 
 ## Workspace duplicate prevention and navigation browsing (2.6.1-r5)
 
-Follow [the workspace-duplicate plan](docs/plans/workspace-duplicate-prevention-v1-plan.md).
 Both new-workspace dialogs read the official workspace list before POST; an already-registered root only reports
 "already exists" and sends no POST, without selecting, deleting or merging any existing entry. Pre-existing
 duplicate entries stay as they are. A new directory carries a stable namespaced idempotency key derived from the
@@ -282,7 +272,7 @@ The model-pool editor now releases its open-state lock if native `showModal` is 
 entry error, and synchronizes native close events. These failure paths were reproduced and checked with trusted
 browser-emulated touch input in the complete app. The device-specific unresponsive click was not reproduced;
 its cause is still unconfirmed. This revision does not claim that every mobile opening problem is resolved.
-Acceptance, CI and publication for this revision belong to that plan; unrecorded checks are not passes.
+Acceptance, CI and publication require evidence for this revision; unrecorded checks are not passes.
 
 ## Historical baseline records
 
@@ -322,7 +312,7 @@ The actual selected frontend version, including explicit pins, still drives Side
 UI >=2.3.0 retains native scrolling, while exact legacy 2.1.1/2.2.0 UI keeps its guard.
 Mobile reminder keys are isolated at window capture before native document capture: Escape only closes the reminder,
 Tab stays local and Enter/Space preserve default button clicks. Native shortcuts resume after closing; no hidden interaction
-response is synthesized. Exact-app request-count evidence and retained driver failures are in the plan.
+response is synthesized. Exact-app request-count checks and driver failures are distinct from current release acceptance.
 Reconnection that rebuilds the same pending DOM card may still show another reminder; cross-rebuild deduplication is not claimed.
 
 ## Effort presentation and Tower boundaries
@@ -333,8 +323,7 @@ Auto/Off/On retain each control's native semantics. Do not rewrite `supportEffor
 current selection or official fallback/default derivation, or reorder saved arrays. The r2 new-model defaults below remain.
 The reproduced cause was Set insertion order: existing `low, medium, max` followed by appended `high, xhigh`
 reaches native pickers in that order. Old tests supplied already-sorted arrays and missed this append path.
-Keyboard selection must follow the displayed order, not just a CSS reorder;
-current verification belongs in [the plan][compat241-plan].
+Keyboard selection must follow the displayed order, not just a CSS reorder.
 
 Tower is not an account/provider entitlement. The Web entry requires `GET /api/v1/meta` to return
 `experimental_flags.tower === true`; the experiment defaults off. The per-feature
@@ -373,7 +362,7 @@ Mobile preview opacity, subagent wording and mobile workspace identity/locale fi
 Original and affected atmosphere themes retain native preview geometry; trust/retry/takeover/model dialogs remain reachable.
 Standard lint/typecheck/UT/pack and a standalone standard IT run passed with unchanged 70% line/branch gates.
 The initial concurrent UT/IT/pack run had four IT timeouts; targeted single-worker and independent standard IT passed unchanged.
-Counts, coverage, retained first-failure logs and physical-device/platform limits are in [the r1 plan][current-plan].
+The first-failure logs were retained; physical-device and platform limits remain.
 These remain r1 evidence; each later release requires its own CI and publication records, not local or historical checks.
 
 ## Touch tooltip lifecycle correction (2.6.1-r3)
@@ -385,8 +374,7 @@ It does not edit Vue state, tooltip DOM, ARIA or theme colors, and preserves mou
 
 Focused regression passed 32 unit tests, five launcher-official integration tests and 46 complete-app browser assertions
 across mobile portrait/landscape, desktop and six appearances. This is Chromium emulation, not physical-phone acceptance.
-See [the r3 repair and release plan](docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md) for boundaries;
-publication depends on this revision's CI and Release. Users restart the old launcher and refresh manually after updating.
+Publication depends on this revision's CI and Release. Users restart the old launcher and refresh manually after updating.
 
 ## Provider preset-save correction (2.6.1-r2)
 
@@ -405,13 +393,12 @@ The separate `.ap-import` models.dev tab stays upstream-owned and does not show 
 
 Exact 2.6.1 isolated-backend checks cover preset POST, manual POST, edit PUT, save/reopen, readable failure/retry and native
 models.dev import. Chinese touch-save and narrow-width error banners were checked in Chromium emulation, not a physical phone.
-The [r2 repair and publication plan](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md) records current boundaries;
-publication is established by the Release, not local checks. No production service is restarted automatically.
+Publication is established by the Release, not local checks. No production service is restarted automatically.
 Existing configurations are not migrated automatically; previously lost options require reopening and saving explicitly.
 
 ## Historical provider defaults and release 2.3.1-r2
 
-The user explicitly requested r2 for normal updates and restored new-model defaults under [the r2 plan][r2-plan].
+The user explicitly requested r2 for normal updates and restored new-model defaults.
 Only `video_in` and `image_out` default to unchecked. `image_in`, `tool_use`, `thinking` and `always_thinking` default to checked,
 as do all six efforts (`none`, `low`, `medium`, `high`, `xhigh`, `max`) and `adaptive_thinking`.
 Display and POST/PUT/save-reopen behavior must agree. Existing explicit arrays, including empty arrays, unknown values and false
@@ -422,7 +409,7 @@ These defaults express user preference, not service capability. Prior authorized
 reproduced HTTP 400 with xhigh and completed after the fix with thinking:on without an explicit effort.
 Medium/high/max were not individually tested. No new paid calls, real-user configuration access or production changes
 are in scope.
-Actual r2 acceptance and publication are recorded in its plan; r1 tests, CI and online checks do not establish r2 results.
+R1 tests, CI and online checks do not establish r2 acceptance or publication.
 After formal r2 publication, existing r1 installations use normal `update --check`/`update`, then manual restart and page refresh.
 Source updates still require a clean main tracking origin/main and a fast-forward. Publication must create a new tag/Release,
 without moving r1 or replacing its assets. Historical same-r1 reinstall instructions below apply only to that republication.
@@ -440,8 +427,8 @@ Authorized environment-key tests confirmed direct Coding HTTP 200 and unmodified
 changing only the declared effort to xhigh with the same old enhanced metadata reproduced `400 Invalid request Error`.
 This establishes a reproducible unsupported-parameter failure, not proof of the user's unread production configuration.
 Existing persisted metadata requires explicit correction; a package replacement must not silently rewrite user configuration.
-Old tests used the earlier label shape and missed this regression. Exact DOM tests and focused complete-app checks are tracked in
-[the hotfix and same-r1 republication plan](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md).
+Old tests used the earlier label shape and missed this regression. Hotfix verification included exact DOM tests
+and focused complete-app checks.
 
 The user authorized replacing only v2.3.1-r1 using an exact old-tip lease, not rewriting shared branch history or other releases.
 Initial-publication hashes and acceptance above remain historical. The updater compares npm versions and skips equal versions;
@@ -452,13 +439,12 @@ The hotfix is published at the same r1 Release. [PR #31](https://github.com/Will
 [main CI](https://github.com/WilliamLambertCN/open-kimi-web/actions/runs/40299735039) passed the unchanged standard gates.
 The tag now points to `5b626e3fa94c5016c0c8d6d3ff248ed514b491ca`; refreshed asset 677671621 has 131 files and 8,414,834 bytes.
 Online tgz bytes, immutable installer entries and the real latest-release lookup match the verified release.
-Focused save/reopen, default metadata and rename checks plus their retained driver failure are recorded in the hotfix plan.
+Focused save/reopen, default metadata and rename checks have a retained driver failure.
 These checks do not establish physical-phone, all-platform installation or unread production-configuration acceptance.
 
 ## Unified navigation and search
 
-Navigation, mobile official-index search and Hyper-V fixes shipped in [the historical r1 scope][current-plan].
-Earlier implementation evidence remains in [the scheduled-task/navigation plan](docs/plans/scheduled-tasks-management-v1-plan.md).
+Navigation, mobile official-index search and Hyper-V fixes shipped in the historical r1 scope.
 Desktop and mobile use the same upper-left action order: new session, new workspace, scheduled tasks, search and usage.
 Since `2.4.1-r2`, Install app follows usage on both devices and is hidden in an installed standalone window.
 Both search controls call the official paginated `/api/v1/search` index.
@@ -485,9 +471,8 @@ The UI shows English/Chinese read-only reasons, hides restore/new and disables r
 read-only browsing never wakes a cold session.
 Historical exact-2.3.1 tests and real createLauncher QA passed: read=true/write=false, create/remove 409 read-only-version
 with no mutation or outcomeUnknown; the session stayed cold and wire bytes were identical. Raw # RC GET/POST returned 404
-without upstream calls. Users may still explicitly open the original session. Those results remain in [the r1 plan][current-plan].
-The exact-2.4.1 baseline checks remain in [the compatibility plan][compat241-plan];
-current CI and publication belong to [the 2.6.1-r1 release plan][compat260-plan].
+without upstream calls. Users may still explicitly open the original session. These and the exact-2.4.1 baseline checks
+are historical; the 2.6.1-r1 release requires its own CI and publication evidence.
 Canonical and encoded debug paths are blocked before proxy dispatch; opt-in also blocks the whole Remote Control namespace.
 Native RC connects directly to the origin, so it cannot run with this mode. State checks and unsafe shutdown are fail-closed
 protection, not an atomic cross-process lock or a sandbox against authorized host execution. Real relay isolation is untested.
@@ -504,8 +489,8 @@ Final public-protocol QA used actual superviseWeb/registry/token/guard/frontend 
 20+2 real paginated sessions including archived entries, cold reads, explicit restore, CRUD and same task ID after close/restore.
 Both shut down normally with zero model calls and no process/listener leaks. Only the spawn port was substituted to avoid
 production. The 2.2.0 backend used the 2.1.1 static UI; complete 2.2.0 UI, migration/fork, physical devices and other platforms
-are not covered. Runtime RC failure uses targeted UT/TCP IT, not a real RC enablement test. Those historical UI and standard
-results remain in the earlier plan. The current release authorization supersedes that stage's no-publication restriction,
+are not covered. Runtime RC failure uses targeted UT/TCP IT, not a real RC enablement test. Those UI and standard results
+are historical. The current release authorization supersedes that stage's no-publication restriction,
 not its version limits. Production restart, release/tag deletion and upgrades of users' actual Kimi remain out of scope;
 old tgz withdrawal is authorized.
 
@@ -518,13 +503,7 @@ The `2.6.1-r1` installation target prepares fixed official Kimi `2.6.1` only whe
 installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
 launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
 Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
-Historical r10/r1/r2 results remain in [the installation plan](docs/plans/one-click-install-v1-plan.md),
-[the r10 record][r10-plan], [the r1 plan][current-plan] and [the r2 plan][r2-plan].
-The [2.4.1-r1 compatibility plan][compat241-plan] and [2.4.1-r2 release plan][release241r2-plan] retain their evidence;
-[the 2.6.1-r1 release plan][compat260-plan] retains the baseline evidence;
-[the pool-editor plan](docs/plans/subagent-pool-editor-v1-plan.md) keeps the r4 record.
-The r7 checks, CI and assets belong to [the completed-sidebar plan][completed-sidebar-plan].
-The r6 layout plan and workspace-duplicate plan keep the r6 and r5 records.
+Historical r10/r1/r2 installation results and the later r1 and r4–r7 checks are distinct from this release.
 
 The README opens with existing interface screenshots, then Quick start contains the two online installation commands
 for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
@@ -580,8 +559,7 @@ only its configuration with `RunProgram=usr\bin\true.exe`; default git-bash.exe/
 Audited allowlisted initialization follows explicitly. Unknown KIMI_SHELL_PATH rejects. Historical portable-Git artifact QA
 and the full missing-Git coordinator are separate, not combined acceptance for this version.
 No administrator/sudo, login, real-session access or model calls are required. No production service starts automatically.
-Release assets retain matching SHA-256 checks. Actual platform checks and limits remain in the current plan;
-this is not an all-platform claim.
+Release assets retain matching SHA-256 checks. Actual platform checks have limits; this is not an all-platform claim.
 
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
@@ -624,7 +602,7 @@ native Windows x64 PowerShell 5.1 and WSL Ubuntu 22.04 x64 glibc, plus Linux bas
 Official Kimi was a fixture; Windows takeover used User PATH mocks. This is not new official-npm or portable-Git acceptance.
 The first Windows installation lacked a raw User PATH baseline, so full raw before/after equality is not claimed.
 Machine PATH was unchanged and no QA path was persisted. macOS/arm64 and real Windows registry/new-shell takeover
-remain unverified. The older standard suite and IT gate closure remain in the installation plan; coverage keeps its 70% gates.
+remain unverified. The older standard suite and IT gate closure are historical; coverage keeps its 70% gates.
 New-scope stage evidence is recorded separately: real official 2.1.1 installation and actual r9 wrappers on Windows x64 and
 native WSL Ubuntu 22.04 x64 passed CLI/Web health checks. Windows takeover uses registry seams, not real registry/new terminals.
 Windows real Git Bash PTY and x64 portable QA passed. The early unchanged Linux ignore-scripts install lacked a native binding
@@ -643,15 +621,14 @@ The review fix audits noexcept.gypi and filters all MAKE-prefix and FLAGS build 
 The pty-review-boundary report passes real audit/tamper/missing/link rejection and GNU make isolation;
 this narrow check uses simulated PTY state, not a new full PTY/coordinator run. Empty-Linux delivery remains unresolved.
 The expanded2 suite is historical. Final3 lint/typecheck/UT/IT/pack passed after the PTY/UI/i18n edits, without lowering
-70% coverage gates; results are centralized in [the install plan](docs/plans/one-click-install-v1-plan.md).
+70% coverage gates.
 The local r9 pack is not a release and excludes root installer scripts. Git Bash is not native POSIX or macOS acceptance.
 
 ## Mobile subagent model and locale (r10)
 
-Follow [the mobile subagent model plan](docs/plans/mobile-subagent-model-v1-plan.md), including the mixed-language request.
 The independent API/View/control/CSS are included in r10.
 Existing source, complete-app and standard checks are retained without repetition, not across all platforms;
-publication and asset verification follow the actual records in [the release plan][r10-plan].
+publication and asset verification require r10-specific evidence.
 The exact official 2.1.1 MobileSettingsSheet lacks Subagent fields and has no confirmed public action opening full Settings.
 The control reads official config/models and POSTs only `secondary_model` to `/api/v1/config`, merging the existing model pool.
 Main model, permissions and other configuration are preserved, without Vue private state, breakpoint tricks or localStorage.
@@ -680,13 +657,12 @@ Exact official-app locale QA passed 41 assertions/25 images plus provider 2 asse
 The parent inspected 320 Original and 390 Nocturne English theme images. Earlier scoped checks passed 13 files/176 UT,
 5 asset IT, lint and typecheck. Subagent native same-tab language switches now verify copy, drafts, errors/readback and no extra
 requests. The bare-official comparison confirms no visual-anchor regression, without a product patch; the original six
-strict absolute-scrollTop failures remain unchanged, not an all-pass report. Details are in the mobile plan;
-final standard counts/coverage/pack are in the install plan.
+strict absolute-scrollTop failures remain unchanged, not an all-pass report.
 Neither complete English/all-platform acceptance nor publication is inferred from these results.
 
 ## Session menus and opt-in local CA in 2.4.1-r3
 
-This scope follows [the r3 release plan][release241r3-plan]; publication depends on [the formal Release][current-release].
+Publication depends on [the formal Release][current-release].
 Implementation checks below do not establish pending release CI, online delivery or production deployment.
 
 - Desktop session-row three-dot controls open the native context menu, including Fork and Pin, without first selecting the source.
@@ -701,8 +677,7 @@ Implementation checks below do not establish pending release CI, online delivery
   Attachment preparation or in-flight upload blocks selection and reload until the user retries after completion.
   Exact backend 2.4.1 checks passed 23/23; 193 targeted UT and five asset IT passed. Complete-app first runs of 125/129,
   mobile 42/43 and desktop 30/31 remain recorded, with focused fixes and final two-version Tab/Shift+Tab checks passing 18/18.
-  See [the session menu plan][session-menu-plan]. Physical phones, system keyboards and arbitrary large sessions
-  have not been fully tested.
+  Physical phones, system keyboards and arbitrary large sessions have not been fully tested.
 - `open-kimi-web tls setup` explicitly enables a stable local CA in the same OKW home used for normal startup.
   Custom certificates take priority. Daily startup reuses the root and renews the separate server certificate for address changes
   or impending expiry; damaged, missing or expired roots fail rather than silently replacing trust.
@@ -716,30 +691,29 @@ Implementation checks below do not establish pending release CI, online delivery
   Trusted TLS does not guarantee Android WebAPK support. The old r2 package has no local-CA commands or download guidance.
   CA-stage lint/typecheck/2634 UT/642 IT plus six existing conditional skips/pack and trusted HTTPS/WSS passed;
   exact 2.4.1 app UI checks passed 34 assertions. These are prior local checks, not r3 release CI or physical installation.
-  Details and retained first failures are in [the CA plan][lan-ca-plan]. No user CLI upgrade or production restart is automatic.
+  First failures were retained. No user CLI upgrade or production restart is automatic.
 
 ## Recent-page, debug and PWA changes in 2.4.1-r2
 
-These retained changes and their release evidence belong to [the r2 Release][release241r2-release]
-and [the r2 release plan][release241r2-plan], not current r3 acceptance.
+These retained changes and the [r2 Release][release241r2-release] are historical, not current r3 acceptance.
 
 - The enhanced exact 2.3.1/2.4.1 UI requests one turn for the main recent page without a cursor instead of ten.
   Response bodies, associated entities, history pages and WS semantics stay unchanged. Custom UIs and other versions
   keep their requests. Native Load earlier messages remains available; short pages do not guarantee automatic prefetch.
   Tool activity defaults to folded only when no preference exists; existing values are not migrated.
   Backend restore, associated entities, parsing and a huge single turn can still be slow; instant loading is not promised.
-  Isolated low-bandwidth evidence and its limits remain in [the investigation plan][low-bandwidth-plan].
+  Isolated low-bandwidth checks do not remove these limits.
 - `kimi web --host --debug` and `open-kimi-web serve --lan --debug` enable sanitized OKW logs, with `--debug-log`
   retained as an alias. Only exact `OPEN_KIMI_WEB_DEBUG_LOG=1` enables the environment option.
   These Web options do not enable official debug endpoints. Logs omit content, credentials, raw IDs, paths, IPs and errors.
   They record server-side transfer phases, not browser DOM parsing, rendering or device display time.
-  Logs still contain timing and traffic statistics; inspect them before sharing. See [the diagnostic plan][debug-plan].
+  Logs still contain timing and traffic statistics; inspect them before sharing.
 - The official enhanced mode includes a PWA manifest, install icons and desktop/mobile Install app entries.
   Installation needs trusted HTTPS and browser support; bypassing a certificate warning is not a trust guarantee.
   No service worker, offline conversation cache or credential-bearing install metadata is added.
   The service must remain reachable, and native login is still required when credentials are absent or expired.
-  Custom `--web-dir` stays unchanged. Physical-phone and operating-system installation remain unverified;
-  browser checks and simulated cases are recorded in [the PWA plan][pwa-plan].
+  Custom `--web-dir` stays unchanged. Browser checks and simulated cases do not verify physical-phone
+  or operating-system installation.
 
 Updating files does not replace a running launcher. Restart and page refresh remain manual; production is not restarted
 and the user's official CLI is not upgraded. The root README is shorter, with detailed commands in the launcher README.
@@ -779,7 +753,7 @@ Unit line/branch coverage was 88.14%/80.76%; integration coverage was 87.98%/75.
 Review follow-ups cover conditional variant metadata, preset response headers, 205 framing and idle timeout after a gzip chunk.
 Package smoke verified r9 version, the included compression module and live static/API calls.
 Source-app acceptance is not package-browser acceptance; package-browser, PR/main CI and online verification
-are separately recorded in the [release plan][lan-plan]. No CI or online-install result is inferred from local checks.
+are separate checks. No CI or online-install result is inferred from local checks.
 Shared expanded-tool render/layout still has 400–900 ms long tasks and is not fixed by this revision.
 Gzip does not remove full-history reduction, JSON parsing or synchronous rendering. Physical phones, real home Wi-Fi
 and production installation are unverified. After upgrading, restart the old launcher and refresh the page;
@@ -881,7 +855,7 @@ The historical `r4` mobile question checks used the complete `2.1.1` Web app wit
 API and WebSocket responses. They covered the real `question` field, choices,
 answer requests, height dragging and persistence, constrained viewports, and
 seven appearances. These are isolated browser results, not physical phone or
-real-session acceptance. See the [verification record](docs/plans/mobile-question-height-v1-verification.md).
+real-session acceptance.
 
 The `2.1.1` workspace store reads `kimi-web.workspace-sort` as `manual` or
 `recent`. Its recent order uses session update times and workspace
@@ -918,8 +892,6 @@ serves a prepared build without injecting the presentation layer or theme picker
 
 ## Maintaining enhancements
 
-The usage statistics feature follows
-[`docs/plans/usage-statistics-v1-plan.md`](docs/plans/usage-statistics-v1-plan.md).
 Kimi Code `2.1.1` persists `usage.record` events with request usage, model alias,
 and a millisecond timestamp. The four counters are `inputOther`, `inputCacheRead`,
 `inputCacheCreation`, and `output`; total input includes all three input counters.
@@ -973,27 +945,9 @@ run. The `0.43.1` archive, deletion, and steer behavior was checked separately,
 but the full artifacts were not recaptured, so these snapshots do not claim
 `0.43.1`, `2.0.2`, `2.1.1`, `2.3.1`, `2.4.1` or `2.5.2` coverage.
 
-[lan-plan]: docs/plans/large-session-lan-performance-v1-plan.md
-[r10-plan]: docs/plans/one-click-install-r10-release-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
-[current-plan]: docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
-[r2-plan]: docs/plans/provider-defaults-r2-release-v1-plan.md
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
-[compat241-plan]: docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md
-[release241r2-plan]: docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md
 [release241r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
-[release241r3-plan]: docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md
-[session-menu-plan]: docs/plans/session-menu-actions-v1-plan.md
-[lan-ca-plan]: docs/plans/android-lan-ca-v1-plan.md
-[low-bandwidth-plan]: docs/plans/large-session-low-bandwidth-v2-plan.md
-[debug-plan]: docs/plans/large-session-debug-log-v1-plan.md
-[pwa-plan]: docs/plans/pwa-install-v1-plan.md
-[release252r1-plan]: docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md
-[release252r2-plan]: docs/plans/app-icon-2.5.2-r2-release-v1-plan.md
-[metrics-upgrade-plan]: docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
-[compat260-plan]: docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
-[layout-plan]: docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md
-[completed-sidebar-plan]: docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md
 [current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r8
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md

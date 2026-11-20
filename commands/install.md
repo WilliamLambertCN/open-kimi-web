@@ -4,8 +4,8 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
 
 帮助用户安装独立 Open Kimi Web launcher 或管理接管。安装本插件不安装、启动或卸载 launcher。用户参数：$ARGUMENTS
 目标版本 `v2.6.1-r8`，兼容准确官方 `2.6.1`／`2.6.0`；CI、运行验收与发布状态以[正式 Release][current-release]为准。
-2.6 兼容证据见[适配计划][compat260-plan]；上轮候选池见[候选池计划](../docs/plans/subagent-pool-editor-v1-plan.md)，
-[供应商保存][provider-save-plan]保留历史记录，未记录不视为通过。
+2.6 兼容边界见 [UPSTREAM][upstream-doc]；候选池与供应商保存记录见[更新日志][changelog-doc]，
+历史记录不代替本轮验收，未记录不视为通过。
 
 严格按顺序执行：
 
@@ -44,7 +44,7 @@ off-start 后 live config true 可出现入口但工具未组装，需用户接�
 chip 另要求会话已开启且非 Side Chat，缺 chip 不证明功能不存在。安全开启步骤见 [README][install]与[官方指南][official-tower]。
 
 [install]: https://github.com/WilliamLambertCN/open-kimi-web#readme
-[compat260-plan]: ../docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
+[upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#kimi-code-260261-adaptation
 [current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r8
-[provider-save-plan]: ../docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md
+[changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

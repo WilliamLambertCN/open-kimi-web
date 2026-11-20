@@ -21,6 +21,9 @@ temp/
 packages/launcher/LICENSE
 packages/launcher/THIRD_PARTY_NOTICES.md
 
+# Implementation plans are local, not published
+/docs/plans/
+
 # Local debug maps, history backups, and credential/config overrides
 *.map
 *.bundle
