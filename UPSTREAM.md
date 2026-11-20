@@ -33,6 +33,19 @@ or a vendored transcript implementation.
   statistics and safe self-update boundaries remain unchanged. No user CLI upgrade or production restart is automatic.
 - Machine-readable inspected versions, exact integrity values and historical contracts: `upstream.json`.
 
+## Kimi Code 2.6.3 streaming display (unreleased)
+
+For exact official `2.6.3`, the launcher validates the chat Markdown render structure and disables its incremental
+smoothing. Already received text is displayed without waiting for the smoothing queue; streaming, Markdown parsing,
+completion state and model speed remain upstream-owned. This focused change does not claim full 2.6.3 compatibility.
+
+When a running tool group finishes while visible in a chat that follows the latest output, it stays expanded
+until it leaves the viewport or the reader collapses it. This does not change the saved folding preference,
+reserve empty space or write scroll positions. The activity component is checked separately before applying this change.
+
+The adapter is independent of request metrics and uses a separate revisioned asset namespace. If the version or
+structure does not match, it retains the original rendering. Custom web directories are not modified.
+
 ## Kimi Code 2.5.2 adaptation
 
 The exact npm package and tagged source, not the historical protocol snapshots, establish this target.

@@ -4,10 +4,12 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { metricsHtml, metricsPresentationState, metricsStartupMessage, prepareMetricsAssets } from '../src/metricsAssets.mjs';
 import { addMobilePresentation } from '../src/officialPresentation.mjs';
-import { METRICS_ASSET_PREFIX as prefix } from '../src/officialRequestMetrics.mjs';
+import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix } from '../src/officialRequestMetrics.mjs';
 import { nativeTimingFixture as source } from './testkit/officialRequestMetrics.mjs';
 
 const html = '<head><script src="/boot.js"></script><script crossorigin type="module" src="/assets/main.js"></script></head>';
+const streaming = 'const Markdown={__name:"Markdown"};const props={mode:"chat",final:x.value,' +
+  '"show-tooltips":!1,"smooth-streaming":y.streaming,"batch-rendering":z.value};';
 let root; let publicDir;
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'okw-metrics-prepare-')); publicDir = join(root, 'public');
@@ -52,11 +54,33 @@ describe('verified official metrics assets', () => {
     await writeFile(join(publicDir, 'assets/main.js'), source.replace('stepDebug||', 'stepDebug&&'));
     expect(await prepare()).toEqual({ state: 'incompatible-bundle' });
   });
+  it('applies streaming independently when metrics are incompatible and gives the transformed graph a new identity', async () => {
+    await writeFile(join(publicDir, 'assets/main.js'), streaming);
+    const result = await prepareMetricsAssets(publicDir, true, '2.6.3');
+    expect(result.state).toBe('incompatible-bundle');
+    expect(result.streamingState).toBe('active');
+    expect(result.prefix).toBe(streamingPrefix);
+    expect(result.patched).toContain('"smooth-streaming":!1');
+    expect(metricsHtml(html, result)).toContain(`src="${streamingPrefix}/assets/main.js"`);
+    expect(() => metricsHtml(html + 'changed', result)).toThrow('official bundle changed');
+  });
+  it('keeps metrics when streaming structure is incompatible and combines both when compatible', async () => {
+    await writeFile(join(publicDir, 'assets/main.js'), source);
+    const original = await prepareMetricsAssets(publicDir, true, '2.6.3');
+    expect(original).toMatchObject({ state: 'active', prefix, streamingState: 'incompatible-bundle' });
+    await writeFile(join(publicDir, 'assets/main.js'), source + streaming);
+    const combined = await prepareMetricsAssets(publicDir, true, '2.6.3');
+    expect(combined).toMatchObject({ state: 'active', prefix: streamingPrefix, streamingState: 'active' });
+    expect(combined.patched).toContain('__okwTimingSlots');
+    expect(combined.patched).toContain('"smooth-streaming":!1');
+  });
 });
 
 describe('bundle read safety', () => {
   it('handles missing directories, modules and non-file sources without exposing a raw error', async () => {
     expect(await prepareMetricsAssets(join(root, 'missing'), true)).toEqual({ state: 'unavailable-bundle' });
+    expect(await prepareMetricsAssets(join(root, 'missing'), true, '2.6.3'))
+      .toEqual({ state: 'unavailable-bundle', streamingState: 'unavailable-bundle' });
     await rm(join(publicDir, 'assets/main.js'));
     expect(await prepare()).toEqual({ state: 'unavailable-bundle' });
     await mkdir(join(publicDir, 'assets/main.js'));
@@ -86,7 +110,8 @@ describe('metrics availability reporting', () => {
     expect(metricsStartupMessage()).toBeNull();
     expect(metricsStartupMessage({ state: 'active' })).toContain('no version restriction');
     for (const state of ['incompatible-bundle', 'unavailable-bundle']) {
-      expect(metricsStartupMessage({ state })).toBe(`request metrics: unavailable (${state}); original official UI retained`);
+      expect(metricsStartupMessage({ state })).toBe(
+        `request metrics: unavailable (${state}); official metrics rendering retained`);
     }
   });
   it('only writes verified fixed states into page metadata and does not rewrite assets on its own', () => {

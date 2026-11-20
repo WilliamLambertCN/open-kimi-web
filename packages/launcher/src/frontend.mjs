@@ -192,11 +192,19 @@ function printMetricsStatus(launcher, log, warn) {
   if (message) (launcher.requestMetricsState === 'active' ? log : warn)(message);
 }
 
+function printStreamingStatus(launcher, log, warn) {
+  if (launcher.streamingState === 'active') log('streaming display: active (official 2.6.3 structure verified)');
+  else if (launcher.streamingState && launcher.streamingState !== 'disabled') {
+    warn('streaming display: unavailable; original rendering retained');
+  }
+}
+
 function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   const log = opts.log ?? console.log;
   const warn = opts.warn ?? console.error;
   if (debugLog?.file) log(`debug log enabled: OKW home/logs/${basename(debugLog.file)}`);
   printMetricsStatus(launcher, log, warn);
+  printStreamingStatus(launcher, log, warn);
   log(`open-kimi-web ready (target: ${opts.target})`);
   for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
   for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);

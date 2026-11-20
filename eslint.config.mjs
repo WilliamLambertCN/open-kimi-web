@@ -20,6 +20,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/coverage/**',
       '.cache/**',
+      '.tmp/**',
       'contracts/**',
     ],
   },

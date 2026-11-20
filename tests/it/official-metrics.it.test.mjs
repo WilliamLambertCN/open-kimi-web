@@ -6,7 +6,8 @@ import { gunzipSync } from 'node:zlib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createLauncher as launch } from '../../packages/launcher/src/serve.mjs';
 import { availableHttpPort } from '../testkit/httpPort.mjs';
-import { METRICS_ASSET_PREFIX as prefix } from '../../packages/launcher/src/officialRequestMetrics.mjs';
+import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix }
+  from '../../packages/launcher/src/officialRequestMetrics.mjs';
 import { fixturePrelude, nativeTimingFixture } from '../../packages/launcher/tests/testkit/officialRequestMetrics.mjs';
 
 const createLauncher = async (options) => launch({ ...options, port: await availableHttpPort() });
@@ -102,6 +103,33 @@ describe('official step metrics static delivery', () => {
       expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(source);
       const missing = await fetch(other.url + prefix + '/assets/main.js');
       expect(missing.status).toBe(404); expect(await missing.text()).not.toContain('<html');
+    } finally { await other.close(); }
+  });
+});
+
+describe('verified streaming activation', () => {
+  it.each([false, true])('serves verified 2.6.3 streaming independently of metrics match=%s', async (withMetrics) => {
+    const directory = join(root, withMetrics ? 'streaming-with-metrics' : 'streaming-only');
+    await mkdir(join(directory, 'assets'), { recursive: true });
+    const streaming = 'const Markdown={__name:"Markdown"};const props={mode:"chat",final:x.value,' +
+      '"show-tooltips":!1,"smooth-streaming":y.streaming,"batch-rendering":z.value};';
+    const original = (withMetrics ? source : '') + streaming;
+    await writeFile(join(directory, 'index.html'), html); await writeFile(join(directory, 'assets/main.js'), original);
+    await writeFile(join(directory, 'assets/part.js'), 'export const sample="fictional"');
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '2.6.3' });
+    try {
+      expect(other.requestMetricsState).toBe(withMetrics ? 'active' : 'incompatible-bundle');
+      expect(await (await fetch(other.url)).text()).toContain(`src="${streamingPrefix}/assets/main.js"`);
+      expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(original);
+      const module = await fetch(other.url + streamingPrefix + '/assets/main.js');
+      expect(module.status).toBe(200);
+      const patched = await module.text(); expect(patched).toContain('"smooth-streaming":!1');
+      expect(patched.includes('__okwTimingSlots')).toBe(withMetrics);
+      expect((await fetch(other.url + streamingPrefix + '/assets/part.js')).status).toBe(200);
+      expect((await fetch(other.url + prefix + '/assets/main.js')).status).toBe(404);
+      await writeFile(join(directory, 'assets/main.js'), original + 'changed');
+      expect((await fetch(other.url + streamingPrefix + '/assets/main.js')).status).toBe(500);
     } finally { await other.close(); }
   });
 });
