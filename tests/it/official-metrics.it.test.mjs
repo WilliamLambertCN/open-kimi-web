@@ -134,6 +134,35 @@ describe('verified streaming activation', () => {
   });
 });
 
+describe('exact 2.7.2 native streaming delivery', () => {
+  it('serves metrics without enabling the 2.6.3 streaming patch', async () => {
+    const directory = join(root, 'native-streaming-272');
+    await mkdir(join(directory, 'assets'), { recursive: true });
+    const streaming = 'const Markdown={__name:"Markdown"};const props={mode:"chat",final:x.value,' +
+      '"show-tooltips":!1,"smooth-streaming":y.streaming,"batch-rendering":z.value};';
+    const original = source + streaming;
+    await writeFile(join(directory, 'index.html'), html);
+    await writeFile(join(directory, 'assets/main.js'), original);
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '2.7.2' });
+    try {
+      expect(other.requestMetricsState).toBe('active');
+      expect(other.streamingState).toBe('disabled');
+      const index = await (await fetch(other.url)).text();
+      expect(index).toContain(`src="${prefix}/assets/main.js"`);
+      expect(index).not.toContain(streamingPrefix);
+      const module = await fetch(other.url + prefix + '/assets/main.js');
+      expect(module.status).toBe(200);
+      const patched = await module.text();
+      expect(patched).toContain('__okwTimingSlots');
+      expect(patched).toContain(streaming);
+      expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(original);
+      expect((await fetch(other.url + streamingPrefix + '/assets/main.js')).status).toBe(404);
+      expect(await readFile(join(directory, 'assets/main.js'), 'utf8')).toBe(original);
+    } finally { await other.close(); }
+  });
+});
+
 describe('version-independent metrics activation', () => {
   it.each(['0.43.1', '2.4.1', '2.5.3', '2.6.0', '3.0.0', '3.0.0-beta.1', undefined])(
     'activates only from matching structure regardless of version %s', async (officialWebVersion) => {

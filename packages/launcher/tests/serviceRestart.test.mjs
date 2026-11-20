@@ -50,7 +50,7 @@ describe('service restart ownership and busy gate', () => {
     const newer = fixture({ fetchImpl: async () => response({ server_version: '9.0.0' }) });
     await expect(newer.reserve()).rejects.toMatchObject({ code: 'unmanaged-or-unsupported' });
   });
-  it.each(['2.5.2', '2.6.0', '2.6.1'])('reserves %s once and stops only after worker acknowledgement', async (version) => {
+  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'])('stops %s only after worker acknowledgement', async (version) => {
     const f = fixture({ fetchImpl: vi.fn(async (url) => response(String(url).includes('/meta')
       ? { server_version: version } : { items: [], total: 0, has_more: false })) });
     expect(await f.reserve()).toMatchObject({ phase: 'restarting' });

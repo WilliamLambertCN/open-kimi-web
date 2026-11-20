@@ -1,10 +1,14 @@
 import { CronClientError } from './errors.mjs';
 
-export const CRON_READ_VERSIONS = Object.freeze(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1']);
+export const CRON_READ_VERSIONS = Object.freeze([
+  '2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2',
+]);
 export const CRON_WRITE_VERSIONS = Object.freeze(['2.1.1', '2.2.0']);
 
 export function assertCronReadVersion(meta) {
-  if (!CRON_READ_VERSIONS.includes(meta?.server_version) || meta?.backend !== 'v2') {
+  const protocolMatches = meta?.server_version === '2.7.2'
+    ? meta.kimi_agent_protocol_version === '1.0.0' : meta?.backend === 'v2';
+  if (!CRON_READ_VERSIONS.includes(meta?.server_version) || !protocolMatches) {
     throw new CronClientError('unsupported-version');
   }
   if (meta.dangerous_bypass_auth !== false) throw new CronClientError('unsafe-auth');

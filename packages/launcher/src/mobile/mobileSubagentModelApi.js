@@ -24,8 +24,8 @@
       try {
         const envelope = await response.clone().json();
         const version = envelope?.code === 0 ? envelope.data?.server_version : undefined;
-        state.canClear = ['2.5.2', '2.6.0', '2.6.1'].includes(version);
-        state.primaryAlias = ['2.6.0', '2.6.1'].includes(version);
+        state.primaryAlias = ['2.6.0', '2.6.1', '2.7.2'].includes(version);
+        state.canClear = ['2.5.2', '2.6.0', '2.6.1', '2.7.2'].includes(version);
       } catch {}
       return response;
     };

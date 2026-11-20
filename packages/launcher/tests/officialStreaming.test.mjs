@@ -20,9 +20,10 @@ describe('official streaming presentation', () => {
     const source = markdown.replaceAll('props', '$props').replaceAll('final.value', '$finish.value');
     expect(patchOfficialStreaming(source, '2.6.3').patched).toBe(true);
   });
-  it.each(['2.6.1', '2.6.4', '2.6.3-beta.1', undefined])('does not patch an unverified version %s', (version) => {
-    expect(patchOfficialStreaming(markdown, version)).toEqual({ patched: false, text: markdown });
-  });
+  it.each(['2.6.1', '2.6.4', '2.6.3-beta.1', '2.7.2', '2.7.2-beta.1', '2.7.3', undefined])(
+    'retains native streaming outside the exact 2.6.3 opt-in: %s', (version) => {
+      expect(patchOfficialStreaming(markdown, version)).toEqual({ patched: false, text: markdown });
+    });
   it('retains the original when the relevant structure is missing, changed or duplicated', () => {
     const samples = [markdown.replace('__name:"Markdown"', '__name:"Other"'),
       markdown.replace('mode:"chat"', 'mode:"other"'), markdown.replace('"show-tooltips":!1', '"show-tooltips":!0'),

@@ -18,13 +18,15 @@ function restartFailure(res, error) {
 async function restartResponse(req, res, controller) {
   let disconnected = false;
   let responding = false;
+  const abort = new AbortController();
   const onClose = () => {
     disconnected = true;
-    if (responding && !res.writableFinished) controller.cancel();
+    abort.abort();
+    if (responding && !res.writableFinished) void controller.cancel();
   };
   res.once('close', onClose);
   try {
-    const body = await controller.reserve(req.headers.authorization, () => readRestartBody(req));
+    const body = await controller.reserve(req.headers.authorization, () => readRestartBody(req), abort.signal);
     if (disconnected || req.aborted || res.destroyed) { controller.cancel(); return; }
     res.once('finish', () => {
       res.off('close', onClose);
@@ -54,7 +56,9 @@ export async function serveRestart(req, res, controller) {
 }
 
 export function guardRestartWrites(req, res, controller) {
-  if (!controller || ['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return false;
+  if (!controller) return false;
+  const read = ['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+  if (read && !controller.blockedReads()) { controller.track(req, res); return false; }
   if (controller.blocked()) {
     sendRestartJson(res, 409, { error: 'restart-pending' });
     return true;

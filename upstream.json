@@ -4,14 +4,14 @@
     "cliVersion": "0.41.0"
   },
   "compatibilityBaseline": {
-    "commit": "30e3ce442ae850a7461b80f2ce209cd73a301d02",
-    "cliVersion": "2.6.1",
-    "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.6.1",
-    "status": "2.6.1 baseline verified; provider preset-save release tracked separately",
-    "evidence": "UPSTREAM.md#kimi-code-260261-adaptation"
+    "commit": "56145f849caa305d42acd09b67fb65d11146f887",
+    "cliVersion": "2.7.2",
+    "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.7.2",
+    "status": "2.7.2-r1 release target; publication tracked separately",
+    "evidence": "UPSTREAM.md#kimi-code-272-adaptation"
   },
   "minimumServerVersion": "0.43.1",
-  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1", "2.3.1", "2.4.1", "2.5.2", "2.5.3", "2.6.0", "2.6.1"],
+  "inspectedPackageVersions": ["0.43.1", "2.0.2", "2.1.1", "2.3.1", "2.4.1", "2.5.2", "2.5.3", "2.6.0", "2.6.1", "2.7.2"],
   "inspectedPackageIntegrity": {
     "0.43.1": "sha512-jq60K07tJV+uZB/mTN7rgb99WU5z6PtUeLybywGhXpF5QybaehIWsWudZ9HR8hEEmc7pppB+GAA92RDqOOKnRg==",
     "2.0.2": "sha512-JjZIwlsrUgrpnMgH1jKZAot8FJt36NWwItdWmRq/sj7ewe9RswDPWX+mBhdlGoyhSTfAEG6KjMGanhyADKTWsA==",
@@ -21,7 +21,8 @@
     "2.5.2": "sha512-a7UuugqQuPBHB2ZMiu8ezAFIwJ0dn6xanuRnTqa2pXXu12ng7kvigAlXy47TxNKpnyj8vgaNStedTv4kbqSCuA==",
     "2.5.3": "sha512-NdBttZiktZhKdH1tu/25A+Il1MxO1RTE1gAdZDmogoCT4g8L7k3pcLeJpwy7PNJvHo9CF8fDJiaZ9nsIPn+Gag==",
     "2.6.0": "sha512-C8gplTbSQsn+zxMkhyC+2MM2laf2E6YuEWqBt7UQMU2lqtr7JKi9zHIGNFuTgEXs5tIvS3HdU4HpmxneL3i7lg==",
-    "2.6.1": "sha512-M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ=="
+    "2.6.1": "sha512-M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ==",
+    "2.7.2": "sha512-Eq7512ssQH632Tg7C1LIK10CykToqF2lpBdkFjJ1IjSV86fMjEHpwxuKoo6fjh5XpCbwtKwijB0hTTbyDRLM9w=="
   },
   "perCallMetrics": {
     "versionRestriction": null,
@@ -40,15 +41,16 @@
     "2c73f3f50af4fa7f2540ca0d2e33b07a1408e3a7",
     "1c142a007c10e881602690def96057c23a2baa12",
     "740d6c0bdd777cd8ed0d91eb3d62766910401173",
-    "30e3ce442ae850a7461b80f2ce209cd73a301d02"
+    "30e3ce442ae850a7461b80f2ce209cd73a301d02",
+    "56145f849caa305d42acd09b67fb65d11146f887"
   ],
   "liveTestedServerCommits": [],
-  "liveTestedServerVersions": ["2.1.1", "2.2.0", "2.3.1", "2.4.1", "2.5.2", "2.6.0", "2.6.1"],
+  "liveTestedServerVersions": ["2.1.1", "2.2.0", "2.3.1", "2.4.1", "2.5.2", "2.6.0", "2.6.1", "2.7.2"],
   "contracts": {
     "capturedFrom": "live kap-server booted from the sibling kimi-code checkout",
     "snapshotCommit": "f9ca33376604ae91ea35a4ac1d6f1d4425a5aead",
     "snapshotVersion": "0.41.0",
-    "snapshotStatus": "historical-reference; not recaptured for 2.6.0/2.6.1",
+    "snapshotStatus": "historical-reference; not recaptured for 2.6.0/2.6.1/2.7.2",
     "metadata": "contracts/upstream/metadata.json",
     "openapi": "contracts/upstream/openapi.json",
     "asyncapi": "contracts/upstream/asyncapi.json"

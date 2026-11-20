@@ -42,18 +42,18 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。[v2.6.1-r9][current-release] 适配 Kimi Code `2.6.1`，保留 `2.6.0` 支持。
-> 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-260261-adaptation)。
+> 非官方社区项目，与 Moonshot AI 无关联。[v2.7.2-r1][current-release] 适配 Kimi Code `2.7.2`，保留 `2.6.0`／`2.6.1` 支持。
+> 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-272-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r9'
+  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.7.2-r1'
   $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
   if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
   $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.6.1-r9
+  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.7.2-r1
 }
 ```
 
@@ -62,14 +62,14 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.6.1-r9'
+  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.7.2-r1'
   metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
   sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
   case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
   [ "${#sha}" -eq 40 ] || exit 1
   url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
   script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.6.1-r9
+    sh -c "$script" install.sh --revision "$sha" --version 2.7.2-r1
 )
 ```
 
@@ -117,12 +117,12 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 - **模型与主题**：从服务商获取模型后选择添加，调整顺序、能力与思考强度，Max 放最后，不自动改写已有配置。
   可选五套主题或恢复官方外观；电脑从账号菜单、手机从设置进入“氛围主题”。
 - **请求与侧聊**：在每次回复或工具过程后查看 TTFT、包含等待的平均 TPS 和缓存命中率；侧聊可单独选模型。
-  指标按实际代码结构启用；`2.6.0`／`2.6.1` 已适配新版会话接口，见 [兼容说明](UPSTREAM.md)。
+  指标按实际代码结构启用；`2.6.0`／`2.6.1`／`2.7.2` 已适配新版会话接口，见 [兼容说明](UPSTREAM.md)。
 - **连接**：HTTPS、Hyper-V 地址识别和传输压缩；源码与 npm 安装均可更新，也能恢复原命令入口。
-  桌面“设置 → 通用”和手机会话设置可重启受管服务，忙碌时拒绝，不自动重发消息。
+  手机和电脑都可在设置中重启受管服务；空闲时在原地址重连，不自动重发消息。
 
-启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2`／`2.6.0`／`2.6.1` 仅可查看任务与已有历史，不能编辑、暂停或单独选模型，
-也不能与同一 Kimi 服务的官方 Remote Control 同时开启。[使用限制](packages/launcher/README.md#统一导航与会话搜索)
+启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2` 仅可查看任务与已有历史，
+不能编辑、暂停或单独选模型，也不能与同一 Kimi 服务的官方 Remote Control 同时开启。[使用限制](packages/launcher/README.md#统一导航与会话搜索)
 
 ### 子代理候选池
 
@@ -229,6 +229,10 @@ open-kimi-web update
   原 Kimi 已在 PATH 中则继续可用，否则仍需完整路径。
 - **自定义网页？** `--web-dir` 不添加本项目增强；目录会对外服务，勿放凭据、配置、日志或备份。
 
+## 第一次提 PR？
+
+[改一处主题配色，或改一句子代理说明](CONTRIBUTING.md)。两种改动都不用碰代理后端。
+
 ## 更多文档
 
 - [完整安装与命令](packages/launcher/README.md) · [更新日志](CHANGELOG.md) · [官方版本兼容](UPSTREAM.md)
@@ -242,4 +246,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r9
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r1

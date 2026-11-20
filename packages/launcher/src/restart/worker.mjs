@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { connect } from 'node:net';
 import { setTimeout as pause } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { terminateTree } from '../update/treeCleanup.mjs';
@@ -54,38 +55,83 @@ export async function launchReplacement(command, options = {}) {
   });
 }
 
+function addressReleased(address) {
+  return new Promise((resolve) => {
+    const socket = connect({ host: address.host, port: address.port });
+    const done = (released) => { socket.destroy(); resolve(released); };
+    socket.once('connect', () => done(false));
+    socket.once('error', (error) => done(error.code === 'ECONNREFUSED'));
+    socket.setTimeout(500, () => done(false));
+  });
+}
+
+async function waitForBackendExit(backend, alive, sleep) {
+  if (!backend) return;
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (!alive(backend.pid)) return;
+    await sleep(100);
+  }
+  throw new Error('original-backend-still-running');
+}
+
+function replacementAddresses(command) {
+  const addresses = [{ host: command.host ?? '127.0.0.1', port: command.port }];
+  if (command.backend) addresses.push(command.backend);
+  return addresses;
+}
+
+export async function waitForReplacementSlots(command, options = {}) {
+  const { alive = processAlive, released = addressReleased, sleep = pause } = options;
+  await waitForBackendExit(command.backend, alive, sleep);
+  const addresses = replacementAddresses(command);
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if ((await Promise.all(addresses.map(released))).every(Boolean)) return;
+    await sleep(100);
+  }
+  throw new Error('restart-address-in-use');
+}
+
 export async function restartWorker(command, options = {}) {
-  await (options.wait ?? waitForParentExit)(options.parentPid ?? process.ppid);
+  const { wait = waitForParentExit, slots = waitForReplacementSlots, launch = launchReplacement,
+    parentPid = process.ppid, sleep = pause } = options;
+  await wait(parentPid);
+  await slots(command, options);
+  await launchWithRetry(command, { launch, sleep, options });
+}
+
+async function launchWithRetry(command, { launch, sleep, options }) {
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    try { await (options.launch ?? launchReplacement)(command, options); return; }
+    try { await launch(command, options); return; }
     catch (error) {
       if (error.message === 'replacement-cleanup-unconfirmed' || attempt === 1) throw error;
-      await (options.sleep ?? pause)(1000);
+      await sleep(1000);
     }
   }
 }
 
-function main() {
+export function runRestartWorker(channel = process, options = {}) {
   let command;
   let committed = false;
-  const parentPid = process.ppid;
-  const exit = () => process.exit(0);
-  const timer = setTimeout(exit, 20000);
-  process.on('disconnect', () => { if (!committed) exit(); });
-  process.on('message', (message) => {
-    if (!message || committed) return;
-    if (message.type === 'cancel') exit();
-    if (message.type === 'prepare' && !command) {
+  const parentPid = options.parentPid ?? process.ppid;
+  const exit = (code = 0) => { clearTimeout(timer); (options.exit ?? process.exit)(code); };
+  const timer = setTimeout(() => exit(), 20000);
+  const start = () => {
+    clearTimeout(timer);
+    (options.restart ?? restartWorker)(command, { parentPid }).then(() => exit(), () => exit(1));
+  };
+  channel.on('disconnect', () => { if (committed) start(); else exit(); });
+  channel.on('message', (message) => {
+    if (message?.type === 'cancel') { clearTimeout(timer); exit(); return; }
+    if (message?.type === 'prepare' && !command) {
       command = message.command;
-      process.send({ type: 'prepared' });
+      channel.send({ type: 'prepared' });
     }
-    if (message.type === 'commit' && command) {
+    if (message?.type === 'commit' && command && !committed) {
       committed = true;
       clearTimeout(timer);
-      process.send({ type: 'committed' });
-      restartWorker(command, { parentPid }).then(exit, () => process.exit(1));
+      channel.send({ type: 'committed' }, () => {});
     }
   });
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) runRestartWorker();

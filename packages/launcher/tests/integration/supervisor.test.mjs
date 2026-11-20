@@ -9,6 +9,7 @@ import {
   frontendOptions,
   killBackend,
   managedBackendWebArgs,
+  managedRestartBackend,
   MANAGED_BACKEND_DEFAULT_PORT,
   MANAGED_FRONTEND_DEFAULT_PORT,
   superviseWeb,
@@ -382,4 +383,61 @@ describe('supervisor stop-listener cleanup', () => {
       resolveExit({ code: 0 });
     },
   );
+});
+
+
+describe('supervisor conditional restart ownership', () => {
+  it('requires both the discovered backend PID and its spawn shim to exit without sending signals', async () => {
+    const child = { exitCode: null, signalCode: null, kill: vi.fn() }; const sleep = vi.fn();
+    const alive = vi.fn().mockReturnValueOnce(true).mockReturnValue(false);
+    sleep.mockImplementation(async () => { child.exitCode = 0; });
+    const backend = managedRestartBackend(child, { pid: 424242, port: 1234 }, { pidAlive: alive, sleep });
+    expect(backend.address).toEqual({ pid: 424242, port: 1234, host: '127.0.0.1' });
+    expect(await backend.waitForExit()).toBe(true); expect(sleep).toHaveBeenCalledOnce();
+    expect(child.kill).not.toHaveBeenCalled();
+    const surviving = managedRestartBackend(child, { pid: 424242, port: 1234 }, { pidAlive: () => true, sleep: vi.fn() });
+    expect(await surviving.waitForExit()).toBe(false); expect(child.kill).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])('does not use unconditional shutdown or kill when the conditional reply is lost=%s', async (lost) => {
+    const f = startupFixture(); let control; let reply;
+    const pending = new Promise((resolve) => { reply = resolve; });
+    const reservation = { commit: vi.fn(async () => true), release: vi.fn(), cancel: vi.fn() };
+    f.deps.argv = ['node', '/fixture/entry.mjs', '__wrap', 'web'];
+    f.deps.prepareRestart = vi.fn(async () => reservation);
+    f.deps.pidAlive = () => f.child.exitCode === null;
+    f.deps.waitStop = undefined;
+    f.deps.fetch = vi.fn(async (url) => {
+      const parsed = new URL(url);
+      if (parsed.pathname === '/api/v1/meta') {
+        if (f.child.exitCode !== null) throw new Error('fixture backend exited');
+        return Response.json({ code: 0, data: { server_version: '2.7.2' } });
+      }
+      if (parsed.pathname === '/api/v1/sessions') return Response.json({ code: 0,
+        data: { items: [], total: 0, has_more: false } });
+      if (parsed.pathname === '/api/v1/shutdown') {
+        expect(parsed.search).toBe('?if_idle=true'); f.child.exitCode = 0; f.child.emit('exit', 0, null);
+        if (lost) throw new Error('fictional lost reply');
+        return Response.json({ code: 0, data: { ok: true } });
+      }
+      return Response.json({});
+    });
+    const close = vi.fn(async () => { await control.close(); });
+    startFrontend.mockImplementationOnce(async (options) => {
+      control = options.restartControl;
+      control.configure(options.target); control.transport({ quiesce: async () => {} });
+      queueMicrotask(async () => {
+        const state = await control.status('Bearer fixture');
+        await control.reserve('Bearer fixture', async () => ({ instance: state.instance }));
+        await control.commit(); reply();
+      });
+      return mockedFrontend(close);
+    });
+    const supervised = superviseWeb({ realKimi: '/fixture/official-kimi', web: { noOpen: true }, env: f.env, deps: f.deps });
+    await pending; await expect(supervised).resolves.toBe(0);
+    expect(reservation.commit).toHaveBeenCalledOnce(); expect(reservation.release).toHaveBeenCalledOnce();
+    expect(reservation.cancel).not.toHaveBeenCalled(); expect(f.child.kill).not.toHaveBeenCalled();
+    expect(f.deps.fetch.mock.calls.filter(([url]) => new URL(url).pathname === '/api/v1/shutdown')).toHaveLength(1);
+    expect(close).toHaveBeenCalledOnce();
+  });
 });

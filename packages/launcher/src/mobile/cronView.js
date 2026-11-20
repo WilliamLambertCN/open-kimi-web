@@ -10,6 +10,8 @@
     choose: ['选择一个原会话以查看任务。', 'Select an existing session to view its tasks.'],
     'sessions-empty': ['没有可列出的会话。', 'No sessions were returned.'],
     'sessions-unavailable': ['原会话清单暂不可用，未将其视为无任务。', 'Session inventory is unavailable, not an empty task list.'],
+    'sessions-incomplete': ['会话清单读取不完整或已变化，无法确认已读完；请点“重新读取”从第一页重读。',
+      'Session inventory is incomplete or has changed; completion is unconfirmed. Select Reload to restart from the first page.'],
     'history-unavailable': ['触发历史暂不可用；最近触发时间不代表执行成功。',
       'Trigger history is unavailable. Last fired time does not prove successful execution.'],
     'history-empty': ['没有已保存的触发记录。', 'No saved trigger records.'],
@@ -118,6 +120,7 @@
       if (session.quality?.complete !== true) button.append(el('small', 'okw-cron-quality', qualityText(session.quality)));
       button.addEventListener('click', () => callbacks.session(session.id)); ui.sessions.append(button);
     }
+    ui.inventoryStatus.setAttribute('aria-live', state.inventoryStatus === 'loading' ? 'off' : 'polite');
     status(ui.inventoryStatus, state.inventoryStatus);
     ui.sessionsMore.hidden = !state.sessionsMore; ui.sessionsMore.disabled = state.busy || state.unknown;
   };
@@ -206,7 +209,8 @@
     const globalStatus = el('p', 'okw-cron-status'); globalStatus.setAttribute('role', 'status');
     const columns = el('div', 'okw-cron-columns');
     const inventory = el('nav', 'okw-cron-inventory');
-    const inventoryStatus = el('p', 'okw-cron-status'); const sessions = el('div', 'okw-cron-sessions');
+    const inventoryStatus = el('p', 'okw-cron-status'); inventoryStatus.setAttribute('aria-live', 'polite');
+    const sessions = el('div', 'okw-cron-sessions');
     const sessionsMore = button('sessions-more', '更多会话', 'More sessions', callbacks.sessionsMore);
     inventory.append(copy('h3', '原会话', 'Existing sessions'), inventoryStatus, sessions, sessionsMore);
     const main = el('div', 'okw-cron-main'); const sessionTitle = el('h3'); const sessionId = el('p', 'okw-cron-id');

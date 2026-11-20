@@ -44,7 +44,7 @@ const archiveMarkup = (rowScope) => (
 
 function install(options = {}) {
   const { items = [archivedItemV2('session_archived')], allScripts = false, extraMessages = 0,
-    deleteResponse, rowScope = 'combined', desktopMount = '', path = '/settings' } = options;
+    archivePage, listPath = archivedUrl, deleteResponse, rowScope = 'combined', desktopMount = '', path = '/settings' } = options;
   const messages = Array.from({ length: extraMessages }, (_, index) => `<div class="a-msg">Message ${index}</div>`).join('');
   const frame = document.createElement('iframe');
   document.body.append(frame);
@@ -61,11 +61,13 @@ function install(options = {}) {
   view.localStorage.setItem('open-kimi-web.atmospheric-theme', 'original');
   view.confirm = vi.fn(() => true);
   view.fetch = vi.fn(async (url) => {
-    if (String(url).includes('meta.archived=true')) return archivedResponseV2(items);
+    if (String(url) === listPath) return archivePage ? new Response(JSON.stringify({ code: 0, data: archivePage }))
+      : archivedResponseV2(items);
     if (String(url).includes('/session-size?')) return new Response(JSON.stringify({ available: true, bytes: 1234 }));
     return deleteResponse ?? new Response('{}', { status: 200 });
   });
 
+  const nativeFetch = view.fetch;
   const NativeMutationObserver = view.MutationObserver;
   const state = { callbacks: 0, exceededLimit: false, observers: [] };
   observerStates.push(state);
@@ -88,17 +90,17 @@ function install(options = {}) {
   };
 
   const names = allScripts
-    ? [...addMobilePresentation('<html><head><script type="module" src="/official.js"></script></head></html>')
+    ? [...addMobilePresentation('<html><head><script type="module" src="/official.js"></script></head></html>', options)
       .matchAll(/<script src="\/__open-kimi-mobile\/([^"]+)"/g)].map((match) => match[1])
     : ['archivedSessionDelete.js'];
   names.forEach((name) => view.eval(`((location) => { ${mobileSource(name)}\n})(window.__okwTestLocation)`));
   const archiveButton = () => view.document.querySelector('.archive-row .okw-archive-delete');
   const sidebarButton = () => view.document.querySelector('.se .okw-sidebar-archive-delete');
-  return { view, state, names, archiveButton, sidebarButton };
+  return { view, state, names, archiveButton, sidebarButton, listPath, nativeFetch };
 }
 
 async function loadArchived(ui) {
-  await ui.view.fetch(archivedUrl, { headers: { authorization: 'Bearer fixture-token' } });
+  await ui.view.fetch(ui.listPath, { headers: { authorization: 'Bearer fixture-token' } });
   await tick();
   await tick();
 }
@@ -127,6 +129,33 @@ afterEach(() => {
   documents.splice(0).forEach((frame) => {
     frame.contentWindow.dispatchEvent(new frame.contentWindow.Event('pagehide'));
     frame.remove();
+  });
+});
+
+describe('native archive action', () => {
+  it('does not bind a local delete to a same-title remote sidebar row on 2.7.2', async () => {
+    const listPath = '/api/v1/sessions?archived=true';
+    const local = { id: 'local', workspace_id: 'local-work', cwd: '/work', title: 'Archived title', archived: true,
+      archived_at: '2026-09-08T12:34:00.000Z', activity: 'idle' };
+    const ui = install({ allScripts: true, officialWebVersion: '2.7.2', listPath, rowScope: 'sidebar',
+      archivePage: { items: [local], total: 1, has_more: false } });
+    await loadArchived(ui);
+    expect(ui.sidebarButton()).toBeNull();
+    ui.view.document.querySelector('.se .t').click();
+    expect(ui.nativeFetch.mock.calls.some(([url]) => String(url).includes(':delete'))).toBe(false);
+  });
+  it('hands deletion back to the official button even when it mounts after the list response', async () => {
+    const ui = install({ rowScope: 'settings' });
+    await loadArchived(ui);
+    const fallback = ui.archiveButton();
+    expect(fallback).not.toBeNull();
+    const row = fallback.closest('.archive-row');
+    row.insertAdjacentHTML('beforeend', '<button class="ui-button ui-button--danger">Delete</button>');
+    await expectSettled(ui);
+    expect(row.querySelectorAll('button')).toHaveLength(1);
+    expect(ui.archiveButton()).toBeNull();
+    fallback.click();
+    expect(ui.view.confirm).not.toHaveBeenCalled();
   });
 });
 
@@ -335,5 +364,24 @@ describe('session size desktop all-script coexistence', () => {
     expect(rules[1][2]).toMatch(/flex-shrink:\s*1/);
     expect(rules[2][2]).toContain('inset-inline: 78px');
     expect(rules[3][2]).toContain('inset-inline-start: 146px');
+  });
+});
+
+describe('unified v1 archive observer convergence', () => {
+  it.each([false, true])('settles with unified grouped=%s data and every injected script', async (grouped) => {
+    const item = { id: 'session_archived', workspace_id: 'workspace_fixture', title: 'Archived title', archived: true,
+      archived_at: new Date('2026-09-08T12:34:00').toISOString(), cwd: 'C:\\work', activity: 'idle' };
+    const archivePage = grouped ? { groups: [{ workspace_id: 'workspace_fixture', sessions: [item], total: 1 }],
+      total: 1, has_more: false } : { items: [item], total: 1, has_more: false };
+    const listPath = `/api/v1/sessions?archived=true${grouped ? '&view=by_workspace&group_page_size=5' : ''}`;
+    const ui = install({ allScripts: true, officialWebVersion: '2.7.2', archivePage, listPath, extraMessages: 100 });
+    await loadArchived(ui);
+    expect(ui.archiveButton()).toBeNull(); expect(ui.sidebarButton()).toBeNull();
+    await expectSettled(ui);
+    ui.view.document.querySelector('.archive-name').textContent = 'Changed archived title';
+    await expectSettled(ui);
+    expect(ui.archiveButton()).toBeNull();
+    expect(ui.view.document.querySelectorAll('.a-msg')).toHaveLength(100);
+    expect(ui.nativeFetch).toHaveBeenCalledTimes(1);
   });
 });

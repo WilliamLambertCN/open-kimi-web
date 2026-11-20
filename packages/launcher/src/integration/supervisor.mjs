@@ -19,6 +19,7 @@ import {
   instancesDir,
   snapshotInstanceIds,
   verifyRegisteredInstance,
+  pidAlive,
 } from './registryDiscovery.mjs';
 import { IntegrateError } from './state.mjs';
 import { createRestartController } from '../restart/controller.mjs';
@@ -42,6 +43,22 @@ function backendWebArgs(web) {
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export function managedRestartBackend(child, instance, deps = {}) {
+  const alive = deps.pidAlive ?? pidAlive;
+  const isAlive = () => alive(instance.pid) || (child.exitCode === null && child.signalCode === null);
+  return {
+    address: { pid: instance.pid, host: '127.0.0.1', port: instance.port },
+    alive: isAlive,
+    async waitForExit() {
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        if (!isAlive()) return true;
+        await (deps.sleep ?? sleep)(100);
+      }
+      return !isAlive();
+    },
+  };
+}
 
 async function readBackendToken(env, readFile) {
   const result = await resolveLaunchToken(
@@ -128,7 +145,7 @@ export function waitForStop(exited, signal) {
     };
     const onSigint = () => done({ kind: 'signal' });
     const onSigterm = () => done({ kind: 'signal' });
-    const onAbort = () => done({ kind: signal.reason === 'restart' ? 'restart' : 'unsafe-backend' });
+    const onAbort = () => done({ kind: String(signal.reason).startsWith('restart') ? signal.reason : 'unsafe-backend' });
     process.once('SIGINT', onSigint);
     process.once('SIGTERM', onSigterm);
     signal?.addEventListener('abort', onAbort, { once: true });
@@ -137,17 +154,40 @@ export function waitForStop(exited, signal) {
   });
 }
 
+async function settleRestart(stop, control) {
+  if (!control) return false;
+  if (control.ownsShutdown()) {
+    if (stop.kind === 'exit') await control.close();
+    else await control.settled();
+    return !control.blocked();
+  }
+  if (stop.kind === 'exit') await control.settled();
+  return false;
+}
+
 async function supervise(child, exited, launcher, ctx) {
   const stop = await (ctx.waitStop ?? waitForStop)(exited, ctx.stopSignal);
+  if (await settleRestart(stop, ctx.restartControl) && stop.kind !== 'exit') {
+    ctx.warn('conditional restart was not confirmed; keeping the original service running');
+    return supervise(child, exited, launcher, { ...ctx, stopSignal: undefined });
+  }
+  if (ctx.stopSignal?.reason === 'restart-idle-exited') {
+    await closeLauncher(launcher, ctx);
+    return 0;
+  }
   if (stop.kind === 'exit' && !ctx.stopSignal?.aborted) {
     await closeLauncher(launcher, ctx);
     return stop.result.code ?? 1;
   }
+  return stopBackend(child, exited, launcher, { ...ctx, stop });
+}
+
+async function stopBackend(child, exited, launcher, ctx) {
   await requestShutdown(ctx).catch(() => undefined);
   await exitedWithin(exited, SHUTDOWN_TIMEOUT_MS);
   await killBackend(child, exited, ctx);
   await closeLauncher(launcher, ctx);
-  if (ctx.stopSignal?.reason === 'unsafe-backend' || stop.kind === 'unsafe-backend') {
+  if (ctx.stopSignal?.reason === 'unsafe-backend' || ctx.stop.kind === 'unsafe-backend') {
     ctx.warn('scheduled-task backend became unsafe; shutting down the managed backend');
     return 1;
   }
@@ -212,16 +252,16 @@ function backendStop(web) {
   const controller = new AbortController();
   return {
     signal: controller.signal,
-    restart: () => controller.abort('restart'),
+    restart: (result) => controller.abort(result.backendExited ? 'restart-idle-exited' : 'restart'),
     onUnsafeBackend: web.scheduledTasks ? () => controller.abort('unsafe-backend') : undefined,
   };
 }
 
 function restartFor(options, stop, deps, env) {
   let command;
-  try { command = restartCommand(options.web); } catch { return undefined; }
+  try { command = restartCommand(options.web, deps.argv ?? process.argv); } catch { return undefined; }
   return createRestartController({ fetchImpl: deps.fetch ?? fetch,
-    prepare: () => prepareRestart(command, { env }), stop: stop.restart });
+    prepare: (details) => (deps.prepareRestart ?? prepareRestart)({ ...command, ...details }, { env }), stop: stop.restart });
 }
 
 function managedTreeKill(realKimi, web, platform = process.platform) {
@@ -290,6 +330,7 @@ export async function superviseWeb(options) {
     fetchImpl: deps.fetch ?? fetch,
     waitStop: deps.waitStop,
     stopSignal: stop.signal,
+    restartControl,
     treeKill: managedTreeKill(options.realKimi, options.web, deps.platform),
     killTree: deps.killTree,
     warn,
@@ -326,6 +367,7 @@ async function startBackendAndFrontend(ctx) {
       dir: ctx.dir, io: deps.io, token, fetchImpl: deps.fetch,
     });
     ctx.token = token;
+    ctx.restartControl?.manageBackend(managedRestartBackend(ctx.child, instance, deps));
     if (ctx.web.scheduledTasks === true) {
       await (deps.assertCronBackend ?? assertCronBackend)({
         target: `http://127.0.0.1:${instance.port}`,
@@ -339,7 +381,7 @@ async function startBackendAndFrontend(ctx) {
   }
   log(`kimi web backend ready on 127.0.0.1:${instance.port}`);
   try {
-    const frontend = await startFrontend({
+    const frontend = await (deps.startFrontend ?? startFrontend)({
       ...frontendOptions(ctx.web, instance.port, env),
       env,
       usageHome: dirname(defaultTokenFile(env)),

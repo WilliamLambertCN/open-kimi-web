@@ -13,18 +13,32 @@ const PREFIX = '/__open-kimi-mobile/service/';
 const cleanups = [];
 const deferred = () => { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; };
 const json = (res, data) => res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ code: 0, data }));
-async function fixture({ managed = true, enhanced = true } = {}) {
+async function shutdown(req, res, state, wss) {
+  expect(req.url).toBe('/api/v1/shutdown?if_idle=true'); expect(req.method).toBe('POST');
+  state.shutdownStarted.resolve();
+  if (state.shutdownHold) await state.shutdownHold;
+  const ok = state.shutdown === true && wss.clients.size === 0;
+  state.exited = ok && state.exit;
+  if (state.shutdown === 'lost') { state.exited = state.exit; res.destroy(); return; }
+  json(res, { ok });
+}
+async function fixture({ managed = true, enhanced = true, version = '2.5.2' } = {}) {
   const publicDir = await mkdtemp(join(tmpdir(), 'okw-restart-'));
   await writeFile(join(publicDir, 'index.html'), '<html><head></head><body>Fictional app</body></html>');
   cleanups.push(() => rm(publicDir, { recursive: true, force: true }));
-  const state = { busy: false, calls: [], frames: [], hold: null, started: null };
+  const state = { busy: false, calls: [], frames: [], hold: null, started: null,
+    shutdown: true, exit: true, exited: false, shutdownStarted: deferred(), shutdownHold: null };
   const upstream = createServer(async (req, res) => {
     state.calls.push(req.url);
     if (req.headers.authorization !== AUTH) { res.writeHead(401).end(); return; }
-    if (req.url === '/api/v1/meta') json(res, { server_version: '2.5.2' });
-    else if (req.url.startsWith('/api/v2/sessions?')) json(res, {
+    if (req.url === '/api/v1/meta') {
+      if (state.exited) { res.destroy(); return; }
+      json(res, { server_version: version });
+    }
+    else if (/^\/api\/v[12]\/sessions\?/.test(req.url)) json(res, {
       items: state.busy ? [{ id: 'fictional' }] : [], total: state.busy ? 1 : 0, has_more: false,
     });
+    else if (req.url.startsWith('/api/v1/shutdown')) await shutdown(req, res, state, wss);
     else {
       state.started?.resolve(); if (state.hold) await state.hold;
       json(res, { written: true });
@@ -38,12 +52,14 @@ async function fixture({ managed = true, enhanced = true } = {}) {
     await new Promise((resolve) => wss.close(resolve)); upstream.closeAllConnections();
     await new Promise((resolve) => upstream.close(resolve));
   });
-  const reservation = { commit: vi.fn(async () => true), cancel: vi.fn() };
+  const reservation = { commit: vi.fn(async () => true), cancel: vi.fn(), release: vi.fn() };
   const prepare = vi.fn(async () => reservation); const stop = vi.fn();
   const control = createRestartController({ prepare: managed ? prepare : undefined, stop });
+  control.manageBackend({ address: { pid: 123456, host: '127.0.0.1', port: upstream.address().port },
+    alive: () => !state.exited, waitForExit: async () => state.exited });
   const launcher = await createLauncher({ target: `http://127.0.0.1:${upstream.address().port}`,
     publicDir, host: '127.0.0.1', port: await availableHttpPort(), officialPresentation: enhanced,
-    officialWebVersion: '2.5.2', restartControl: control });
+    officialWebVersion: version, restartControl: control });
   cleanups.push(() => launcher.close());
   const call = async (path, options = {}) => {
     const response = await fetch(launcher.url + path, { ...options, headers: { authorization: AUTH, ...options.headers } });
@@ -55,7 +71,8 @@ async function fixture({ managed = true, enhanced = true } = {}) {
     return call(PREFIX + 'restart', { method: 'POST', body: JSON.stringify({ instance: current.body.instance }),
       ...options, headers: { 'content-type': 'application/json', ...options.headers } });
   };
-  return { state, launcher, control, prepare, stop, reservation, call, status, restart };
+  return { state, launcher, control, prepare, stop, reservation, call, status, restart,
+    target: `http://127.0.0.1:${upstream.address().port}` };
 }
 async function opened(url) {
   const ws = new WebSocket(url.replace(/^http/, 'ws') + '/api/v1/ws');
@@ -103,6 +120,16 @@ describe('service restart authenticated HTTP contract', () => {
     const response = await fetch(custom.launcher.url + PREFIX + 'restart', { method: 'POST' });
     expect(response.status).toBe(405); expect(custom.prepare).not.toHaveBeenCalled();
   });
+  it('keeps exact 2.7.2 available and rejects visible work without disconnecting its proxy client', async () => {
+    const f = await fixture({ version: '2.7.2' }); const ws = await opened(f.launcher.url);
+    expect((await f.status()).body).toMatchObject({ available: true, phase: 'ready' }); f.state.busy = true;
+    expect(await f.restart()).toMatchObject({ status: 409, body: { error: 'service-busy' } });
+    expect(f.prepare).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
+    const echoed = new Promise((resolve) => ws.once('message', (data) => resolve(String(data))));
+    ws.send('still-connected'); expect(await echoed).toBe('still-connected');
+    expect((await f.call('/api/v1/fixture', { method: 'POST' })).body.data).toEqual({ written: true });
+    expect(f.state.calls.some((path) => path.includes('/shutdown'))).toBe(false);
+  });
 });
 
 describe('service restart lifecycle and concurrent writes', () => {
@@ -149,5 +176,72 @@ describe('service restart lifecycle and concurrent writes', () => {
     expect(f.control.blocked()).toBe(false); f.reservation.commit.mockResolvedValueOnce(false);
     expect((await f.restart()).status).toBe(202); expect(f.stop).not.toHaveBeenCalled();
     await vi.waitFor(() => expect(f.reservation.cancel).toHaveBeenCalledOnce()); expect(f.control.blocked()).toBe(false);
+  });
+});
+
+
+describe('2.7.2 official conditional shutdown through real HTTP and WS proxies', () => {
+  it('closes only this launcher proxy WS before a single conditional POST and waits for owned exit', async () => {
+    const f = await fixture({ version: '2.7.2' }); const ws = await opened(f.launcher.url);
+    const closed = new Promise((resolve) => ws.once('close', resolve));
+    expect((await f.restart()).status).toBe(202); expect(await closed).toBe(1013);
+    expect(f.reservation.commit).toHaveBeenCalledOnce(); expect(f.reservation.release).toHaveBeenCalledOnce();
+    expect(f.stop).toHaveBeenCalledExactlyOnceWith({ backendExited: true });
+    expect(f.state.calls.filter((path) => path.includes('/shutdown'))).toEqual(['/api/v1/shutdown?if_idle=true']);
+    expect(f.state.exited).toBe(true);
+  });
+
+  it('leaves direct and other-launcher clients connected when the official endpoint refuses shutdown', async () => {
+    const f = await fixture({ version: '2.7.2' }); const own = await opened(f.launcher.url);
+    const direct = await opened(f.target); const other = await opened(f.target);
+    const closed = new Promise((resolve) => own.once('close', resolve));
+    expect(await f.restart()).toMatchObject({ status: 409, body: { error: 'service-busy' } });
+    expect(await closed).toBe(1013); expect(f.stop).not.toHaveBeenCalled();
+    expect(f.reservation.cancel).toHaveBeenCalledOnce(); expect(f.control.blocked()).toBe(false);
+    for (const ws of [direct, other]) {
+      const echoed = new Promise((resolve) => ws.once('message', (data) => resolve(String(data))));
+      ws.send('uninterrupted'); expect(await echoed).toBe('uninterrupted');
+    }
+    const reconnected = await opened(f.launcher.url); expect(reconnected.readyState).toBe(WebSocket.OPEN);
+    expect((await f.call('/api/v1/fixture', { method: 'POST' })).status).toBe(200);
+    expect((await f.status()).body).toMatchObject({ phase: 'ready', lastError: 'service-busy' });
+  });
+
+  it('blocks reads that can restore sessions, writes and reconnects while the final decision is pending', async () => {
+    const f = await fixture({ version: '2.7.2' }); const hold = deferred(); f.state.shutdownHold = hold.promise;
+    const restart = f.restart(); await f.state.shutdownStarted.promise;
+    for (const method of ['GET', 'POST']) expect((await f.call('/api/v1/fixture', { method })).status).toBe(409);
+    const attempt = new WebSocket(f.launcher.url.replace(/^http/, 'ws') + '/api/v1/ws'); attempt.on('error', () => {});
+    const rejected = new Promise((resolve) => attempt.once('unexpected-response', (_req, res) => {
+      res.resume(); attempt.terminate(); resolve(res.statusCode);
+    }));
+    expect(await rejected).toBe(503);
+    expect((await f.status()).body.phase).toBe('stopping');
+    hold.resolve(); expect((await restart).status).toBe(202);
+  });
+
+  it.each([true, false])('handles an actual dropped shutdown HTTP response with owned exit=%s', async (exited) => {
+    const f = await fixture({ version: '2.7.2' }); f.state.shutdown = 'lost'; f.state.exit = exited;
+    const result = await f.restart();
+    if (exited) {
+      expect(result.status).toBe(202); expect(f.stop).toHaveBeenCalledWith({ backendExited: true });
+    } else {
+      expect(result).toMatchObject({ status: 503, body: { error: 'restart-outcome-unknown' } });
+      expect(f.stop).not.toHaveBeenCalled(); expect(f.control.blocked()).toBe(false);
+      expect((await f.call('/api/v1/fixture', { method: 'POST' })).status).toBe(200);
+    }
+    expect(f.state.calls.filter((path) => path.includes('/shutdown'))).toHaveLength(1);
+  });
+
+  it('completes after a real HTTP client disconnect once conditional shutdown is in flight', async () => {
+    const f = await fixture({ version: '2.7.2' }); const current = await f.status(); const hold = deferred();
+    f.state.shutdownHold = hold.promise;
+    const request = httpRequest(f.launcher.url, { path: PREFIX + 'restart', method: 'POST',
+      headers: { authorization: AUTH, 'content-type': 'application/json' } });
+    request.on('error', () => {}); request.end(JSON.stringify({ instance: current.body.instance }));
+    await f.state.shutdownStarted.promise; request.destroy();
+    await new Promise((resolve) => request.once('close', resolve)); hold.resolve();
+    await vi.waitFor(() => expect(f.stop).toHaveBeenCalledExactlyOnceWith({ backendExited: true }));
+    expect(f.reservation.cancel).not.toHaveBeenCalled(); expect(f.reservation.release).toHaveBeenCalledOnce();
   });
 });

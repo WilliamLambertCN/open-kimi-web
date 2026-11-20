@@ -16,6 +16,11 @@ const native = (id, archived = false) => ({
   id, workspace: { id: workspaceId, cwd: '/fictional/tcp-workspace' },
   meta: { title: multilineTitle, archived }, activity: { status: 'idle', model: null },
 });
+const unified = (id, archived = false) => ({
+  id, workspace_id: workspaceId, cwd: '/fictional/tcp-workspace', title: multilineTitle, archived,
+  activity: 'idle', pending_interaction: 'none', created_at: '2026-11-20T00:00:00.000Z',
+  updated_at: '2026-11-20T00:00:00.000Z',
+});
 const event = (type, fields = {}) => ({ type, time: 1000, ...fields });
 
 function send(res, data, code = 0) {
@@ -40,17 +45,41 @@ function dispatch(req, res, state) {
     return send(res, { items: more ? [native('first'), native('no-tasks', true)] : [native('last', true)],
       has_more: more, next_page_token: more ? state.cursor : null });
   }
-  const match = /^\/api\/v1\/sessions\/([^/]+)\/profile$/.exec(url.pathname);
+  if (url.pathname === '/api/v1/sessions' && state.meta.server_version === '2.7.2') {
+    return unifiedDirectory(url, res, state);
+  }
+  const match = /^\/api\/v1\/sessions\/([^/]+)(?:\/profile)?$/.exec(url.pathname);
   if (match !== null) return send(res, { id: match[1], workspace_id: workspaceId });
   state.unexpected.push(req.url);
   res.writeHead(404).end();
 }
 
+function unifiedDirectory(url, res, state) {
+  if (state.directoryError) return send(res, null, state.directoryError);
+  const raw = url.searchParams.get('page_token');
+  if (raw !== null) state.rows[60].updated_at = new Date(100000).toISOString();
+  const key = url.searchParams.get('sort') === 'created_at_desc' ? 'created_at' : 'updated_at';
+  const anchor = raw === null ? null : JSON.parse(Buffer.from(raw, 'base64url').toString()).k;
+  const sorted = state.rows.toSorted((a, b) => b[key].localeCompare(a[key]) || b.id.localeCompare(a.id));
+  const remaining = sorted.filter((row) => anchor === null || Date.parse(row[key]) < anchor[0] ||
+    Date.parse(row[key]) === anchor[0] && row.id < anchor[1]);
+  const items = remaining.slice(0, 20);
+  const hasMore = remaining.length > items.length;
+  const last = items.at(-1);
+  const next = hasMore ? Buffer.from(JSON.stringify({ v: 1, f: 'fictional-query',
+    k: [Date.parse(last[key]), last.id] })).toString('base64url') : undefined;
+  return send(res, { items, total: state.rows.length, has_more: hasMore,
+    ...(hasMore ? { next_page_token: next } : {}) });
+}
+
 async function fixture(version = '2.1.1') {
   const home = await mkdtemp(join(tmpdir(), 'okw-cron-inventory-tcp-'));
   const state = {
-    meta: { server_version: version, backend: 'v2', dangerous_bypass_auth: false },
+    meta: { server_version: version, dangerous_bypass_auth: false,
+      ...(version === '2.7.2' ? { kimi_agent_protocol_version: '1.0.0' } : { backend: 'v2' }) },
     loaded: [], unexpected: [], directoryError: null, cursor: 'opaque+/=&cursor',
+    rows: Array.from({ length: 61 }, (_, index) => ({ ...unified(`unified-${index}`, index % 2 === 0),
+      created_at: new Date(1000 * (61 - index)).toISOString(), updated_at: new Date(1000 * (61 - index)).toISOString() })),
   };
   const calls = [];
   const server = createServer((req, res) => {
@@ -116,6 +145,36 @@ describe('real TCP global native Cron cold inventory', () => {
     });
   });
 
+});
+
+describe('exact 2.7.2 unified inventory on real TCP', () => {
+  it('keeps the 61st session when it updates between keyset pages without restoring it', async () => {
+    const { home, inventory, calls, state } = await fixture('2.7.2');
+    const path = await writeWire(home, 'unified-60', [event('cron.add', { task })]);
+    const before = await readFile(path);
+    const items = []; let cursor;
+    do {
+      const result = await inventory.sessions({ authorization, ...(cursor === undefined ? {} : { cursor }) });
+      expect(result.total).toBe(61);
+      items.push(...result.items); cursor = result.cursor;
+    } while (cursor !== null);
+    expect(state.rows[60].updated_at).toBe(new Date(100000).toISOString());
+    expect(items).toHaveLength(61); expect(new Set(items.map((item) => item.id)).size).toBe(61);
+    expect(items[60]).toMatchObject({ id: 'unified-60', archived: true, loaded: false, title: multilineTitle,
+      workspace: { id: workspaceId, name: 'tcp-workspace' }, tasks: [task], quality: { complete: true } });
+    const queries = calls.filter((call) => call.path.startsWith('/api/v1/sessions?'))
+      .map((call) => new URL(call.path, 'http://127.0.0.1').searchParams);
+    expect(queries).toHaveLength(4);
+    expect(queries.every((query) => query.get('sort') === 'created_at_desc' && query.get('archived') === 'all')).toBe(true);
+    expect(queries.every((query) => query.get('page_size') === '20')).toBe(true);
+    expect(queries[0].has('page_token')).toBe(false);
+    expect(queries.slice(1).every((query) => query.has('page_token'))).toBe(true);
+    expect(await inventory.history({ authorization, sessionId: 'unified-60' })).toMatchObject({ available: true });
+    expect(calls.at(-1).path).toBe('/api/v1/sessions/unified-60');
+    expect(calls.every((call) => call.method === 'GET' && call.authorization === authorization)).toBe(true);
+    expect(calls.some((call) => /v2|profile|snapshot|status|resume|agentCronService/.test(call.path))).toBe(false);
+    expect(state.unexpected).toEqual([]); expect(await readFile(path)).toEqual(before);
+  });
 });
 
 describe('real TCP cursor byte budget', () => {

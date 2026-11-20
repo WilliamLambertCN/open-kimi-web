@@ -87,12 +87,13 @@ describe('official dependency discovery', () => {
       expect(nodeSupported(version)).toBe(false);
     }
     for (const version of ['22.19.0', '22.23.3', '24.0.0']) expect(nodeSupported(version)).toBe(true);
-    expect(OFFICIAL_VERSION).toBe('2.6.1');
-    expect(OFFICIAL_URL).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.6.1.tgz');
-    expect(OFFICIAL_INTEGRITY).toBe('M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ==');
+    expect(OFFICIAL_VERSION).toBe('2.7.2');
+    expect(OFFICIAL_URL).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.7.2.tgz');
+    expect(OFFICIAL_INTEGRITY).toBe('Eq7512ssQH632Tg7C1LIK10CykToqF2lpBdkFjJ1IjSV86fMjEHpwxuKoo6fjh5XpCbwtKwijB0hTTbyDRLM9w==');
     expect(assertDownloadUrl(OFFICIAL_URL).hostname).toBe('registry.npmjs.org');
-    for (const version of ['2.1.1', '2.2.0', '2.3.0', '2.3.1', '2.4.0', '2.4.2', '2.6.0', '2.6.2', 'latest']) {
-      expect(() => assertDownloadUrl(OFFICIAL_URL.replace('2.6.1', version))).toThrow('not allowed');
+    for (const version of ['2.1.1', '2.2.0', '2.3.0', '2.3.1', '2.4.0', '2.4.2',
+      '2.6.0', '2.6.1', '2.6.2', '2.7.1', '2.7.3', '2.7.2-beta.1', 'latest']) {
+      expect(() => assertDownloadUrl(OFFICIAL_URL.replace('2.7.2', version))).toThrow('not allowed');
     }
   });
 
@@ -246,7 +247,7 @@ describe('npm shim and dedicated ownership safety', () => {
 });
 
 describe('new pinned official installation', () => {
-  it('installs verified 2.6.1 with scripts disabled and records ownership only after child_process shell probe', async () => {
+  it('installs verified 2.7.2 with scripts disabled and records ownership only after child_process shell probe', async () => {
     const ctx = await fixture();
     installFixture(ctx);
     const paths = officialPaths(ctx);
@@ -270,7 +271,7 @@ describe('new pinned official installation', () => {
       prefix: paths.prefix, entry: paths.entry, kimi: paths.kimi,
       entryDigest: await fileDigest(paths.entry), shimDigest: await fileDigest(paths.kimi),
     });
-    expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining('Official Kimi 2.6.1 installed'));
+    expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining('Official Kimi 2.7.2 installed'));
   });
 
   it('does not mark a mismatched newly installed package as owned even when its CLI would agree', async () => {
@@ -312,6 +313,8 @@ describe('strict current and legacy owned official reuse', () => {
     ['linux', '2.4.1', 'z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw=='],
     ['win32', '2.6.0', 'C8gplTbSQsn+zxMkhyC+2MM2laf2E6YuEWqBt7UQMU2lqtr7JKi9zHIGNFuTgEXs5tIvS3HdU4HpmxneL3i7lg=='],
     ['linux', '2.6.0', 'C8gplTbSQsn+zxMkhyC+2MM2laf2E6YuEWqBt7UQMU2lqtr7JKi9zHIGNFuTgEXs5tIvS3HdU4HpmxneL3i7lg=='],
+    ['win32', '2.6.1', 'M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ=='],
+    ['linux', '2.6.1', 'M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ=='],
     ['win32', OFFICIAL_VERSION, OFFICIAL_INTEGRITY], ['linux', OFFICIAL_VERSION, OFFICIAL_INTEGRITY],
   ])('reuses owned %s %s unchanged without download, npm or upgrade', async (platform, version, integrity) => {
     const ctx = await fixture();
@@ -326,7 +329,7 @@ describe('strict current and legacy owned official reuse', () => {
     expect(ctx.downloadOfficial).not.toHaveBeenCalled();
     expect(ctx.run).toHaveBeenCalledTimes(3);
     const probe = ctx.run.mock.calls.at(-1)[1];
-    if ([OFFICIAL_VERSION, '2.6.0', '2.4.1'].includes(version)) {
+    if ([OFFICIAL_VERSION, '2.6.1', '2.6.0', '2.4.1'].includes(version)) {
       expect(probe.slice(0, 2)).toEqual(['-e', expect.stringContaining('node:child_process')]);
     } else expect(probe[0]).toContain('ptyProbe.mjs');
     expect(await Promise.all(files.map((file) => readFile(file, 'utf8')))).toEqual(before);
@@ -347,7 +350,7 @@ describe('strict current and legacy owned official reuse', () => {
     expect(ctx.downloadOfficial).not.toHaveBeenCalled();
   });
 
-  it('rejects a broken owned 2.6.1 shell without rebuild, npm, download or ownership writes', async () => {
+  it('rejects a broken owned 2.7.2 shell without rebuild, npm, download or ownership writes', async () => {
     const ctx = await fixture();
     const { paths } = await owned(ctx, OFFICIAL_VERSION, OFFICIAL_INTEGRITY);
     const found = await discoverOfficial(ctx);

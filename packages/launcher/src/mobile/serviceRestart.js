@@ -9,6 +9,10 @@
     let current;
     const requestError = (code) => {
       if (['service-busy', 'request-in-flight'].includes(code)) return 'busy';
+      if (code === 'idle-check-failed') return 'unchecked';
+      if (code === 'live-inventory-unavailable') return 'inventory';
+      if (code === 'atomic-restart-unavailable') return 'atomic';
+      if (['invalid-response', 'restart-outcome-unknown', 'restart-exit-unconfirmed'].includes(code)) return 'request';
       if (code === 'restart-pending') return 'pending';
       if (code === 'unmanaged-or-unsupported') return 'unavailable';
       if (/授权|authorization/i.test(code)) return 'auth';
@@ -17,21 +21,22 @@
     const request = async (path, body) => {
       try {
         const result = await api(prefix + path, { method: body ? 'POST' : 'GET', credentials: 'same-origin',
-          redirect: 'error', signal: AbortSignal.timeout(6000), ...(body ? { body: JSON.stringify(body) } : {}) });
+          redirect: 'error', signal: AbortSignal.timeout(body ? 30000 : 6000),
+          ...(body ? { body: JSON.stringify(body) } : {}) });
         if (typeof result?.instance !== 'string' || typeof result?.phase !== 'string') throw new Error('invalid-response');
         return result;
-      } catch (error) { throw new Error(requestError(error.message)); }
+      } catch (error) { throw new Error(requestError(error.message), { cause: error }); }
     };
     const render = (state) => {
       const words = view.copy(); const { ui } = state;
       view.setText(ui.title, words.title); view.setText(ui.explanation, words.confirm); view.setText(ui.draft, words.draft);
       view.setText(ui.status, state.error ? words[state.error] : state.phase === 'confirm' ? '' : words[state.phase] ?? '');
       ui.status.classList.toggle('is-error', !!state.error);
-      ui.confirm.hidden = !!state.error || state.phase === 'restarting';
+      ui.confirm.hidden = !!state.error || ['restarting', 'verifying'].includes(state.phase);
       ui.confirm.disabled = !['confirm', 'ready'].includes(state.phase);
       view.setText(ui.confirm, words[state.phase === 'ready' ? 'refresh' : 'title']);
       view.setText(ui.cancel, words[['loading', 'confirm'].includes(state.phase) && !state.error ? 'cancel' : 'close']);
-      view.attr(ui.root, 'aria-busy', !state.error && ['loading', 'checking', 'restarting'].includes(state.phase));
+      view.attr(ui.root, 'aria-busy', !state.error && ['loading', 'checking', 'restarting', 'verifying'].includes(state.phase));
     };
     const close = (state) => {
       state.closed = true; clearTimeout(state.timer); state.ui.root.close(); state.ui.root.remove();
@@ -43,24 +48,29 @@
       try {
         const result = await request('status');
         if (state.closed) return;
-        if (result.instance !== state.instance && result.phase === 'ready') {
-          state.phase = 'ready'; state.error = ''; render(state); return;
+        if (result.phase === 'ready') {
+          state.phase = 'ready'; state.error = result.instance === state.instance ? 'unchanged' : ''; render(state); return;
         }
+        if (state.phase !== 'restarting' && result.phase === 'restarting') { state.phase = 'restarting'; render(state); }
       } catch {}
       if (state.closed) return;
       if (Date.now() > state.deadline) { state.error = 'failed'; render(state); return; }
       state.timer = window.setTimeout(() => reconnect(state), 1000);
     };
     const confirm = async (state) => {
+      if (state.error) return;
       if (state.phase === 'ready') { location.reload(); return; }
-      if (state.phase !== 'confirm' || state.error) return;
+      if (state.phase !== 'confirm') return;
       state.phase = 'checking'; render(state);
-      try { await request('restart', { instance: state.instance }); }
-      catch (error) {
+      let phase = 'verifying';
+      try {
+        const result = await request('restart', { instance: state.instance });
+        if (result.instance === state.instance && result.phase === 'restarting') phase = 'restarting';
+      } catch (error) {
         if (error.message !== 'request') { state.error = error.message; if (!state.closed) render(state); return; }
       }
       if (state.closed) return;
-      state.phase = 'restarting'; state.deadline = Date.now() + 100000; render(state);
+      state.phase = phase; state.deadline = Date.now() + 100000; render(state);
       state.timer = window.setTimeout(() => reconnect(state), 1000);
     };
     const open = async (trigger) => {
@@ -75,7 +85,8 @@
         const result = await request('status');
         if (state.closed) return;
         state.instance = result.instance;
-        state.error = result.available ? result.phase === 'ready' ? '' : 'pending' : 'unavailable';
+        state.error = result.available ? result.phase === 'ready' ? '' : 'pending' :
+          requestError(result.reason ?? 'unmanaged-or-unsupported');
         state.phase = 'confirm'; render(state);
       } catch (error) { if (!state.closed) { state.error = error.message; render(state); } }
     };

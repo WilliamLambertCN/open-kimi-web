@@ -53,7 +53,7 @@ async function settled(test) {
 }
 afterEach(() => { observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove()); });
-describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'])('%s read-only scheduled-task UI', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])('%s read-only scheduled-task UI', (version) => {
   const readonly = { available: true, version, reason: 'read-only-version',
     capabilities: { list: true, inventory: true, history: true, create: false, remove: false } };
   it('keeps cold inventory/history readable and blocks hidden buttons and direct create/remove/restore callbacks', async () => {
@@ -117,6 +117,23 @@ describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1'])('%s read-only sched
     expect(test.find('[data-cron-action="remove"]').disabled).toBe(true);
     expect(test.api.create).not.toHaveBeenCalled(); expect(test.api.remove).not.toHaveBeenCalled();
     expect(test.api.restore).not.toHaveBeenCalled(); await settled(test);
+  });
+});
+
+describe('exact 2.7.2 scheduled-task version detection', () => {
+  it('keeps writes and restoration disabled without relying on the server capability reason', async () => {
+    const test = install({ capabilities: vi.fn(async () => ({ available: true, version: '2.7.2',
+      capabilities: { list: true, create: true, remove: true } })),
+    sessions: vi.fn(async () => ({ items: [{ ...session, loaded: false }], hasMore: false, cursor: null })) });
+    await select(test);
+    expect(test.find('[data-cron-action="new"]').hidden).toBe(true);
+    expect(test.find('[data-cron-action="remove"]').disabled).toBe(true);
+    expect(test.find('[data-cron-action="restore"]').hidden).toBe(true);
+    test.callbacks.newTask(); test.callbacks.submit();
+    test.callbacks.confirm('restore'); test.callbacks.applyConfirm();
+    expect(test.api.create).not.toHaveBeenCalled(); expect(test.api.remove).not.toHaveBeenCalled();
+    expect(test.api.restore).not.toHaveBeenCalled(); expect(test.api.list).not.toHaveBeenCalled();
+    expect(test.api.history).toHaveBeenCalledWith(session.id); await settled(test);
   });
 });
 
@@ -383,6 +400,59 @@ describe('write verification cannot be replaced by saved inventory', () => {
     expect(test.find('.okw-cron-main').textContent).toContain('write outcome is unknown');
     test.click('reload'); await tick(); expect(test.api.list).toHaveBeenCalledTimes(4);
     expect(test.find('[data-cron-action="remove"]').disabled).toBe(false); expect(test.api.remove).toHaveBeenCalledOnce();
+  });
+});
+describe('session inventory pagination completeness', () => {
+  it('deduplicates overlapping pages, announces an incomplete read in both locales and restarts on Reload', async () => {
+    const test = install({ sessions: vi.fn(async () => ({ items: [session], total: 2,
+      hasMore: true, cursor: 'next' })) });
+    await tick();
+    test.api.sessions.mockResolvedValueOnce({ items: [session], total: 2, hasMore: false, cursor: null });
+    test.click('sessions-more'); await tick();
+    const notice = test.find('.okw-cron-inventory .okw-cron-status');
+    expect(test.doc.querySelectorAll('.okw-cron-session')).toHaveLength(1);
+    expect(notice.textContent).toContain('incomplete');
+    expect(notice.textContent).toContain('Reload');
+    expect(notice.getAttribute('aria-live')).toBe('polite');
+    expect(test.find('[data-cron-action="sessions-more"]').hidden).toBe(true);
+    test.callbacks.sessionsMore(); await tick(); expect(test.api.sessions).toHaveBeenCalledTimes(2);
+    test.language('zh'); expect(notice.textContent).toContain('不完整'); expect(notice.textContent).toContain('重新读取');
+    test.api.sessions.mockResolvedValueOnce({ items: [session, { ...session, id: 'missing' }], total: 2,
+      hasMore: false, cursor: null });
+    test.click('reload'); await tick();
+    expect(test.api.sessions).toHaveBeenLastCalledWith(undefined);
+    expect(test.doc.querySelectorAll('.okw-cron-session')).toHaveLength(2);
+    expect(notice.textContent).toBe('');
+    expect(test.api.list).not.toHaveBeenCalled(); expect(test.api.restore).not.toHaveBeenCalled(); await settled(test);
+  });
+  it.each([
+    [{ items: [], total: 2, hasMore: false }],
+    [{ items: [{ ...session, id: 'second' }], total: 3, hasMore: true, cursor: 'third' },
+      { items: [{ ...session, id: 'third' }], total: 3, hasMore: false }],
+    [{ items: [{ ...session, id: 'second' }], total: 1, hasMore: false }],
+    [{ items: [{ ...session, id: 'second' }], hasMore: false }],
+    [{ items: [{ ...session, id: 'second' }], total: 2, hasMore: true, cursor: 'unexpected' }],
+    [{ items: [session, { ...session, id: 'second' }], total: 2, hasMore: false }],
+  ].map((pages) => ({ pages })))('keeps short totals and observed changes incomplete until a fresh read %#',
+    async ({ pages }) => {
+      const test = install({ sessions: vi.fn(async () => ({ items: [session], total: 2,
+        hasMore: true, cursor: 'second' })) });
+      await tick();
+      for (const page of pages) {
+        test.api.sessions.mockResolvedValueOnce(page); test.click('sessions-more'); await tick();
+        expect(test.find('.okw-cron-inventory .okw-cron-status').textContent).toContain('incomplete');
+      }
+      const ids = new Set([session.id, ...pages.flatMap((page) => page.items.map((item) => item.id))]);
+      expect(test.doc.querySelectorAll('.okw-cron-session')).toHaveLength(ids.size);
+      expect(test.api.restore).not.toHaveBeenCalled(); await settled(test);
+    });
+  it('keeps legacy pages without totals working while still detecting duplicates', async () => {
+    const test = install(); await tick();
+    expect(test.find('.okw-cron-inventory .okw-cron-status').textContent).toBe('');
+    test.api.sessions.mockResolvedValueOnce({ items: [session, session], hasMore: false });
+    test.click('reload'); await tick();
+    expect(test.doc.querySelectorAll('.okw-cron-session')).toHaveLength(1);
+    expect(test.find('.okw-cron-inventory .okw-cron-status').textContent).toContain('incomplete'); await settled(test);
   });
 });
 describe('scheduled-task theme and scroll-list CSS contracts', () => {
