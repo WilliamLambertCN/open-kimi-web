@@ -52,6 +52,7 @@ function cancel(state, code) {
 }
 
 function assertNoWrites(state) {
+  if (state.requestCanceled) throw new RestartError('restart-canceled');
   if (state.writes || state.closed) throw new RestartError('request-in-flight');
 }
 
@@ -106,7 +107,7 @@ async function reserve(state, header, readBody, signal) {
   state.operation = true;
   state.settled = new Promise((resolve) => { state.finish = resolve; });
   state.conditional = meta.server_version === '2.7.2';
-  state.shutdownSent = false; state.backendExited = false; state.lastError = undefined;
+  state.shutdownSent = false; state.backendExited = false; state.lastError = undefined; state.requestCanceled = false;
   try {
     validateBody(await readBody(), state.instance);
     await prepare(state, header);
@@ -135,6 +136,7 @@ async function commit(state) {
 function cancelRequest(state) {
   if (state.backendExited) return commit(state);
   if (state.shutdownSent) return;
+  state.requestCanceled = true;
   if (state.phase === 'prepared') cancel(state);
 }
 
@@ -179,7 +181,8 @@ export function createRestartController({ prepare, stop, fetchImpl = fetch } = {
     blocked: () => state.phase !== 'ready',
     blockedReads: () => state.conditional && ['quiescing', 'stopping', 'prepared', 'restarting'].includes(state.phase),
     track: (req, res) => track(state, req, res),
-    ownsShutdown: () => state.conditional && state.shutdownSent && state.operation,
+    pendingRestart: () => state.conditional && state.operation,
+    stoppedForRestart: () => state.backendExited && state.phase === 'restarting',
     settled: () => state.settled,
     close: () => close(state),
   };

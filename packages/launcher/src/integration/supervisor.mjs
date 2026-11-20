@@ -156,9 +156,9 @@ export function waitForStop(exited, signal) {
 
 async function settleRestart(stop, control) {
   if (!control) return false;
-  if (control.ownsShutdown()) {
+  if (control.pendingRestart()) {
     if (stop.kind === 'exit') await control.close();
-    else await control.settled();
+    else { await control.cancel(); await control.settled(); }
     return !control.blocked();
   }
   if (stop.kind === 'exit') await control.settled();
@@ -171,7 +171,7 @@ async function supervise(child, exited, launcher, ctx) {
     ctx.warn('conditional restart was not confirmed; keeping the original service running');
     return supervise(child, exited, launcher, { ...ctx, stopSignal: undefined });
   }
-  if (ctx.stopSignal?.reason === 'restart-idle-exited') {
+  if (ctx.restartControl?.stoppedForRestart()) {
     await closeLauncher(launcher, ctx);
     return 0;
   }

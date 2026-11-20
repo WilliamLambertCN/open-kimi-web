@@ -122,6 +122,15 @@ describe('conditional restart cancellation and concurrency', () => {
     expect(f.control.blocked()).toBe(false);
   });
 
+  it('cancels during preparation without submitting shutdown or quiescing clients', async () => {
+    const f = fixture(); const pending = deferred(); f.prepare.mockImplementationOnce(() => pending.promise);
+    const attempted = f.reserve(); const failure = expect(attempted).rejects.toMatchObject({ code: 'restart-canceled' });
+    await vi.waitFor(() => expect(f.prepare).toHaveBeenCalledOnce()); await f.control.cancel();
+    pending.resolve(f.reservation); await failure;
+    expect(f.quiesce).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
+    expect(f.reservation.cancel).toHaveBeenCalledOnce(); expect(f.control.blocked()).toBe(false);
+  });
+
   it('does not submit shutdown when the armed worker dies while proxy WS are closing', async () => {
     const f = fixture(); f.reservation.ready = vi.fn(() => false);
     await expect(f.reserve()).rejects.toMatchObject({ code: 'restart-prepare-failed' });

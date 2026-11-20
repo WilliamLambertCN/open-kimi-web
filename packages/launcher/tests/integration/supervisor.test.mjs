@@ -399,8 +399,8 @@ describe('supervisor conditional restart ownership', () => {
     expect(await surviving.waitForExit()).toBe(false); expect(child.kill).not.toHaveBeenCalled();
   });
 
-  it.each([false, true])('does not use unconditional shutdown or kill when the conditional reply is lost=%s', async (lost) => {
-    const f = startupFixture(); let control; let reply;
+  it.each([false, true])('does not use unconditional shutdown or kill during concurrent unsafe stop=%s', async (lost) => {
+    const f = startupFixture(); let control; let reply; let unsafe;
     const pending = new Promise((resolve) => { reply = resolve; });
     const reservation = { commit: vi.fn(async () => true), release: vi.fn(), cancel: vi.fn() };
     f.deps.argv = ['node', '/fixture/entry.mjs', '__wrap', 'web'];
@@ -416,7 +416,9 @@ describe('supervisor conditional restart ownership', () => {
       if (parsed.pathname === '/api/v1/sessions') return Response.json({ code: 0,
         data: { items: [], total: 0, has_more: false } });
       if (parsed.pathname === '/api/v1/shutdown') {
-        expect(parsed.search).toBe('?if_idle=true'); f.child.exitCode = 0; f.child.emit('exit', 0, null);
+        expect(parsed.search).toBe('?if_idle=true');
+        if (lost) unsafe();
+        f.child.exitCode = 0; f.child.emit('exit', 0, null);
         if (lost) throw new Error('fictional lost reply');
         return Response.json({ code: 0, data: { ok: true } });
       }
@@ -426,6 +428,7 @@ describe('supervisor conditional restart ownership', () => {
     startFrontend.mockImplementationOnce(async (options) => {
       control = options.restartControl;
       control.configure(options.target); control.transport({ quiesce: async () => {} });
+      unsafe = options.onUnsafeBackend;
       queueMicrotask(async () => {
         const state = await control.status('Bearer fixture');
         await control.reserve('Bearer fixture', async () => ({ instance: state.instance }));
@@ -433,7 +436,8 @@ describe('supervisor conditional restart ownership', () => {
       });
       return mockedFrontend(close);
     });
-    const supervised = superviseWeb({ realKimi: '/fixture/official-kimi', web: { noOpen: true }, env: f.env, deps: f.deps });
+    const supervised = superviseWeb({ realKimi: '/fixture/official-kimi',
+      web: { noOpen: true, scheduledTasks: lost }, env: f.env, deps: f.deps });
     await pending; await expect(supervised).resolves.toBe(0);
     expect(reservation.commit).toHaveBeenCalledOnce(); expect(reservation.release).toHaveBeenCalledOnce();
     expect(reservation.cancel).not.toHaveBeenCalled(); expect(f.child.kill).not.toHaveBeenCalled();

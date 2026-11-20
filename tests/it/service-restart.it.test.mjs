@@ -71,7 +71,7 @@ async function fixture({ managed = true, enhanced = true, version = '2.5.2' } = 
     return call(PREFIX + 'restart', { method: 'POST', body: JSON.stringify({ instance: current.body.instance }),
       ...options, headers: { 'content-type': 'application/json', ...options.headers } });
   };
-  return { state, launcher, control, prepare, stop, reservation, call, status, restart,
+  return { state, launcher, control, prepare, stop, reservation, call, status, restart, publicDir,
     target: `http://127.0.0.1:${upstream.address().port}` };
 }
 async function opened(url) {
@@ -193,7 +193,10 @@ describe('2.7.2 official conditional shutdown through real HTTP and WS proxies',
 
   it('leaves direct and other-launcher clients connected when the official endpoint refuses shutdown', async () => {
     const f = await fixture({ version: '2.7.2' }); const own = await opened(f.launcher.url);
-    const direct = await opened(f.target); const other = await opened(f.target);
+    const otherLauncher = await createLauncher({ target: f.target, publicDir: f.publicDir,
+      host: '127.0.0.1', port: await availableHttpPort() });
+    cleanups.push(() => otherLauncher.close());
+    const direct = await opened(f.target); const other = await opened(otherLauncher.url);
     const closed = new Promise((resolve) => own.once('close', resolve));
     expect(await f.restart()).toMatchObject({ status: 409, body: { error: 'service-busy' } });
     expect(await closed).toBe(1013); expect(f.stop).not.toHaveBeenCalled();
