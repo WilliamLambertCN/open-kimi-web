@@ -101,8 +101,8 @@ corepack pnpm install --frozen-lockfile
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
-已有源码时，在原仓库目录执行最后两条命令，不必重新克隆；安装直接使用该目录的当前代码，无需构建前端。
-已有其它安装时，按[切换说明](packages/launcher/README.md#升级)处理。
+已有源码时，安装直接使用该目录的当前代码，无需构建前端。历史清理前的旧克隆须先备份改动并重新克隆；
+然后按[切换说明](packages/launcher/README.md#升级)处理。
 安装后新开终端运行 `kimi web --host`；源码目录需要保留，安装不会启动或重启服务，也不升级官方 Kimi。
 
 ## 有哪些增强

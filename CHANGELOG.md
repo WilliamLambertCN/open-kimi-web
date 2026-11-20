@@ -22,8 +22,6 @@
 - 保持准确官方 `2.6.1`／`2.6.0` 兼容范围，不升级官方 CLI，不自动重启生产服务。
   更新后须手动重启旧服务并刷新页面。
 
-[修复、验证与发布记录](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)。
-
 [open-kimi-web v2.6.1-r7]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r7
 
 ## [open-kimi-web v2.6.1-r6] - 2026-11-18
@@ -33,8 +31,6 @@
 - 已检查桌面 Original 浅色、桌面／手机 Nocturne 深色及一行、两行、长说明；不改候选池数据、默认候选、模板或保存协议。
 - 保持准确官方 `2.6.1`／`2.6.0` 兼容范围，不升级官方 CLI，不自动重启生产服务。
   更新后须手动重启旧服务并刷新页面。
-
-[布局、验证与发布记录](docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md)。
 
 [open-kimi-web v2.6.1-r6]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r6
 
@@ -50,8 +46,6 @@
 - 保持准确官方 `2.6.1`／`2.6.0` 兼容范围，不升级官方 CLI，不自动重启生产服务。
   更新后须手动重启旧服务并刷新页面。
 
-[修复、验证与发布记录](docs/plans/workspace-duplicate-prevention-v1-plan.md)。
-
 [open-kimi-web v2.6.1-r5]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r5
 
 ## [open-kimi-web v2.6.1-r4] - 2026-11-17
@@ -65,7 +59,7 @@
 - 修复全量测试中 HTTP fixture 偶尔分配到 Fetch 禁用端口的问题，不修改生产网络、测试超时、并发或覆盖率门槛。
 - 保持已验证的官方 `2.6.1`／`2.6.0` 支持，不宣称已验证 `2.6.2` 或 `2.7`；不升级官方 CLI 或自动重启服务。
 
-[实现、验证与发布记录](docs/plans/subagent-pool-editor-v1-plan.md)。发布状态以正式 Release 为准。
+发布状态以正式 Release 为准。
 
 [open-kimi-web v2.6.1-r4]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r4
 
@@ -75,8 +69,6 @@
   按实际触摸来源取消提示，滚动、点击、离开页面时清理；保留鼠标与键盘提示，不改主题配色和正常操作。
 - 保持官方 `2.6.1`／`2.6.0` 兼容及 r2 供应商保存修复，不修改后端、会话或模型配置。
   更新后请手动重启旧服务并刷新网页，不自动重启。
-
-[修复与发布记录](docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md)。
 
 [open-kimi-web v2.6.1-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r3
 
@@ -90,13 +82,11 @@
 - 保持官方 `2.6.1`／`2.6.0` 兼容和 r1 其它功能，不修改官方后端或自动迁移配置。
   更新后须重启旧服务并刷新；以前丢失的模型选项需要重新勾选并保存。
 
-[本轮修复与发布记录](docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md)。
-
 [open-kimi-web v2.6.1-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r2
 
 ## [open-kimi-web v2.6.1-r1] - 2026-11-13
 
-兼容官方 Kimi Code `2.6.1`，同时保留已验证的 `2.6.0` 支持；[实施、验收与发布记录][compat260-plan]。
+兼容官方 Kimi Code `2.6.1`，同时保留已验证的 `2.6.0` 支持。
 更新后须手动重启旧服务并刷新网页；不会升级已有官方 Kimi、迁移会话或自动重启。
 官方2.6.1修复长会话重新打开时的重放延迟，以及工具结果含备注、错误或耗时时的计数／压缩问题。
 准确npm包的638个网页文件与2.6.0逐字节相同，沿用原界面，不维护修改版后端；现场慢加载仍需实际确认。
@@ -117,7 +107,6 @@
   token 总量仍计入，不用当前模型配置倒推历史费用。
 
 [open-kimi-web v2.6.1-r1]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r1
-[compat260-plan]: docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
 
 ## [open-kimi-web v2.5.2-r4] - 2026-11-12
 
@@ -130,7 +119,7 @@
 - 修复 Linux／macOS 安装器超时清理后提前返回的问题：等待本次进程组退出后再释放安装锁，无法确认时保留锁并报错。
   不改 Windows 原生清理、原有清理预算或独立运行的服务。
 
-[修复与发布记录](docs/plans/request-metrics-upgrade-compatibility-v2-plan.md)。旧 tag 和发布包保持不变。
+旧 tag 和发布包保持不变。
 
 ## [open-kimi-web v2.5.2-r3] - 2026-11-12
 
@@ -146,8 +135,6 @@
 - 修复后端改用空闲端口时过早验证旧端口的问题；只跟随同一进程登记的新端口，不放宽鉴权。
   Windows supervisor 的兜底停止也复用原生进程树清理，避免 taskkill 超时。
 
-[模型调用与侧聊验收](docs/plans/request-metrics-sidechat-v1-plan.md)、
-[重启服务验收](docs/plans/service-restart-v1-plan.md)。[本轮发布记录](docs/plans/request-metrics-2.5.2-r3-release-v1-plan.md)。
 首次启用仍需在终端重启旧服务；发布本身不会升级官方 CLI 或自动重启。
 
 ## [open-kimi-web v2.5.2-r2] - 2026-11-11
@@ -157,12 +144,11 @@
 - 保持 r1 功能、官方 2.5.2 兼容和已有安装行为；不自动升级官方 Kimi 或重启服务。
   更新后请手动重启并刷新。系统仍显示旧桌面图标时，可移除旧快捷方式再重新添加。
 
-[本轮检查与发布记录](docs/plans/app-icon-2.5.2-r2-release-v1-plan.md)，未记录的检查不视为通过。
+未记录的检查不视为通过。
 
 ## [open-kimi-web v2.5.2-r1] - 2026-11-10
 
-兼容目标更新为官方 Kimi Code `2.5.2`。本轮发布及线上核验见
-[2.5.2-r1 发布计划](docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md)，未记录的检查不视为通过。
+兼容目标更新为官方 Kimi Code `2.5.2`。未记录的检查不视为通过。
 
 - 手机新增消息目录，点选后定位旧消息，按官方历史分页加载，不全量拉取会话。目录有数量和响应大小上限，正文不截断。
 - 左上角与网页标签使用 App 图标，品牌后显示实际安装版本；标签标题只显示话题名，切换、改名和前进后退时同步。
@@ -183,8 +169,7 @@
 继续兼容官方 Kimi Code `2.4.1`。本轮发布会话菜单、手机置顶和局域网证书功能。
 [PR #39](https://github.com/WilliamLambertCN/open-kimi-web/pull/39) 及 main CI 通过，2744 UT／625 IT 通过，
 28／23 项平台条件跳过，覆盖率门槛不变。正式 tag 固定 e0ec0f92，包 159 文件／8,474,802 bytes。
-公开包、同 SHA 安装入口与旧 r2 更新发现已核验，旧 tag／资产不变；完整记录见
-[2.4.1-r3 发布计划](docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md)。
+公开包、同 SHA 安装入口与旧 r2 更新发现已核验，旧 tag／资产不变。
 
 - 电脑会话行增加三个点，打开官方原生菜单，直接选择 Fork／分叉；原右键入口不变。
   手机三个点新增分叉、置顶与取消置顶，已置顶会话显示在列表顶部的“已置顶／Pinned”区。
@@ -200,15 +185,13 @@
   首轮 125／129、手机 42／43、桌面 30／31 的记录保留，最后两版 Tab／Shift+Tab 补验 18／18；不写成首次全绿。
   CA 阶段的 lint、typecheck、2634 UT、642 IT／6 项既有条件跳过、pack 及可信 HTTPS／WSS 检查通过，
   官方 app 界面 34 项断言通过。以上不代替本次发布 CI，也不等同实体手机、系统软键盘或任意大会话验收。
-  详细边界见[会话菜单计划](docs/plans/session-menu-actions-v1-plan.md)及[证书计划](docs/plans/android-lan-ca-v1-plan.md)。
 - 首页先展示原有界面实图，再在“快速上手”中集中安装与启动步骤；保留全部图片和历史版本说明。
 - 原 r2 用户在正式发布后正常运行 `update --check`／`update`，再手动重启旧服务并刷新。
   CA 需另外显式启用，更新本身不会安装手机证书、升级官方 Kimi、重启生产或改动旧 tag／资产。
 
 ## [open-kimi-web v2.4.1-r2] - 2026-11-07
 
-继续兼容官方 Kimi Code `2.4.1`。本轮发布范围、CI 和线上交付记录见
-[2.4.1-r2 发布计划](docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md)。
+继续兼容官方 Kimi Code `2.4.1`。
 PR #37 及 main CI 通过：2507 UT／617 IT 通过，分别 28／23 项平台条件跳过，覆盖率门槛未降低。
 正式 tag 固定 e8bd89c1；包 148 文件／8,457,469 bytes，线上下载一致、旧 r1 已发现 r2、同 SHA 安装入口已核验。
 发布后记录不再移动 tag 或换包；没有升级用户安装或重启生产，实体手机安装仍未全面验证。
@@ -216,17 +199,17 @@ PR #37 及 main CI 通过：2507 UT／617 IT 通过，分别 28／23 项平台�
 - 新增“安装到桌面”入口、PWA 清单与独立安装图标，双端入口位于使用统计后。
   支持可用浏览器的原生安装提示和 iPhone／iPad 手动指引；需可信 HTTPS，安装后以独立窗口打开。
   不新增 service worker 或离线会话缓存，安装元信息不带 token，继续使用官方登录。
-  自定义 `--web-dir` 不注入；实体手机安装未验，已有验证见 [PWA 计划](docs/plans/pwa-install-v1-plan.md)。
+  自定义 `--web-dir` 不注入；已有浏览器与模拟检查不等于实体手机安装验收。
 - 增加默认关闭的 `--debug`，保留 `--debug-log` 别名及 `OPEN_KIMI_WEB_DEBUG_LOG=1`，支持独立 serve 与已接管 kimi web。
   只在 `kimi web` 中处理增强参数；普通 `kimi` 命令交给原 CLI，避免把同名参数或提示词误拦成网页选项。
   本地 JSONL 分阶段记录 HTTP 后端等待／流式字节和 WS 握手／首帧／聚合统计，辅助定位慢会话，不读取正文。
   只记录白名单字段及每运行匿名标记，有界队列与轮转，不启用官方 debug 接口，也不自动重启生产。
-  服务端统计不代表远端已显示；现场几十秒根因仍待复现采集，见[诊断计划](docs/plans/large-session-debug-log-v1-plan.md)。
+  服务端统计不代表远端已显示；部分慢加载原因仍待复现采集。
 - 低带宽打开主会话时，增强 UI 对精确官方 `2.3.1`／`2.4.1` 的最近页请求使用 1 轮，
   保持官方历史分页、完整工具输出、关联实体与实时 seq；自定义 UI 及其它版本不改请求。
 - 无偏好时恢复官方工具活动折叠，避免首次打开工具密集会话时展开大量节点；已有展开／折叠选择保留。
   旧版本写入的默认无法与用户选择区分，不静默迁移；可在官方设置手动开启活动折叠。
-  测试证据与单轮大小、自动预取等边界见[低带宽大会话计划](docs/plans/large-session-low-bandwidth-v2-plan.md)。
+  单轮过大仍可能慢，短首屏不保证自动预取。
 - 精简首页说明，保留已有截图，新增中英文安装面板截图；安装命令固定本次版本及对应提交。
   已有可用 Kimi 继续复用，不强制下载或升级；默认安装后新终端仍可运行 `kimi`，原有配置和会话不变。
 - 原 r1 用户正常运行 `update --check`／`update`，再手动停止旧服务、重新启动并刷新，无需同版本重装。
@@ -235,11 +218,10 @@ PR #37 及 main CI 通过：2507 UT／617 IT 通过，分别 28／23 项平台�
 ## [open-kimi-web v2.4.1-r1] - 2026-10-31
 
 兼容目标更新为官方 Kimi Code `2.4.1`，版本目标为 `2.4.1-r1`。本条目记录本轮变更范围与已确认根因；
-真实后端、双端界面、标准门禁、CI、交付包和线上发布结果统一见
-[2.4.1 适配计划](docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md)，未记录的检查不视为通过。
+未记录的真实后端、双端界面、标准门禁、CI、交付包或线上发布检查不视为通过。
 PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23项跳过，独立行／分支70%门槛不变。
 正式v2.4.1-r1固定beac8c68；包132文件／8,418,868 bytes，线上字节／digest和同SHA入口一致，真实r2更新器已发现新版。
-旧r1／r2 tag与资产未变；本条发布后记录不再移动tag或换包，准确SHA／digest及未验边界见上述计划。
+旧r1／r2 tag与资产未变；本条发布后记录不再移动tag或换包。
 
 - 已支持推理档位仅按 `none → minimal → low → medium → high → xhigh → max` 规范展示，Max 最后。
   未知值稳定保留在 Max 前；Auto／Off／On 保持各入口原语义。不增加支持项、不重排 `supportEfforts`，
@@ -254,7 +236,7 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
   只有确认缺失才准备固定官方 `2.4.1` tarball／SHA-512；保留精确身份、entry／shim 摘要、partial 拒绝与 ignore-scripts。
 - 官方 `2.4.1` 已移除 node-pty，按精确身份改做真实 Node `child_process` shell probe，不装回旧 PTY 依赖。
   旧 owned `2.3.1`／`2.1.1` 仍保留精确身份与真实 PTY 检查；Linux 仅 legacy rebuild 需要 Python 3、make 和 C／C++。
-  新版不再无条件要求该编译工具链；Windows Git Bash 仍必需，平台及真实入口验收不超出计划内证据。
+  新版不再无条件要求该编译工具链；Windows Git Bash 仍必需，平台及真实入口不作超出已有证据的验收承诺。
 - 官方 UI fallback 更新为 `2.4.1`；cron 精确 READ 追加 `2.4.1`，与 `2.3.1` 一样只读。
   WRITE 仍仅精确 `2.1.1`／`2.2.0`；未知版本拒绝，debug／RC、冷会话、鉴权及 transport／route 双 gate 安全边界保留。
 - 手机强提醒在 window capture 层隔离弹窗内按键，Escape 只关闭提醒，不误拒审批或放弃回答；
@@ -278,9 +260,9 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 触发条件：已有支持项含 `low / medium / max`，增强表单通过 Set 继续追加 `high / xhigh`；原生选择器沿数组展示。
 - 根因：Set 保留插入顺序；旧回归只传已排序数组，未覆盖从旧支持项追加新项后再进入真实选择器的路径。
   直接重排官方元数据还会影响其缺省 effort 中位数推导，不能用改数组来修展示。
-- 证据：精确官方两版源码与内存复现已确认追加顺序和默认推导；准确 commit／包记录见 UPSTREAM 与本轮计划。
+- 证据：精确官方两版源码与内存复现已确认追加顺序和默认推导；准确 commit／包记录见 UPSTREAM。
 - 修复范围：只规范最终可选项的展示与对应键盘顺序，未知项保留、Max 最后，不改当前值、默认或保存。
-- 回归验证：以本轮计划中的真实 DOM、键盘、点击、保存重开与双端实图记录为准；不沿用旧有序 fixture 宣称通过。
+- 回归验证：以本轮真实 DOM、键盘、点击、保存重开与双端实图的记录为准；不沿用旧有序 fixture 宣称通过。
 - 运维动作：正式版本发布后正常 update，手动重启旧 launcher 并刷新；无需重排用户配置、清空会话或重设默认。
 - 剩余边界：只展示模型已声明的支持项，不证明模型服务接受每一档，也不迁移已有显式数组。
 
@@ -290,9 +272,9 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 触发条件：实际 backend 的实验开关、继承环境或 home 不同；chip 另受会话模式与 Side Chat 限制。
 - 根因：入口由 meta 的严格 true 控制，实验默认 off；单项环境变量优先配置，工具在启动时组装。
   off-start 后热改配置并不补装工具。此前仅检查静态界面不能证明当前进程已启用能力，缺 chip 也不是反证。
-- 证据：精确官方源码已确认 gate、优先级与工具组装时机；隔离后端的实际开关／重启记录见本轮计划，不预写通过。
+- 证据：精确官方源码已确认 gate、优先级与工具组装时机；隔离后端的实际开关／重启不预写通过。
 - 处理：保留官方入口条件与安全边界，提供用户自行选择开启、核对进程环境／home 和手动重启实际 backend 的说明。
-- 回归验证：meta false／true、off-start／live-enable／restart、会话开关、主 composer／Side Chat 与双端可达性以计划为准。
+- 回归验证：meta false／true、off-start／live-enable／restart、会话开关、主 composer／Side Chat 与双端可达性按实际结果确认。
 - 运维动作：用户接受实验风险后自行设置单项环境变量并重启实际后端；代理刷新不能替代后端重启，不自动代开。
 - 剩余边界：不读取用户现场、不以付费 prompt 或 `/tower status` 验证，也不把入口显示当成任务执行验收。
 
@@ -303,7 +285,7 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 根因：候选发现范围不足，原 native magic 门禁又未识别已核官方 Python entry；原 shell fixture 未覆盖真实 npm 身份。
 - 修复：有界补齐候选，两个 Windows home 去重／冲突判断；完整模板识别 Python entry 并验证解释器及实际版本／Web 能力。
   找到可用安装明确复用，官方 CLI 下载0；损坏、歧义与未知 wrapper 拒绝，不当 missing 另装。
-- 回归验证：定向77项UT、真实POSIX integration及uv／官方Python 1.51.0动态检查通过，准确数量和首失败见本轮计划。
+- 回归验证：定向77项UT、真实POSIX integration及uv／官方Python 1.51.0动态检查通过；首轮失败不隐去。
 - 运维动作：已有用户日常使用 update，不需重跑安装器或迁移数据；未升级用户真实官方 CLI。
 - 剩余边界：弃用Python 1.52.0不含Web能力仍拒绝；真实pipx、macOS／arm64及Windows新终端接管未全面验收。
 
@@ -312,18 +294,17 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 影响：审批／问题提醒中按 Escape，底层原生卡片可能被拒绝或 dismiss，而用户只想关闭提醒。
 - 触发条件：手机强提醒覆盖 pending interaction，官方 document capture 先于旧 dialog bubble 处理按键。
 - 根因：原生监听先收到 Escape；旧测试未提前注册 native capture，只验证弹窗消失，漏掉隐藏回答副作用。
-- 证据：准确官方2.4.1完整app复现；修前新回归8失败／3通过，原浏览器失败及修后续验均保留在计划。
+- 证据：准确官方2.4.1完整app复现；修前新回归8失败／3通过，原浏览器失败及修后续验均保留。
 - 修复：window capture只隔离当前弹窗内事件，Escape仅关闭，Tab本地环绕，其它键保留按钮默认行为，关闭后原生快捷键恢复。
 - 回归验证：4文件47项UT通过；完整app可信按键证实Escape与定位动作不增加interaction POST，原卡保持pending，代表图已查看。
-  首次焦点fixture与全局observer绝对计数假设失败均保留，最少续验和原生TITLE动画诊断结果见计划。
+  首次焦点fixture与全局observer绝对计数假设失败均保留；另有最少续验和原生TITLE动画诊断。
 - 运维动作：正常update后手动重启launcher并刷新，不需迁移、清配置或清会话。
 - 剩余边界：真实后端正向审批、实体手机与OS输入法未验；重连重建pending DOM可能再提醒，不在本轮假称已修。
 
 ## [open-kimi-web v2.3.1-r2] - 2026-10-26
 
-继续兼容官方 Kimi Code `2.3.1`；本轮由用户明确要求恢复新模型默认并新发 r2，实施基线见
-[默认勾选与 r2 发布计划](docs/plans/provider-defaults-r2-release-v1-plan.md)。
-准确验收、CI、交付包与线上发布结果以该计划及其公开记录为准，不沿用 r1 的通过记录。
+继续兼容官方 Kimi Code `2.3.1`；r2 恢复新模型默认配置。
+准确验收、CI、交付包与线上发布结果不沿用 r1 的通过记录。
 
 - 新模型仅 `video_in`、`image_out` 默认不选；`image_in`、`tool_use`、`thinking`、`always_thinking` 默认选中。
   六档 `none/low/medium/high/xhigh/max` 与 `adaptive_thinking` 恢复默认选中，展示与实际保存／重开应一致。
@@ -337,7 +318,7 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
   完整官方 app 的 POST／PUT、fresh GET／重开及四张双端代表图已核对；原 QA 驱动失败及未完成部分续验单独保留。
   PR #33与main required CI通过：2070 UT／532 IT通过，分别25／22项跳过；行／分支70%门槛未降。
   正式r2包131文件／8,415,233 bytes，线上字节／digest与同SHA入口一致；真实r1包更新器已识别r2，原r1 tag／资产不变。
-  完整覆盖率、跳过、QA失败边界与发布来源记录于本轮计划；事后记录不再移动tag或替换包。
+  完整覆盖率、跳过、QA失败边界与发布来源按本轮结果区分；事后记录不再移动tag或替换包。
   本轮不新增付费请求、不读取或改写用户真实配置／会话，不改生产。
 
 ### 事件：上轮热修复取消了用户要求的新模型默认勾选
@@ -349,14 +330,13 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 证据：同 Key／服务／模型对照为 low 成功、xhigh 400；修后 thinking:on 未显式 effort 成功，medium/high/max 未逐档实测。
   用户随后明确只取消视频输入与图片输出，其它能力、六档 effort 和自适应思考恢复默认选中；不据此宣称服务全部支持。
 - 修复：按本轮要求恢复新模型默认，保留原 r1 表单作用域、身份匹配及字段合并门禁；已有明确配置不自动重写。
-- 回归验证：99 项定向 UT 验证准确默认、POST／PUT／重开、逐项取消与既有空数组／false／未知值；完整 app 与发布证据见计划。
+- 回归验证：99 项定向 UT 验证准确默认、POST／PUT／重开、逐项取消与既有空数组／false／未知值；完整 app 与发布证据见上方。
 - 运维动作：r2 正式发布后正常 update，再手动重启 launcher 并刷新；无需清空配置、会话或官方缓存。
 - 剩余边界：默认只是用户偏好，模型服务是否接受须以实际支持为准；不新增付费调用，不称未测档位可用或实体手机／全平台已验收。
 
 ## [open-kimi-web v2.3.1-r1] - 2026-10-24
 
-兼容基线更新为官方 Kimi Code `2.3.1`；发布与准确验收记录见
-[工作空间修复与适配计划](docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md)。
+兼容基线更新为官方 Kimi Code `2.3.1`。
 
 - 双端“新建工作空间”共用直接路径表单，接收运行端已有目录，不再把手机用户留在原生目录搜索入口。
   支持粘贴带空格和一对外层引号的路径，不根据浏览器系统改写路径，不自动创建目录、授信或切换当前会话。
@@ -386,8 +366,7 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 修复新建供应商保存串入隐藏 preset 表单的能力；提交只使用唯一可见且与请求模型行匹配的表单，不确定时保留原请求。
 - 未知模型不再默认全能力／六档思考，未编辑字段沿用原生提交内容；明确修改只合并对应组，保留其它元数据与未知值。
   已有错误档位不会自动清洗，须在供应商及会话中显式纠正；Kimi Coding 的最短实测与 400 复现边界见下方事件。
-- 本次按用户要求重发同一 `2.3.1-r1`，准确验证、CI、tag 与资产结果见
-  [热修复计划](docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md)，不把初发证据替代本次结果。
+- 同版本 `2.3.1-r1` 已重发，准确验证、CI、tag 与资产结果不以初发证据代替。
 - npm `update` 会跳过同版本；原 r1 一键用户须重跑同系统安装命令且保持原 home／选项，手动 npm 用户须将新下载 tgz
   安装到原 prefix。源码用户快进 main；完成后重启旧 launcher 并刷新，不需要清空配置或会话。
 
@@ -398,7 +377,7 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 根因：增强层只查找 label，模型字段查找失败；旧测试继续模拟旧 label，未覆盖新版真实 DOM。
 - 证据：准确官方 npm `2.3.1` bundle 的模型行选择器未变，标题结构已变；原生拉取会批量追加表单草稿。
 - 修复：按语义类名兼容新旧字段，不依赖 Vue 私有状态；保留官方配置与保存接口。
-- 回归验证：准确 DOM、真实 MutationObserver 及完整官方 app 定向验证，结果见热修复计划。
+- 回归验证：准确 DOM、真实 MutationObserver 及完整官方 app 定向验证。
 - 运维动作：原 r1 的 npm 安装需同版本重装而非仅 `update`；重启 launcher 并刷新。
 - 剩余边界：不修改用户已有供应商配置；实体手机、软键盘及其它官方版本未据此宣称全面验收。
 
@@ -411,7 +390,7 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 证据：按用户授权用环境变量 Key，官方 Coding `/models` 和最短流式对话均 200；准确原版 `2.3.1` 在 low 下完成。
   相同 Key／服务／模型和全能力配置，仅将 low 改为 xhigh，原版复现完全相同 400；未读取用户真实会话或配置。
 - 修复范围：未编辑字段沿用正式原始配置，未知模型不再默认全能力／全档位，保存限定唯一可见提交表单。
-  当前实施／回归／发布结果见热修复计划，不用直连成功冒充完整 Web 验收。
+  不用直连成功冒充完整 Web 验收。
 - 运维动作：升级不会自动清洗已有配置；需在原供应商中取消不支持的档位，并在会话选受支持档位后重试。
 - 剩余边界：通用 400 还有其它原因；未取得现场请求，不宣称所有 400 都是同因。Key 未进参数、日志、截图或包。
 
@@ -424,14 +403,14 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
 - 证据：准确 `2.3.1` 源码仍以 `{root}` 注册已有绝对目录，成功返回单个 workspace，不是 `data.items`。
   旧手机 QA 仅打开／取消原生弹窗，fixture 又忽略 GET／POST 区别，因此没有覆盖实际输入提交。
 - 修复：共用最小直接路径表单和正式 API，保留原生节点、工作空间状态、当前会话及草稿。
-- 回归验证：以计划内本轮真实后端、双端浏览器及标准门禁结果为准，不引用旧版通过数冒充新版结果。
+- 回归验证：以本轮真实后端、双端浏览器及标准门禁结果为准，不引用旧版通过数冒充新版结果。
 - 运维动作：升级后停止并重启原 launcher，再刷新页面；不需要清空会话、迁移数据或清除官方缓存。
 - 剩余边界：路径必须存在于 Kimi 运行端，不是手机本地目录；新工作空间仍由原生信任流程明确确认。
 
 ## [open-kimi-web v2.1.1-r10] - 2026-10-12
 
 继续兼容 Kimi Code `2.1.1`；本条目整理本轮安装器、手机子代理选择器和增强层英文修复。
-发布状态、CI 与资产核对见[发布计划](docs/plans/one-click-install-r10-release-v1-plan.md)的真实记录；
+发布状态、CI 与资产核对以 r10 的实际结果为准；
 沿用已有源码、完整官方 app 与标准阶段结果，不重复安装组合／UI 矩阵验收。历史 r9 发布及测试记录不变。
 
 - README 物理第一行说明一键兼容式安装，顶部提供 Windows PowerShell ≥ 5.1 与 macOS／Linux sh 的完整命令。
@@ -456,18 +435,16 @@ PR #35及main required CI通过：2154 UT／545 IT通过，平台条件28／23�
   Auto 可提交 `defaultEffort: ''`；已配置模型仍不能通过官方 API 清除为跟随主模型，空／null 或省略字段不能清除。
 - 增强层 locale 以官方 `kimi-locale` 为准，修复主题、手机状态、会话、usage／provider 等本轮覆盖的英文系统文案。
   text／title／aria／placeholder 随同 tab 语言切换刷新，保留用户中文模型／供应商名、草稿和输入，不新增后端请求。
-- **沿用的既有阶段结果：** lint／typecheck、1430 项 UT、308 项 IT 与 pack 通过；CI／发布状态以发布计划真实记录为准，
+- **沿用的既有阶段结果：** lint／typecheck、1430 项 UT、308 项 IT 与 pack 通过；CI／发布状态以实际结果为准，
   IT 另有两项 Windows native POSIX 跳过；手机控件定向 64 项 UT、完整官方 app 199／199 断言通过。
   既有真实 Windows／Linux 入口场景使用 r9 包；portable Git 与缺 Git 的完整 coordinator 并非同一次组合验收。
-  旧 fixture、expanded2、早期 PTY 失败及六项 strict scrollTop 失败保留于安装／手机计划，不写成全通过。
-  实体手机、软键盘与真实磁盘持久化未验证；详细阶段证据见
-  [安装计划](docs/plans/one-click-install-v1-plan.md)和[手机计划](docs/plans/mobile-subagent-model-v1-plan.md)。
+  旧 fixture、expanded2、早期 PTY 失败及六项 strict scrollTop 失败保留为历史，不写成全通过。
+  实体手机、软键盘与真实磁盘持久化未验证。
 
 ## [open-kimi-web v2.1.1-r9] - 2026-10-10
 
 继续兼容 Kimi Code `2.1.1`；为可压缩的大会话响应与资源加入流式 gzip，保留 r8 及此前增强。
-Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR／main CI 与线上验证按发布流程单独记录在
-[大会话局域网性能计划](docs/plans/large-session-lan-performance-v1-plan.md)。
+Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR／main CI 与线上验证按发布流程单独核对。
 
 - 新增 `packages/launcher/src/responseCompression.mjs`，仅使用 Node 内置 zlib 与 stream，不增加运行时依赖。
   接入 HTTP 代理、官方／自定义静态服务和注入资源；按 Accept-Encoding 为合适 MIME 协商 gzip。
@@ -494,7 +471,7 @@ Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR�
   完整官方 app 的 r9 源码、25 ms＋1 MiB/s、桌面 Original、显式工具折叠，n=3 中位数的正文可见时间：
   冷小会话／工具／正文／entity 为 2381／109／257／145 ms，r8 为 5561／2885／2761／4546 ms；
   200 turn／resident 工具为 105／18 ms，r8 为 129／29 ms。虚构高度重复 fixture 不代表普遍压缩倍数或真实 tunnel／LAN。
-  trusted 输入在正文可见后验证，不是输入框最早可用时刻；完整分层证据见上述计划。
+  trusted 输入在正文可见后验证，不是输入框最早可用时刻。
 - 修复：在 launcher 传输层流式 gzip，不另建会话缓存、扩大分页或截断正文，不修改官方 bundle。
 - 回归验证：源码官方 app 10 个样本／217 项断言及 27 项边界断言通过，无页面错误。
   wheel 旧页、resident 零下载、慢 B→快 C 不覆盖、HTTP 500 官方自动重试，以及合法 WS append／duplicate／reset、
@@ -780,7 +757,6 @@ Windows 标准检查及源码官方 app 实测通过；交付包浏览器、PR�
   隔离 Chrome 验证跟随、离底保持与恢复跟随；14 组主题/视口的初始布局与截图一致。
 - 运维动作：拉取修复源码并重启 launcher，再刷新页面；不需要迁移数据。
 - 剩余边界：浏览器验证使用官方 2.1.1 CSS 与虚构 DOM；未访问真实会话，也不代表官方大历史渲染性能保证。
-  细节见 [流式性能验收记录](docs/plans/streaming-performance-v1-verification.md)。
 
 ## open-kimi-web v2.1.1-r1（已撤回） - 2026-09-28
 

@@ -11,16 +11,13 @@
 每次调用保留 TTFT、包含等待的平均 TPS、缓存命中和侧聊独立选模。
 桌面“设置 → 通用”和手机会话设置可重启受管服务；双端菜单、手机置顶、局域网 CA 和 App 安装入口保留。
 更新后请手动重启并刷新；不升级已有官方 Kimi、不改会话、模型配置或网络，也不强制开启实验功能。
-指标行不再显示悬停解释。已完成列表标题宽度修复见 [r7 历史计划][completed-sidebar-plan]；
-候选池扁平布局保留在[历史计划][layout-plan]。
-此前的[候选池功能][pool-editor-plan]、[工作空间与导航][workspace-dup-plan]、[触摸提示修复][touch-tooltip-plan]、
-[供应商保存][provider-save-plan]和[2.6 适配][compat260-plan]保留历史记录。
+指标行不再显示悬停解释。已完成列表标题宽度修复和候选池扁平布局来自此前版本。
+候选池、工作空间与导航、触摸提示、供应商保存、2.6 适配及更早版本的记录见[更新日志][changelog-doc]。
 CI、交付包及发布结果以[Release 页面][current-release]为准，未记录不视为通过。
-[请求指标升级记录][metrics-upgrade-plan]、[2.5.2-r1 发布记录][release252r1-plan]和更早计划保留为历史证据。
 
 ### 官方 2.6.0／2.6.1 适配
 
-本版适配新版会话协议，继续使用官方原版后端，不增加引擎。详细证据见[本轮记录][compat260-plan]。
+本版适配新版会话协议，继续使用官方原版后端，不增加引擎。兼容边界见 [UPSTREAM][upstream-doc]。
 
 - 手机消息目录、时间和加载提示已接入新版 turns/items，复用原生最近历史、旧页、实时消息、重连和撤销。
   只保留短目录、ID 和时间，不存正文、不为目录全量下载会话；首屏沿用官方 WebSocket，不套旧版最近一轮改写。
@@ -52,7 +49,7 @@ Auto／Off／On 保持各入口原语义，不重排 `supportEfforts`、不新�
 旧 `low / medium / max` 经 Set 追加 `high / xhigh` 会保留旧顺序；旧测试只给有序数组，未覆盖该追加路径。
 本轮不改变 r2 新模型默认；供应商能力／档位必须由模型实际支持，发现模型 ID 不代表支持全部参数。
 历史 Coding 对照为 low 成功、xhigh 400，修后 thinking:on 未显式 effort 成功；medium/high/max 未逐档实测。
-如遇不支持档位，须自行在供应商及会话调整，升级不自动清洗配置；历史证据见[热修复计划][provider-hotfix-plan]。
+如遇不支持档位，须自行在供应商及会话调整，升级不自动清洗配置。
 
 Tower 是官方实验功能，不是账号／provider 权限。入口要求实际 backend 的 meta 返回
 `experimental_flags.tower === true`，实验默认 off；单项 `KIMI_CODE_EXPERIMENTAL_TOWER` 优先配置，再回退全局实验开关。
@@ -143,7 +140,7 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
   不自动登录、启动生产服务、读真实会话或发付费调用。历史 portable 与完整缺 Git coordinator 不是同次组合验收。
 
 macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收，不承诺全部平台。
-根安装器不在 launcher tgz；历史见 [r10 计划][r10-plan]／[r1 计划][current-plan]，当前发布状态以 [Release 页面][current-release]为准。
+根安装器不在 launcher tgz；当前发布状态以 [Release 页面][current-release]为准。
 
 ### 手动 npm 安装（已有 Node ≥ 22／npm）
 
@@ -167,8 +164,8 @@ corepack pnpm install --frozen-lockfile
 node packages/launcher/bin/open-kimi-web.mjs integrate install
 ```
 
-已有源码时，在原仓库目录执行最后两条命令，不必重新克隆；入口使用当前目录的代码，源码目录不能删除或移动。
-入口直接使用所选源码目录，本地未提交改动也会生效；正式版以Release为准。
+已有源码时，入口使用当前目录的代码，源码目录不能删除或移动。历史清理前的旧克隆须先备份改动并重新克隆，
+再按[升级](#升级)中的切换说明重新接管。入口直接使用所选源码目录，本地未提交改动也会生效；正式版以 Release 为准。
 安装后新开终端检查并启动：
 
 ```sh
@@ -191,7 +188,7 @@ iPhone／iPad 在 Safari 中打开，使用分享 → 添加到主屏幕；若�
 安装后仍需连通 Kimi 服务，不提供离线会话缓存；新窗口未共享官方凭据或凭据过期时，按原生登录框连接。
 不要把 token 加入 manifest 或启动地址。自定义 `--web-dir` 保持原样，不注入本功能。
 升级后需自行重启 launcher 并刷新浏览器，已运行旧进程不会自动更新。
-实体手机和系统安装未验收；已有浏览器与模拟检查见[PWA 计划][pwa-plan]，不当作实体设备结果。
+实体手机和系统安装未验收；已有浏览器与模拟检查不当作实体设备结果。
 
 ### 局域网证书
 
@@ -238,11 +235,9 @@ Windows 上文件 mode 不等于完整的访问控制设置，请使用仅自己
 官方接口不能单项删除候选，因此不提供删除按钮，也不先清空再重建。
 已用准确官方 `2.6.1` 后端验证；外部后端需提供相同配置协议。此功能从 `2.6.1-r4` 提供。
 手机点“管理候选池”没能打开弹层时，入口会提示未打开并可再点重试；弹层关闭后可以重新打开。
-原生弹层失败及关闭后的恢复已验证；未复现的设备点击问题仍待定位，不宣称所有情况都已解决，见[历史计划][workspace-dup-plan]。
+原生弹层失败及关闭后的恢复已验证；未复现的设备点击问题仍待定位，不宣称所有情况都已解决。
 候选项从 `2.6.1-r6` 起改为扁平分隔列表；说明字段按内容显示一至两行，更多内容在字段内部滚动。
-布局验证和发布边界见[本轮计划][layout-plan]。
-
-[候选池功能记录](../../docs/plans/subagent-pool-editor-v1-plan.md)。
+布局验证和发布边界见 [UPSTREAM 候选池布局说明][upstream-layout]。
 
 ### 手机子代理模型与英文界面（r10）
 
@@ -256,8 +251,8 @@ Auto 合法提交 `defaultEffort: ''`。旧版不能通过空／null 或省略�
 共享 locale 读取官方 `kimi-locale`，本轮覆盖的主题、手机状态、会话、usage／provider 等英文系统文案随语言切换刷新，
 保留用户中文模型／供应商名、草稿与输入，不新增后端请求。
 沿用已有 1430 UT、308 IT＋两项 Windows native POSIX 跳过、完整 app 199／199 断言，不扩大为全平台验收。
-实体手机、软键盘及真实磁盘持久化未验证；旧 focused／strict scrollTop 失败保留在[手机计划][mobile-plan]。
-发布与资产核对见[发布计划][r10-plan]的真实记录。
+实体手机、软键盘及真实磁盘持久化未验证；旧 focused／strict scrollTop 失败保留为历史记录。
+发布与资产核对以 r10 的实际结果为准。
 
 `2.1.1-r9` 新增无依赖的 Node 流式 gzip，覆盖 HTTP 代理、官方／自定义静态资源及注入资源。
 保留桌面会话体积、手机平铺与三种工作区展示排序，以及 r8 起提供的安全自更新。
@@ -284,7 +279,7 @@ r4起不按版本号限制请求指标，完整核对实际入口代码后启用
 外部 `serve --target` 没有可信本机数据目录时，缓存仍可显示，缺计时显示 `—`。详见 [兼容说明](../../UPSTREAM.md)。
 
 侧聊输入区可以单独选模型、搜索和筛选供应商，默认跟随主模型。明确选择只用于当前侧聊，本页刷新后恢复跟随；
-不会改变主聊天或全局子代理设置。完整边界见[模型调用与侧聊计划](../../docs/plans/request-metrics-sidechat-v1-plan.md)。
+不会改变主聊天或全局子代理设置。
 
 ## 从网页重启服务（2.6.1-r2）
 
@@ -292,7 +287,7 @@ r4起不按版本号限制请求指标，完整核对实际入口代码后启用
 这会让同一服务上的所有设备短暂断开，再按原地址重新连接；有运行、审批或待回答的任务时会拒绝重启。
 不更新软件、不重发消息、不自动刷新。未发送的草稿留在原页面，想加载新界面时再点击“刷新页面”。
 仅支持受管的 `kimi web`，外部 `serve --target` 不接管后端；旧服务首次启用须在终端重启。
-准确版本和验收边界见[重启服务计划](../../docs/plans/service-restart-v1-plan.md)。
+准确版本与兼容边界见 [UPSTREAM][upstream-doc]。
 
 ## 会话三个点菜单
 
@@ -311,7 +306,7 @@ r4起不按版本号限制请求指标，完整核对实际入口代码后启用
 手机置顶／取消置顶会重新加载一次以同步原生状态，然后恢复列表；已验证未发送文本草稿和其它置顶项保留。
 附件仍在准备或上传时会提示稍后重试，不切会话、不保存置顶或刷新，先等上传完成再操作。
 取消置顶不会归档或删除会话。实体手机、系统软键盘和任意大会话未全面验证；
-已有真实后端、完整 app、首轮失败及修后补验见[会话菜单计划][session-menu-plan]，不借本地结果宣称线上已生效。
+已有真实后端、完整 app、首轮失败及修后补验见 [UPSTREAM 会话菜单说明][upstream-menu]，不借本地结果宣称线上已生效。
 
 ## 统一导航与会话搜索
 
@@ -330,8 +325,8 @@ r4起不按版本号限制请求指标，完整核对实际入口代码后启用
 不为列表恢复冷会话；写入范围不扩展，未知及未列出的相邻版本拒绝，源码相似不等于可以安全写入。
 历史 `2.3.1` 实测 debug 写入可绕过会话锁和 stale gate，且可能延迟落盘，缺少归属／新鲜度／持久化回执兼顾的原子入口。
 transport／route 双 gate 在 debug mutation 前拒绝只读版本写入，UI 中英提示只读、隐藏恢复／新建、禁用删除。
-历史 `2.3.1` 验收确认创建／删除 409、无 mutation、冷会话与 wire 不变，见 [r1 计划][current-plan]；
-精确 `2.5.2` 的原有只读结果见 [r1适配记录][release252r1-plan]；本版另已验证准确 `2.6.0`／`2.6.1` 的只读任务与历史。
+历史 `2.3.1` 验收确认创建／删除 409、无 mutation、冷会话与 wire 不变；
+精确 `2.5.2` 的原有只读结果及准确 `2.6.0`／`2.6.1` 的只读任务与历史验证见 [UPSTREAM][upstream-doc]。
 用户仍可主动打开原会话，写入范围不扩大。
 该模式不兼容同实例官方 Remote Control；外部 `serve --target` 不开放管理能力，不自动修改安装或重启生产。
 普通和编码 debug 路径均阻断；opt-in 另封闭 RC 路径族，逐次检查原版鉴权和 RC 状态，失效时退出自有实例。
@@ -339,7 +334,7 @@ transport／route 双 gate 在 debug mutation 前拒绝只读版本写入，UI �
 冷读需有界扫描日志；缺失／变化／超限提示不完整，历史最近最多 100 项、不翻页；不以不完整当无任务。
 模型跟随所属会话，历史有证据才显示实际请求模型；回合完成不等于业务成功，不伪造编辑、暂停或独立 cron 模型。
 Tower 每任务模型不是 cron 独立模型。历史双版本公开链路不代表完整 2.2.0 UI／实体手机／其它平台已全面验收。
-历史 r10 不包含此特性；此前实现见[实施计划][cron-plan]，不承诺新版 cron 全功能。
+历史 r10 不包含此特性，不承诺新版 cron 全功能。
 
 Hyper-V／vEthernet 不再因名称从网络访问链接和 TLS SAN 中排除；internal、回环和 IPv6 link-local 仍过滤。
 只更改软件地址枚举，不修改网卡、桥接、路由或生产服务。
@@ -363,7 +358,7 @@ Hyper-V／vEthernet 不再因名称从网络访问链接和 TLS SAN 中排除；
 `pagingApplied` 区分最近页优化命中；`ws_first_frame` 是首服务端消息，可能仅为握手，不能当作聊天已加载。
 首个 2.6.1 修订版诊断补充 `ws_subscribe`／`ws_subscribed`／`ws_turns`，分别记录订阅、确认和首批记录入队的耗时。
 只读取有限控制帧或消息头，不解析整个历史正文；`ws_progress` 每五秒聚合，发送入队仍不代表远端已收到。
-请求开始即记录，慢请求不会等结束才出现。完成只表示服务端交付，不测浏览器 DOM 解析／渲染；完整边界见[诊断计划][debug-plan]。
+请求开始即记录，慢请求不会等结束才出现。完成只表示服务端交付，不测浏览器 DOM 解析／渲染。
 
 ## r9 流式 gzip 与验证边界
 
@@ -376,7 +371,7 @@ Hyper-V／vEthernet 不再因名称从网络访问链接和 TLS SAN 中排除；
 旧页继续官方分页，不删改输出或实体；顶部原生“加载更早消息”仍可用，短首屏不保证自动预取。
 自定义 UI、其它版本不改请求。首次无偏好时默认折叠工具活动，已有展开／折叠选择不迁移；旧用户可在官方设置开启折叠。
 单轮过大、全量关联实体、后端恢复和解析仍可能慢，不保证巨大单轮秒开。
-本轮证据见[低带宽计划][low-bandwidth-plan]，发布状态以[正式 Release][current-release]为准；下方 r9 验收仅为历史。
+发布状态以[正式 Release][current-release]为准；下方 r9 验收仅为历史。
 合并 Vary，压缩后删除原 Content-Length／digest 等编码相关头，并弱化合法强 ETag。
 identity 优先、gzip q=0、已编码、HEAD、无正文状态、Range／206、SSE 与 no-transform 不转码。
 
@@ -393,7 +388,7 @@ r9 Windows lint、typecheck、66 文件／1146 项 UT、13 文件／154 项 IT �
 UT 行／分支覆盖率 88.14%／80.76%，IT 87.98%／75.91%；覆盖率门槛不变。
 审查后补齐条件请求变体 metadata、既有响应头、205 长度及首 gzip 段后的空闲超时回归。
 打包冒烟确认 r9 版本、压缩模块随包及静态／API 实际调用；源码 app 实测不等于交付包浏览器验收。
-交付包浏览器、CI 与线上验证按发布流程单独记录在[计划][lan-plan]。
+交付包浏览器、CI 与线上验证按发布流程单独核对。
 
 ## 聊天增强与保留的 r8 历史验收
 
@@ -493,7 +488,7 @@ open-kimi-web serve --no-token-link
 触摸、鼠标拖动、滚轮和键盘横向浏览；可编辑供应商的模型支持逐项配置图片／视频、工具调用、思考、始终思考和思考档位。
 r2 新模型仅 `video_in`、`image_out` 默认不选；`image_in`、`tool_use`、`thinking`、`always_thinking` 默认选中，
 六档 `none/low/medium/high/xhigh/max` 及 `adaptive_thinking` 也默认选中。已有显式数组（含空数组）、未知值及 false 不自动改写。
-默认是用户偏好，不保证服务支持；保留 r1 发现选择、唯一可见表单、逐行身份匹配和独立字段保存，准确边界见 [r2 计划][r2-plan]。
+默认是用户偏好，不保证服务支持；保留 r1 发现选择、唯一可见表单、逐行身份匹配和独立字段保存。
 供应商表单还可用当前 Base URL 和可选 API Key 拉取 `/models`，从下拉框选中并添加，也可
 通过专用手柄用鼠标或触摸调整模型顺序；请求由当前页面 token 保护的 launcher 同源端点
 转发，不记录或回显 API Key，不跟随重定向。桌面工作区首次使用默认按最近活动排序，
@@ -517,8 +512,8 @@ fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍�
 再刷新或重新打开页面，本轮不会自动重启生产。`--web-dir` 不注入展示层及主题功能。
 本版 `2.6.1-r8` 适配准确官方 UI `2.6.1`，发布状态见 [Release 页面][current-release]。
 准确后端、界面与门禁记录见 [UPSTREAM][upstream-doc]；不把源码更新当作已运行的旧服务更新。
-[r1 适配][current-plan]、[r2 默认／发布][r2-plan]与[供应商保存计划][provider-save-plan]保留为历史，不视为本轮验收。
-r9 完整官方 app 源码实测使用虚构 API，其交付包浏览器与线上记录保留在[历史计划][lan-plan]，不充作新版验收。
+r1 适配、r2 默认／发布与供应商保存记录属于历史，不视为本轮验收。
+r9 完整官方 app 源码实测使用虚构 API，交付包浏览器与线上核验独立于源码实测，不充作新版验收。
 
 ## 接管（可选）
 
@@ -575,7 +570,7 @@ open-kimi-web update --help
 Tower 开关变更仍须按启动环境重启实际后端，不自动开启；发布信息见[Release 页面][current-release]。
 
 **历史：2026-10-26 同版本 r1 热修复。** 当时更新器跳过同版本，需要原 home／选项重跑安装器，
-或用原 npm／prefix 安装新下载的本地 r1 tgz；不是升级到新版本的要求。[热修复][provider-hotfix-plan]及 [r2 记录][r2-plan]保留为历史。
+或用原 npm／prefix 安装新下载的本地 r1 tgz；不是升级到新版本的要求。热修复及 r2 记录保留为历史。
 
 一键安装的专用 prefix 沿用标准 npm 全局布局，常规新版本用上面的 `update`，不重跑安装器或追加切换参数。
 wrapper 会调用记录的 Node，更新器优先使用该 Node 旁的 npm，不要求 shell 的裸 `node` 可用。
@@ -641,50 +636,14 @@ wrapper 不依赖 shell 中的裸 `node`；Linux 编译工具仅 legacy rebuild 
 MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 MIT
 许可代码，原始声明完整保留。
 
-[lan-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-lan-performance-v1-plan.md
-[r10-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/one-click-install-r10-release-v1-plan.md
-[mobile-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/mobile-subagent-model-v1-plan.md
-[cron-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/scheduled-tasks-management-v1-plan.md
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
-[current-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.3.1-workspace-release-v1-plan.md
-[provider-hotfix-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/provider-model-discovery-r1-hotfix-v1-plan.md
-[r2-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/provider-defaults-r2-release-v1-plan.md
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
-[compat241-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.4.1-compatibility-v1-plan.md
-[release241r2-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.4.1-r2-release-v1-plan.md
-[release241r3-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.4.1-r3-release-v1-plan.md
-[release252r1-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.5.2-r1-release-v1-plan.md
-[metrics-upgrade-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/request-metrics-upgrade-compatibility-v2-plan.md
-[session-menu-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/session-menu-actions-v1-plan.md
-[lan-ca-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/android-lan-ca-v1-plan.md
-[low-bandwidth-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-low-bandwidth-v2-plan.md
-[pwa-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/pwa-install-v1-plan.md
-[compat260-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/kimi-code-2.6.0-compatibility-release-v1-plan.md
 [current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.6.1-r8
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md
+[changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
+[upstream-layout]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#subagent-pool-layout-261-r6
+[upstream-menu]:
+  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#session-menus-and-opt-in-local-ca-in-241-r3
 [quickstart]: https://github.com/WilliamLambertCN/open-kimi-web#快速上手
-[debug-plan]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/large-session-debug-log-v1-plan.md
-[provider-save-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/provider-preset-save-2.6.1-r2-release-v1-plan.md
-[touch-tooltip-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/touch-tooltip-2.6.1-r3-release-v1-plan.md
-[pool-editor-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/subagent-pool-editor-v1-plan.md
-[workspace-dup-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/workspace-duplicate-prevention-v1-plan.md
-[layout-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md
-[completed-sidebar-plan]:
-  https://github.com/WilliamLambertCN/open-kimi-web/blob/main/docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md

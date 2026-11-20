@@ -7,6 +7,9 @@
 
 ## 实施计划
 
+`docs/plans/` 仅供本地维护，不纳入公开版本控制；以下链接在没有本地计划的克隆中不可用。
+
+- [计划文档与公开历史清理](docs/plans/private-plans-history-cleanup-v1-plan.md)
 - [已完成侧栏宽度与 2.6.1-r7 发布](docs/plans/completed-sidebar-width-2.6.1-r7-release-v1-plan.md)
 - [子代理候选池布局与 2.6.1-r6 发布](docs/plans/subagent-pool-layout-2.6.1-r6-release-v1-plan.md)
 - [工作空间重复创建修复](docs/plans/workspace-duplicate-prevention-v1-plan.md)
