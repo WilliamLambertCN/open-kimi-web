@@ -42,18 +42,61 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。[v2.7.2-r1][current-release] 适配 Kimi Code `2.7.2`，保留 `2.6.0`／`2.6.1` 支持。
+> 非官方社区项目，与 Moonshot AI 无关联。[v2.7.2-r2][current-release] 适配 Kimi Code `2.7.2`，保留 `2.6.0`／`2.6.1` 支持。
 > 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-272-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.7.2-r1'
-  $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
-  if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
-  $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.7.2-r1
+    $ErrorActionPreference = 'Stop'
+    $version = '2.7.2-r2'
+    $github = "https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version.zip"
+    $defaultProxy = 'https://ghfast.top'
+    $proxy = $env:OPEN_KIMI_WEB_GITHUB_PROXY
+    if (-not $proxy) { $proxy = $defaultProxy }
+    if ($proxy -ceq '0') { $proxy = '' }
+    elseif ($proxy -cnotin @($defaultProxy, "$defaultProxy/")) {
+        throw "OPEN_KIMI_WEB_GITHUB_PROXY must be $defaultProxy or 0 (disable)."
+    }
+    $digest = '8caa23b5bb95690642232dae848cde24cd816d4f948f253ccd5b9790ab05ddfa'
+    $stage = Join-Path ([IO.Path]::GetTempPath()) ('okw-install-' + [Guid]::NewGuid().ToString('N'))
+    [IO.Directory]::CreateDirectory($stage) | Out-Null
+    $archive = Join-Path $stage 'installer.zip'
+    $previousDigest = $env:OPEN_KIMI_WEB_INSTALL_SHA256
+    function Get-VerifiedInstaller([string] $url, [int] $seconds, [string[]] $redirects = @()) {
+        if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
+        $ErrorActionPreference = 'Continue'
+        $status = & curl.exe -qfsS --proto '=https' --tlsv1.2 --max-time $seconds --max-filesize 2097152 `
+            --output $archive --write-out '%{http_code}' @redirects $url 2>$null
+        return ($LASTEXITCODE -eq 0 -and $status -ceq '200' -and
+            (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $digest)
+    }
+    try {
+        $env:OPEN_KIMI_WEB_INSTALL_SHA256 = '1a4b95390cc9f2d20863303b494adac317e5cc239773429baac706ca9ac6ffbb'
+        $follow = @('--location', '--proto-redir', '=https', '--max-redirs', '4')
+        $ready = $false
+        if ($proxy) {
+            $ready = Get-VerifiedInstaller $github 2 $follow
+            if (-not $ready) {
+                $ready = Get-VerifiedInstaller ($proxy.TrimEnd('/') + '/' + $github) 45
+                if ($ready) { Write-Host 'Installer: verified the archive downloaded via the GitHub download proxy.' }
+            }
+        }
+        if (-not $ready) { $ready = Get-VerifiedInstaller $github 45 $follow }
+        if (-not $ready) { throw 'Could not download a verified installer.' }
+        Expand-Archive -LiteralPath $archive -DestinationPath $stage
+        $installer = Join-Path $stage 'scripts/install.ps1'
+        $source = [IO.File]::ReadAllText($installer)
+        $status = & {
+            . ([scriptblock]::Create($source))
+            Invoke-OkwInstall @('--version', $version) (Split-Path -Parent $installer)
+        }
+        if ($status -ne 0) { throw 'The installer did not complete.' }
+    } finally {
+        $env:OPEN_KIMI_WEB_INSTALL_SHA256 = $previousDigest
+        Remove-Item -LiteralPath $stage -Recurse -Force
+    }
 }
 ```
 
@@ -62,14 +105,51 @@
 ```sh
 (
   set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.7.2-r1'
-  metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
-  sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
-  case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
-  [ "${#sha}" -eq 40 ] || exit 1
-  url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
-  script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.7.2-r1
+  version='2.7.2-r2'
+  github="https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version-posix.tar.gz"
+  default_proxy='https://ghfast.top'
+  proxy=${OPEN_KIMI_WEB_GITHUB_PROXY:-$default_proxy}
+  digest='1facd1016240b10e067ad22e1a129c0a1002f7ff252167add6ca98a989781af1'
+  case "$proxy" in
+    0) proxy='' ;;
+    "$default_proxy"|"$default_proxy/") ;;
+    *) printf '%s\n' "OPEN_KIMI_WEB_GITHUB_PROXY must be $default_proxy or 0 (disable)." >&2; exit 1 ;;
+  esac
+  export OPEN_KIMI_WEB_INSTALL_SHA256='1a4b95390cc9f2d20863303b494adac317e5cc239773429baac706ca9ac6ffbb'
+  stage=$(mktemp -d "${TMPDIR:-/tmp}/okw-install-XXXXXXXX")
+  trap 'rm -rf "$stage"' EXIT
+  trap 'exit 1' HUP INT TERM
+  file=$stage/installer.tar.gz
+  verify() {
+    if command -v sha256sum >/dev/null 2>&1; then
+      hash=$(sha256sum "$file") || return 1
+    else
+      hash=$(shasum -a 256 "$file") || return 1
+    fi
+    [ "${hash%% *}" = "$digest" ]
+  }
+  download() {
+    url=$1 seconds=$2
+    shift 2
+    rm -f "$file" || return 1
+    status=$(curl -qfsS --proto '=https' --tlsv1.2 --max-time "$seconds" --max-filesize 2097152 \
+      --output "$file" --write-out '%{http_code}' "$@" "$url" 2>/dev/null) && [ "$status" = 200 ] && verify
+  }
+  from_github() {
+    download "$github" "$1" --location --proto-redir '=https' --max-redirs 4
+  }
+  if [ -z "$proxy" ]; then
+    from_github 45 || { printf '%s\n' 'Could not download a verified installer from GitHub.' >&2; exit 1; }
+  elif ! from_github 2; then
+    if download "${proxy%/}/$github" 45; then
+      printf '%s\n' 'Installer: verified the archive downloaded via the GitHub download proxy.'
+    elif ! from_github 45; then
+      printf '%s\n' 'Could not download a verified installer from GitHub or its download proxy.' >&2
+      exit 1
+    fi
+  fi
+  tar -xzf "$file" -C "$stage"
+  sh "$stage/scripts/install.sh" --version "$version"
 )
 ```
 
@@ -246,4 +326,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r1
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
