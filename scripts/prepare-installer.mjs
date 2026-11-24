@@ -14,7 +14,7 @@ const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 export async function prepareInstaller({ revision, archive, output, repo = root }) {
   if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error('a full lowercase release commit SHA is required');
-  const git = (args) => checkedRun('git', args, { cwd: repo });
+  const git = (args) => checkedRun('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', ...args], { cwd: repo });
   const manifest = JSON.parse(await git(['show', `${revision}:packages/launcher/package.json`]));
   const version = manifest.version;
   const name = `open-kimi-web-${version}.tgz`;

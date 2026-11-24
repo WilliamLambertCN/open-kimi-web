@@ -106,10 +106,10 @@
 (
   set -eu
   version='2.7.2-r2'
-  github="https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version.tar.gz"
+  github="https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version-posix.tar.gz"
   default_proxy='https://ghfast.top'
   proxy=${OPEN_KIMI_WEB_GITHUB_PROXY:-$default_proxy}
-  digest='6d2de4138175640c1ba807f7e55bde311312c1494eb568cd292d365f2002e211'
+  digest='1facd1016240b10e067ad22e1a129c0a1002f7ff252167add6ca98a989781af1'
   case "$proxy" in
     0) proxy='' ;;
     "$default_proxy"|"$default_proxy/") ;;

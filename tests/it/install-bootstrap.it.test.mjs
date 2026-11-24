@@ -44,6 +44,7 @@ beforeAll(async () => {
   const archive = join(root, name);
   await put(archive, packageBytes);
   output = join(root, 'out');
+  await git(repo, ['config', 'core.autocrlf', 'true']);
   await prepareInstaller({ revision, archive, output, repo });
 }, 30_000);
 
@@ -128,13 +129,18 @@ async function expectNoStage(dir) {
 }
 
 describe('pinned installer entry without preinstalled Node or GitHub codeload', () => {
-  it('packages only the installer and public helpers from the selected commit', async () => {
-    const result = spawnSync('tar', ['-tzf', unix(join(output, `okw-install-${version}.tar.gz`))], { encoding: 'utf8' });
+  it('packages only the selected installer and helpers, retaining LF even with core.autocrlf enabled', async () => {
+    const archive = unix(join(output, `okw-install-${version}.tar.gz`));
+    const result = spawnSync('tar', ['-tzf', archive], { encoding: 'utf8' });
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain('scripts/install.mjs');
     expect(result.stdout).toContain('packages/launcher/src/update/downloadProxy.mjs');
     expect(result.stdout).toContain('packages/launcher/src/update/windowsTreeCleanup.cs');
     expect(result.stdout).not.toMatch(/docs\/|AGENTS\.md|\.git|npmUpdate/);
+    const entry = spawnSync('tar', ['-xOzf', archive, 'scripts/install.sh'], { encoding: 'utf8' });
+    expect(entry.status, entry.stderr).toBe(0);
+    expect(entry.stdout).toContain('\n');
+    expect(entry.stdout).not.toContain('\r');
     expect((await readdir(output)).sort())
       .toEqual(['install-command.ps1', 'install-command.sh', `okw-install-${version}.tar.gz`, `okw-install-${version}.zip`]);
   });
