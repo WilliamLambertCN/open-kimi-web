@@ -52,9 +52,16 @@ export async function fixtureRegistry(directory) {
   const manifest = JSON.parse(await readFile(join(launcherRoot, 'package.json'), 'utf8'));
   const packages = new Map();
   await registryPackages(launcherRoot, manifest.dependencies, packages);
+  const sources = [];
+  for (const [root, manifest] of packages) {
+    const target = join(directory, `registry-${sources.length}`);
+    await cp(root, target, { recursive: true, dereference: true, filter: (path) => path !== join(root, 'node_modules') });
+    await put(join(target, 'package.json'), { ...manifest, scripts: {} });
+    sources.push(target);
+  }
   const tool = await resolveTool('npm');
   const output = await checkedRun(tool.command, [...tool.args, 'pack', '--json', '--ignore-scripts',
-    '--pack-destination', directory, ...packages.keys()], { cwd: directory, maxBytes: 1024 * 1024, timeoutMs: 60_000 });
+    '--pack-destination', directory, ...sources], { cwd: directory, maxBytes: 1024 * 1024, timeoutMs: 60_000 });
   const archives = new Map(JSON.parse(output).map((pkg) => [`${pkg.name}@${pkg.version}`, pkg]));
   const registry = new Map();
   for (const { name, version, dependencies, engines, bin } of packages.values()) {

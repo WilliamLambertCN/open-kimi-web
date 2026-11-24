@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WebSocket, WebSocketServer } from 'ws';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
-import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
+import { listenHttp } from '../testkit/httpPort.mjs';
 import { createRestartController } from '../../packages/launcher/src/restart/controller.mjs';
 
 const AUTH = 'Bearer fictional-restart-token';
@@ -58,7 +58,7 @@ async function fixture({ managed = true, enhanced = true, version = '2.5.2' } = 
   control.manageBackend({ address: { pid: 123456, host: '127.0.0.1', port: upstream.address().port },
     alive: () => !state.exited, waitForExit: async () => state.exited });
   const launcher = await createLauncher({ target: `http://127.0.0.1:${upstream.address().port}`,
-    publicDir, host: '127.0.0.1', port: await availableHttpPort(), officialPresentation: enhanced,
+    publicDir, host: '127.0.0.1', port: 0, officialPresentation: enhanced,
     officialWebVersion: version, restartControl: control });
   cleanups.push(() => launcher.close());
   const call = async (path, options = {}) => {
@@ -194,7 +194,7 @@ describe('2.7.2 official conditional shutdown through real HTTP and WS proxies',
   it('leaves direct and other-launcher clients connected when the official endpoint refuses shutdown', async () => {
     const f = await fixture({ version: '2.7.2' }); const own = await opened(f.launcher.url);
     const otherLauncher = await createLauncher({ target: f.target, publicDir: f.publicDir,
-      host: '127.0.0.1', port: await availableHttpPort() });
+      host: '127.0.0.1', port: 0 });
     cleanups.push(() => otherLauncher.close());
     const direct = await opened(f.target); const other = await opened(otherLauncher.url);
     const closed = new Promise((resolve) => own.once('close', resolve));
