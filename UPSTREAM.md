@@ -17,8 +17,8 @@ or a vendored transcript implementation.
   `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select exact `2.7.2`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.7.2-r1`. Follow [the Release page][current-release] for publication.
-  Exact 2.7.2 uses paginated v1 session listings, native archive deletion and native streaming/thinking-effort behavior.
+- Open Kimi Web release target: `2.7.2-r2`. Follow [the Release page][current-release] for publication.
+  Exact 2.7.2 uses paginated v1 session listings, native archive deletion and native streaming.
   Managed web restart must not treat a session inventory as permission to stop a 2.7.2 backend.
   Request metric values, formulas and accessible labels are unchanged, with no native hover tooltip.
   Earlier 2.6.1 revisions and the 2.5.2-r4 metrics evidence below remain historical, not current release acceptance.
@@ -35,7 +35,7 @@ or a vendored transcript implementation.
 
 ## Kimi Code 2.7.2 adaptation
 
-The `2.7.2-r1` target uses the [official 2.7.2 release][kimi-272] and its npm `dist-web`.
+The 2.7.2 release line uses the [official 2.7.2 release][kimi-272] and its npm `dist-web`.
 Missing-install preparation verifies the fixed 2.7.2 tarball and SHA-512; metadata-failure UI fallback also selects 2.7.2.
 Existing usable CLIs, including owned 2.6.1/2.6.0/2.4.1, remain reusable without an official CLI upgrade.
 The isolated backend/browser checks below establish specific behavior, not publication or complete protocol coverage.
@@ -49,6 +49,11 @@ The isolated backend/browser checks below establish specific behavior, not publi
   covered opening an older item, reconnecting, undoing a turn, and retaining the user's native folding preference.
 - The fix for the main composer resetting an inherited thinking effort after sending belongs to upstream 2.7.2.
   The real composer sent two consecutive requests with inherited `high` effort to a local provider; no send override is needed.
+- Since `2.7.2-r2`, the main composer in exact 2.7.2 keeps the visible effort if the selected model supports it.
+  Otherwise it uses the target model's default. This changes model selection, not global settings, sending, or side chat.
+  The launcher applies this change only when the original selection code matches; custom builds are untouched.
+  In desktop and mobile-size browsers with the official backend, switching kept `xhigh` with another compatible model.
+  An incompatible model used `high`, its default. A fictional provider confirmed the selected effort in the next request.
 - The mobile subagent picker accepts the configured `primary` alias. A separate config GET confirmed the selected
   secondary model and effort, then omission of the section after clearing it; the main model did not change.
 - Local workspace creation lists `/api/v1/workspaces` without `hosts=include`. The official server only includes SSH
@@ -555,22 +560,17 @@ internal, loopback, IPv6 link-local and other virtual-adapter filters. This does
 
 ## Compatibility-first installation
 
-The `2.7.2-r1` installation target prepares fixed official Kimi `2.7.2` only when discovery confirms no usable
-installation exists. An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and
-launcher Release; reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
+The installer prepares fixed official Kimi `2.7.2` only when discovery confirms no usable installation exists.
+An explicit reuse message distinguishes official Kimi from the installer source, Node runtime and launcher Release.
+Reuse does not download or upgrade that official CLI, although launcher/runtime downloads may be needed.
 Broken, unsupported or ambiguous candidates are errors, not missing installations that authorize another download.
-Historical r10/r1/r2 installation results and the later r1 and r4–r7 checks are distinct from this release.
 
-The README opens with the existing interface demo, then Quick start contains the two online installation commands
-for Windows PowerShell >=5.1 and macOS/Linux sh, for use after publication.
-They resolve `v2.7.2-r1` through GitHub's commit API, validate its full 40-hex SHA and download the thin entry at that SHA.
-Only a successful download is executed, with the same `--revision` and fixed `--version 2.7.2-r1`.
-Missing tags, invalid SHAs or failed downloads stop without version fallback; the raw entry never uses a mutable tag or main URL.
-PowerShell uses a script block and sh uses `sh -c`; there is no streamed curl pipe or manual script download.
-The entry downloads the complete coordinator/helpers from that same immutable revision. HTTPS is not signature verification.
-No future SHA is invented. Historical r10 pinned `97160c92d3c5d4dcbe97c4b07cfb83aa11f66eaf` and launcher `2.1.1-r10`;
-initial r1 publication used `c9a3e0ce2a71037f510d794303e84ce6bed69209`. Neither supplies this release's source or acceptance.
-The same-r1 republication and r2 evidence remain historical; old tags and assets are not moved or replaced.
+As of `2.7.2-r2`, the Windows PowerShell and macOS/Linux sh commands in the README pin a Release and two SHA-256 digests:
+one for the installer archive and one for the launcher package. The installer archive contains matching entrypoints and helpers.
+They try GitHub first and fall back to GHFast only for the same public attachment. A proxy redirect or a wrong digest is refused.
+The commands do not need GitHub's commit API or a repository archive. They do not fall back to a different version.
+The npm updater still reads version and digest directly from the GitHub Releases API. Source updates do not use this fallback.
+The previous `2.7.2-r1` Release retains its commit-pinned command and package.
 
 A complete matching local checkout can use its adjacent `scripts/install.mjs` and `scripts/install/` helpers.
 Both entries consume `--revision` themselves to select the complete immutable archive; it is not forwarded to the coordinator.
@@ -620,7 +620,7 @@ Release assets retain matching SHA-256 checks. Actual platform checks have limit
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r1 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r2 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -648,7 +648,7 @@ Official Kimi that was already on PATH remains available; one that previously ne
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-After formal `2.7.2-r1` publication, existing older users use normal `update --check` and `update`.
+Existing users can check for `2.7.2-r2` with `update --check` and install it with `update`.
 No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
 tracking origin/main and a fast-forward. Restart and refresh remain manual; historical tags and remaining assets are unchanged.
 Some older tgz assets were withdrawn in earlier releases.
@@ -1005,7 +1005,7 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [release241r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r1
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

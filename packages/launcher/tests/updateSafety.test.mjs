@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -25,8 +26,9 @@ function windowsOptions(spawn) {
 
 const installation = { kind: 'local', root: 'fixture/root', entry: 'fixture/root/bin/open-kimi-web.mjs',
   owner: 'fixture', version: '2.1.1-r9', category: 'dependencies', ownerManifest: { dependencies: { fixture: '1' } } };
+const archive = Buffer.from('fixture archive');
 const plan = { version: '2.1.1-r10', url: 'https://github.com/WilliamLambertCN/open-kimi-web/releases/download/' +
-  'v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz' };
+  'v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz', digest: createHash('sha256').update(archive).digest('hex') };
 const mutations = [
   ['category', 'devDependencies'], ['root', 'other/root'], ['owner', 'other'], ['prefix', 'unexpected'],
   ['entry', 'other/bin.mjs'], ['kind', 'global'], ['ownerManifest', { dependencies: { fixture: '2' } }],
@@ -41,6 +43,17 @@ async function temp() {
 }
 
 describe('npm explicit configuration and identity races', () => {
+  it('does not start npm if neither archive matches the pinned digest', async () => {
+    const run = vi.fn();
+    const stage = vi.fn();
+    await expect(updateNpm(installation, { ...plan, assetName: 'open-kimi-web-2.1.1-r10.tgz' }, {
+      run, stage, download: async () => Buffer.from('wrong bytes'),
+      env: { OPEN_KIMI_WEB_GITHUB_PROXY: 'https://ghfast.top' },
+      reidentify: async () => installation, resolveTool: async () => ({ command: process.execPath, args: [] }),
+    })).rejects.toThrow('release SHA256 digest mismatch');
+    expect(run).not.toHaveBeenCalled();
+    expect(stage.mock.calls).toEqual([['verified release download']]);
+  });
   it('fixes host replacement, local install mode and save despite inherited configuration', () => {
     const local = npmArguments(installation, plan.url);
     expect(local).toEqual(expect.arrayContaining(['--replace-registry-host=never', '--location=project', '--save=true']));
@@ -161,6 +174,7 @@ describe('uncertain cleanup retains installation lock', () => {
     const result = await updateMain([], { identify: async () => target, latestRelease: async () => plan,
       acquireLock: async () => release, reidentify: async () => target, log: vi.fn(), error,
       resolveTool: async () => ({ command: process.execPath, args: [] }),
+      download: async () => archive, env: {},
       run: async () => { throw unconfirmedCleanup('fixture descendants remain'); },
     });
     expect(result).toBe(1);

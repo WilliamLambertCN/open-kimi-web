@@ -2,6 +2,7 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import { extname, isAbsolute, relative, sep } from 'node:path';
 import { METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX, metricsAssetPaths,
   patchOfficialRequestMetrics } from './officialRequestMetrics.mjs';
+import { patchOfficialModelThinking, THINKING_ASSET_PREFIX } from './officialModelThinking.mjs';
 import { patchOfficialStreaming } from './officialStreaming.mjs';
 import { resolveStaticPath, serveStatic } from './staticFiles.mjs';
 
@@ -27,21 +28,33 @@ function moduleEntry(html) {
   return /^\/?assets\/[^?#]+\.js$/.test(src ?? '') ? '/' + src.replace(/^\//, '') : null;
 }
 
+function patchBundle(text, version) {
+  const metrics = patchOfficialRequestMetrics(text);
+  const streaming = patchOfficialStreaming(metrics.text, version);
+  const thinking = patchOfficialModelThinking(streaming.text, version);
+  const state = (result) => result.patched ? 'active' : 'incompatible-bundle';
+  const prefix = thinking.patched ? THINKING_ASSET_PREFIX : streaming.patched ? STREAMING_ASSET_PREFIX :
+    metrics.patched ? METRICS_ASSET_PREFIX : undefined;
+  return { state: state(metrics), patched: thinking.text, prefix,
+    streamingState: version === '2.6.3' ? state(streaming) : 'disabled',
+    modelThinkingState: version === '2.7.2' ? state(thinking) : 'disabled' };
+}
+
 export async function prepareMetricsAssets(publicDir, enabled, version) {
   if (!enabled) return { state: 'disabled' };
-  const failure = (state) => version === '2.6.3' ? { state, streamingState: state } : { state };
+  const failure = (state) => ({ state,
+    ...(version === '2.6.3' ? { streamingState: state } : {}),
+    ...(version === '2.7.2' ? { modelThinkingState: state } : {}),
+  });
   try {
     const root = await realpath(publicDir);
     const index = await readBundleFile(root, '/index.html');
     const entry = moduleEntry(index.text);
     if (!entry) return failure('incompatible-bundle');
     const source = await readBundleFile(root, entry);
-    const metrics = patchOfficialRequestMetrics(source.text);
-    const streaming = patchOfficialStreaming(metrics.text, version);
-    if (!metrics.patched && !streaming.patched) return failure('incompatible-bundle');
-    return { state: metrics.patched ? 'active' : 'incompatible-bundle', index: index.text, entry, file: source.file,
-      original: source.text, patched: streaming.text, prefix: streaming.patched ? STREAMING_ASSET_PREFIX : METRICS_ASSET_PREFIX,
-      streamingState: version === '2.6.3' ? (streaming.patched ? 'active' : 'incompatible-bundle') : 'disabled' };
+    const patches = patchBundle(source.text, version);
+    return patches.prefix ? { ...patches, index: index.text, entry, file: source.file, original: source.text } :
+      failure('incompatible-bundle');
   } catch {
     return failure('unavailable-bundle');
   }
@@ -66,7 +79,7 @@ export function metricsHtml(html, metrics) {
 
 export async function serveMetricsAssets(req, res, { publicDir, metrics }) {
   const path = (req.url ?? '').split('?')[0];
-  const prefix = [METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX].find((value) =>
+  const prefix = [METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX, THINKING_ASSET_PREFIX].find((value) =>
     path === value || path.startsWith(`${value}/`));
   if (!prefix) return false;
   const transformAsset = (source, file) => {

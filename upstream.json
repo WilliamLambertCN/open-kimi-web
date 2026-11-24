@@ -7,7 +7,7 @@
     "commit": "56145f849caa305d42acd09b67fb65d11146f887",
     "cliVersion": "2.7.2",
     "commitEvidence": "official release tag @moonshot-ai/kimi-code@2.7.2",
-    "status": "2.7.2-r1 release target; publication tracked separately",
+    "status": "2.7.2-r2 release target; publication tracked separately",
     "evidence": "UPSTREAM.md#kimi-code-272-adaptation"
   },
   "minimumServerVersion": "0.43.1",

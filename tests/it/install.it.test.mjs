@@ -41,6 +41,7 @@ describe('real isolated coordinator npm installation', () => {
     expect((await readdir(root)).includes('UNSAFE-LIFECYCLE')).toBe(false);
     expect(await readdir(home)).toEqual(['bootstrap-install.json', 'npm']);
     expect(lines.join('\n')).toContain('NOT installed or changed');
+    expect(lines.join('\n')).toContain('verified the archive downloaded via the GitHub download proxy');
     expect(dirname(result.entry)).toBe(join(root, 'bin'));
   }, 120_000);
 

@@ -216,7 +216,7 @@ open-kimi-web update
 
 只更新当前使用的 Open Kimi Web，不升级官方 Kimi、不修改会话或自动重启。
 完成后停止旧服务，重新运行 `kimi web --host`，再刷新网页。
-[源码升级、切换目录或安装方式](packages/launcher/README.md#升级)
+[源码升级、切换安装方式](packages/launcher/README.md#升级) · [下载代理（2.7.2-r2 起）](packages/launcher/README.md#下载代理)
 
 ## 常见问题
 
