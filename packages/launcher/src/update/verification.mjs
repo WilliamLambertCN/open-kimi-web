@@ -34,7 +34,7 @@ export async function verifyInstallation(installation, result, context = {}) {
     throw new Error('fresh launcher dependency probe identity/version mismatch');
   }
   const fresh = await (context.reidentify ?? identifyInstallation)({
-    modulePath: `${installation.root}/src/update/installation.mjs`, entryPath: installation.entry,
+    modulePath: `${installation.root}/src/update/installation.mjs`, entryPath: installation.entry, env: context.env,
   });
   assertFreshIdentity(fresh, installation, result);
   if (result.sha && await result.git(['rev-parse', 'HEAD']) !== result.sha) {

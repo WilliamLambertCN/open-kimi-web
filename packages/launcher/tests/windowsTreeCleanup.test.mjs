@@ -35,7 +35,7 @@ describe('native Windows updater cleanup transport', () => {
     const setup = fixture();
     await terminateTree(child(), { platform: 'win32', ...setup });
     const [compiler, compileArgs, compileOptions] = setup.spawn.mock.calls[0];
-    expect(normalized(compiler)).toMatch(/Windows\/Microsoft\.NET\/Framework64\/v4\.0\.30319\/csc\.exe$/);
+    expect(normalized(compiler)).toMatch(/Windows\/Microsoft\.NET\/Framework64\/v4\.0\.30319\/csc\.exe$/i);
     expect(compileArgs.slice(0, 3)).toEqual(['/nologo', '/noconfig', '/target:exe']);
     expect(normalized(compileArgs[3])).toBe('/out:fixture/native-cleanup/cleanup.exe');
     expect(normalized(compileArgs[4])).toMatch(/^\/reference:.*\/System\.dll$/);

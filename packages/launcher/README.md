@@ -6,7 +6,7 @@
 
 ## 安装
 
-本项目不发布到 npm registry；`v2.7.2-r1` 的兼容基线是 Kimi Code `2.7.2`，保留已验证的 `2.6.0`／`2.6.1` 支持。
+本项目不发布到 npm registry；`v2.7.2-r2` 的兼容基线是 Kimi Code `2.7.2`，保留已验证的 `2.6.0`／`2.6.1` 支持。
 请求指标按完整代码结构决定是否启用，不按版本号限制；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
 每次调用保留 TTFT、包含等待的平均 TPS、缓存命中和侧聊独立选模。
 手机和电脑都可从设置重启受管服务。双端菜单、手机置顶、局域网 CA 和 App 安装入口保留。
@@ -20,7 +20,8 @@ CI、交付包及发布结果以[Release 页面][current-release]为准，未记
 本版适配准确官方 `2.7.2`，继续使用官方原版后端，不增加引擎。兼容边界见 [UPSTREAM][upstream-doc]。
 
 - 手机列表和只读任务按官方 v1 接口分页，分组总数与预览条数分开处理，丢弃过期请求的展示结果。
-- `2.7.2` 的归档设置和侧栏均使用官方删除动作；保留原生流式显示和主输入框的思考档位处理。
+- `2.7.2` 的归档设置和侧栏均使用官方删除动作，流式显示保持原样。
+- `2.7.2-r2` 起，主输入框换模型时，新模型支持当前思考档位就保留，否则用它的默认档位；不改全局、侧聊和子代理。
 - 手机消息目录、时间和加载提示已接入新版 turns/items，复用原生最近历史、旧页、实时消息、重连和撤销。
   只保留短目录、ID 和时间，不存正文、不为目录全量下载会话；首屏沿用官方 WebSocket，不套旧版最近一轮改写。
 - 手机子模型在准确 2.6.0／2.6.1／2.7.2 可恢复跟随主模型，也能选择名为 `primary` 的普通模型；只读任务支持三版。
@@ -88,43 +89,14 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 
 ### 一键安装（推荐）
 
-复制对应系统的命令到终端运行，自动下载安装，无需手动下载脚本。
-
-**Windows：打开 PowerShell，粘贴运行。**
-
-```powershell
-& {
-  $api = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.7.2-r1'
-  $sha = (Invoke-RestMethod $api -ErrorAction Stop).sha
-  if ($sha -notmatch '^[0-9a-fA-F]{40}$') { throw 'Invalid release commit SHA' }
-  $url = "https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.ps1"
-  & ([scriptblock]::Create((Invoke-RestMethod $url -ErrorAction Stop))) --revision $sha --version 2.7.2-r1
-}
-```
-
-**macOS / Linux：打开终端，粘贴运行。**
-
-```sh
-(
-  set -eu
-  api='https://api.github.com/repos/WilliamLambertCN/open-kimi-web/commits/v2.7.2-r1'
-  metadata=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$api")
-  sha=$(printf '%s\n' "$metadata" | sed -n 's/^[[:space:]]*"sha":[[:space:]]*"\([0-9a-fA-F]*\)".*/\1/p' | head -n 1)
-  case "$sha" in ''|*[!0-9a-fA-F]*) exit 1 ;; esac
-  [ "${#sha}" -eq 40 ] || exit 1
-  url="https://raw.githubusercontent.com/WilliamLambertCN/open-kimi-web/$sha/scripts/install.sh"
-  script=$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 "$url") &&
-    sh -c "$script" install.sh --revision "$sha" --version 2.7.2-r1
-)
-```
+在[仓库快速上手][quickstart]复制对应系统的命令到终端运行，无需手动下载脚本。
 
 先检测并明确复用已有可用 Kimi，不下载或升级该官方 CLI；真正缺失才准备固定 `2.7.2`。
 按需补齐 Node/npm 和 Windows Git Bash；坏、歧义或不支持候选明确拒绝，不当作 missing 后另装。
-新开终端运行 `kimi web --host`；完整选项与 shell 限制见[仓库快速上手][quickstart]。
+安装完成后，新开终端运行 `kimi web --host`。
 
-命令解析并校验真实 40 位 SHA，只下载同 SHA 入口，传同一 `--revision` 获取完整安装器，固定 `--version 2.7.2-r1`。
-缺 tag／入口／资产即停，不回退 main 或旧版，不执行可变名称入口，不伪造将来 SHA；HTTPS 不等于签名验证。
-本地入口、coordinator 和 helpers 也必须同一提交；本地 `--help` 不联网、不写入、不要求 Node。
+新版命令固定 Release 版本和两个 SHA-256，先验安装器再验安装包；下载失败不切换到旧版本。
+本地入口、coordinator 和 helpers 必须来自同一提交；本地 `--help` 不联网、不写入、不要求 Node。
 已有其它已识别源码／prefix 需显式 `--switch-installation`；仅装包选 `--no-integrate`，日常升级用 `update`。
 
 - 优先 Node ≥ 22.19.0 与配套 npm；缺失才校验固定 Node `22.23.3`，launcher／official prefix、runtime、bin 分离。
@@ -150,7 +122,7 @@ macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收�
 不需要 Corepack／pnpm；正式发布后，首次安装且尚未接管时使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r1/open-kimi-web-2.7.2-r1.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r2/open-kimi-web-2.7.2-r2.tgz
 open-kimi-web integrate install
 ```
 
@@ -514,7 +486,7 @@ fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍�
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后仍需自行结束旧进程并重启，
 再刷新或重新打开页面，本轮不会自动重启生产。`--web-dir` 不注入展示层及主题功能。
-本版 `2.7.2-r1` 适配准确官方 UI `2.7.2`，发布状态见 [Release 页面][current-release]。
+本版 `2.7.2-r2` 适配准确官方 UI `2.7.2`，发布状态见 [Release 页面][current-release]。
 准确后端、界面与门禁记录见 [UPSTREAM][upstream-doc]；不把源码更新当作已运行的旧服务更新。
 r1 适配、r2 默认／发布与供应商保存记录属于历史，不视为本轮验收。
 r9 完整官方 app 源码实测使用虚构 API，交付包浏览器与线上核验独立于源码实测，不充作新版验收。
@@ -566,7 +538,7 @@ open-kimi-web update           # 更新同一安装，不自动重启
 open-kimi-web update --help
 ```
 
-**旧版 → 2.7.2-r1：** 正式发布后，用 `update --check` 核对实际安装与目标 `2.7.2-r1`，再运行 `update`。
+**旧版 → 2.7.2-r2：** 运行 `update --check` 确认实际安装和目标版本，再运行 `update`。
 一键／npm 安装无需同版本重装、重跑安装器或追加 `--switch-installation`；源码仍仅允许跟踪 origin/main 的干净 main 快进。
 完成后自行停止旧 launcher／受管后端，重新运行 `kimi web --host` 并刷新；独立 target 须自行重启实际 backend。
 局域网 CA 需另行执行一次 `open-kimi-web tls setup`；更新不会自动启用，也不会替手机导入证书。
@@ -583,7 +555,7 @@ wrapper 会调用记录的 Node，更新器优先使用该 Node 旁的 npm，不
 安装输出的 `Update:` 已使用绝对 Node／launcher 路径；先加 `--check` 核对，PowerShell 中保留开头的 `&`。
 
 源码只接受官方仓库的干净 main，跟踪 origin/main、无领先或分叉，使用快进和 frozen lockfile；
-不替用户 stash、reset 或切分支。npm 安装从 GitHub 最新正式 Release 获取精确版本 tgz，
+不替用户 stash、reset 或切分支。npm 安装默认从 GitHub 最新正式 Release 获取精确版本 tgz，
 不使用 npm registry 的 @latest；支持可确认的全局／自定义 prefix，以及简单 npm 本地直接依赖。
 本地更新保留生产／开发依赖类别并修改 owner 的 package.json 和 package-lock.json。
 临时 npx、workspace、链接、混合包管理器和身份不明目录拒绝，不去更新另一份全局安装。
@@ -609,6 +581,26 @@ node packages/launcher/bin/open-kimi-web.mjs integrate repair
 随后在新终端执行 `open-kimi-web integrate status`，结合实际命令和目标确认异常后才用目标入口 repair；
 多 rc 的 zsh 仅有上述 r9 status 警告时不盲目 repair。
 最后停止旧的 `kimi web` / launcher 并重新启动，再刷新或重新打开页面；无需迁移会话数据。
+
+### 下载代理
+
+从 `2.7.2-r2` 开始，一键安装和 npm 自更新无需额外设置：先从 GitHub 下载，失败或约两秒未完成时才尝试第三方
+[GHFast](https://ghfast.top/)。不测首页，不跟随代理跳转，SHA-256 不符就不用那份文件；旧版更新器仍按原方式下载。
+
+如需只用 GitHub，可在当前终端设置 `OPEN_KIMI_WEB_GITHUB_PROXY=0`（PowerShell：`$env:OPEN_KIMI_WEB_GITHUB_PROXY = '0'`）。
+
+代理只传 OKW 的公开安装附件和 `.tgz`。新安装命令固定版本和两个 SHA-256，先校验安装器再解压，
+再按固定摘要验包；npm 自更新的版本和摘要仍从 GitHub API 获取，API 不通就停止。`update --check` 不下载附件。
+源码更新仍直连 `origin/main`；Node、Git Bash、官方 Kimi 和 npm／pnpm 依赖仍走各自来源，不转发任何登录凭据。
+
+**维护者：** 从正式 Release 对应提交生成安装附件和两段命令：
+
+```sh
+node scripts/prepare-installer.mjs <正式提交SHA> <正式版.tgz路径> <新输出目录>
+```
+
+向同一个 GitHub Release 上传生成的 `okw-install-<版本>.tar.gz` 和 `.zip`。确认附件可用后，用生成的
+`install-command.ps1`、`install-command.sh` 更新仓库首页的安装命令；未上传前继续使用现有命令。
 
 ## 安全
 
@@ -642,7 +634,7 @@ MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 M
 
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r1
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md

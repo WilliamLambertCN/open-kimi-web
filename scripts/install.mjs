@@ -1,16 +1,14 @@
 import { spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { access, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, writeFile } from 'node:fs/promises';
-import { downloadBytes } from './install/network.mjs';
-import { assertIntegrationPaths } from './install/paths.mjs';
-import { assertNoSystemShadow, expandWindowsPath, windowsPaths } from './install/system.mjs';
 import { constants } from 'node:fs';
+import { access, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-
-const REPO = 'https://github.com/WilliamLambertCN/open-kimi-web';
-const API = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/releases';
+import { downloadRelease, latestRelease, releaseArchive } from '../packages/launcher/src/update/githubRelease.mjs';
+import { compareVersions, parseVersion as versionParts } from '../packages/launcher/src/update/version.mjs';
+import { recordProcessStart, stopWindowsTree } from '../packages/launcher/src/update/windowsTreeCleanup.mjs';
+import { assertIntegrationPaths } from './install/paths.mjs';
+import { assertNoSystemShadow, expandWindowsPath, windowsPaths } from './install/system.mjs';
 import { installerCommand, wrapperEntry } from './install/wrappers.mjs';
 import { integrationOptions, persistInstallerPath, preflightPersistentPath } from './install/persistentPath.mjs';
 import { acquireInstallerUpdateLock } from './install/updateLock.mjs';
@@ -18,24 +16,14 @@ import { adjacentNpm, installNpmArgs, isolatedNpmEnv, nodeSupported } from './in
 import { discoverOfficial, officialCommand, prepareOfficial } from './install/official.mjs';
 import { normalizePathEnv, pathValue } from './install/environment.mjs';
 import { stopInstallerGroup } from './install/processCleanup.mjs';
-import { recordProcessStart, stopWindowsTree } from '../packages/launcher/src/update/windowsTreeCleanup.mjs';
+
 export { adjacentNpm, installNpmArgs, isolatedNpmEnv } from './install/npm.mjs';
+export { validateRelease as validateInstallRelease } from '../packages/launcher/src/update/githubRelease.mjs';
+export { assertDownloadUrl } from './install/network.mjs';
+
 const ENTRY = 'bin/open-kimi-web.mjs';
 const HELP = 'Usage: node scripts/install.mjs [--version <formal version>] [--switch-installation] [--no-integrate]';
-
-export function versionParts(value) {
-  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-r([1-9]\d*))?$/.exec(value ?? '');
-  return match ? match.slice(1).map((part) => BigInt(part ?? 0)) : null;
-}
-
-function newer(left, right) {
-  const a = versionParts(left);
-  const b = versionParts(right);
-  for (let index = 0; index < a.length; index += 1) {
-    if (a[index] !== b[index]) return a[index] > b[index];
-  }
-  return false;
-}
+const PINNED_DIGEST = 'OPEN_KIMI_WEB_INSTALL_SHA256';
 
 export function parseInstallArgs(args) {
   const options = { integrate: true, switchInstallation: false };
@@ -56,30 +44,6 @@ export function parseInstallArgs(args) {
   return options;
 }
 
-function exactAsset(value, name, url) {
-  if (!Array.isArray(value.assets)) throw new Error('release assets are malformed');
-  const assets = value.assets.filter((asset) => asset?.name === name || asset?.browser_download_url === url);
-  if (assets.length !== 1) throw new Error('release must have one exact uploaded tgz asset');
-  const asset = assets[0];
-  if (asset.name !== name || asset.browser_download_url !== url || asset.state !== 'uploaded') {
-    throw new Error('release must have one exact uploaded tgz asset');
-  }
-  if (!/^sha256:[a-fA-F0-9]{64}$/.test(asset.digest ?? '')) throw new Error('release requires a SHA256 digest');
-  return asset.digest.slice(7).toLowerCase();
-}
-
-export function validateInstallRelease(value, requested) {
-  if (value?.draft !== false || value.prerelease !== false) throw new Error('release is not formal');
-  const version = value.tag_name?.startsWith('v') ? value.tag_name.slice(1) : '';
-  if (!versionParts(version)) throw new Error('release version does not match');
-  if (requested && requested !== version) throw new Error('release version does not match');
-  const name = `open-kimi-web-${version}.tgz`;
-  const url = `${REPO}/releases/download/v${version}/${name}`;
-  if (value.html_url !== `${REPO}/releases/tag/v${version}`) throw new Error('release repository does not match');
-  return { version, url, digest: exactAsset(value, name, url) };
-}
-
-export { assertDownloadUrl } from './install/network.mjs';
 function pathEqual(a, b, platform) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
   return platform === 'win32' ? resolve(a).toLowerCase() === resolve(b).toLowerCase() : resolve(a) === resolve(b);
@@ -355,11 +319,13 @@ export function makeInstallContext(dependencies = {}) {
 }
 
 async function selectRelease(ctx, options, before) {
-  const api = options.version ? `${API}/tags/v${options.version}` : `${API}/latest`;
-  const metadata = await (ctx.releaseMetadata ?? (async (url) => JSON.parse((await downloadBytes(url,
-    { env: ctx.env, metadata: true })).toString('utf8'))))(api);
-  const release = validateInstallRelease(metadata, options.version);
-  if (before.installedVersion && newer(before.installedVersion, release.version)) {
+  const digest = ctx.env[PINNED_DIGEST];
+  if (digest !== undefined && (!options.version || !/^[a-f0-9]{64}$/.test(digest))) {
+    throw new Error(`${PINNED_DIGEST} requires a lowercase SHA256 and an explicit --version`);
+  }
+  const release = digest ? { ...releaseArchive(options.version), digest } :
+    await latestRelease({ ...ctx, version: options.version });
+  if (before.installedVersion && compareVersions(before.installedVersion, release.version) > 0) {
     throw new Error('refusing to downgrade newer installation');
   }
   return release;
@@ -369,8 +335,8 @@ async function stageArchive(ctx, release, progress) {
   progress.label = 'verified release download';
   ctx.log(`OKW release: downloading open-kimi-web ${release.version}; this is not the Official Kimi CLI.`);
   progress.stage = await mkdtemp(join(ctx.home, '.bootstrap-stage-'));
-  const bytes = await (ctx.download ?? downloadBytes)(release.url, { env: ctx.env });
-  if (createHash('sha256').update(bytes).digest('hex') !== release.digest) throw new Error('release SHA256 digest mismatch');
+  const { bytes, downloadedViaProxy } = await downloadRelease(release, ctx);
+  if (downloadedViaProxy) ctx.log('OKW release: verified the archive downloaded via the GitHub download proxy.');
   const archive = join(progress.stage, 'release.tgz');
   await writeFile(archive, bytes, { mode: 0o600 });
   for (const name of ['user.npmrc', 'global.npmrc']) await writeFile(join(progress.stage, name), '', { mode: 0o600 });

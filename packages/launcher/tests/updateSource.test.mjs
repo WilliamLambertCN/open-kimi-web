@@ -4,14 +4,18 @@ import { inspectSource, sourcePlan, updateSource } from '../src/update/sourceUpd
 const sha = 'a'.repeat(40);
 const installation = { kind: 'source', repo: process.cwd(), root: `${process.cwd()}/packages/launcher` };
 const origin = 'https://github.com/WilliamLambertCN/open-kimi-web.git';
+const lookup = 'ls-remote --exit-code origin refs/heads/main';
+const fetch = 'fetch --no-tags --no-recurse-submodules --refmap= origin refs/heads/main';
+const tools = { resolveTool: async () => ({ command: process.execPath, args: ['corepack.js'] }), env: {} };
+const plan = { head: sha, sha };
 const responses = {
   'rev-parse --show-toplevel': installation.repo,
   'symbolic-ref --quiet --short HEAD': 'main',
   'config --get-all remote.origin.url': origin,
   'remote get-url --all origin': origin,
   'rev-parse --abbrev-ref --symbolic-full-name @{upstream}': 'origin/main',
-  'rev-parse HEAD': sha, 'rev-parse FETCH_HEAD': sha,
-  'ls-remote --exit-code origin refs/heads/main': `${sha}\trefs/heads/main`,
+  'rev-parse HEAD': sha, 'rev-parse FETCH_HEAD': sha, 'rev-parse refs/remotes/origin/main': sha,
+  [lookup]: `${sha}\trefs/heads/main`,
   [`show ${sha}:packages/launcher/package.json`]: JSON.stringify({ name: 'open-kimi-web',
     version: '2.1.1-r10', bin: { 'open-kimi-web': 'bin/open-kimi-web.mjs' }, engines: { node: '>=22.0.0' } }),
   [`show ${sha}:package.json`]: JSON.stringify({ name: 'open-kimi-web-monorepo', private: true,
@@ -20,12 +24,16 @@ const responses = {
 function runner(overrides = {}) {
   const count = { heads: 0 };
   return vi.fn(async (command, args) => {
-    const key = args.slice(args.indexOf('-C') + 2).join(' ');
+    let start = args.indexOf('-C') + 2;
+    while (args[start] === '-c') start += 2;
+    const key = args.slice(start).join(' ');
     if (Object.hasOwn(overrides, key)) return typeof overrides[key] === 'function' ? overrides[key](count) : overrides[key];
     if (key.startsWith('rev-parse --git-path ')) return `nonexistent-update-fixture/${key.split(' ').at(-1)}`;
     return responses[key] ?? '';
   });
 }
+
+function called(run, arg) { return run.mock.calls.filter(([, args]) => args.includes(arg)); }
 
 describe('source security and frozen update commands', () => {
   it.each([
@@ -40,29 +48,38 @@ describe('source security and frozen update commands', () => {
   });
   it('check runs bounded ls-remote but never fetches', async () => {
     const run = runner();
-    const plan = await sourcePlan(installation, { run });
-    expect(plan.sha).toBe(sha);
-    expect(run.mock.calls.some((call) => call[1].includes('fetch'))).toBe(false);
+    expect((await sourcePlan(installation, { run, env: {} })).sha).toBe(sha);
+    expect(called(run, 'fetch')).toHaveLength(0);
     expect(run.mock.calls.at(-1)[2].timeoutMs).toBe(30_000);
-    await expect(sourcePlan(installation, { run: runner({ 'ls-remote --exit-code origin refs/heads/main': 'ambiguous' }) }))
-      .rejects.toThrow('ambiguous');
+    await expect(sourcePlan(installation, { run: runner({ [lookup]: 'ambiguous' }), env: {} })).rejects.toThrow('ambiguous');
   });
   it('fetches without tags/submodules, freezes SHA and uses ff-only plus frozen Corepack install', async () => {
     const run = runner();
-    const result = await updateSource(installation, { head: sha }, { run,
-      resolveTool: async () => ({ command: process.execPath, args: ['corepack.js'] }) });
+    const result = await updateSource(installation, plan, { ...tools, run });
     expect(result.sha).toBe(sha);
     const calls = run.mock.calls.map((call) => call[1]);
     expect(calls.some((args) => args.includes('--no-tags') && args.includes('--no-recurse-submodules'))).toBe(true);
     expect(calls.some((args) => args.includes('--ff-only') && args.at(-1) === sha)).toBe(true);
     expect(calls.at(-1)).toEqual(['corepack.js', 'pnpm', 'install', '--frozen-lockfile']);
   });
-  it('refuses a raced HEAD and an invalid fetched SHA before merging', async () => {
+  it('refuses a raced HEAD or moved remote ref before merging', async () => {
     const run = runner({ 'rev-parse HEAD': (count) => ++count.heads === 1 ? sha : 'b'.repeat(40) });
-    await expect(updateSource(installation, { head: sha }, { run,
-      resolveTool: async () => ({ command: process.execPath, args: [] }) })).rejects.toThrow('HEAD changed');
-    expect(run.mock.calls.some((call) => call[1].includes('merge'))).toBe(false);
-    await expect(updateSource(installation, { head: sha }, { run: runner({ 'rev-parse FETCH_HEAD': 'bad-sha' }),
-      resolveTool: async () => ({ command: process.execPath, args: [] }) })).rejects.toThrow('invalid fetched');
+    await expect(updateSource(installation, plan, { ...tools, run })).rejects.toThrow('HEAD or origin/main changed');
+    expect(called(run, 'merge')).toHaveLength(0);
+    await expect(updateSource(installation, plan, { ...tools, run: runner({ 'rev-parse FETCH_HEAD': 'b'.repeat(40) }) }))
+      .rejects.toThrow('main changed since lookup');
+  });
+  it.each([lookup, fetch])('never substitutes the download proxy for a failed Git request: %s', async (command) => {
+    const unavailable = new Error('fixture GitHub unavailable');
+    const env = { OPEN_KIMI_WEB_GITHUB_PROXY: 'https://ghfast.top' };
+    const run = runner({ [command]: () => { throw unavailable; } });
+    const context = { ...tools, env, run };
+    const task = command === lookup ? sourcePlan(installation, context) : updateSource(installation, plan, context);
+    await expect(task).rejects.toBe(unavailable);
+    const requests = called(run, command.split(' ')[0]);
+    expect(requests).toHaveLength(1);
+    expect(requests[0][1].at(-2)).toBe('origin');
+    expect(requests[0][2].timeoutMs).toBe(30_000);
+    expect(called(run, 'merge')).toHaveLength(0);
   });
 });

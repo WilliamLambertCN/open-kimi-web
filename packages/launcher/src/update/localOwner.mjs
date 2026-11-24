@@ -37,8 +37,13 @@ function assertInstalled(installed, manifest, category) {
   }
 }
 
-function assertLegacy(lock, manifest) {
-  if (lock.lockfileVersion === 2 && lock.dependencies?.[NAME]?.version !== manifest.version) {
+function assertLegacy(owner, lock, manifest, category) {
+  if (lock.lockfileVersion !== 2) return;
+  const spec = owner[category][NAME];
+  const installed = lock.packages[`node_modules/${NAME}`];
+  const legacy = lock.dependencies?.[NAME];
+  const version = /^https?:\/\//.test(spec) && spec === installed.resolved ? spec : manifest.version;
+  if (legacy?.version !== version || legacy.integrity !== installed.integrity) {
     throw new Error('npm v2 legacy lock evidence is stale');
   }
 }
@@ -52,7 +57,7 @@ function assertLock(owner, lock, manifest, category) {
     }
   }
   assertInstalled(lock.packages[`node_modules/${NAME}`], manifest, category);
-  assertLegacy(lock, manifest);
+  assertLegacy(owner, lock, manifest, category);
   if (Object.entries(lock.packages).some(([key, value]) => value.link || OFFICIAL.some((name) =>
     key.endsWith(`node_modules/${name}`) || value.name === name))) {
     throw new Error('owner lock contains links or official Kimi');
@@ -70,5 +75,5 @@ export async function inspectLocalOwner(path, manifest) {
   const category = dependencyCategory(owner);
   const lock = await readJson(join(path, 'package-lock.json'));
   assertLock(owner, lock, manifest, category);
-  return { category, ownerManifest: owner };
+  return { category, ownerManifest: owner, ownerLock: lock };
 }

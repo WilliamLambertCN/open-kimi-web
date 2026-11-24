@@ -38,15 +38,44 @@ export async function copyDependencies(from, to, names, copied = new Set()) {
   }
 }
 
-export async function packageFixture(directory, version) {
+async function registryPackages(from, dependencies, packages) {
+  for (const name of Object.keys(dependencies ?? {})) {
+    const root = await dependencyRoot(name, from);
+    if (packages.has(root)) continue;
+    const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+    packages.set(root, manifest);
+    await registryPackages(root, manifest.dependencies, packages);
+  }
+}
+
+export async function fixtureRegistry(directory) {
+  const manifest = JSON.parse(await readFile(join(launcherRoot, 'package.json'), 'utf8'));
+  const packages = new Map();
+  await registryPackages(launcherRoot, manifest.dependencies, packages);
+  const tool = await resolveTool('npm');
+  const output = await checkedRun(tool.command, [...tool.args, 'pack', '--json', '--ignore-scripts',
+    '--pack-destination', directory, ...packages.keys()], { cwd: directory, maxBytes: 1024 * 1024, timeoutMs: 60_000 });
+  const archives = new Map(JSON.parse(output).map((pkg) => [`${pkg.name}@${pkg.version}`, pkg]));
+  const registry = new Map();
+  for (const { name, version, dependencies, engines, bin } of packages.values()) {
+    if (!registry.has(name)) registry.set(name, []);
+    const { filename, integrity } = archives.get(`${name}@${version}`);
+    registry.get(name).push({ name, version, dependencies, engines, bin, dist: { filename, integrity } });
+  }
+  return registry;
+}
+
+export async function packageFixture(directory, version, { bundle = true } = {}) {
   const root = join(directory, `package-${version}`);
   await cp(join(launcherRoot, 'src'), join(root, 'src'), { recursive: true });
   await cp(join(launcherRoot, 'bin'), join(root, 'bin'), { recursive: true });
   const manifest = JSON.parse(await readFile(join(launcherRoot, 'package.json'), 'utf8'));
   manifest.version = version;
   manifest.scripts = { install: 'node -e "require(\'fs\').writeFileSync(\'UNSAFE-LIFECYCLE\',\'ran\')"' };
-  manifest.bundledDependencies = Object.keys(manifest.dependencies);
-  await copyDependencies(launcherRoot, root, manifest.bundledDependencies);
+  if (bundle) {
+    manifest.bundledDependencies = Object.keys(manifest.dependencies);
+    await copyDependencies(launcherRoot, root, manifest.bundledDependencies);
+  }
   await put(join(root, 'package.json'), manifest);
   const tool = await resolveTool('npm');
   await checkedRun(tool.command, [...tool.args, 'pack', '--ignore-scripts', '--pack-destination', directory], {
@@ -98,14 +127,13 @@ export function identityOptions(root) {
   return { modulePath: join(root, 'src/update/installation.mjs'), entryPath: join(root, 'bin/open-kimi-web.mjs'), env: {} };
 }
 
-export function networkInjectedRun(remote, tgz) {
+export function networkInjectedRun(remote) {
   return async (command, args, options) => {
     const copy = [...args];
-    if (command === 'git' && (copy.includes('fetch') || copy.includes('ls-remote'))) {
-      copy[copy.indexOf('origin')] = remote;
-    }
-    if (tgz && copy.at(-1)?.startsWith('https://github.com/WilliamLambertCN/open-kimi-web/releases/download/')) {
-      copy[copy.length - 1] = tgz;
+    if (command === 'git' && copy.at(-1) === 'refs/heads/main' &&
+        (copy.includes('fetch') || copy.includes('ls-remote'))) {
+      if (copy.at(-2) !== 'origin') throw new Error('fixture expected official origin');
+      copy[copy.length - 2] = remote;
     }
     return checkedRun(command, copy, options);
   };

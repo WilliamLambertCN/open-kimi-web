@@ -1,7 +1,7 @@
 import { identifyInstallation } from './installation.mjs';
 import { latestRelease } from './githubRelease.mjs';
 import { acquireLock, lockPath } from './lock.mjs';
-import { npmCommand, updateNpm } from './npmUpdate.mjs';
+import { updateNpm } from './npmUpdate.mjs';
 import { sourcePlan, updateSource } from './sourceUpdate.mjs';
 import { compareVersions } from './version.mjs';
 import { verifyInstallation } from './verification.mjs';
@@ -13,7 +13,8 @@ Updates only the verified installation executing this command.
 --check  Inspect the target and planned command without fetch/install or a lock.
 --help   Show this help without loading service dependencies.
 Source: clean main tracking official origin/main, fast-forward only.
-Npm: exact official GitHub latest release tgz, never another global copy.
+Npm: exact verified release tgz, never another global copy.
+GHFast is the default fallback for release downloads only; set OPEN_KIMI_WEB_GITHUB_PROXY=0 to disable.
 No automatic restart, rollback, repair, PATH, certificate or user-data changes.
 Exit codes: 0 success/check/current, 1 failure/refusal, 2 invalid arguments.
 `;
@@ -25,21 +26,21 @@ export function parseUpdateArgs(args) {
   throw new Error('update accepts only --check or --help');
 }
 
-function recovery(installation, plan) {
+function recovery(installation) {
   if (!installation) return 'Use a verified main checkout or reinstall the official GitHub Release tgz manually.';
   if (installation.kind === 'source') {
     return 'Inspect git status/HEAD in the identified checkout; after resolving the failure, run ' +
       'corepack pnpm install --frozen-lockfile there. Do not reset or discard local work.';
   }
-  return plan ? `Inspect the identified npm installation, then retry manually: ${npmCommand(installation, plan.url)}` :
-    'Inspect the identified npm installation and reinstall the official GitHub Release tgz manually.';
+  return 'Inspect the identified npm installation, then retry open-kimi-web update once the cause is resolved.';
 }
 
 function describe(installation, plan, log) {
   log(`Installation: ${installation.kind} ${installation.repo ?? installation.owner ?? installation.prefix}`);
   log(`Current: ${installation.version}`);
   log(`Target: ${plan.sha ?? plan.version}${plan.sha ? ' (main source, not the tgz channel)' : ''}`);
-  log(`Command: ${plan.command ?? npmCommand(installation, plan.url)}`);
+  log('Source: GitHub');
+  log(`Plan: ${plan.command ?? 'Verify release archive, then install with npm --ignore-scripts.'}`);
   if (installation.kind === 'local') log(`Updates owner package.json/package-lock.json; retains ${installation.category}.`);
 }
 
@@ -53,9 +54,7 @@ async function performUpdate(options, context, state) {
   state.installation = installation;
   if (!options.check) state.releaseLock = await context.acquireLock(installation);
   context.stage('target lookup');
-  const plan = installation.kind === 'source' ? await sourcePlan(installation, context) :
-    await context.latestRelease({ signal: context.signal });
-  state.plan = plan;
+  const plan = installation.kind === 'source' ? await sourcePlan(installation, context) : await context.latestRelease(context);
   describe(installation, plan, context.log);
   if (installation.kind !== 'source' && compareVersions(plan.version, installation.version) <= 0) {
     context.log('Already current or newer; no downgrade performed.');
@@ -109,7 +108,7 @@ export async function updateMain(args, dependencies = {}) {
     deps.error(state.mayHaveChanged ? 'Installation may have partially changed; no automatic rollback was attempted.' :
       'No replacement stage was started.');
     await currentFacts(state.installation, deps.error);
-    deps.error(recovery(state.installation, state.plan));
+    deps.error(recovery(state.installation));
     return 1;
   } finally {
     process.removeListener('SIGINT', cancel);
