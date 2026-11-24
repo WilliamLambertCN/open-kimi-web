@@ -12,16 +12,20 @@ const ORIGINS = new Set([
 ]);
 const OPERATIONS = ['MERGE_HEAD', 'REBASE_HEAD', 'CHERRY_PICK_HEAD', 'REVERT_HEAD', 'BISECT_LOG',
   'rebase-apply', 'rebase-merge', 'sequencer'];
+const TRACKING = 'refs/remotes/origin/main';
+const MAIN = 'refs/heads/main';
+const COMMIT = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 
-function gitEnv() {
-  return Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^GIT_/i.test(key)));
+function gitEnv(env = process.env) {
+  const clean = Object.fromEntries(Object.entries(env).filter(([key]) => !/^GIT_/i.test(key)));
+  return { ...clean, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' };
 }
 
 function gitRunner(installation, context) {
   const run = context.run ?? checkedRun;
-  return (args) => run('git', ['--no-optional-locks', '-c', 'core.hooksPath=/dev/null', '-C', installation.repo, ...args], {
-    cwd: installation.repo, env: { ...gitEnv(), GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' },
-    signal: context.signal, timeoutMs: 30_000,
+  return (args, options) => run('git', ['--no-optional-locks', '-c', 'core.hooksPath=/dev/null',
+    '-C', installation.repo, ...args], {
+    cwd: installation.repo, env: gitEnv(context.env), signal: context.signal, timeoutMs: 30_000, ...options,
   });
 }
 
@@ -48,18 +52,25 @@ export async function inspectSource(installation, context = {}) {
     }
   }
   const head = await git(['rev-parse', 'HEAD']);
-  await git(['merge-base', '--is-ancestor', head, 'refs/remotes/origin/main']);
-  return { head, git };
+  const upstream = await git(['rev-parse', TRACKING]);
+  await git(['merge-base', '--is-ancestor', head, upstream]);
+  return { head, upstream, git };
+}
+
+function gitNetwork(git, args) {
+  return git(['-c', 'http.followRedirects=false', '-c', 'http.sslVerify=true', ...args, 'origin', MAIN], { quietFailure: true });
 }
 
 export async function sourcePlan(installation, context = {}) {
-  const state = await inspectSource(installation, context);
-  const result = await state.git(['ls-remote', '--exit-code', 'origin', 'refs/heads/main']);
-  const match = /^([a-f0-9]{40,64})\s+refs\/heads\/main$/.exec(result);
-  if (!match) throw new Error('official main lookup returned ambiguous commit evidence');
-  return { kind: 'source', version: 'main source channel', sha: match[1], head: state.head,
-    command: 'git fetch --no-tags --no-recurse-submodules origin refs/heads/main; ' +
-      'git merge --ff-only <verified SHA>; corepack pnpm install --frozen-lockfile' };
+  const { git, head } = await inspectSource(installation, context);
+  const evidence = (await gitNetwork(git, ['ls-remote', '--exit-code'])).split(/\s+/);
+  const [sha, ref] = evidence;
+  if (!COMMIT.test(sha) || ref !== MAIN || evidence.length !== 2) {
+    throw new Error('main lookup returned ambiguous commit evidence');
+  }
+  return { kind: 'source', version: 'main source channel', sha, head,
+    command: 'Fetch official origin/main without tags or submodules; verify SHA and ancestry; ' +
+      'git merge --ff-only; corepack pnpm install --frozen-lockfile' };
 }
 
 async function targetManifests(git, sha) {
@@ -74,18 +85,30 @@ async function targetManifests(git, sha) {
   return launcher;
 }
 
+async function verifiedTarget(installation, { git, head, upstream }, plan, context) {
+  if (head !== plan.head) throw new Error('source HEAD changed during update; refusing to fetch');
+  context.stage?.('fetch');
+  await gitNetwork(git, ['fetch', '--no-tags', '--no-recurse-submodules', '--refmap=']);
+  if (await git(['rev-parse', 'FETCH_HEAD']) !== plan.sha) {
+    throw new Error('fetched main changed since lookup; refusing to merge');
+  }
+  await git(['merge-base', '--is-ancestor', upstream, plan.sha]);
+  const manifest = await targetManifests(git, plan.sha);
+  const current = await inspectSource(installation, context);
+  if (current.head !== head || current.upstream !== upstream) {
+    throw new Error('source HEAD or origin/main changed during update; refusing to merge');
+  }
+  return manifest;
+}
+
 export async function updateSource(installation, plan, context = {}) {
   const tools = await (context.resolveTool ?? resolveTool)('corepack');
-  const { git } = await inspectSource(installation, context);
-  context.stage?.('fetch');
-  await git(['fetch', '--no-tags', '--no-recurse-submodules', 'origin', 'refs/heads/main']);
-  const sha = await git(['rev-parse', 'FETCH_HEAD']);
-  if (!/^[a-f0-9]{40,64}$/.test(sha)) throw new Error('invalid fetched source commit');
-  await git(['merge-base', '--is-ancestor', plan.head, sha]);
-  const manifest = await targetManifests(git, sha);
-  const current = await inspectSource(installation, context);
-  if (current.head !== plan.head) throw new Error('source HEAD changed during update; refusing to merge');
+  const state = await inspectSource(installation, context);
+  const manifest = await verifiedTarget(installation, state, plan, context);
+  const { git, upstream } = state;
+  const { sha } = plan;
   context.stage?.('fast-forward', true);
+  await git(['update-ref', TRACKING, sha, upstream]);
   await git(['merge', '--ff-only', '--no-edit', sha]);
   context.stage?.('dependency installation', true);
   await (context.run ?? checkedRun)(tools.command, [...tools.args, 'pnpm', 'install', '--frozen-lockfile'], {

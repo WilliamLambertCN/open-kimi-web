@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -17,10 +18,11 @@ async function temp() {
 }
 afterEach(async () => { for (const path of paths.splice(0)) await rm(path, { recursive: true, force: true }); });
 const installation = { kind: 'global', prefix: 'fixture-prefix', root: 'fixture-root', version: '2.1.1-r9' };
+const bytes = Buffer.from('fixture archive');
 const plan = { version: '2.1.1-r10', url: 'https://github.com/WilliamLambertCN/open-kimi-web/releases/download/' +
-  'v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz' };
+  'v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz', digest: createHash('sha256').update(bytes).digest('hex') };
 function dependencies(overrides = {}) {
-  return { identify: async () => installation, latestRelease: async () => plan,
+  return { identify: async () => installation, latestRelease: async () => plan, download: async () => bytes, env: {},
     acquireLock: async () => vi.fn(), log: vi.fn(), error: vi.fn(), ...overrides };
 }
 
@@ -98,7 +100,8 @@ describe('update orchestration boundaries', () => {
     expect(deps.run.mock.calls[0][1]).toContain('--package-lock-only=false');
     expect(deps.run.mock.calls[0][1]).toContain('--replace-registry-host=never');
     expect(deps.run.mock.calls[0][1]).toContain(installation.prefix);
-    expect(deps.run.mock.calls[0][1].at(-1)).toBe(plan.url);
+    expect(deps.run.mock.calls[0][1].at(-1)).toMatch(/okw-update-.*[/\\]release\.tgz$/);
+    expect(deps.run.mock.calls[0][1]).not.toContain(plan.url);
   });
   it('reports lookup and fresh verification failures honestly and cleans locks', async () => {
     const network = dependencies({ latestRelease: async () => { throw new Error('rate limited'); } });

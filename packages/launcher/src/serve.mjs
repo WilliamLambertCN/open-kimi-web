@@ -224,6 +224,7 @@ export async function createLauncher({
     tls: tlsSummary(tls),
     requestMetricsState: metrics.state,
     streamingState: metrics.streamingState,
+    modelThinkingState: metrics.modelThinkingState,
     close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs, restart }),
   };
 }

@@ -154,7 +154,7 @@ function registerSuccess(fixture, active) {
       expect(harness.responses[0].complete).toBe(true);
       expect(harness.responses[0].socket.authorized).toBe(true);
       expect(harness.requests[0].setTimeout.mock.calls[0][0]).toBe(15_000);
-      expect(harness.agentFactory).toHaveBeenCalledWith({ proxyEnv: {} });
+      expect(harness.agentFactory).toHaveBeenCalledWith({ proxyEnv: {}, rejectUnauthorized: true });
     });
 
     it('downloads the exact official 2.7.2 URL through the verified TLS transport', async () => {
@@ -169,7 +169,7 @@ function registerSuccess(fixture, active) {
       const harness = active(transport(fixture(), [ok('fixture')]));
       const env = { HTTPS_PROXY: 'http://proxy.example.invalid:8080', NO_PROXY: '127.0.0.1' };
       await expect(downloadBytes(asset, { ...harness.options, env })).resolves.toEqual(Buffer.from('fixture'));
-      expect(harness.agentFactory).toHaveBeenCalledWith({ proxyEnv: env });
+      expect(harness.agentFactory).toHaveBeenCalledWith({ proxyEnv: env, rejectUnauthorized: true });
     });
 
     it('returns an empty complete response without inventing bytes', async () => {
@@ -234,6 +234,42 @@ function registerRedirects(fixture, active) {
       expect(first.send).toHaveBeenCalledTimes(5);
       expect(second.send).toHaveBeenCalledTimes(5);
     });
+  });
+}
+
+function registerDownloadProxy(fixture, active) {
+  const proxy = 'https://ghfast.top';
+  const url = `${proxy}/${asset}`;
+  const settings = { proxyVersion: '2.1.1-r9', env: { GH_TOKEN: 'fixture-token' } };
+  describe('release attachment proxy over real HTTPS', () => {
+    it('requests the exact permitted archive anonymously and returns the complete response', async () => {
+      const bytes = Buffer.from('verified attachment');
+      const harness = active(transport(fixture(), [ok(bytes)]));
+      await expect(downloadBytes(url, { ...harness.options, ...settings })).resolves.toEqual(bytes);
+      expect(harness.send).toHaveBeenCalledExactlyOnceWith(url, { agent: harness.agents[0], headers: {
+        Accept: 'application/octet-stream', 'User-Agent': 'open-kimi-web-install',
+      } }, expect.any(Function));
+      expect(harness.responses[0].socket.authorized).toBe(true);
+    });
+
+    it.each([
+      [url, { env: { OPEN_KIMI_WEB_GITHUB_PROXY: '0' } }], [url, { proxyVersion: undefined }],
+      [url, { metadata: true }], [`${url}.sha256`, {}],
+      [`${url}?token=fixture`, {}], [`${url}#fixture`, {}], [url.replaceAll('r9', 'r8'), {}],
+      [`${proxy}/${metadata}`, { metadata: true }], [`${proxy}/${official}`, {}],
+      [url.replace('ghfast.top', 'ghfast.top.example.invalid'), {}],
+    ])('rejects an unauthorized proxy request for %s before sending it', async (address, overrides) => {
+      const send = vi.fn();
+      await expect(downloadBytes(address, { ...settings, ...overrides, request: send })).rejects.toThrow('not allowed');
+      expect(send).not.toHaveBeenCalled();
+    });
+
+    it.each([asset, `${url}.sha256`, 'https://elsewhere.invalid/archive.tgz'])
+      ('never follows a proxy 302 to %s', async (next) => {
+        const harness = active(transport(fixture(), [redirect(302, next)]));
+        await expect(downloadBytes(url, { ...harness.options, ...settings })).rejects.toThrow('download redirect refused');
+        expect(harness.send).toHaveBeenCalledOnce();
+      });
   });
 }
 
@@ -391,9 +427,9 @@ function registerEventFailures() {
       const agent = { destroy: vi.fn() };
       try {
         await expect(downloadBytes(asset, { agentFactory: () => agent, request: () => {
-          signalSpy.mock.contexts.at(-1).abort();
+          signalSpy.mock.contexts.at(-1).abort(new Error('download cancelled'));
           return req;
-        } })).rejects.toThrow('download timed out');
+        } })).rejects.toThrow('download cancelled');
         expect(req.writableEnded).toBe(false);
         expect(req.destroyed).toBe(true);
         expect(agent.destroy).toHaveBeenCalledOnce();
@@ -425,6 +461,7 @@ export function installNetworkScenarios() {
   registerUrlBoundaries();
   registerSuccess(() => fixture, active);
   registerRedirects(() => fixture, active);
+  registerDownloadProxy(() => fixture, active);
   registerFailures(() => fixture, active);
   registerTimeouts(() => fixture, active);
   registerEventFailures();

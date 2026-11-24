@@ -24,17 +24,19 @@ describe('isolated real source update', () => {
     const { checkout, remote, installation, sha } = value;
     const before = await git(checkout, ['rev-parse', 'HEAD']);
     const run = networkInjectedRun(remote);
-    const plan = await sourcePlan(installation, { run });
+    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^npm_(command|lifecycle_event)$/i.test(key)));
+    const context = { run, env: { ...env, OPEN_KIMI_WEB_GITHUB_PROXY: 'https://ghfast.top' } };
+    const plan = await sourcePlan(installation, context);
     expect(plan.sha).toBe(sha);
     expect(await git(checkout, ['rev-parse', 'HEAD'])).toBe(before);
     expect(await git(checkout, ['rev-parse', 'origin/main'])).toBe(before);
     await expect(readFile(join(checkout, '.git/FETCH_HEAD'))).rejects.toThrow();
-    const result = await updateSource(installation, plan, { run });
+    const result = await updateSource(installation, plan, context);
     expect(result.sha).toBe(sha);
     expect(await git(checkout, ['rev-parse', 'HEAD'])).toBe(sha);
     expect(await git(checkout, ['config', 'remote.origin.url'])).toBe(officialOrigin);
     expect(await git(checkout, ['status', '--porcelain'])).toBe('');
-    await verifyInstallation(installation, result, { run });
+    await verifyInstallation(installation, result, context);
   }, 60_000);
 
   it('refuses dirty trees, unsafe branches/remotes/tracking, ahead commits and ongoing operations', async () => {
@@ -66,7 +68,7 @@ describe('isolated real source update', () => {
     await expect(inspectSource(installation)).rejects.toThrow();
   }, 60_000);
 
-  it('detects HEAD changes and rejects a too-new Node requirement before modifying HEAD', async () => {
+  it('checks a frozen SHA and rejects a too-new Node requirement before modifying HEAD', async () => {
     const { checkout, remote, installation } = await fixture();
     const run = networkInjectedRun(remote);
     const plan = await sourcePlan(installation, { run });
@@ -76,10 +78,17 @@ describe('isolated real source update', () => {
     await put(join(remote, 'packages/launcher/package.json'), manifest);
     await git(remote, ['add', '.']);
     await git(remote, ['commit', '-m', 'fixture unsupported node']);
-    await expect(updateSource(installation, plan, { run })).rejects.toThrow('requires Node');
+    await expect(updateSource(installation, plan, { run })).rejects.toThrow('main changed since lookup');
+    expect(await git(checkout, ['rev-parse', 'HEAD'])).toBe(before);
+    expect(await git(checkout, ['rev-parse', 'origin/main'])).toBe(before);
+    const next = await sourcePlan(installation, { run });
+    await expect(updateSource(installation, next, { run })).rejects.toThrow('requires Node');
     expect(await git(checkout, ['rev-parse', 'HEAD'])).toBe(before);
   }, 60_000);
 
+});
+
+describe('source update recovery', () => {
   it('reports a genuine post-fast-forward install failure with changed HEAD and recovery, not rollback', async () => {
     const { checkout, remote, installation, sha } = await fixture();
     const lines = [];

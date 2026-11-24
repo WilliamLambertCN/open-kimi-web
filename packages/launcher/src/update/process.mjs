@@ -62,7 +62,8 @@ export function runProcess(command, args = [], options = {}) {
 export async function checkedRun(command, args, options) {
   const result = await runProcess(command, args, options);
   if (result.code !== 0) {
-    throw new Error(`update command failed (${result.code}): ${result.stderr.trim().slice(0, 2_000)}`);
+    const detail = options?.quietFailure ? '' : `: ${result.stderr.trim().slice(0, 2_000)}`;
+    throw new Error(`update command failed (${result.code})${detail}`);
   }
   return result.stdout.trim();
 }

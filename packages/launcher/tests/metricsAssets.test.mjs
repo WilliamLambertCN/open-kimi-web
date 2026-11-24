@@ -5,7 +5,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { metricsHtml, metricsPresentationState, metricsStartupMessage, prepareMetricsAssets } from '../src/metricsAssets.mjs';
 import { addMobilePresentation } from '../src/officialPresentation.mjs';
 import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix } from '../src/officialRequestMetrics.mjs';
+import { THINKING_ASSET_PREFIX as thinkingPrefix } from '../src/officialModelThinking.mjs';
+import { modelThinkingFixture } from './testkit/officialModelThinking.mjs';
 import { nativeTimingFixture as source } from './testkit/officialRequestMetrics.mjs';
+
 
 const html = '<head><script src="/boot.js"></script><script crossorigin type="module" src="/assets/main.js"></script></head>';
 const streaming = 'const Markdown={__name:"Markdown"};const props={mode:"chat",final:x.value,' +
@@ -74,7 +77,17 @@ describe('verified official metrics assets', () => {
     expect(metricsHtml(html, result)).not.toContain(streamingPrefix);
     expect(await prepareMetricsAssets(publicDir, false, '2.7.2')).toEqual({ state: 'disabled' });
     await writeFile(join(publicDir, 'assets/main.js'), streaming);
-    expect(await prepareMetricsAssets(publicDir, true, '2.7.2')).toEqual({ state: 'incompatible-bundle' });
+    expect(await prepareMetricsAssets(publicDir, true, '2.7.2'))
+      .toEqual({ state: 'incompatible-bundle', modelThinkingState: 'incompatible-bundle' });
+  });
+  it('assigns a new module graph identity without requiring metrics to match', async () => {
+    for (const [extra, state] of [['', 'incompatible-bundle'], [source, 'active']]) {
+      await writeFile(join(publicDir, 'assets/main.js'), modelThinkingFixture + extra);
+      const result = await prepareMetricsAssets(publicDir, true, '2.7.2');
+      expect(result).toMatchObject({ state, prefix: thinkingPrefix, modelThinkingState: 'active', streamingState: 'disabled' });
+      expect(result.patched).toContain('save(sid,alias,changed&&model!==void 0?next:void 0)');
+      expect(metricsHtml(html, result)).toContain(`src="${thinkingPrefix}/assets/main.js"`);
+    }
   });
   it('keeps metrics when streaming structure is incompatible and combines both when compatible', async () => {
     await writeFile(join(publicDir, 'assets/main.js'), source);

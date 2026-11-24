@@ -4,6 +4,17 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.7.2-r2] - 2026-11-24
+
+- 使用官方 `2.7.2` 时，主聊天切换模型会保留当前思考档位；目标模型不支持时才用它自己的默认档位。
+  不改全局配置、侧聊或子代理，也不改发送行为。
+- Windows、macOS 和 Linux 的一键安装以及 npm 自更新先直连 GitHub；公开附件下载失败或约两秒未完成时，自动尝试 GHFast。
+  不用配置环境变量；校验 SHA-256，不跟随代理跳转。版本查询、官方 Kimi、依赖和源码更新不走代理。
+- npm 本地安装更新后仍在依赖和锁文件中记录官方附件地址。源码更新只快进官方 `origin/main`。
+- 不升级已有官方 Kimi、不迁移会话或自动重启；更新后手动重启旧服务并刷新网页。
+
+[open-kimi-web v2.7.2-r2]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
+
 ## [open-kimi-web v2.7.2-r1] - 2026-11-21
 
 兼容目标更新为准确官方 Kimi Code `2.7.2`，保留已验证的 `2.6.0`／`2.6.1` 支持。

@@ -1,8 +1,9 @@
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { once } from 'node:events';
 import { afterEach, describe, expect, it } from 'vitest';
 import { runProcess } from '../../packages/launcher/src/update/process.mjs';
@@ -111,11 +112,16 @@ describe('owned updater tree cleanup does not touch independent services', () =>
       version: '2.1.1-r9' };
     await put(join(target.root, 'package.json'), { version: target.version });
     const release = await acquireLock(target, { directory: value.directory });
+    const archive = Buffer.from('fixture archive');
+    const url = 'https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.1.1-r10/open-kimi-web-2.1.1-r10.tgz';
+    const digest = createHash('sha256').update(archive).digest('hex');
     let failure;
     const task = updateMain([], { identify: async () => target, acquireLock: async () => release,
-      latestRelease: async () => ({ version: '2.1.1-r10', url: 'fixture-network-not-used' }),
+      latestRelease: async () => ({ version: '2.1.1-r10', url, digest }),
+      download: async () => archive, env: {},
       resolveTool: async () => ({ command: process.execPath, args: [] }), reidentify: async () => target,
-      run: async () => {
+      run: async (_command, args) => {
+        directories.push(dirname(args.at(-1)));
         try { return await runProcess(parent.command, parent.args, { timeoutMs: 1_500 }); }
         catch (error) { failure = error; throw error; }
       }, log: () => {}, error: () => {},

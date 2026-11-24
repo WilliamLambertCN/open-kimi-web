@@ -116,6 +116,29 @@ describe('installer CLI and release boundaries', () => {
   });
 });
 
+describe('installer pins from trusted release commands', () => {
+  it('refuses corrupt proxy bytes without asking for metadata or running npm', async () => {
+    const f = await fixture();
+    f.env.OPEN_KIMI_WEB_INSTALL_SHA256 = digest;
+    const url = metadata().assets[0].browser_download_url;
+    f.download.mockRejectedValueOnce(new Error('GitHub unavailable')).mockResolvedValueOnce(Buffer.from('bad package'));
+    await expect(installRelease({ ...options, version: '2.1.1-r9' }, f)).rejects.toThrow('SHA256 digest mismatch');
+    expect(f.releaseMetadata).not.toHaveBeenCalled();
+    expect(f.download.mock.calls.map(([address]) => address)).toEqual([url, `https://ghfast.top/${url}`]);
+    expect(f.run.mock.calls.some(([, args]) => args.includes('install'))).toBe(false);
+    expect(await readdir(f.env.OPEN_KIMI_WEB_HOME)).toEqual(['tools']);
+  });
+
+  it.each([[undefined, digest], ['2.1.1-r9', 'invalid']])
+    ('refuses an unusable pin before downloading (%s)', async (version, pin) => {
+      const f = await fixture();
+      f.env.OPEN_KIMI_WEB_INSTALL_SHA256 = pin;
+      await expect(installRelease({ ...options, version }, f)).rejects.toThrow('requires a lowercase SHA256');
+      expect(f.releaseMetadata).not.toHaveBeenCalled();
+      expect(f.download).not.toHaveBeenCalled();
+    });
+});
+
 describe('full coordinator orchestration', () => {
   it('installs a verified archive via selected node/npm and reports package-only accurately', async () => {
     const f = await fixture();

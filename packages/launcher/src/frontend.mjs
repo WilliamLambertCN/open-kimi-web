@@ -199,12 +199,20 @@ function printStreamingStatus(launcher, log, warn) {
   }
 }
 
+function printModelThinkingStatus(launcher, log, warn) {
+  if (launcher.modelThinkingState === 'active') log('model switching: preserves supported session thinking effort');
+  else if (launcher.modelThinkingState && launcher.modelThinkingState !== 'disabled') {
+    warn('model switching: structure not verified; original thinking behavior retained');
+  }
+}
+
 function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   const log = opts.log ?? console.log;
   const warn = opts.warn ?? console.error;
   if (debugLog?.file) log(`debug log enabled: OKW home/logs/${basename(debugLog.file)}`);
   printMetricsStatus(launcher, log, warn);
   printStreamingStatus(launcher, log, warn);
+  printModelThinkingStatus(launcher, log, warn);
   log(`open-kimi-web ready (target: ${opts.target})`);
   for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
   for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);
