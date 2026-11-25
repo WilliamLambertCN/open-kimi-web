@@ -42,7 +42,7 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。[v2.7.2-r3][current-release] 适配 Kimi Code `2.7.2`，保留 `2.6.0`／`2.6.1` 支持。
+> 非官方社区项目，与 Moonshot AI 无关联。[v2.7.2-r4][current-release] 适配 Kimi Code `2.7.2`，保留 `2.6.0`／`2.6.1` 支持。
 > 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-272-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
@@ -50,7 +50,7 @@
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'
-    $version = '2.7.2-r3'
+    $version = '2.7.2-r4'
     $github = "https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version.zip"
     $defaultProxy = 'https://ghfast.top'
     $proxy = $env:OPEN_KIMI_WEB_GITHUB_PROXY
@@ -59,7 +59,7 @@
     elseif ($proxy -cnotin @($defaultProxy, "$defaultProxy/")) {
         throw "OPEN_KIMI_WEB_GITHUB_PROXY must be $defaultProxy or 0 (disable)."
     }
-    $digest = '52408f15fa010979b6201003e90dbfc32c93e69839d5ad2ced819f7886b82c06'
+    $digest = 'd032e8eabfc7410a27b6109fdf5b3d0b39d42dc874f19005e78a478d38694a40'
     $stage = Join-Path ([IO.Path]::GetTempPath()) ('okw-install-' + [Guid]::NewGuid().ToString('N'))
     [IO.Directory]::CreateDirectory($stage) | Out-Null
     $archive = Join-Path $stage 'installer.zip'
@@ -73,7 +73,7 @@
             (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $digest)
     }
     try {
-        $env:OPEN_KIMI_WEB_INSTALL_SHA256 = 'ad56719140d3262cf701e8baa7149a5b14464f114175de23bdce6af9ce94dc3c'
+        $env:OPEN_KIMI_WEB_INSTALL_SHA256 = '09140482755c2293e2b7341954321f2b8f36579cfb4f3abb61364369bb8e665e'
         $follow = @('--location', '--proto-redir', '=https', '--max-redirs', '4')
         $ready = $false
         if ($proxy) {
@@ -105,17 +105,17 @@
 ```sh
 (
   set -eu
-  version='2.7.2-r3'
+  version='2.7.2-r4'
   github="https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version.tar.gz"
   default_proxy='https://ghfast.top'
   proxy=${OPEN_KIMI_WEB_GITHUB_PROXY:-$default_proxy}
-  digest='1a7c528f40b4a1331b0b9631efe06ff7fb66ade0c6c776e1712eb84e469f7238'
+  digest='186d6def383e18494e28c0ba7e3f7f4d42c6a0329f3ee9d590fa4fa2bd8c84c4'
   case "$proxy" in
     0) proxy='' ;;
     "$default_proxy"|"$default_proxy/") ;;
     *) printf '%s\n' "OPEN_KIMI_WEB_GITHUB_PROXY must be $default_proxy or 0 (disable)." >&2; exit 1 ;;
   esac
-  export OPEN_KIMI_WEB_INSTALL_SHA256='ad56719140d3262cf701e8baa7149a5b14464f114175de23bdce6af9ce94dc3c'
+  export OPEN_KIMI_WEB_INSTALL_SHA256='09140482755c2293e2b7341954321f2b8f36579cfb4f3abb61364369bb8e665e'
   stage=$(mktemp -d "${TMPDIR:-/tmp}/okw-install-XXXXXXXX")
   trap 'rm -rf "$stage"' EXIT
   trap 'exit 1' HUP INT TERM
@@ -326,4 +326,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4

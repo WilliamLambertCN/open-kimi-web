@@ -213,6 +213,13 @@ function printImagePreviewStatus(launcher, log, warn) {
   }
 }
 
+function printSessionMediaStatus(launcher, log, warn) {
+  if (launcher.sessionMediaState === 'active') log('session media: synchronous URL routing enabled');
+  else if (launcher.sessionMediaState && launcher.sessionMediaState !== 'disabled') {
+    warn('session media: structure not verified; original behavior retained');
+  }
+}
+
 function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   const log = opts.log ?? console.log;
   const warn = opts.warn ?? console.error;
@@ -221,6 +228,7 @@ function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   printStreamingStatus(launcher, log, warn);
   printModelThinkingStatus(launcher, log, warn);
   printImagePreviewStatus(launcher, log, warn);
+  printSessionMediaStatus(launcher, log, warn);
   log(`open-kimi-web ready (target: ${opts.target})`);
   for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
   for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);

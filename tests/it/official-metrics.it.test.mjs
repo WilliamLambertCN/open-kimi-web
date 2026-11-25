@@ -10,6 +10,8 @@ import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPref
   from '../../packages/launcher/src/officialRequestMetrics.mjs';
 import { fixturePrelude, nativeTimingFixture } from '../../packages/launcher/tests/testkit/officialRequestMetrics.mjs';
 import { IMAGE_PREVIEW_ASSET_PREFIX as imagePrefix } from '../../packages/launcher/src/officialImagePreview.mjs';
+import { SESSION_MEDIA_ASSET_PREFIX as mediaPrefix } from '../../packages/launcher/src/officialSessionMedia.mjs';
+import { sessionMediaFixture } from '../../packages/launcher/tests/testkit/officialSessionMedia.mjs';
 
 const createLauncher = async (options) => launch({ ...options, port: await availableHttpPort() });
 
@@ -153,6 +155,30 @@ describe('exact 2.7.2 image preview delivery', () => {
         .toContain('await probe(url,signal)??metadata(media)');
       expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(preview);
       expect(await readFile(join(directory, 'assets/main.js'), 'utf8')).toBe(preview);
+    } finally { await other.close(); }
+  });
+});
+
+describe('exact 2.7.2 session media delivery', () => {
+  it('serves the synchronized route fix in a new graph and preserves the upstream bundle', async () => {
+    const directory = join(root, 'session-media-272');
+    await mkdir(join(directory, 'assets'), { recursive: true });
+    await writeFile(join(directory, 'index.html'), html);
+    await writeFile(join(directory, 'assets/main.js'), sessionMediaFixture);
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '2.7.2' });
+    try {
+      expect(other.sessionMediaState).toBe('active');
+      expect(await (await fetch(other.url)).text()).toContain(`src="${mediaPrefix}/assets/main.js"`);
+      const fixed = await fetch(other.url + mediaPrefix + '/assets/main.js');
+      expect(fixed.status).toBe(200);
+      const text = await fixed.text();
+      expect(text).toContain('getFileDownloadUrl:"sessionSync"');
+      expect(text).toContain('getSessionMediaUrl:"sessionSync"');
+      expect(text).toContain('getSessionMediaBlob:"session"');
+      expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(sessionMediaFixture);
+      expect((await fetch(other.url + imagePrefix + '/assets/main.js')).status).toBe(404);
+      expect(await readFile(join(directory, 'assets/main.js'), 'utf8')).toBe(sessionMediaFixture);
     } finally { await other.close(); }
   });
 });
