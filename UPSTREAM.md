@@ -17,7 +17,7 @@ or a vendored transcript implementation.
   `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select exact `2.7.2`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.7.2-r3`. Follow [the Release page][current-release] for publication.
+- Open Kimi Web release target: `2.7.2-r4`. Follow [the Release page][current-release] for publication.
   Exact 2.7.2 uses paginated v1 session listings, native archive deletion and native streaming.
   Managed web restart must not treat a session inventory as permission to stop a 2.7.2 backend.
   Request metric values, formulas and accessible labels are unchanged, with no native hover tooltip.
@@ -58,6 +58,13 @@ The isolated backend/browser checks below establish specific behavior, not publi
   Since `2.7.2-r3`, the verified native image resolver probes the displayed image first and falls back to metadata on failure.
   An isolated official backend/browser check covered a cropped image, landscape, square and small images on desktop and
   mobile-size viewports; gallery switching and Escape close remain native. Unknown structures and custom builds are untouched.
+- In 2.7.2, an unknown session with image or video media can render a Promise as a URL and trigger the error boundary.
+  Since `2.7.2-r4`, the launcher backports the [upstream synchronous routing fix][session-media-fix] for exact 2.7.2.
+  Known owners keep their local or remote route; an unknown owner initially uses local and is looked up in the background.
+  A direct URL for an unknown remote session may initially point to the local host; blob requests remain asynchronous.
+  In isolated desktop and mobile-size browsers, newly created image sessions loaded, switched back and retained drafts.
+  The original page reproduced the error, an ineffective retry and recovery after refresh. Other errors remain unverified.
+  Unknown bundle structures and custom web directories are untouched; this does not alter session or media data.
 - The mobile subagent picker accepts the configured `primary` alias. A separate config GET confirmed the selected
   secondary model and effort, then omission of the section after clearing it; the main model did not change.
 - Local workspace creation lists `/api/v1/workspaces` without `hosts=include`. The official server only includes SSH
@@ -81,6 +88,7 @@ Physical phones, all-platform installation and end-to-end SSH workspace manageme
 No user CLI upgrade, session migration or production restart is automatic. Restart the old launcher and refresh manually.
 
 [kimi-272]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.7.2
+[session-media-fix]: https://github.com/MoonshotAI/kimi-code/pull/5336
 
 ## Kimi Code 2.6.3 streaming display (2.6.1-r9)
 
