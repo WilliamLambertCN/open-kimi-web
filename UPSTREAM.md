@@ -17,7 +17,7 @@ or a vendored transcript implementation.
   `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select exact `2.7.2`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.7.2-r2`. Follow [the Release page][current-release] for publication.
+- Open Kimi Web release target: `2.7.2-r3`. Follow [the Release page][current-release] for publication.
   Exact 2.7.2 uses paginated v1 session listings, native archive deletion and native streaming.
   Managed web restart must not treat a session inventory as permission to stop a 2.7.2 backend.
   Request metric values, formulas and accessible labels are unchanged, with no native hover tooltip.
@@ -54,6 +54,10 @@ The isolated backend/browser checks below establish specific behavior, not publi
   The launcher applies this change only when the original selection code matches; custom builds are untouched.
   In desktop and mobile-size browsers with the official backend, switching kept `xhigh` with another compatible model.
   An incompatible model used `high`, its default. A fictional provider confirmed the selected effort in the next request.
+- The 2.7.2 viewer may use source dimensions for a cropped `ReadMediaFile` result, stretching the displayed crop.
+  Since `2.7.2-r3`, the verified native image resolver probes the displayed image first and falls back to metadata on failure.
+  An isolated official backend/browser check covered a cropped image, landscape, square and small images on desktop and
+  mobile-size viewports; gallery switching and Escape close remain native. Unknown structures and custom builds are untouched.
 - The mobile subagent picker accepts the configured `primary` alias. A separate config GET confirmed the selected
   secondary model and effort, then omission of the section after clearing it; the main model did not change.
 - Local workspace creation lists `/api/v1/workspaces` without `hosts=include`. The official server only includes SSH
@@ -620,7 +624,7 @@ Release assets retain matching SHA-256 checks. Actual platform checks have limit
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r3 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -648,7 +652,7 @@ Official Kimi that was already on PATH remains available; one that previously ne
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-Existing users can check for `2.7.2-r2` with `update --check` and install it with `update`.
+Existing users can check for `2.7.2-r3` with `update --check` and install it with `update`.
 No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
 tracking origin/main and a fast-forward. Restart and refresh remain manual; historical tags and remaining assets are unchanged.
 Some older tgz assets were withdrawn in earlier releases.
@@ -1005,7 +1009,7 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [release241r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1

@@ -206,6 +206,13 @@ function printModelThinkingStatus(launcher, log, warn) {
   }
 }
 
+function printImagePreviewStatus(launcher, log, warn) {
+  if (launcher.imagePreviewState === 'active') log('image preview: uses the displayed image dimensions');
+  else if (launcher.imagePreviewState && launcher.imagePreviewState !== 'disabled') {
+    warn('image preview: structure not verified; original behavior retained');
+  }
+}
+
 function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   const log = opts.log ?? console.log;
   const warn = opts.warn ?? console.error;
@@ -213,6 +220,7 @@ function printFrontendStatus(opts, launcher, tokenResult, tls, debugLog) {
   printMetricsStatus(launcher, log, warn);
   printStreamingStatus(launcher, log, warn);
   printModelThinkingStatus(launcher, log, warn);
+  printImagePreviewStatus(launcher, log, warn);
   log(`open-kimi-web ready (target: ${opts.target})`);
   for (const line of launchLinkLines(launcher.accessUrls, tokenResult.token)) log(line);
   for (const warning of launchLinkWarnings(tokenResult, Boolean(opts.insecureHttp))) warn(warning);

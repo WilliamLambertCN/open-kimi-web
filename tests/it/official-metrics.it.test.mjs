@@ -9,6 +9,7 @@ import { availableHttpPort } from '../testkit/httpPort.mjs';
 import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix }
   from '../../packages/launcher/src/officialRequestMetrics.mjs';
 import { fixturePrelude, nativeTimingFixture } from '../../packages/launcher/tests/testkit/officialRequestMetrics.mjs';
+import { IMAGE_PREVIEW_ASSET_PREFIX as imagePrefix } from '../../packages/launcher/src/officialImagePreview.mjs';
 
 const createLauncher = async (options) => launch({ ...options, port: await availableHttpPort() });
 
@@ -130,6 +131,28 @@ describe('verified streaming activation', () => {
       expect((await fetch(other.url + prefix + '/assets/main.js')).status).toBe(404);
       await writeFile(join(directory, 'assets/main.js'), original + 'changed');
       expect((await fetch(other.url + streamingPrefix + '/assets/main.js')).status).toBe(500);
+    } finally { await other.close(); }
+  });
+});
+
+describe('exact 2.7.2 image preview delivery', () => {
+  it('serves the verified preview fix without mutating the cached upstream bundle', async () => {
+    const directory = join(root, 'image-preview-272');
+    await mkdir(join(directory, 'assets'), { recursive: true });
+    const preview = 'const lightbox={__name:"MediaLightbox"};async function resolve(api,media,thumbnail,signal){' +
+      'const dimensions=metadata(media)??await probe(url,signal);return dimensions?{src:url,...dimensions,' +
+      'objectUrl:objectUrl}:(objectUrl&&URL.revokeObjectURL(objectUrl),null)}';
+    await writeFile(join(directory, 'index.html'), html);
+    await writeFile(join(directory, 'assets/main.js'), preview);
+    const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
+      interfaces: {}, officialPresentation: true, officialWebVersion: '2.7.2' });
+    try {
+      expect(other.imagePreviewState).toBe('active');
+      expect(await (await fetch(other.url)).text()).toContain(`src="${imagePrefix}/assets/main.js"`);
+      expect(await (await fetch(other.url + imagePrefix + '/assets/main.js')).text())
+        .toContain('await probe(url,signal)??metadata(media)');
+      expect(await (await fetch(other.url + '/assets/main.js')).text()).toBe(preview);
+      expect(await readFile(join(directory, 'assets/main.js'), 'utf8')).toBe(preview);
     } finally { await other.close(); }
   });
 });
