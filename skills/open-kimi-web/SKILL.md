@@ -96,13 +96,13 @@ Windows PowerShell ≥ 5.1／macOS-Linux sh 的新版命令固定 Release 版本
 正式发布前不说入口已在线可用。本地入口与 helpers 也必须同提交：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r2
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r3
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r3 --no-integrate
 ```
 
 ```sh
-sh scripts/install.sh --version 2.7.2-r2
-sh scripts/install.sh --version 2.7.2-r2 --no-integrate
+sh scripts/install.sh --version 2.7.2-r3
+sh scripts/install.sh --version 2.7.2-r3 --no-integrate
 ```
 
 - 无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi，仍需联网与标准 PATH curl／tar，不是离线安装。
@@ -127,13 +127,13 @@ sh scripts/install.sh --version 2.7.2-r2 --no-integrate
   本地薄入口 `--help` 不要求 Node、不联网、不写入，非法参数也在 runtime 前拒绝；独立入口须显式匹配 revision。
 - PATH 遮挡或 shell 不支持时按输出处理，不把包已安装当接管生效；不自动登录、启动生产服务、读真实会话或发付费调用。
   macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收。
-  本轮安装、交付包及线上检查须有 2.7.2-r2 自身的证据，不把旧 r9、本地 pack 或 Git Bash 当作全平台通过。
+  本轮安装、交付包及线上检查须有 2.7.2-r3 自身的证据，不把旧 r9、本地 pack 或 Git Bash 当作全平台通过。
 
 已有 Node ≥ 22／npm 可手动装 launcher，但不准备官方 Kimi；官方 npm `2.7.2` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
 不需要 Corepack／pnpm；正式发布后使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r2/open-kimi-web-2.7.2-r2.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r3/open-kimi-web-2.7.2-r3.tgz
 ```
 
 仅用户明确需要源码开发且已有 Node ≥ 22／Git／Corepack 时，提供源码路线：
@@ -262,7 +262,7 @@ Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保�
 ## 安装自更新（r8 起可用）
 
 `v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
-`2.7.2-r2` 正式发布后，旧版正常运行 `update --check`／`update`，先核对实际安装和目标 `2.7.2-r2`。
+旧版可运行 `update --check`／`update`，先核对实际安装和目标 `2.7.2-r3`。
 不要求同版重装、重跑安装器或追加 `--switch-installation`；源码仍须干净 main 跟踪 origin/main，只做快进。
 历史清理前的旧克隆不能快进：先备份改动，再重新克隆并按 README 切换接管，不强制覆盖。
 完成后用户自行重启旧 launcher／对应 backend 并刷新；独立 target 须重启实际后端，不自动开启 Tower。
@@ -352,6 +352,6 @@ Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字�
 [upstream-menu]:
   https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#session-menus-and-opt-in-local-ca-in-241-r3
 [changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

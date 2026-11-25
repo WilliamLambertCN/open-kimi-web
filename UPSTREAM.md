@@ -624,7 +624,7 @@ Release assets retain matching SHA-256 checks. Actual platform checks have limit
 PowerShell forwards the coordinator's double-dash options unchanged, for example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r2 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r3 --no-integrate
 ```
 
 `--version` selects the formal launcher Release, not the script revision or official Kimi version.
@@ -652,7 +652,7 @@ Official Kimi that was already on PATH remains available; one that previously ne
 The dedicated prefix retains standard npm-global identity for `update`; the updater searches adjacent npm before PATH.
 Package-only users must execute that prefix's launcher with the selected absolute Node path, rather than a bare node,
 default npm root or an older PATH command. The installer prints absolute Node/launcher commands, with `&` for PowerShell.
-Existing users can check for `2.7.2-r2` with `update --check` and install it with `update`.
+Existing users can check for `2.7.2-r3` with `update --check` and install it with `update`.
 No same-version reinstall, installer rerun or installation switch is required. Source updates still require clean main
 tracking origin/main and a fast-forward. Restart and refresh remain manual; historical tags and remaining assets are unchanged.
 Some older tgz assets were withdrawn in earlier releases.
@@ -1009,7 +1009,7 @@ but the full artifacts were not recaptured, so these snapshots do not claim
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
 [release241r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.4.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
 [official-252-changelog]:
   https://github.com/MoonshotAI/kimi-code/blob/1c142a007c10e881602690def96057c23a2baa12/apps/kimi-code/CHANGELOG.md
 [official-231-release]: https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.3.1
