@@ -4,6 +4,7 @@ import { METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX, metricsAssetPaths,
   patchOfficialRequestMetrics } from './officialRequestMetrics.mjs';
 import { patchOfficialModelThinking, THINKING_ASSET_PREFIX } from './officialModelThinking.mjs';
 import { IMAGE_PREVIEW_ASSET_PREFIX, patchOfficialImagePreview } from './officialImagePreview.mjs';
+import { SESSION_MEDIA_ASSET_PREFIX, patchOfficialSessionMedia } from './officialSessionMedia.mjs';
 import { patchOfficialStreaming } from './officialStreaming.mjs';
 import { resolveStaticPath, serveStatic } from './staticFiles.mjs';
 
@@ -34,20 +35,23 @@ function patchBundle(text, version) {
   const streaming = patchOfficialStreaming(metrics.text, version);
   const thinking = patchOfficialModelThinking(streaming.text, version);
   const image = patchOfficialImagePreview(thinking.text, version);
+  const media = patchOfficialSessionMedia(image.text, version);
   const state = (result) => result.patched ? 'active' : 'incompatible-bundle';
-  const prefix = image.patched ? IMAGE_PREVIEW_ASSET_PREFIX : thinking.patched ? THINKING_ASSET_PREFIX :
-    streaming.patched ? STREAMING_ASSET_PREFIX : metrics.patched ? METRICS_ASSET_PREFIX : undefined;
-  return { state: state(metrics), patched: image.text, prefix,
+  const prefix = media.patched ? SESSION_MEDIA_ASSET_PREFIX : image.patched ? IMAGE_PREVIEW_ASSET_PREFIX :
+    thinking.patched ? THINKING_ASSET_PREFIX : streaming.patched ? STREAMING_ASSET_PREFIX :
+      metrics.patched ? METRICS_ASSET_PREFIX : undefined;
+  return { state: state(metrics), patched: media.text, prefix,
     streamingState: version === '2.6.3' ? state(streaming) : 'disabled',
     modelThinkingState: version === '2.7.2' ? state(thinking) : 'disabled',
-    imagePreviewState: version === '2.7.2' ? state(image) : 'disabled' };
+    imagePreviewState: version === '2.7.2' ? state(image) : 'disabled',
+    sessionMediaState: version === '2.7.2' ? state(media) : 'disabled' };
 }
 
 export async function prepareMetricsAssets(publicDir, enabled, version) {
   if (!enabled) return { state: 'disabled' };
   const failure = (state) => ({ state,
     ...(version === '2.6.3' ? { streamingState: state } : {}),
-    ...(version === '2.7.2' ? { modelThinkingState: state, imagePreviewState: state } : {}),
+    ...(version === '2.7.2' ? { modelThinkingState: state, imagePreviewState: state, sessionMediaState: state } : {}),
   });
   try {
     const root = await realpath(publicDir);
@@ -82,8 +86,8 @@ export function metricsHtml(html, metrics) {
 
 export async function serveMetricsAssets(req, res, { publicDir, metrics }) {
   const path = (req.url ?? '').split('?')[0];
-  const prefix = [METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX, THINKING_ASSET_PREFIX, IMAGE_PREVIEW_ASSET_PREFIX].find((value) =>
-    path === value || path.startsWith(`${value}/`));
+  const prefix = [METRICS_ASSET_PREFIX, STREAMING_ASSET_PREFIX, THINKING_ASSET_PREFIX, IMAGE_PREVIEW_ASSET_PREFIX,
+    SESSION_MEDIA_ASSET_PREFIX].find((value) => path === value || path.startsWith(`${value}/`));
   if (!prefix) return false;
   const transformAsset = (source, file) => {
     if (path.slice(prefix.length) === metrics.entry || file === metrics.file) {

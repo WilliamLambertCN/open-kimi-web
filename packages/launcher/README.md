@@ -6,7 +6,7 @@
 
 ## 安装
 
-本项目不发布到 npm registry；`v2.7.2-r3` 的兼容基线是 Kimi Code `2.7.2`，保留已验证的 `2.6.0`／`2.6.1` 支持。
+本项目不发布到 npm registry；`v2.7.2-r4` 的兼容基线是 Kimi Code `2.7.2`，保留已验证的 `2.6.0`／`2.6.1` 支持。
 请求指标按完整代码结构决定是否启用，不按版本号限制；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
 每次调用保留 TTFT、包含等待的平均 TPS、缓存命中和侧聊独立选模。
 手机和电脑都可从设置重启受管服务。双端菜单、手机置顶、局域网 CA 和 App 安装入口保留。
@@ -23,6 +23,7 @@ CI、交付包及发布结果以[Release 页面][current-release]为准，未记
 - `2.7.2` 的归档设置和侧栏均使用官方删除动作，流式显示保持原样。
 - `2.7.2-r2` 起，主输入框换模型时，新模型支持当前思考档位就保留，否则用它的默认档位；不改全局、侧聊和子代理。
 - `2.7.2-r3` 修复官方 `2.7.2` 的局部图片预览拉伸，不改变图片和会话数据。
+- `2.7.2-r4` 回移官方媒体地址修复，避免部分新会话打开时显示“出错了”；其他错误仍需具体排查。
 - 手机消息目录、时间和加载提示已接入新版 turns/items，复用原生最近历史、旧页、实时消息、重连和撤销。
   只保留短目录、ID 和时间，不存正文、不为目录全量下载会话；首屏沿用官方 WebSocket，不套旧版最近一轮改写。
 - 手机子模型在准确 2.6.0／2.6.1／2.7.2 可恢复跟随主模型，也能选择名为 `primary` 的普通模型；只读任务支持三版。
@@ -123,7 +124,7 @@ macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收�
 不需要 Corepack／pnpm；正式发布后，首次安装且尚未接管时使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r3/open-kimi-web-2.7.2-r3.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r4/open-kimi-web-2.7.2-r4.tgz
 open-kimi-web integrate install
 ```
 
@@ -487,7 +488,7 @@ fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍�
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后仍需自行结束旧进程并重启，
 再刷新或重新打开页面，本轮不会自动重启生产。`--web-dir` 不注入展示层及主题功能。
-本版 `2.7.2-r3` 适配准确官方 UI `2.7.2`，发布状态见 [Release 页面][current-release]。
+本版 `2.7.2-r4` 适配准确官方 UI `2.7.2`，发布状态见 [Release 页面][current-release]。
 准确后端、界面与门禁记录见 [UPSTREAM][upstream-doc]；不把源码更新当作已运行的旧服务更新。
 r1 适配、r2 默认／发布与供应商保存记录属于历史，不视为本轮验收。
 r9 完整官方 app 源码实测使用虚构 API，交付包浏览器与线上核验独立于源码实测，不充作新版验收。
@@ -539,7 +540,7 @@ open-kimi-web update           # 更新同一安装，不自动重启
 open-kimi-web update --help
 ```
 
-**旧版 → 2.7.2-r3：** 运行 `update --check` 确认实际安装和目标版本，再运行 `update`。
+**旧版 → 2.7.2-r4：** 运行 `update --check` 确认实际安装和目标版本，再运行 `update`。
 一键／npm 安装无需同版本重装、重跑安装器或追加 `--switch-installation`；源码仍仅允许跟踪 origin/main 的干净 main 快进。
 完成后自行停止旧 launcher／受管后端，重新运行 `kimi web --host` 并刷新；独立 target 须自行重启实际 backend。
 局域网 CA 需另行执行一次 `open-kimi-web tls setup`；更新不会自动启用，也不会替手机导入证书。
@@ -635,7 +636,7 @@ MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 M
 
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
+import { listenHttp } from '../../../tests/testkit/httpPort.mjs';
 
 import {
   cacheControlFor,
@@ -108,7 +109,7 @@ describe('serveStatic sensitive-file boundary', () => {
         if (!served) res.writeHead(404).end('Not Found');
       });
     });
-    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    await listenHttp(server);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       const paths = [
@@ -147,7 +148,7 @@ describe('serveStatic sensitive-file boundary', () => {
         if (!served) res.writeHead(404).end('Not Found');
       });
     });
-    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    await listenHttp(server);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       for (const path of ['/assets/app.js', '/assets/app.css', '/assets/data.json']) {
@@ -180,7 +181,7 @@ describe('serveStatic realpath boundary', () => {
         if (!served) res.writeHead(404).end('Not Found');
       });
     });
-    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    await listenHttp(server);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       expect((await fetch(`${base}/inside/app.js`)).status).toBe(200);
@@ -207,7 +208,7 @@ describe('serveStatic realpath boundary', () => {
         if (!served) res.writeHead(404).end('Not Found');
       });
     });
-    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    await listenHttp(server);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       const response = await fetch(`${base}/client-route`);
@@ -246,7 +247,7 @@ describe('serveStatic realpath sensitive-file boundary', () => {
         if (!served) res.writeHead(404).end('Not Found');
       });
     });
-    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    await listenHttp(server);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       for (const path of refused) {

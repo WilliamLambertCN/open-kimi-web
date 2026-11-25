@@ -3,7 +3,7 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
 ---
 
 帮助用户安装独立 Open Kimi Web launcher 或管理接管。安装本插件不安装、启动或卸载 launcher。用户参数：$ARGUMENTS
-目标版本 `v2.7.2-r3`，兼容准确官方 `2.7.2`，保留 `2.6.0`／`2.6.1` 支持；发布状态以[正式 Release][current-release]为准。
+目标版本 `v2.7.2-r4`，兼容准确官方 `2.7.2`，保留 `2.6.0`／`2.6.1` 支持；发布状态以[正式 Release][current-release]为准。
 2.7.2 兼容边界见 [UPSTREAM][upstream-doc]；候选池与供应商保存记录见[更新日志][changelog-doc]，
 历史记录不代替本轮验收，未记录不视为通过。
 
@@ -44,6 +44,6 @@ chip 另要求会话已开启且非 Side Chat，缺 chip 不证明功能不存�
 
 [install]: https://github.com/WilliamLambertCN/open-kimi-web#readme
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#kimi-code-272-adaptation
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
 [changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
