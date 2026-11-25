@@ -6,6 +6,7 @@ import { metricsHtml, metricsPresentationState, metricsStartupMessage, prepareMe
 import { addMobilePresentation } from '../src/officialPresentation.mjs';
 import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix } from '../src/officialRequestMetrics.mjs';
 import { THINKING_ASSET_PREFIX as thinkingPrefix } from '../src/officialModelThinking.mjs';
+import { IMAGE_PREVIEW_ASSET_PREFIX as imagePrefix } from '../src/officialImagePreview.mjs';
 import { modelThinkingFixture } from './testkit/officialModelThinking.mjs';
 import { nativeTimingFixture as source } from './testkit/officialRequestMetrics.mjs';
 
@@ -13,6 +14,9 @@ import { nativeTimingFixture as source } from './testkit/officialRequestMetrics.
 const html = '<head><script src="/boot.js"></script><script crossorigin type="module" src="/assets/main.js"></script></head>';
 const streaming = 'const Markdown={__name:"Markdown"};const props={mode:"chat",final:x.value,' +
   '"show-tooltips":!1,"smooth-streaming":y.streaming,"batch-rendering":z.value};';
+const imagePreview = 'const lightbox={__name:"MediaLightbox"};async function resolve(api,media,thumbnail,signal){' +
+  'const dimensions=metadata(media)??await probe(url,signal);return dimensions?{src:url,...dimensions,' +
+  'objectUrl:objectUrl}:(objectUrl&&URL.revokeObjectURL(objectUrl),null)}';
 let root; let publicDir;
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'okw-metrics-prepare-')); publicDir = join(root, 'public');
@@ -78,7 +82,8 @@ describe('verified official metrics assets', () => {
     expect(await prepareMetricsAssets(publicDir, false, '2.7.2')).toEqual({ state: 'disabled' });
     await writeFile(join(publicDir, 'assets/main.js'), streaming);
     expect(await prepareMetricsAssets(publicDir, true, '2.7.2'))
-      .toEqual({ state: 'incompatible-bundle', modelThinkingState: 'incompatible-bundle' });
+      .toEqual({ state: 'incompatible-bundle', modelThinkingState: 'incompatible-bundle',
+        imagePreviewState: 'incompatible-bundle' });
   });
   it('assigns a new module graph identity without requiring metrics to match', async () => {
     for (const [extra, state] of [['', 'incompatible-bundle'], [source, 'active']]) {
@@ -98,6 +103,18 @@ describe('verified official metrics assets', () => {
     expect(combined).toMatchObject({ state: 'active', prefix: streamingPrefix, streamingState: 'active' });
     expect(combined.patched).toContain('__okwTimingSlots');
     expect(combined.patched).toContain('"smooth-streaming":!1');
+  });
+});
+
+describe('verified image preview assets', () => {
+  it('uses a fresh graph independently and together with other verified patches', async () => {
+    for (const extra of ['', source + modelThinkingFixture]) {
+      await writeFile(join(publicDir, 'assets/main.js'), imagePreview + extra);
+      const result = await prepareMetricsAssets(publicDir, true, '2.7.2');
+      expect(result).toMatchObject({ imagePreviewState: 'active', prefix: imagePrefix });
+      expect(result.patched).toContain('await probe(url,signal)??metadata(media)');
+      expect(metricsHtml(html, result)).toContain(`src="${imagePrefix}/assets/main.js"`);
+    }
   });
 });
 
