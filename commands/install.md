@@ -44,6 +44,6 @@ chip 另要求会话已开启且非 Side Chat，缺 chip 不证明功能不存�
 
 [install]: https://github.com/WilliamLambertCN/open-kimi-web#readme
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#kimi-code-272-adaptation
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r2
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
 [changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
