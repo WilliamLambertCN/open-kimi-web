@@ -4,6 +4,13 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.7.2-r3] - 2026-11-26
+
+- 修复官方 `2.7.2` 中局部图片打开预览后被拉伸的问题。预览使用实际图片尺寸，保留原有切换和关闭操作。
+- 不改图片或会话数据，也不自动重启服务。更新后请重启 Open Kimi Web 并刷新网页。
+
+[open-kimi-web v2.7.2-r3]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r3
+
 ## [open-kimi-web v2.7.2-r2] - 2026-11-24
 
 - 使用官方 `2.7.2` 时，主聊天切换模型会保留当前思考档位；目标模型不支持时才用它自己的默认档位。

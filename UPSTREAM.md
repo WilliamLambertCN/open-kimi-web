@@ -17,7 +17,7 @@ or a vendored transcript implementation.
   `liveTestedServerVersions`; they are not a full protocol guarantee.
   Missing-install preparation and metadata-failure UI fallback select exact `2.7.2`. Existing usable CLIs are reused.
   This adaptation does not upgrade user CLIs, restart production services or change networking.
-- Open Kimi Web release target: `2.7.2-r2`. Follow [the Release page][current-release] for publication.
+- Open Kimi Web release target: `2.7.2-r3`. Follow [the Release page][current-release] for publication.
   Exact 2.7.2 uses paginated v1 session listings, native archive deletion and native streaming.
   Managed web restart must not treat a session inventory as permission to stop a 2.7.2 backend.
   Request metric values, formulas and accessible labels are unchanged, with no native hover tooltip.
@@ -54,6 +54,10 @@ The isolated backend/browser checks below establish specific behavior, not publi
   The launcher applies this change only when the original selection code matches; custom builds are untouched.
   In desktop and mobile-size browsers with the official backend, switching kept `xhigh` with another compatible model.
   An incompatible model used `high`, its default. A fictional provider confirmed the selected effort in the next request.
+- The 2.7.2 viewer may use source dimensions for a cropped `ReadMediaFile` result, stretching the displayed crop.
+  Since `2.7.2-r3`, the verified native image resolver probes the displayed image first and falls back to metadata on failure.
+  An isolated official backend/browser check covered a cropped image, landscape, square and small images on desktop and
+  mobile-size viewports; gallery switching and Escape close remain native. Unknown structures and custom builds are untouched.
 - The mobile subagent picker accepts the configured `primary` alias. A separate config GET confirmed the selected
   secondary model and effort, then omission of the section after clearing it; the main model did not change.
 - Local workspace creation lists `/api/v1/workspaces` without `hosts=include`. The official server only includes SSH
