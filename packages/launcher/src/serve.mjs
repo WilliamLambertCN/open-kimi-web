@@ -226,6 +226,7 @@ export async function createLauncher({
     streamingState: metrics.streamingState,
     modelThinkingState: metrics.modelThinkingState,
     imagePreviewState: metrics.imagePreviewState,
+    sessionMediaState: metrics.sessionMediaState,
     close: closeLauncher({ server, wss, closeConnections, cronService, diagnostics, debugLog, closeGraceMs, restart }),
   };
 }

@@ -7,7 +7,9 @@ import { addMobilePresentation } from '../src/officialPresentation.mjs';
 import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix } from '../src/officialRequestMetrics.mjs';
 import { THINKING_ASSET_PREFIX as thinkingPrefix } from '../src/officialModelThinking.mjs';
 import { IMAGE_PREVIEW_ASSET_PREFIX as imagePrefix } from '../src/officialImagePreview.mjs';
+import { SESSION_MEDIA_ASSET_PREFIX as mediaPrefix } from '../src/officialSessionMedia.mjs';
 import { modelThinkingFixture } from './testkit/officialModelThinking.mjs';
+import { sessionMediaFixture } from './testkit/officialSessionMedia.mjs';
 import { nativeTimingFixture as source } from './testkit/officialRequestMetrics.mjs';
 
 
@@ -83,7 +85,7 @@ describe('verified official metrics assets', () => {
     await writeFile(join(publicDir, 'assets/main.js'), streaming);
     expect(await prepareMetricsAssets(publicDir, true, '2.7.2'))
       .toEqual({ state: 'incompatible-bundle', modelThinkingState: 'incompatible-bundle',
-        imagePreviewState: 'incompatible-bundle' });
+        imagePreviewState: 'incompatible-bundle', sessionMediaState: 'incompatible-bundle' });
   });
   it('assigns a new module graph identity without requiring metrics to match', async () => {
     for (const [extra, state] of [['', 'incompatible-bundle'], [source, 'active']]) {
@@ -114,6 +116,24 @@ describe('verified image preview assets', () => {
       expect(result).toMatchObject({ imagePreviewState: 'active', prefix: imagePrefix });
       expect(result.patched).toContain('await probe(url,signal)??metadata(media)');
       expect(metricsHtml(html, result)).toContain(`src="${imagePrefix}/assets/main.js"`);
+    }
+  });
+});
+
+describe('verified session media assets', () => {
+  it('uses a fresh graph independently and together with other verified patches', async () => {
+    for (const extra of ['', source + modelThinkingFixture + imagePreview]) {
+      await writeFile(join(publicDir, 'assets/main.js'), sessionMediaFixture + extra);
+      const result = await prepareMetricsAssets(publicDir, true, '2.7.2');
+      expect(result).toMatchObject({ sessionMediaState: 'active', prefix: mediaPrefix });
+      expect(result.patched).toContain('getSessionMediaUrl:"sessionSync"');
+      expect(result.patched).toContain('getFileDownloadUrl:"sessionSync"');
+      expect(metricsHtml(html, result)).toContain(`src="${mediaPrefix}/assets/main.js"`);
+      if (extra) {
+        expect(result.patched).toContain('__okwTimingSlots');
+        expect(result.patched).toContain('await probe(url,signal)??metadata(media)');
+        expect(result.modelThinkingState).toBe('active');
+      }
     }
   });
 });

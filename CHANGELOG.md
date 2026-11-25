@@ -4,6 +4,14 @@
 版本号以已验证的官方 Kimi Code 兼容基线为准；`rN` 后缀是同一基线上的 GitHub tag/Release 修订序号，
 在 SemVer 中属于 prerelease。本项目当前不发布到 npm registry，也不依赖包管理器的自动升级排序。
 
+## [open-kimi-web v2.7.2-r4] - 2026-11-26
+
+- 修复官方 `2.7.2` 中，打开含图片或视频的新会话时可能出现“出错了”、重试无效的问题。
+- 回移官方同步媒体地址修复，不改会话或媒体数据；其他错误仍需根据现场信息排查。
+- 不自动重启服务；更新后请重启 Open Kimi Web 并刷新网页。
+
+[open-kimi-web v2.7.2-r4]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
+
 ## [open-kimi-web v2.7.2-r3] - 2026-11-26
 
 - 修复官方 `2.7.2` 中局部图片打开预览后被拉伸的问题。预览使用实际图片尺寸，保留原有切换和关闭操作。
