@@ -138,7 +138,7 @@ describe('subagent model metadata and effort compatibility', () => {
 describe('subagent 2.5.2 inheritance reset', () => {
   const follow = { model: '', effort: '' };
   const section = { defaultModel: 'fixture/fast', models: { 'fixture/fast': 'Retained pool' } };
-  it.each(['2.5.2', '2.6.0', '2.6.1', '2.7.2'])('enables native null only for verified %s', async (version) => {
+  it.each(['2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'])('enables native null only for verified %s', async (version) => {
     const ui = install();
     ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
     await ui.authorize();
@@ -148,12 +148,13 @@ describe('subagent 2.5.2 inheritance reset', () => {
     await ui.authorize();
     expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
   });
-  it.each(['2.5.1', '2.5.3', '2.5.2-modified', '2.6.2', '2.6.1-rc.1', undefined])('keeps %s fail-closed', async (version) => {
-    const ui = install();
-    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
-    await ui.authorize();
-    expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
-  });
+  it.each(['2.5.1', '2.5.3', '2.5.2-modified', '2.6.2', '2.6.1-rc.1', '2.8.1', '2.8.0-rc.1', undefined])(
+    'keeps %s fail-closed', async (version) => {
+      const ui = install();
+      ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version }));
+      await ui.authorize();
+      expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
+    });
   it('ignores external, failed, malformed and redirected metadata', async () => {
     const ui = install();
     const valid = () => envelope({ server_version: '2.5.2' });
@@ -170,7 +171,7 @@ describe('subagent 2.5.2 inheritance reset', () => {
       expect(() => ui.api.patchFor(section, follow, [])).toThrow('cannotFollow');
     }
   });
-  it('verifies an omitted secondary section and rejects stale pools without changing the main model', async () => {
+  it('verifies an omitted secondary section without changing the main model', async () => {
     const ui = install();
     ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.5.2' }));
     await ui.authorize();
@@ -178,7 +179,7 @@ describe('subagent 2.5.2 inheritance reset', () => {
     delete cleared.secondary_model;
     ui.nativeFetch.mockResolvedValueOnce(envelope(config(section))).mockResolvedValueOnce(envelope({ items: [] }))
       .mockResolvedValueOnce(envelope(cleared));
-    await expect(ui.api.save(follow)).resolves.toMatchObject({ section: undefined });
+    await expect(ui.api.save(follow, undefined, section)).resolves.toMatchObject({ section: undefined });
     expect(JSON.parse(ui.nativeFetch.mock.calls.at(-1)[1].body)).toEqual({ secondary_model: null });
     expect(cleared.default_model).toBe('fixture/main');
     expect(() => ui.api.verifySaved(config({ models: {} }), follow)).toThrow('saveMismatch');
@@ -186,7 +187,7 @@ describe('subagent 2.5.2 inheritance reset', () => {
 });
 
 describe('2.6 ordinary primary alias', () => {
-  it.each(['2.6.0', '2.6.1', '2.7.2'])('keeps ordinary primary selectable with %s and never writes force', async (version) => {
+  it.each(['2.6.0', '2.6.1', '2.7.2', '2.8.0'])('keeps primary selectable on %s without force', async (version) => {
     const ui = install();
     const configured = { models: { primary: { provider: 'fixture', model: 'actual-model', displayName: 'Real primary' } } };
     const catalog = { items: [{ model: 'primary', display_name: 'Primary alias' }] };
@@ -198,6 +199,20 @@ describe('2.6 ordinary primary alias', () => {
       .toEqual({ secondary_model: { defaultModel: 'primary', defaultEffort: '' } });
     ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.5.2' })); await ui.authorize();
     expect(ui.api.modelsFor(configured, catalog)).toEqual([]);
+  });
+});
+
+describe('unverified primary aliases', () => {
+  it.each(['2.8.1', '2.8.0-rc.1', '3.0.0', undefined])('revokes primary and clear support for %s', async (version) => {
+    const ui = install();
+    const configured = { models: { primary: { provider: 'fixture', model: 'actual-primary' } } };
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: '2.8.0' })); await ui.authorize();
+    expect(ui.api.modelsFor(configured, { items: [] })).toHaveLength(1);
+    ui.nativeFetch.mockResolvedValueOnce(envelope({ server_version: version })); await ui.authorize();
+    const models = ui.api.modelsFor(configured, { items: [] });
+    expect(models).toEqual([]);
+    expect(() => ui.api.patchFor(undefined, { model: 'primary', effort: '' }, models)).toThrow('modelMissing');
+    expect(() => ui.api.patchFor({ defaultModel: 'primary' }, { model: '', effort: '' }, models)).toThrow('cannotFollow');
   });
 });
 

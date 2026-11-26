@@ -48,7 +48,7 @@
   };
   const needsLive = (state) => state.unknown || state.sessions.find((item) => item.id === state.sid)?.loaded === true;
   const readOnlyVersion = (value) => value.reason === 'read-only-version' ||
-    ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'].includes(value.version);
+    ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'].includes(value.version);
   const readOnly = (state) => {
     state.readOnly = true; state.canCreate = false; state.canRemove = false; state.canRestore = false;
     state.formOpen = false; state.confirmation = null; state.globalStatus = 'read-only-version';

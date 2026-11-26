@@ -6,7 +6,7 @@ const AUTH = 'Bearer fictional-restart-token';
 const response = (data) => Response.json({ code: 0, data });
 const deferred = () => { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; };
 
-function fixture({ version = '2.7.2', outcome = true, exited = true } = {}) {
+function createFixture({ version, outcome = true, exited = true }) {
   const events = [];
   const reservation = { commit: vi.fn(async () => { events.push('ack'); return true; }),
     cancel: vi.fn(), release: vi.fn() };
@@ -45,7 +45,8 @@ function shutdownWith(f, handle) {
     ? handle(url, init) : original(url, init));
 }
 
-describe('exact 2.7.2 conditional restart', () => {
+describe.each(['2.7.2', '2.8.0'])('exact %s conditional restart', (version) => {
+  const fixture = (options = {}) => createFixture({ version, ...options });
   it('arms the replacement before quiescing and releases it only after owned backend exit', async () => {
     const f = fixture();
     expect(await f.control.status(AUTH)).toMatchObject({ available: true, phase: 'ready' });
@@ -56,6 +57,17 @@ describe('exact 2.7.2 conditional restart', () => {
     expect(f.control.blockedReads()).toBe(true);
     await f.control.commit(); await f.control.commit();
     expect(f.reservation.commit).toHaveBeenCalledOnce(); expect(f.reservation.release).toHaveBeenCalledOnce();
+    expect(f.stop).toHaveBeenCalledExactlyOnceWith({ backendExited: true });
+  });
+
+  it('holds the armed replacement while the accepted shutdown still awaits owned exit', async () => {
+    const f = fixture(); const pending = deferred(); const started = deferred();
+    f.backend.waitForExit.mockImplementationOnce(() => { started.resolve(); return pending.promise; });
+    const reserved = f.reserve(); await started.promise; await f.control.commit();
+    expect(f.control.pendingRestart()).toBe(true); expect(f.control.blockedReads()).toBe(true);
+    expect(f.reservation.release).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
+    pending.resolve(true); await reserved; await f.control.commit();
+    expect(f.reservation.release).toHaveBeenCalledOnce();
     expect(f.stop).toHaveBeenCalledExactlyOnceWith({ backendExited: true });
   });
 
@@ -106,7 +118,8 @@ describe('exact 2.7.2 conditional restart', () => {
   });
 });
 
-describe('conditional restart cancellation and concurrency', () => {
+describe.each(['2.7.2', '2.8.0'])('%s conditional restart cancellation and concurrency', (version) => {
+  const fixture = (options = {}) => createFixture({ version, ...options });
   it('rejects an in-flight API read that may restore a session, without quiescing any WS', async () => {
     const f = fixture(); const res = new EventEmitter();
     f.control.track({ method: 'GET', url: '/api/v1/sessions/fictional' }, res);
@@ -177,21 +190,27 @@ describe('conditional restart cancellation and concurrency', () => {
   });
 
   it('refuses unsupported and unmanaged versions without reserving a worker', async () => {
-    for (const version of ['2.7.3', '2.7.2-rc.1']) {
+    for (const version of ['2.7.3', '2.7.2-rc.1', '2.8.1', '2.8.0-rc.1']) {
       const f = fixture({ version });
       await expect(f.reserve()).rejects.toMatchObject({ code: 'unmanaged-or-unsupported' });
       expect(f.prepare).not.toHaveBeenCalled();
     }
-    const f = fixture(); f.control.manageBackend(undefined);
-    expect(await f.control.status(AUTH)).toMatchObject({ available: false, reason: 'atomic-restart-unavailable' });
+    for (const missing of ['backend', 'quiesce']) {
+      const f = fixture();
+      if (missing === 'backend') f.control.manageBackend(undefined);
+      else f.control.transport({ quiesce: undefined });
+      expect(await f.control.status(AUTH)).toMatchObject({ available: false, reason: 'atomic-restart-unavailable' });
+      await expect(f.reserve()).rejects.toMatchObject({ code: 'atomic-restart-unavailable' });
+      expect(f.prepare).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
+    }
   });
 });
 
 
-it('does not infer a lost shutdown succeeded when the same backend address still answers', async () => {
-  const f = fixture({ exited: true }); const original = f.fetchImpl.getMockImplementation();
+it.each(['2.7.2', '2.8.0'])('%s does not infer lost shutdown success while its address still answers', async (version) => {
+  const f = createFixture({ version, exited: true }); const original = f.fetchImpl.getMockImplementation();
   f.fetchImpl.mockImplementation((url, init) => url.pathname === '/api/v1/meta'
-    ? response({ server_version: '2.7.2' }) : original(url, init));
+    ? response({ server_version: version }) : original(url, init));
   shutdownWith(f, async () => { throw new Error('reply lost'); });
   await expect(f.reserve()).rejects.toMatchObject({ code: 'restart-outcome-unknown' });
   expect(f.stop).not.toHaveBeenCalled(); expect(f.reservation.cancel).toHaveBeenCalledOnce();

@@ -34,7 +34,7 @@
     const capabilities = async () => {
       const data = required(await request('cron-capabilities'), (value) => typeof value?.available === 'boolean');
       readOnly = data.reason === 'read-only-version' ||
-        ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'].includes(data.version);
+        ['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'].includes(data.version);
       return data;
     };
     return {

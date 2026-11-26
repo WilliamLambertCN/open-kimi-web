@@ -20,23 +20,29 @@
       if (!positions.has(id)) throw failure('unavailable');
       return positions;
     };
+    const historyOf = (chat) => {
+      const lists = chat.querySelectorAll(
+        ':scope > .history-window[data-virtual-scroll-root], :scope > .transcript-list[role="list"]');
+      if (lists.length > 1) throw failure('identity');
+      return lists[0];
+    };
     const prepare = ({ root, id, items, signal, isCurrent }) => {
       const positions = positionsOf(items, id);
       if (!root?.matches('.chat-scroll') || !root.isConnected || typeof isCurrent !== 'function') {
         throw failure('unavailable');
       }
-      if (!signal || typeof signal.addEventListener !== 'function') throw failure('unavailable');
+      if (typeof signal?.addEventListener !== 'function') throw failure('unavailable');
       const chats = root.querySelectorAll(':scope > .chat, :scope > .content-wrap > .chat');
       if (chats.length !== 1) throw failure('unavailable');
       const chat = chats[0];
-      const windows = chat.querySelectorAll(':scope > .history-window[data-virtual-scroll-root]');
-      if (windows.length > 1) throw failure('identity');
-      return { root, chat, id, positions, signal, isCurrent, history: windows[0], parent: chat.parentElement,
-        deadline: performance.now() + 4000 };
+      const history = historyOf(chat);
+      const transcript = history?.classList.contains('transcript-list');
+      return { root, chat, id, positions, signal, isCurrent, history, parent: chat.parentElement,
+        keyAttribute: transcript ? 'data-row-key' : 'data-history-key', transcript, deadline: performance.now() + 4000 };
     };
     const positive = (value) => /^[1-9]\d*$/.test(value ?? '') && Number.isSafeInteger(Number(value));
-    const rowOf = (row) => {
-      const key = row.getAttribute('data-history-key');
+    const rowOf = (row, context) => {
+      const key = row.getAttribute(context.keyAttribute);
       const pos = row.getAttribute('aria-posinset'); const size = row.getAttribute('aria-setsize');
       if (!key || !positive(pos) || !positive(size) || Number(pos) > Number(size)) throw failure('identity');
       return { row, key, pos: Number(pos), size: Number(size) };
@@ -44,7 +50,7 @@
     const rowsOf = (context) => {
       if (!context.history) return [];
       if (context.history.parentElement !== context.chat) throw failure('stale');
-      const rows = [...context.history.querySelectorAll(':scope > .history-row')].map(rowOf);
+      const rows = [...context.history.querySelectorAll(':scope > .history-row')].map((row) => rowOf(row, context));
       const keys = new Set(); const positions = new Set(); const size = rows[0]?.size;
       for (const entry of rows) {
         if (keys.has(entry.key) || positions.has(entry.pos) || entry.size !== size) throw failure('identity');
@@ -53,11 +59,13 @@
       }
       return rows;
     };
-    const bubblesOf = (parent) => [...parent.querySelectorAll(':scope > .u-turn > .u-bub.turn-anchor[data-turn-id]')];
+    const bubblesOf = (parent, transcript) => [...parent.querySelectorAll((transcript ?
+      ':scope > .chat-row[data-row-kind="user"] > ' : ':scope > ') + '.u-turn > .u-bub.turn-anchor[data-turn-id]')];
     const targetOf = (context, rows) => {
-      const matches = bubblesOf(context.chat).filter((node) => node.getAttribute('data-turn-id') === context.id);
+      const matchesId = (node) => node.getAttribute('data-turn-id') === context.id;
+      const matches = bubblesOf(context.chat).filter(matchesId);
       for (const entry of rows) {
-        const bubbles = bubblesOf(entry.row).filter((node) => node.getAttribute('data-turn-id') === context.id);
+        const bubbles = bubblesOf(entry.row, context.transcript).filter(matchesId);
         if (bubbles.length && entry.key !== context.id) throw failure('identity');
         matches.push(...bubbles);
       }
@@ -68,7 +76,7 @@
       let nearest; let distance = Infinity;
       for (const entry of rows) {
         if (!context.positions.has(entry.key)) continue;
-        const bubbles = bubblesOf(entry.row);
+        const bubbles = bubblesOf(entry.row, context.transcript);
         if (bubbles.length !== 1 || bubbles[0].getAttribute('data-turn-id') !== entry.key) throw failure('identity');
         const next = Math.abs(context.positions.get(entry.key) - context.positions.get(context.id));
         if (next < distance) { nearest = entry; distance = next; }
@@ -153,8 +161,8 @@
     const beginAlignment = (context, node) => {
       check(context);
       if (!node?.isConnected || typeof node.scrollIntoView !== 'function') throw failure('unavailable');
-      const row = node.parentElement.parentElement;
-      if (row.parentElement === context.history && row.getAttribute('data-history-key') === context.id) {
+      const row = node.closest('.history-row');
+      if (row && row.parentElement === context.history && row.getAttribute(context.keyAttribute) === context.id) {
         row.focus({ preventScroll: true });
       }
       context.size = undefined; check(context);

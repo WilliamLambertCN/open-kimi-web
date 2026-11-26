@@ -10,13 +10,14 @@ import { verifyOwnedPty } from './pty.mjs';
 import { findOfficialCandidate } from './officialCandidates.mjs';
 import { verifyOfficialShell } from './officialShell.mjs';
 
-export const OFFICIAL_VERSION = '2.7.2';
-export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.7.2.tgz';
-export const OFFICIAL_INTEGRITY = 'Eq7512ssQH632Tg7C1LIK10CykToqF2lpBdkFjJ1IjSV86fMjEHpwxuKoo6fjh5XpCbwtKwijB0hTTbyDRLM9w==';
+export const OFFICIAL_VERSION = '2.8.0';
+export const OFFICIAL_URL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.8.0.tgz';
+export const OFFICIAL_INTEGRITY = 'SzQariZ0gSJyzhlMy3JZKlC1rN+6ZdQ2x9X+NUQReGCLxHZ3v+4P2GXTAYE46jB4KJ93ktJRU+L/vtNhoREsdA==';
 
-const SHELL_RELEASES = new Set(['2.4.1', '2.6.0', '2.6.1', OFFICIAL_VERSION]);
+const SHELL_RELEASES = new Set(['2.4.1', '2.6.0', '2.6.1', '2.7.2', OFFICIAL_VERSION]);
 const OWNED_RELEASES = new Map([
   [OFFICIAL_VERSION, OFFICIAL_INTEGRITY],
+  ['2.7.2', 'Eq7512ssQH632Tg7C1LIK10CykToqF2lpBdkFjJ1IjSV86fMjEHpwxuKoo6fjh5XpCbwtKwijB0hTTbyDRLM9w=='],
   ['2.6.1', 'M7M3BwR8ZNc7Fsv+UI+B/hPjiJlX3a13FLV1/4PtQWb6ymHBZZ5wZs++/WFaRKUUb5CoiETvrA04Y506HXiVXQ=='],
   ['2.6.0', 'C8gplTbSQsn+zxMkhyC+2MM2laf2E6YuEWqBt7UQMU2lqtr7JKi9zHIGNFuTgEXs5tIvS3HdU4HpmxneL3i7lg=='],
   ['2.4.1', 'z0py3AxbV9ykOB3Pgh2FiycZbMy7XSAXH4Kb1yfyhhmk+l9xH8H9raakVvCGMYLVxxEQGitQLcgOh8clLVYUTw=='],

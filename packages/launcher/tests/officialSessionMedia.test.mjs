@@ -62,7 +62,7 @@ describe('official session media routing', () => {
   });
 
   it.each([
-    [source, '2.7.3'],
+    [source, '2.7.3'], [source, '2.8.0'],
     [source.replace('getFileDownloadUrl:"session"', 'getFileDownloadUrl:"local"'), '2.7.2'],
     [source.replace('getSessionMediaUrl:"session"', 'getSessionMediaUrl:"local"'), '2.7.2'],
     [source + source, '2.7.2'],

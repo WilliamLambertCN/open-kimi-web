@@ -1,4 +1,4 @@
-import { chmod, mkdir, mkdtemp, readFile, readdir, rename, rm, symlink, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -11,6 +11,8 @@ import { once } from 'node:events';
 import { availableHttpPort } from '../testkit/httpPort.mjs';
 import { canonicalNpmCmd, discoverOfficial, officialPaths, prepareOfficial } from '../../scripts/install/official.mjs';
 import { verifyOfficialShell } from '../../scripts/install/officialShell.mjs';
+import { ensureOfficialBundle, officialCacheDir, OFFICIAL_PAGE_TITLE,
+  resolveOfficialVersion } from '../../packages/launcher/src/officialBundle.mjs';
 import { preparePty } from '../../scripts/install/pty.mjs';
 import { fileDigest, installNpmArgs, isolatedNpmEnv } from '../../scripts/install/npm.mjs';
 import { createHash } from 'node:crypto';
@@ -56,7 +58,7 @@ beforeAll(async () => {
   ctx.npm = await adjacentNpm(ctx.node);
   if (process.env.OPEN_KIMI_TEST_OFFICIAL_ARCHIVE) {
     ctx.downloadOfficial = async (url) => {
-      expect(url).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.7.2.tgz');
+      expect(url).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.8.0.tgz');
       return readFile(process.env.OPEN_KIMI_TEST_OFFICIAL_ARCHIVE);
     };
   }
@@ -93,19 +95,20 @@ async function ready(url, child) {
 }
 
 describe('real pinned official npm dependency', () => {
-  it('keeps top-level scripts disabled, verifies real CLI/child_process shell and reuses owned 2.7.2', async () => {
+  it('keeps top-level scripts disabled, verifies real CLI/child_process shell and reuses owned 2.8.0', async () => {
     const progress = {};
     await prepareOfficial({ ...ctx, env: { ...ctx.env, OPEN_KIMI_REAL_KIMI: undefined, PATH: '' } },
       { kind: 'missing' }, stage, progress);
     const paths = officialPaths(ctx);
     const record = JSON.parse(await readFile(paths.record, 'utf8'));
-    expect(record).toMatchObject({ schema: 1, version: '2.7.2', entry: paths.entry });
+    expect(record).toMatchObject({ schema: 1, version: '2.8.0', entry: paths.entry });
     const manifest = JSON.parse(await readFile(join(paths.root, 'package.json'), 'utf8'));
-    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.7.2', engines: { node: '>=22.19.0' } });
+    expect(manifest).toMatchObject({ name: '@moonshot-ai/kimi-code', version: '2.8.0', engines: { node: '>=22.19.0' },
+      bin: { kimi: 'dist/main.mjs' }, scripts: { postinstall: 'node scripts/postinstall.mjs' } });
     expect(manifest.dependencies?.['node-pty']).toBeUndefined();
     await verifyOfficialShell(ctx, paths.root);
     expect(await verifyPty(ctx, paths.root)).toBe('missing');
-    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.7.2');
+    expect(await ctx.run(ctx.node, [paths.entry, '--version'], { env: ctx.env })).toContain('2.8.0');
     expect(await ctx.run(ctx.node, [paths.entry, 'web', '--help'], { env: ctx.env })).toContain('--no-open');
     const found = await discoverOfficial({ ...ctx, env: { ...ctx.env, PATH: '' }, kimi: undefined });
     expect(found).toMatchObject({ kind: 'npm', path: paths.kimi });
@@ -115,6 +118,26 @@ describe('real pinned official npm dependency', () => {
     expect(await readFile(paths.record, 'utf8')).toBe(snapshot);
     expect((await readdir(directory)).sort()).toEqual(['bootstrap-official.json', 'official', 'stage']);
   }, 180000);
+
+  it('extracts and reuses the real 2.8.0 dist-web without changing the installed CLI', async () => {
+    const paths = officialPaths(ctx);
+    const snapshot = await readFile(paths.record, 'utf8');
+    const cacheDir = officialCacheDir('2.8.0', join(stage, 'official-web'));
+    let downloads = 0;
+    const downloadImpl = async (url, target) => {
+      expect(url).toBe('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.8.0.tgz');
+      downloads += 1;
+      await copyFile(join(stage, 'official-kimi.tgz'), target);
+    };
+    const options = { version: '2.8.0', cacheDir, downloadImpl };
+    await expect(ensureOfficialBundle(options)).resolves.toEqual({ dir: cacheDir, cached: false });
+    expect(await readFile(join(cacheDir, 'index.html'), 'utf8')).toContain(`<title>${OFFICIAL_PAGE_TITLE}</title>`);
+    expect((await readFile(join(cacheDir, 'boot.js'))).length).toBeGreaterThan(0);
+    expect(await readFile(join(cacheDir, 'LICENSE'), 'utf8')).toContain('MIT');
+    await expect(ensureOfficialBundle(options)).resolves.toEqual({ dir: cacheDir, cached: true });
+    expect(downloads).toBe(1);
+    expect(await readFile(paths.record, 'utf8')).toBe(snapshot);
+  }, 30000);
 
   it('runs authenticated real official Web health without lifecycle scripts, login or model calls', async () => {
     await ensureGitBash(ctx);
@@ -129,7 +152,8 @@ describe('real pinned official npm dependency', () => {
       headers = readyState.headers;
       expect(readyState.response.status).toBe(200);
       const meta = await readyState.response.json();
-      expect(meta).toBeTypeOf('object');
+      expect(meta).toMatchObject({ code: 0, data: { server_version: '2.8.0' } });
+      await expect(resolveOfficialVersion(url, headers.authorization.slice('Bearer '.length))).resolves.toBe('2.8.0');
       expect((await fetch(`${url}/api/v1/meta`)).status).toBe(401);
       const page = await fetch(`${url}/`, { headers });
       expect(page.status).toBe(200);
@@ -168,6 +192,44 @@ async function prepareLegacy() {
 }
 
 describe('real owned official dependency failures', () => {
+  it('reuses a real owned 2.7.2 unchanged without downloading, upgrading or requiring node-pty', async () => {
+    const home = join(stage, 'previous');
+    const env = { ...isolatedEnv(home, ctx.env), PATH: '' };
+    await mkdir(env.HOME, { recursive: true });
+    await mkdir(env.KIMI_CODE_HOME, { recursive: true });
+    const previous = { ...ctx, home, env, kimi: undefined, bin: join(home, 'bin'), prefixBin: join(home, 'npm') };
+    const paths = officialPaths(previous);
+    const integrity = 'Eq7512ssQH632Tg7C1LIK10CykToqF2lpBdkFjJ1IjSV86fMjEHpwxuKoo6fjh5XpCbwtKwijB0hTTbyDRLM9w==';
+    let bytes;
+    if (process.env.OPEN_KIMI_TEST_PREVIOUS_ARCHIVE) bytes = await readFile(process.env.OPEN_KIMI_TEST_PREVIOUS_ARCHIVE);
+    else {
+      const response = await fetch('https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.7.2.tgz');
+      expect(response.status).toBe(200);
+      bytes = Buffer.from(await response.arrayBuffer());
+    }
+    expect(createHash('sha512').update(bytes).digest('base64')).toBe(integrity);
+    const archive = join(stage, 'previous-kimi.tgz');
+    await writeFile(archive, bytes);
+    await ctx.run(ctx.node, installNpmArgs({ ...ctx, prefix: paths.prefix }, archive), {
+      cwd: stage, env: isolatedNpmEnv(env, stage, ctx.node, ctx.platform), timeoutMs: 300000 });
+    await writeFile(paths.record, JSON.stringify({ schema: 1, version: '2.7.2', integrity,
+      prefix: paths.prefix, entry: paths.entry, kimi: paths.kimi,
+      entryDigest: await fileDigest(paths.entry), shimDigest: await fileDigest(paths.kimi) }));
+    const files = [paths.record, paths.entry, paths.kimi, join(paths.root, 'package.json')];
+    const before = await Promise.all(files.map((file) => fileDigest(file)));
+    previous.downloadOfficial = async () => { throw new Error('existing official CLI must not download'); };
+    previous.run = async (command, args, settings) => {
+      if (args.includes('install') || args.includes('rebuild')) throw new Error('existing official CLI must not install');
+      return ctx.run(command, args, settings);
+    };
+    const found = await discoverOfficial(previous);
+    expect(found).toMatchObject({ kind: 'npm', path: paths.kimi, version: expect.stringContaining('2.7.2') });
+    await prepareOfficial(previous, found, stage, {});
+    expect(previous.kimi).toBe(paths.kimi);
+    expect(await verifyPty(previous, paths.root)).toBe('missing');
+    expect(await Promise.all(files.map((file) => fileDigest(file)))).toEqual(before);
+  }, 180000);
+
   it('retains legacy 2.3.1 PTY and rejects a missing owned binary without rewriting or rebuilding', async () => {
     const paths = await prepareLegacy();
     const pty = dependencyRoot(paths.root, 'node-pty');

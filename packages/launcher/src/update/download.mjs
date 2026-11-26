@@ -2,7 +2,7 @@ import { Agent, request } from 'node:https';
 import { proxyArchiveUrl, REPOSITORY } from './downloadProxy.mjs';
 
 const API = 'https://api.github.com/repos/WilliamLambertCN/open-kimi-web/releases';
-const OFFICIAL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.7.2.tgz';
+const OFFICIAL = 'https://registry.npmjs.org/@moonshot-ai/kimi-code/-/kimi-code-2.8.0.tgz';
 const GITHUB_CDN = new Set(['https://release-assets.githubusercontent.com', 'https://objects.githubusercontent.com']);
 
 function allowedDownload(url, metadata) {

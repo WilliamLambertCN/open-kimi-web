@@ -13,20 +13,26 @@ function fixture(state = { enabled: false, state: 'off' }) {
 }
 
 describe('fixed Cron backend guard', () => {
-  it('returns exact read-only 2.3.1 after the same authenticated RC-off check', async () => {
+  it.each(['2.3.1', '2.8.0'])('returns exact read-only %s after the same authenticated RC-off check', async (version) => {
     const { options, fetchImpl } = fixture();
+    const actualMeta = version === '2.8.0'
+      ? { server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false }
+      : { ...meta, server_version: version };
     fetchImpl.mockImplementation(async (url) => Response.json({ code: 0,
-      data: url.pathname === '/api/v1/meta' ? { ...meta, server_version: '2.3.1' } : { enabled: false, state: 'off' },
+      data: url.pathname === '/api/v1/meta' ? actualMeta : { enabled: false, state: 'off' },
     }));
-    await expect(assertCronBackend(options)).resolves.toBe('2.3.1');
+    await expect(assertCronBackend(options)).resolves.toBe(version);
     expect(fetchImpl.mock.calls.map(([url]) => url.pathname)).toEqual(['/api/v1/meta', '/api/v1/remote-control']);
     expect(fetchImpl.mock.calls.every(([, init]) => init.method === 'GET')).toBe(true);
   });
 
-  it('retains same-instance RC refusal on read-only 2.3.1', async () => {
+  it.each(['2.3.1', '2.8.0'])('retains same-instance RC refusal on read-only %s', async (version) => {
     const { options, fetchImpl } = fixture();
+    const actualMeta = version === '2.8.0'
+      ? { server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false }
+      : { ...meta, server_version: version };
     fetchImpl.mockImplementation(async (url) => Response.json({ code: 0,
-      data: url.pathname === '/api/v1/meta' ? { ...meta, server_version: '2.3.1' } : { enabled: true, state: 'on' },
+      data: url.pathname === '/api/v1/meta' ? actualMeta : { enabled: true, state: 'on' },
     }));
     await expect(assertCronBackend(options)).rejects.toMatchObject({ code: 'unsafe-backend' });
     expect(fetchImpl.mock.calls.every(([, init]) => init.method === 'GET')).toBe(true);

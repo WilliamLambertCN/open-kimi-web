@@ -55,15 +55,16 @@ function metaFetch(version, { status = 200 } = {}) {
 }
 
 describe('resolveOfficialVersion', () => {
-  it('returns the target server version from /api/v1/meta', async () => {
-    const fetchImpl = metaFetch('9.8.7');
-    const url = 'http://127.0.0.1:58627';
-    await expect(resolveOfficialVersion(url, null, fetchImpl)).resolves.toBe('9.8.7');
-    expect(fetchImpl).toHaveBeenCalledWith(`${url}/api/v1/meta`, {
-      headers: {},
-      signal: expect.any(AbortSignal),
+  it.each(['2.1.1', '2.4.1', '2.6.0', '2.6.1', '2.7.2', '2.8.0', '9.8.7'])
+    ('returns the target server version %s from /api/v1/meta instead of the fallback', async (version) => {
+      const fetchImpl = metaFetch(version);
+      const url = 'http://127.0.0.1:58627';
+      await expect(resolveOfficialVersion(url, null, fetchImpl)).resolves.toBe(version);
+      expect(fetchImpl).toHaveBeenCalledWith(`${url}/api/v1/meta`, {
+        headers: {},
+        signal: expect.any(AbortSignal),
+      });
     });
-  });
 
   it('sends the bearer token when one is available', async () => {
     const fetchImpl = metaFetch('2.0.2');
@@ -80,7 +81,7 @@ describe('resolveOfficialVersion', () => {
     ['missing version', metaFetch(undefined)],
     ['path-like version', metaFetch('../../etc')],
   ])('falls back to the pinned version on %s', async (_name, fetchImpl) => {
-    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.7.2');
+    expect(OFFICIAL_FALLBACK_VERSION).toBe('2.8.0');
     await expect(resolveOfficialVersion('http://127.0.0.1:58627', null, fetchImpl)).resolves.toBe(
       OFFICIAL_FALLBACK_VERSION,
     );

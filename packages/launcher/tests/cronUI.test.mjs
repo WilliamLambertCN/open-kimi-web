@@ -53,7 +53,7 @@ async function settled(test) {
 }
 afterEach(() => { observers.splice(0).forEach((observer) => observer.disconnect());
   frames.splice(0).forEach((frame) => frame.remove()); });
-describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])('%s read-only scheduled-task UI', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'])('%s read-only scheduled-task UI', (version) => {
   const readonly = { available: true, version, reason: 'read-only-version',
     capabilities: { list: true, inventory: true, history: true, create: false, remove: false } };
   it('keeps cold inventory/history readable and blocks hidden buttons and direct create/remove/restore callbacks', async () => {
@@ -120,9 +120,9 @@ describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])('%s read-o
   });
 });
 
-describe('exact 2.7.2 scheduled-task version detection', () => {
+describe.each(['2.7.2', '2.8.0'])('exact %s scheduled-task version detection', (version) => {
   it('keeps writes and restoration disabled without relying on the server capability reason', async () => {
-    const test = install({ capabilities: vi.fn(async () => ({ available: true, version: '2.7.2',
+    const test = install({ capabilities: vi.fn(async () => ({ available: true, version,
       capabilities: { list: true, create: true, remove: true } })),
     sessions: vi.fn(async () => ({ items: [{ ...session, loaded: false }], hasMore: false, cursor: null })) });
     await select(test);

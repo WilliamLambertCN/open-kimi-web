@@ -3,9 +3,8 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
 ---
 
 帮助用户安装独立 Open Kimi Web launcher 或管理接管。安装本插件不安装、启动或卸载 launcher。用户参数：$ARGUMENTS
-目标版本 `v2.7.2-r4`，兼容准确官方 `2.7.2`，保留 `2.6.0`／`2.6.1` 支持；发布状态以[正式 Release][current-release]为准。
-2.7.2 兼容边界见 [UPSTREAM][upstream-doc]；候选池与供应商保存记录见[更新日志][changelog-doc]，
-历史记录不代替本轮验收，未记录不视为通过。
+`2.8.0-r1` 适配准确官方 `2.8.0` 并保留旧版支持。下载和发布状态见[正式 Release][current-release]。
+兼容边界见 [UPSTREAM][upstream-doc]；历史记录不代替本轮验收，未记录不视为通过。
 
 严格按顺序执行：
 
@@ -14,16 +13,17 @@ description: 提供一键兼容式安装路线，或用已安装 launcher 配置
    新版命令固定 Release 版本和两个 SHA-256，先 GitHub，公开附件慢或失败才试 GHFast，不要求设置环境变量。
    无法取得通过校验的附件则停止，不回退 main／旧包；不静默联网安装，不声称 npm registry 已发布本包。
    解释联网、标准 curl／tar 与共享官方 Node ≥ 22.19.0 前提。Windows Git Bash 仍必需；
-   新官方 `2.7.2` 无 node-pty，按精确身份做真实 Node `child_process` shell probe，不再无条件要求 Linux 编译工具链。
-   旧 owned `2.6.1`／`2.6.0`／`2.4.1` 保留 shell probe；`2.3.1`／`2.1.1` 仍做真实 PTY。
+   官方 `2.8.0`／`2.7.2` 无 node-pty，按精确身份做真实 Node `child_process` shell probe，
+   不再无条件要求 Linux 编译工具链。旧 owned `2.6.1`／`2.6.0`／`2.4.1` 保留 shell probe；
+   `2.3.1`／`2.1.1` 仍做真实 PTY。
    只有 legacy rebuild 需 Python 3、C／C++ 和 make，不自动 sudo／apt。
    macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收，不承诺全部平台。仅源码开发需要 Corepack／pnpm。
 2. 解释默认接管会在 `${OPEN_KIMI_WEB_HOME:-~/.open-kimi-web}/bin` 写 wrapper，修改用户 PATH／受支持 shell rc。
    不改官方文件；缺失依赖放用户目录。先发现并明确复用已有可用 native／标准 npm Kimi，不下载或升级该官方 CLI。
    保留显式 override／已登记目标／PATH 顺序，有界检查默认 bin、KIMI_INSTALL_DIR、uv／XDG、Windows 持久 PATH／npm
    及所选 Node 旁标准命令。不修改持久 PATH 来搜索，不执行未知 PowerShell 函数／脚本或带参 wrapper。
-   坏、歧义或不支持候选明确拒绝，不当作 missing 后另装；只有确认缺失才准备固定官方 `2.7.2` tarball／SHA-512。
-   ignore-scripts 避免旧 Python 迁移；旧 owned 版仅在精确身份、integrity 与 entry／shim digests 全通过后复用。
+   坏、歧义或不支持候选明确拒绝，不当作缺失后另装。确认缺失才校验并安装固定官方 `2.8.0` tarball；
+   用 ignore-scripts 避免旧 Python 迁移。旧 owned 版仅在身份、integrity 与 entry／shim digests 全通过后复用。
    已有其它已识别源码／prefix 需用户显式选择 `--switch-installation`，未知／部分安装和降级仍拒绝，不删除旧安装。
    仅安装包可选 `--no-integrate`，不建立、修改或撤销已有接管；已有用户日常升级用 `update --check`／`update`。
 3. **取得安装／接管授权后**，按对应路线执行；一键安装器默认已接管，不重复运行 integrate install。
@@ -43,7 +43,6 @@ off-start 后 live config true 可出现入口但工具未组装，需用户接�
 chip 另要求会话已开启且非 Side Chat，缺 chip 不证明功能不存在。安全开启步骤见 [README][install]与[官方指南][official-tower]。
 
 [install]: https://github.com/WilliamLambertCN/open-kimi-web#readme
-[upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#kimi-code-272-adaptation
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
-[changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
+[upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.8.0-r1
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

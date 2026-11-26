@@ -45,7 +45,7 @@ function dispatch(req, res, state) {
     return send(res, { items: more ? [native('first'), native('no-tasks', true)] : [native('last', true)],
       has_more: more, next_page_token: more ? state.cursor : null });
   }
-  if (url.pathname === '/api/v1/sessions' && state.meta.server_version === '2.7.2') {
+  if (url.pathname === '/api/v1/sessions' && ['2.7.2', '2.8.0'].includes(state.meta.server_version)) {
     return unifiedDirectory(url, res, state);
   }
   const match = /^\/api\/v1\/sessions\/([^/]+)(?:\/profile)?$/.exec(url.pathname);
@@ -76,9 +76,10 @@ async function fixture(version = '2.1.1') {
   const home = await mkdtemp(join(tmpdir(), 'okw-cron-inventory-tcp-'));
   const state = {
     meta: { server_version: version, dangerous_bypass_auth: false,
-      ...(version === '2.7.2' ? { kimi_agent_protocol_version: '1.0.0' } : { backend: 'v2' }) },
+      ...(['2.7.2', '2.8.0'].includes(version) ? { kimi_agent_protocol_version: '1.0.0' } : { backend: 'v2' }) },
     loaded: [], unexpected: [], directoryError: null, cursor: 'opaque+/=&cursor',
     rows: Array.from({ length: 61 }, (_, index) => ({ ...unified(`unified-${index}`, index % 2 === 0),
+      ...(version === '2.8.0' ? { workspace_root: '/fictional/tcp-workspace', environment_id: 'local' } : {}),
       created_at: new Date(1000 * (61 - index)).toISOString(), updated_at: new Date(1000 * (61 - index)).toISOString() })),
   };
   const calls = [];
@@ -147,9 +148,9 @@ describe('real TCP global native Cron cold inventory', () => {
 
 });
 
-describe('exact 2.7.2 unified inventory on real TCP', () => {
+describe.each(['2.7.2', '2.8.0'])('exact %s unified inventory on real TCP', (version) => {
   it('keeps the 61st session when it updates between keyset pages without restoring it', async () => {
-    const { home, inventory, calls, state } = await fixture('2.7.2');
+    const { home, inventory, calls, state } = await fixture(version);
     const path = await writeWire(home, 'unified-60', [event('cron.add', { task })]);
     const before = await readFile(path);
     const items = []; let cursor;

@@ -44,7 +44,7 @@ function upstream(req, res, state) {
   state.calls.push({ path: url.pathname, query: url.search, method: req.method });
   if (req.headers.authorization !== authorization) return res.writeHead(401).end();
   if (req.method !== 'GET') return res.writeHead(405).end();
-  if (url.pathname === '/api/v1/meta') return send(res, { server_version: '2.7.2',
+  if (url.pathname === '/api/v1/meta') return send(res, { server_version: state.version,
     kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false });
   if (url.pathname === '/api/v1/remote-control') return send(res, { enabled: false, state: 'off' });
   if (url.pathname === '/api/v1/debug/sessionManager/list') return send(res, []);
@@ -53,12 +53,13 @@ function upstream(req, res, state) {
   state.unexpected.push(req.url); res.writeHead(404).end();
 }
 
-async function fixture({ mutableSort = false, overlap = false } = {}) {
+async function fixture({ version = '2.7.2', mutableSort = false, overlap = false } = {}) {
   const home = await mkdtemp(join(tmpdir(), 'okw-cron-pagination-'));
-  const state = { mutableSort, overlap, calls: [], unexpected: [],
+  const state = { version, mutableSort, overlap, calls: [], unexpected: [],
     rows: Array.from({ length: 61 }, (_, index) => ({
       id: `fixture-${index}`, workspace_id: workspaceId, cwd: '/fictional/pagination', title: `Fixture ${index}`,
       archived: index % 2 === 0, activity: 'idle', pending_interaction: 'none',
+      ...(version === '2.8.0' ? { workspace_root: '/fictional/pagination', environment_id: 'local' } : {}),
       created_at: new Date(1000 * (61 - Math.floor(index / 3))).toISOString(),
       updated_at: new Date(1000 * (61 - index)).toISOString(),
     })) };
@@ -118,9 +119,9 @@ afterEach(async () => {
   }));
 });
 
-describe('2.7.2 Cron pagination through TCP routes and the browser controller with fictional keyset responses', () => {
+describe.each(['2.7.2', '2.8.0'])('%s Cron pagination through TCP routes and the browser controller', (version) => {
   it('keeps all 61 sessions when the last one updates and displays its saved task without restoring it', async () => {
-    const test = await fixture(); await readAll(test);
+    const test = await fixture({ version }); await readAll(test);
     const buttons = [...test.view.document.querySelectorAll('.okw-cron-session')];
     expect(buttons).toHaveLength(61);
     expect(new Set(buttons.map((button) => button.dataset.sessionId)).size).toBe(61);
@@ -138,7 +139,7 @@ describe('2.7.2 Cron pagination through TCP routes and the browser controller wi
   });
 
   it('marks a skipped 61st session incomplete even with has_more=false and recovers only from a fresh read', async () => {
-    const test = await fixture({ mutableSort: true }); await readAll(test);
+    const test = await fixture({ version, mutableSort: true }); await readAll(test);
     expect(test.view.document.querySelectorAll('.okw-cron-session')).toHaveLength(60);
     expect(test.find('[data-session-id="fixture-60"]')).toBeNull();
     expect(test.find('.okw-cron-inventory .okw-cron-status').textContent).toContain('incomplete');
@@ -153,7 +154,7 @@ describe('2.7.2 Cron pagination through TCP routes and the browser controller wi
   });
 
   it('deduplicates cross-page repeats and never treats the terminal flag as a complete inventory', async () => {
-    const test = await fixture({ overlap: true }); await readAll(test);
+    const test = await fixture({ version, overlap: true }); await readAll(test);
     const ids = [...test.view.document.querySelectorAll('.okw-cron-session')].map((button) => button.dataset.sessionId);
     expect(new Set(ids).size).toBe(ids.length); expect(ids.length).toBeLessThan(61);
     expect(test.find('.okw-cron-inventory .okw-cron-status').textContent).toContain('incomplete');
