@@ -12,7 +12,9 @@ const authorization = 'Bearer fictional-inventory-token';
 const args = { authorization };
 const workspaceId = 'wd_fixture_0123456789ab';
 const meta = { server_version: '2.1.1', backend: 'v2', dangerous_bypass_auth: false };
-const unifiedMeta = { server_version: '2.7.2', kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false };
+const unifiedMeta = (version) => ({
+  server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false,
+});
 const task = { id: 'deadbeef', cron: '7 9 * * *', prompt: 'Fictional reminder', createdAt: 100 };
 const line = (type, fields = {}) => ({ type, time: 1000, ...fields });
 const native = (id, fields = {}) => ({
@@ -141,10 +143,11 @@ describe('global native Cron inventory', () => {
     });
 });
 
-describe('exact 2.7.2 unified Cron inventory', () => {
+describe.each(['2.7.2', '2.8.0'])('exact %s unified Cron inventory', (version) => {
   it('retains all 61 sessions when the last session updates between keyset pages, including creation-time ties', async () => {
     const rows = Array.from({ length: 61 }, (_, index) => unified(`unified-${index}`, {
       archived: index % 2 === 0, title: `First line\nFixture ${index}`,
+      ...(version === '2.8.0' ? { workspace_root: 'C:\\fictional\\workspace-name', environment_id: 'local' } : {}),
       created_at: new Date(1000 * (61 - Math.floor(index / 3))).toISOString(),
       updated_at: new Date(1000 * (61 - index)).toISOString(),
     }));
@@ -162,7 +165,7 @@ describe('exact 2.7.2 unified Cron inventory', () => {
         k: [Date.parse(last[key]), last.id] })).toString('base64url') : undefined;
       return envelope(unifiedPage(items, rows.length, cursor));
     };
-    const { inventory, home, fetchImpl } = await fixture({ meta: unifiedMeta, directory });
+    const { inventory, home, fetchImpl } = await fixture({ meta: unifiedMeta(version), directory });
     await wire(home, 'unified-60', [line('cron.add', { task })]);
     const items = [];
     const totals = [];
@@ -189,9 +192,9 @@ describe('exact 2.7.2 unified Cron inventory', () => {
 
 });
 
-describe('exact 2.7.2 unified Cron protocol', () => {
+describe.each(['2.7.2', '2.8.0'])('exact %s unified Cron protocol', (version) => {
   it('uses the saved model instead of mistaking activity for the removed live-model domain', async () => {
-    const { inventory, home } = await fixture({ meta: unifiedMeta,
+    const { inventory, home } = await fixture({ meta: unifiedMeta(version),
       directory: unifiedPage([unified('loaded', { activity: 'background' })]),
       loaded: [{ id: 'loaded', kind: 'session', accessor: {} }] });
     await wire(home, 'loaded', [line('profile.bind', { agentId: 'main', modelAlias: 'saved-alias' })]);
@@ -201,10 +204,13 @@ describe('exact 2.7.2 unified Cron protocol', () => {
   });
 
   it('reads the cold session from GET /sessions/:id rather than the removed profile read', async () => {
-    const { inventory, home, fetchImpl } = await fixture({ meta: unifiedMeta });
+    const { inventory, home, fetchImpl } = await fixture({ meta: unifiedMeta(version) });
     await wire(home, 'session-fixture', [line('cron.add', { task }), line('turn.prompt', {
-      agentId: 'main', turnId: 0, origin: { kind: 'cron_job', jobId: task.id },
-    }), line('turn.ended', { agentId: 'main', turnId: 0, reason: 'completed' })]);
+      agentId: 'main', turnId: 0, input: [], trigger: 'notify', origin: {
+        kind: 'cron_job', jobId: task.id, cron: task.cron, recurring: true, coalescedCount: 1, stale: false,
+      },
+    }), line('turn.ended', { agentId: 'main', turnId: 0, reason: 'completed', continuation: 'none',
+      replyModel: { model: 'fixture-model', provider: 'fixture-provider' } })]);
     expect(await inventory.history({ ...args, sessionId: 'session-fixture' })).toMatchObject({ available: true,
       items: [{ taskId: task.id, kind: 'started', endReason: 'completed' }] });
     expect(fetchImpl.mock.calls.map(([url]) => url.pathname)).toEqual([
@@ -215,19 +221,19 @@ describe('exact 2.7.2 unified Cron protocol', () => {
   it.each([native('legacy'), unified('unsafe', { workspace_id: '../other' }), unified('bad-cwd', { cwd: null }),
     unified('bad-title', { title: null }), unified('bad-archive', { archived: 'true' })])(
     'rejects an unverified unified directory item %#', async (item) => {
-      const { inventory } = await fixture({ meta: unifiedMeta, directory: unifiedPage([item]) });
+      const { inventory } = await fixture({ meta: unifiedMeta(version), directory: unifiedPage([item]) });
       await expect(inventory.sessions(args)).rejects.toMatchObject({ code: 'invalid-response' });
     });
 
   it.each([{ items: [], has_more: false }, unifiedPage([unified('one')], 0),
     unifiedPage([], 1, 'next'), { ...unifiedPage([unified('one')], 2, 'next'), next_page_token: null }])(
     'rejects incomplete unified pagination %#', async (directory) => {
-      const { inventory } = await fixture({ meta: unifiedMeta, directory });
+      const { inventory } = await fixture({ meta: unifiedMeta(version), directory });
       await expect(inventory.sessions(args)).rejects.toMatchObject({ code: 'invalid-response' });
     });
 
   it('rejects a repeated opaque cursor rather than presenting the same page again', async () => {
-    const { inventory } = await fixture({ meta: unifiedMeta,
+    const { inventory } = await fixture({ meta: unifiedMeta(version),
       directory: unifiedPage([unified('one')], 2, 'same') });
     await expect(inventory.sessions({ ...args, cursor: 'same' })).rejects.toMatchObject({ code: 'invalid-response' });
   });

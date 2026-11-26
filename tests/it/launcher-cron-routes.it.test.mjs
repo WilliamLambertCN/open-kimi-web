@@ -58,7 +58,7 @@ async function fixture({ enabled = true, version = '2.2.0', onUnsafeBackend, hom
     } else if (method === 'meta') {
       if (state.hold) await state.hold;
       json(res, { server_version: version, dangerous_bypass_auth: false,
-        ...(version === '2.7.2' ? { kimi_agent_protocol_version: '1.0.0' } : { backend: 'v2' }) });
+        ...(['2.7.2', '2.8.0'].includes(version) ? { kimi_agent_protocol_version: '1.0.0' } : { backend: 'v2' }) });
     } else if (method === 'remote-control') json(res, state.rc);
     else if (inventoryCall(req, res, version)) return;
     else if (!state.loaded) json(res, null, 40401);
@@ -77,10 +77,11 @@ async function fixture({ enabled = true, version = '2.2.0', onUnsafeBackend, hom
 
 function inventoryCall(req, res, version) {
   const url = new URL(req.url, 'http://127.0.0.1');
-  const unified = version === '2.7.2';
+  const unified = ['2.7.2', '2.8.0'].includes(version);
   if (url.pathname === (unified ? '/api/v1/sessions' : '/api/v2/sessions')) {
     const item = unified ? { id: 'http-fixture', workspace_id: 'fixture-workspace', cwd: '/fictional/workspace',
-      title: 'Fictional inventory session', archived: false, activity: 'idle', pending_interaction: 'none' }
+      title: 'Fictional inventory session', archived: false, activity: 'idle', pending_interaction: 'none',
+      ...(version === '2.8.0' ? { workspace_root: '/fictional/workspace', environment_id: 'local' } : {}) }
       : { id: 'http-fixture', workspace: { id: 'fixture-workspace', cwd: '/fictional/workspace' },
         meta: { archived: false, title: 'Fictional inventory session' }, activity: { model: null } };
     inventoryPage(url, res, item, unified);
@@ -188,7 +189,7 @@ describe('Cron assets and read-only inventory on TCP', () => {
   });
 });
 
-describe.each(['2.3.1', '2.4.1', '2.7.2'])('Cron %s read-only HTTP on TCP', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.7.2', '2.8.0'])('Cron %s read-only HTTP on TCP', (version) => {
   it('serves cold inventory/history and live snapshots while rejecting both HTTP writes without debug mutations',
     async () => {
       const home = await fixtureHome();

@@ -85,10 +85,10 @@ afterEach(async () => {
 });
 
 describe('real TCP restricted Cron client', () => {
-  it.each(['2.3.1', '2.4.1', '2.7.2'])(
+  it.each(['2.3.1', '2.4.1', '2.7.2', '2.8.0'])(
   'reads %s task memory but rejects writes before any debug mutation over TCP', async (version) => {
     const saved = task(1);
-    const actualMeta = version === '2.7.2'
+    const actualMeta = ['2.7.2', '2.8.0'].includes(version)
       ? { server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false }
       : { ...meta, server_version: version };
     const { client, state, calls } = await startFixture({ meta: actualMeta, tasks: [saved] });

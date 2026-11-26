@@ -12,8 +12,8 @@ const source = 'const lightbox={__name:"MediaLightbox"};' +
   'const dimensions=metadata(media)??await probe(url,signal);return dimensions?{src:url,...dimensions,' +
   'objectUrl:objectUrl}:(objectUrl&&URL.revokeObjectURL(objectUrl),null)}';
 
-function setup() {
-  const patched = patchOfficialImagePreview(source, '2.7.2');
+function setup(version = '2.7.2') {
+  const patched = patchOfficialImagePreview(source, version);
   expect(patched.patched).toBe(true);
   const probe = vi.fn();
   const metadata = vi.fn((media) => media.dimensions);
@@ -24,8 +24,8 @@ function setup() {
 }
 
 describe('official image preview dimensions', () => {
-  it('uses the actual cropped image instead of the source image metadata', async () => {
-    const { resolve, probe, metadata, URL } = setup();
+  it.each(['2.7.2', '2.8.0'])('uses actual cropped image dimensions on %s', async (version) => {
+    const { resolve, probe, metadata, URL } = setup(version);
     probe.mockResolvedValue({ w: 605, h: 700 });
     const signal = {};
     const api = { getSessionMediaBlob: vi.fn().mockResolvedValue('image') };
@@ -62,8 +62,10 @@ describe('official image preview dimensions', () => {
   });
 
   it.each([
-    [source, '2.7.3'], [source.replace('__name:"MediaLightbox"', '__name:"Other"'), '2.7.2'],
-    [source + source, '2.7.2'], [source.replace('metadata(media)??await probe', 'metadata(media)||await probe'), '2.7.2'],
+    [source, '2.7.3'], [source, '2.8.0-rc.1'], [source, '2.8.1'],
+    [source.replace('__name:"MediaLightbox"', '__name:"Other"'), '2.7.2'],
+    [source + source, '2.7.2'], [source + source, '2.8.0'],
+    [source.replace('metadata(media)??await probe', 'metadata(media)||await probe'), '2.7.2'],
   ])('keeps unknown or ambiguous upstream structures unchanged %#', (input, version) => {
     expect(patchOfficialImagePreview(input, version)).toEqual({ text: input, patched: false });
   });

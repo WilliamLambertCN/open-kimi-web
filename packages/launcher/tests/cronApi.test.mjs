@@ -14,7 +14,7 @@ function install(response = () => new Response(JSON.stringify({ tasks: [task] })
     authorize: () => window.fetch('/api/v1/meta', { headers: { authorization: 'Bearer fictional-only' } }) };
 }
 describe('read-only cron browser adapter', () => {
-  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])(
+  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'])(
     'retains %s read-only capabilities and rejects write/restore callbacks before requests', async (version) => {
     const test = install(); await test.authorize();
     const value = { available: true, version, reason: 'read-only-version',
@@ -31,9 +31,9 @@ describe('read-only cron browser adapter', () => {
     await expect(test.api.list('s')).resolves.toEqual({ tasks: [task], source: 'live' });
   });
 
-  it('treats exact 2.7.2 as read-only even if the capability reason is omitted', async () => {
+  it.each(['2.7.2', '2.8.0'])('treats exact %s as read-only even if the capability reason is omitted', async (version) => {
     const test = install(); await test.authorize();
-    test.fetch.mockResolvedValueOnce(Response.json({ available: true, version: '2.7.2',
+    test.fetch.mockResolvedValueOnce(Response.json({ available: true, version,
       capabilities: { list: true, create: true, remove: true } }));
     await test.api.capabilities(); const before = test.fetch.mock.calls.length;
     await expect(test.api.create('s', { cron: '7 * * * *', prompt: 'Fixture' }))

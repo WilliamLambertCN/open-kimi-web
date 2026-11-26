@@ -42,15 +42,15 @@
 
 ## 快速上手
 
-> 非官方社区项目，与 Moonshot AI 无关联。[v2.7.2-r4][current-release] 适配 Kimi Code `2.7.2`，保留 `2.6.0`／`2.6.1` 支持。
-> 不自动升级已有官方 Kimi。具体功能和限制见 [兼容说明](UPSTREAM.md#kimi-code-272-adaptation)。
+> 非官方社区项目，与 Moonshot AI 无关联。以下命令固定安装 [v2.8.0-r1][current-release]，不会升级已有官方 Kimi。
+> 本仓库的 `2.8.0-r1` 适配见 [兼容说明](UPSTREAM.md#kimi-code-280-adaptation)。
 
 **Windows：打开 PowerShell，粘贴运行。**
 
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'
-    $version = '2.7.2-r4'
+    $version = '2.8.0-r1'
     $github = "https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version.zip"
     $defaultProxy = 'https://ghfast.top'
     $proxy = $env:OPEN_KIMI_WEB_GITHUB_PROXY
@@ -59,7 +59,7 @@
     elseif ($proxy -cnotin @($defaultProxy, "$defaultProxy/")) {
         throw "OPEN_KIMI_WEB_GITHUB_PROXY must be $defaultProxy or 0 (disable)."
     }
-    $digest = 'd032e8eabfc7410a27b6109fdf5b3d0b39d42dc874f19005e78a478d38694a40'
+    $digest = '617b64ec994acc02c56e4c39c55e0647141ebfce3c63776aface04a048483bc0'
     $stage = Join-Path ([IO.Path]::GetTempPath()) ('okw-install-' + [Guid]::NewGuid().ToString('N'))
     [IO.Directory]::CreateDirectory($stage) | Out-Null
     $archive = Join-Path $stage 'installer.zip'
@@ -73,7 +73,7 @@
             (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $digest)
     }
     try {
-        $env:OPEN_KIMI_WEB_INSTALL_SHA256 = '09140482755c2293e2b7341954321f2b8f36579cfb4f3abb61364369bb8e665e'
+        $env:OPEN_KIMI_WEB_INSTALL_SHA256 = 'b666766fc1b665e41fb63c8f05abeffaa1e2cdc13a5ea9a30f8ac05b43d1aee8'
         $follow = @('--location', '--proto-redir', '=https', '--max-redirs', '4')
         $ready = $false
         if ($proxy) {
@@ -105,17 +105,17 @@
 ```sh
 (
   set -eu
-  version='2.7.2-r4'
+  version='2.8.0-r1'
   github="https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v$version/okw-install-$version.tar.gz"
   default_proxy='https://ghfast.top'
   proxy=${OPEN_KIMI_WEB_GITHUB_PROXY:-$default_proxy}
-  digest='186d6def383e18494e28c0ba7e3f7f4d42c6a0329f3ee9d590fa4fa2bd8c84c4'
+  digest='777d7a25cc239a16e0af10bb394389857e2bc14d9e8105bbbfa6018fd7537a78'
   case "$proxy" in
     0) proxy='' ;;
     "$default_proxy"|"$default_proxy/") ;;
     *) printf '%s\n' "OPEN_KIMI_WEB_GITHUB_PROXY must be $default_proxy or 0 (disable)." >&2; exit 1 ;;
   esac
-  export OPEN_KIMI_WEB_INSTALL_SHA256='09140482755c2293e2b7341954321f2b8f36579cfb4f3abb61364369bb8e665e'
+  export OPEN_KIMI_WEB_INSTALL_SHA256='b666766fc1b665e41fb63c8f05abeffaa1e2cdc13a5ea9a30f8ac05b43d1aee8'
   stage=$(mktemp -d "${TMPDIR:-/tmp}/okw-install-XXXXXXXX")
   trap 'rm -rf "$stage"' EXIT
   trap 'exit 1' HUP INT TERM
@@ -197,11 +197,11 @@ node packages/launcher/bin/open-kimi-web.mjs integrate install
 - **模型与主题**：从服务商获取模型后选择添加，调整顺序、能力与思考强度，Max 放最后，不自动改写已有配置。
   可选五套主题或恢复官方外观；电脑从账号菜单、手机从设置进入“氛围主题”。
 - **请求与侧聊**：在每次回复或工具过程后查看 TTFT、包含等待的平均 TPS 和缓存命中率；侧聊可单独选模型。
-  指标按实际代码结构启用；`2.6.0`／`2.6.1`／`2.7.2` 已适配新版会话接口，见 [兼容说明](UPSTREAM.md)。
+  指标按实际代码结构启用；`2.6.0`／`2.6.1`／`2.7.2`／`2.8.0` 已适配新版会话接口。详见 [兼容说明](UPSTREAM.md)。
 - **连接**：HTTPS、Hyper-V 地址识别和传输压缩；源码与 npm 安装均可更新，也能恢复原命令入口。
   手机和电脑都可在设置中重启受管服务；空闲时在原地址重连，不自动重发消息。
 
-启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2` 仅可查看任务与已有历史，
+启动加 `--scheduled-tasks` 才显示定时任务。官方 `2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2`／`2.8.0` 仅可查看任务与已有历史。
 不能编辑、暂停或单独选模型，也不能与同一 Kimi 服务的官方 Remote Control 同时开启。[使用限制](packages/launcher/README.md#统一导航与会话搜索)
 
 ### 子代理候选池
@@ -326,4 +326,4 @@ MIT 许可，见 [LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md
 
 [ci-badge]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/WilliamLambertCN/open-kimi-web/actions/workflows/ci.yml
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.8.0-r1

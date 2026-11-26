@@ -6,8 +6,8 @@
 
 ## 安装
 
-本项目不发布到 npm registry；`v2.7.2-r4` 的兼容基线是 Kimi Code `2.7.2`，保留已验证的 `2.6.0`／`2.6.1` 支持。
-请求指标按完整代码结构决定是否启用，不按版本号限制；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
+本项目不发布到 npm registry。[`v2.8.0-r1`][current-release] 适配 Kimi Code `2.8.0`，保留 `2.7.2`／`2.6.0`／`2.6.1` 支持。
+请求指标按完整代码结构决定是否启用，不按版本号限制；已实测官方 `2.5.2`／`2.5.3`／`2.6.0`／`2.6.1`／`2.8.0`。
 每次调用保留 TTFT、包含等待的平均 TPS、缓存命中和侧聊独立选模。
 手机和电脑都可从设置重启受管服务。双端菜单、手机置顶、局域网 CA 和 App 安装入口保留。
 更新后请手动重启并刷新；不升级已有官方 Kimi、不改会话、模型配置或网络，也不强制开启实验功能。
@@ -15,13 +15,20 @@
 候选池、工作空间与导航、触摸提示、供应商保存、2.6 适配及更早版本的记录见[更新日志][changelog-doc]。
 CI、交付包及发布结果以[Release 页面][current-release]为准，未记录不视为通过。
 
-### 官方 2.7.2 适配与保留的 2.6 支持
+### 官方 2.8.0 适配
 
-本版适配准确官方 `2.7.2`，继续使用官方原版后端，不增加引擎。兼容边界见 [UPSTREAM][upstream-doc]。
+继续使用官方原版后端，不增加引擎。手机消息目录沿用官方分页；保留原有定时任务的只读查看、子模型选择和双端一键重启。
+桌面和手机尺寸下已验证单次请求指标、局部图片等比预览，以及切换主模型时保留其支持的思考档位。
+会话媒体地址问题由官方 `2.8.0` 修复，不重复应用旧补丁。详见[兼容与验证记录](../../UPSTREAM.md#kimi-code-280-adaptation)。
+
+### 已发布的官方 2.7.2 适配与保留的 2.6 支持
+
+`2.7.2-r4` 适配准确官方 `2.7.2`，继续使用官方原版后端，不增加引擎。
 
 - 手机列表和只读任务按官方 v1 接口分页，分组总数与预览条数分开处理，丢弃过期请求的展示结果。
 - `2.7.2` 的归档设置和侧栏均使用官方删除动作，流式显示保持原样。
-- `2.7.2-r2` 起，主输入框换模型时，新模型支持当前思考档位就保留，否则用它的默认档位；不改全局、侧聊和子代理。
+- `2.7.2-r2` 起，主输入框换模型时，新模型支持当前思考档位就保留，否则用它的默认档位。
+  不改全局思考配置、侧聊或子代理；官方保存默认模型的行为不变。
 - `2.7.2-r3` 修复官方 `2.7.2` 的局部图片预览拉伸，不改变图片和会话数据。
 - `2.7.2-r4` 回移官方媒体地址修复，避免部分新会话打开时显示“出错了”；其他错误仍需具体排查。
 - 手机消息目录、时间和加载提示已接入新版 turns/items，复用原生最近历史、旧页、实时消息、重连和撤销。
@@ -45,7 +52,7 @@ CI、交付包及发布结果以[Release 页面][current-release]为准，未记
 Windows 自更新取消／超时通过原生进程句柄清理，只处理本次进程树并确认退出。
 本版起直接用系统 .NET Framework 编译器启动原有清理程序，编译与执行共用原三秒期限，临时程序用完即删。
 不再为清理启动 PowerShell，不要求额外 SDK；无法确认时保留安装锁并报错，不按进程名追杀。
-当前版本缺官方时准备 `2.7.2`，metadata 失败的 UI fallback 也为 `2.7.2`；不升级已有 CLI、不自动重启。
+当时的适配未改安装器和网页 fallback；不升级已有 CLI、不自动重启。
 
 ### 推理档位与原生 Tower
 
@@ -93,11 +100,11 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 
 在[仓库快速上手][quickstart]复制对应系统的命令到终端运行，无需手动下载脚本。
 
-先检测并明确复用已有可用 Kimi，不下载或升级该官方 CLI；真正缺失才准备固定 `2.7.2`。
-按需补齐 Node/npm 和 Windows Git Bash；坏、歧义或不支持候选明确拒绝，不当作 missing 后另装。
+复用已有可用 Kimi，不重新下载或升级。没有时才安装固定的 `2.8.0`。
+按需补齐 Node/npm 和 Windows Git Bash；安装损坏、归属不明或版本不支持时会报错，不直接覆盖。
 安装完成后，新开终端运行 `kimi web --host`。
 
-新版命令固定 Release 版本和两个 SHA-256，先验安装器再验安装包；下载失败不切换到旧版本。
+安装命令固定 Release 版本和两个 SHA-256，先验安装器再验安装包；下载失败不切换到旧版本。
 本地入口、coordinator 和 helpers 必须来自同一提交；本地 `--help` 不联网、不写入、不要求 Node。
 已有其它已识别源码／prefix 需显式 `--switch-installation`；仅装包选 `--no-integrate`，日常升级用 `update`。
 
@@ -106,25 +113,25 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
   Windows 持久 Machine／User PATH、APPDATA/npm 和所选 Node 旁标准命令；HOME 与 USERPROFILE 默认目录均去重检查。
   旧 POSIX Python／uv 只接受有界识别的标准 console entry，并实测版本／Web 能力；未知脚本或带参 wrapper 仍拒绝。
   不递归扫盘、不修改持久 PATH；多份无明确优先级需显式 override，不猜新旧或执行未知 PowerShell 函数。
-- 真正缺官方时固定 `2.7.2` tarball／SHA-512，ignore-scripts 避免旧 Python 迁移。
-  旧 owned `2.6.1`／`2.6.0`／`2.4.1`／`2.3.1`／`2.1.1` 按精确身份及 entry／shim digests 验证后复用，不自动升级。
+- 缺少官方 Kimi 时校验 `2.8.0` 的 SHA-512，用 ignore-scripts 避免旧 Python 迁移。
+  旧 owned `2.7.2`／`2.6.1`／`2.6.0`／`2.4.1`／`2.3.1`／`2.1.1` 验证身份及 entry／shim digests 后复用，不自动升级。
   partial／坏 override／未知归属拒绝，不自动续装或重建已有安装。
-- `2.7.2`／`2.6.1`／`2.6.0`／`2.4.1` 无 node-pty，按精确身份做真实 Node `child_process` shell probe；不是缺 PTY 就算通过。
+- `2.8.0`／`2.7.2`／`2.6.1`／`2.6.0`／`2.4.1` 按精确身份做 Node `child_process` shell probe；不是缺 PTY 就算通过。
   旧 owned 版仍做真实 PTY；Linux 仅 legacy rebuild 需 Python 3、C／C++ 与 make，不再无条件要求新版装编译工具链。
   legacy rebuild 只审计固定 node-pty／node-addon-api 并限定绝对目录，不跑根 Kimi 或其它包脚本，不 sudo／apt。
 - Windows Git Bash 仍必需，缺失才准备验证过的 portable Git，不改系统 Git；SFX 不跑默认 post-install.bat。
   不自动登录、启动生产服务、读真实会话或发付费调用。历史 portable 与完整缺 Git coordinator 不是同次组合验收。
 
 macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收，不承诺全部平台。
-根安装器不在 launcher tgz；当前发布状态以 [Release 页面][current-release]为准。
+一键安装器单独提供，不包含在 launcher tgz 内。见 [Release 页面][current-release]。
 
 ### 手动 npm 安装（已有 Node ≥ 22／npm）
 
-此路线只装 launcher，需自行准备可运行的官方 Kimi；官方 npm `2.7.2` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
-不需要 Corepack／pnpm；正式发布后，首次安装且尚未接管时使用固定 URL：
+此路线只装 launcher，需自行准备可运行的官方 Kimi；官方 npm `2.8.0` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
+不需要 Corepack／pnpm；首次安装且尚未接管时使用固定 URL：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r4/open-kimi-web-2.7.2-r4.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.8.0-r1/open-kimi-web-2.8.0-r1.tgz
 open-kimi-web integrate install
 ```
 
@@ -222,7 +229,8 @@ Windows 上文件 mode 不等于完整的访问控制设置，请使用仅自己
 官方 `2.1.1` 未导出 ModelPicker，也没有已确认的完整 Settings 手机打开动作；独立控件不调用 Vue 私有实例或主模型写入。
 通过官方 GET config／models 与 POST `/api/v1/config` 仅保存 `secondary_model` 并合并池，不覆盖其它配置、不另存 localStorage。
 Auto 合法提交 `defaultEffort: ''`。旧版不能通过空／null 或省略字段清除已配置模型；
-准确 `2.5.2`／`2.6.0`／`2.6.1`／`2.7.2` 使用原生 `secondary_model: null` 恢复跟随，不猜测其它版本支持。
+准确 `2.5.2`／`2.6.0`／`2.6.1`／`2.7.2`／`2.8.0` 使用原生 `secondary_model: null` 恢复跟随，不猜测其它版本支持。
+这会清除整个独立候选池和说明；保存前提示后果，重新读取发现设置已变化时拒绝清除。
 
 共享 locale 读取官方 `kimi-locale`，本轮覆盖的主题、手机状态、会话、usage／provider 等英文系统文案随语言切换刷新，
 保留用户中文模型／供应商名、草稿与输入，不新增后端请求。
@@ -299,7 +307,7 @@ r4起不按版本号限制请求指标，完整核对实际入口代码后启用
 **定时任务轻量接入（版本受限）：** 沿用原版后端、原数据目录及原会话，不维护后端分支、不加引擎、不改任务日志。
 支持分页查看任务、内容／计划／模型来源、真实触发记录；显式 `kimi web --scheduled-tasks` 启用，默认关闭。
 精确 `2.1.1`／`2.2.0` 保留显式恢复确认后的新建、删除；
-精确 `2.3.1`／`2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2` 仅只读任务／历史。
+精确 `2.3.1`／`2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2`／`2.8.0` 仅只读任务／历史。
 不为列表恢复冷会话；写入范围不扩展，未知及未列出的相邻版本拒绝，源码相似不等于可以安全写入。
 历史 `2.3.1` 实测 debug 写入可绕过会话锁和 stale gate，且可能延迟落盘，缺少归属／新鲜度／持久化回执兼顾的原子入口。
 transport／route 双 gate 在 debug mutation 前拒绝只读版本写入，UI 中英提示只读、隐藏恢复／新建、禁用删除。
@@ -457,7 +465,7 @@ open-kimi-web serve --no-token-link
 官方 bundle 不可用时会明确中止启动；恢复 npm 网络及 `curl` / `tar` 后重试，
 或用 `--web-dir` 指向已准备好的隔离前端目录。该目录内所有可访问文件都会被公开，
 不要放日志、备份、配置或凭证；静态服务拒绝通过符号链接越界读取。
-默认根据 target `/api/v1/meta` 选择官方 UI；metadata 不可用时使用 `2.7.2`；显式选择仍优先。
+默认根据 target `/api/v1/meta` 选择官方 UI；metadata 不可用时使用 `2.8.0`；显式选择仍优先。
 `--web-version <ver>` 固定官方 UI 版本，不会固定或升级后端；`OPEN_KIMI_WEB_DIR` / `OPEN_KIMI_WEB_VERSION`
 也适用于接管后的 `kimi web`。
 
@@ -488,7 +496,7 @@ fork 会话在官方 Web 中完成回合后，自动标题生成不会抹掉仍�
 
 样式与脚本随 launcher 发布，不写入官方缓存；更新 launcher 后仍需自行结束旧进程并重启，
 再刷新或重新打开页面，本轮不会自动重启生产。`--web-dir` 不注入展示层及主题功能。
-本版 `2.7.2-r4` 适配准确官方 UI `2.7.2`，发布状态见 [Release 页面][current-release]。
+`2.8.0-r1` 适配官方 UI `2.8.0`，保留 `2.7.2`／`2.6.0`／`2.6.1` 的兼容路径。见 [Release 页面][current-release]。
 准确后端、界面与门禁记录见 [UPSTREAM][upstream-doc]；不把源码更新当作已运行的旧服务更新。
 r1 适配、r2 默认／发布与供应商保存记录属于历史，不视为本轮验收。
 r9 完整官方 app 源码实测使用虚构 API，交付包浏览器与线上核验独立于源码实测，不充作新版验收。
@@ -540,7 +548,7 @@ open-kimi-web update           # 更新同一安装，不自动重启
 open-kimi-web update --help
 ```
 
-**旧版 → 2.7.2-r4：** 运行 `update --check` 确认实际安装和目标版本，再运行 `update`。
+**升级到 `2.8.0-r1`：** 运行 `update --check` 确认实际安装和目标版本，再运行 `update`。
 一键／npm 安装无需同版本重装、重跑安装器或追加 `--switch-installation`；源码仍仅允许跟踪 origin/main 的干净 main 快进。
 完成后自行停止旧 launcher／受管后端，重新运行 `kimi web --host` 并刷新；独立 target 须自行重启实际 backend。
 局域网 CA 需另行执行一次 `open-kimi-web tls setup`；更新不会自动启用，也不会替手机导入证书。
@@ -636,7 +644,7 @@ MIT — 见包内 `LICENSE` 与 `THIRD_PARTY_NOTICES.md`。含 Moonshot AI 的 M
 
 [r10-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.1.1-r10
 [r2-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.3.1-r2
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.8.0-r1
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html
 [upstream-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md

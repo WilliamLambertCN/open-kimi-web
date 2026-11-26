@@ -5,10 +5,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { metricsHtml, metricsPresentationState, metricsStartupMessage, prepareMetricsAssets } from '../src/metricsAssets.mjs';
 import { addMobilePresentation } from '../src/officialPresentation.mjs';
 import { METRICS_ASSET_PREFIX as prefix, STREAMING_ASSET_PREFIX as streamingPrefix } from '../src/officialRequestMetrics.mjs';
-import { THINKING_ASSET_PREFIX as thinkingPrefix } from '../src/officialModelThinking.mjs';
+import { THINKING_ASSET_PREFIX as thinkingPrefix, THINKING_PREVIEW_ASSET_PREFIX as thinkingPreviewPrefix }
+  from '../src/officialModelThinking.mjs';
 import { IMAGE_PREVIEW_ASSET_PREFIX as imagePrefix } from '../src/officialImagePreview.mjs';
 import { SESSION_MEDIA_ASSET_PREFIX as mediaPrefix } from '../src/officialSessionMedia.mjs';
-import { modelThinkingFixture } from './testkit/officialModelThinking.mjs';
+import { composerThinkingFixture, modelThinkingFixture } from './testkit/officialModelThinking.mjs';
 import { sessionMediaFixture } from './testkit/officialSessionMedia.mjs';
 import { nativeTimingFixture as source } from './testkit/officialRequestMetrics.mjs';
 
@@ -109,13 +110,24 @@ describe('verified official metrics assets', () => {
 });
 
 describe('verified image preview assets', () => {
-  it('uses a fresh graph independently and together with other verified patches', async () => {
+  it('revisions the combined 2.8.0 graph when a verified thinking preview changes otherwise immutable assets', async () => {
+    await writeFile(join(publicDir, 'assets/main.js'), source + imagePreview + composerThinkingFixture);
+    const result = await prepareMetricsAssets(publicDir, true, '2.8.0');
+    expect(result).toMatchObject({ state: 'active', imagePreviewState: 'active', modelThinkingState: 'active',
+      prefix: thinkingPreviewPrefix });
+    expect(result.patched).toContain('supports(target.value,effort.value)');
+    expect(result.patched).toContain('await probe(url,signal)??metadata(media)');
+    expect(metricsHtml(html, result)).toContain(`src="${thinkingPreviewPrefix}/assets/main.js"`);
+  });
+
+  it.each(['2.7.2', '2.8.0'])('uses a fresh graph for preview and other verified patches on %s', async (version) => {
     for (const extra of ['', source + modelThinkingFixture]) {
       await writeFile(join(publicDir, 'assets/main.js'), imagePreview + extra);
-      const result = await prepareMetricsAssets(publicDir, true, '2.7.2');
+      const result = await prepareMetricsAssets(publicDir, true, version);
       expect(result).toMatchObject({ imagePreviewState: 'active', prefix: imagePrefix });
       expect(result.patched).toContain('await probe(url,signal)??metadata(media)');
       expect(metricsHtml(html, result)).toContain(`src="${imagePrefix}/assets/main.js"`);
+      if (version === '2.8.0') expect(result.sessionMediaState).toBe('disabled');
     }
   });
 });
@@ -143,6 +155,14 @@ describe('bundle read safety', () => {
     expect(await prepareMetricsAssets(join(root, 'missing'), true)).toEqual({ state: 'unavailable-bundle' });
     expect(await prepareMetricsAssets(join(root, 'missing'), true, '2.6.3'))
       .toEqual({ state: 'unavailable-bundle', streamingState: 'unavailable-bundle' });
+    expect(await prepareMetricsAssets(join(root, 'missing'), true, '2.8.0')).toEqual({
+      state: 'unavailable-bundle', modelThinkingState: 'unavailable-bundle', imagePreviewState: 'unavailable-bundle',
+    });
+    await index('<head></head>');
+    expect(await prepareMetricsAssets(publicDir, true, '2.8.0')).toEqual({
+      state: 'incompatible-bundle', modelThinkingState: 'incompatible-bundle', imagePreviewState: 'incompatible-bundle',
+    });
+    await index(html);
     await rm(join(publicDir, 'assets/main.js'));
     expect(await prepare()).toEqual({ state: 'unavailable-bundle' });
     await mkdir(join(publicDir, 'assets/main.js'));

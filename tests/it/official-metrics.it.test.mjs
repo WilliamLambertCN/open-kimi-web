@@ -137,9 +137,9 @@ describe('verified streaming activation', () => {
   });
 });
 
-describe('exact 2.7.2 image preview delivery', () => {
-  it('serves the verified preview fix without mutating the cached upstream bundle', async () => {
-    const directory = join(root, 'image-preview-272');
+describe('verified image preview delivery', () => {
+  it.each(['2.7.2', '2.8.0'])('serves the %s preview fix without mutating the cached upstream bundle', async (version) => {
+    const directory = join(root, `image-preview-${version}`);
     await mkdir(join(directory, 'assets'), { recursive: true });
     const preview = 'const lightbox={__name:"MediaLightbox"};async function resolve(api,media,thumbnail,signal){' +
       'const dimensions=metadata(media)??await probe(url,signal);return dimensions?{src:url,...dimensions,' +
@@ -147,7 +147,7 @@ describe('exact 2.7.2 image preview delivery', () => {
     await writeFile(join(directory, 'index.html'), html);
     await writeFile(join(directory, 'assets/main.js'), preview);
     const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
-      interfaces: {}, officialPresentation: true, officialWebVersion: '2.7.2' });
+      interfaces: {}, officialPresentation: true, officialWebVersion: version });
     try {
       expect(other.imagePreviewState).toBe('active');
       expect(await (await fetch(other.url)).text()).toContain(`src="${imagePrefix}/assets/main.js"`);
@@ -183,9 +183,9 @@ describe('exact 2.7.2 session media delivery', () => {
   });
 });
 
-describe('exact 2.7.2 native streaming delivery', () => {
-  it('serves metrics without enabling the 2.6.3 streaming patch', async () => {
-    const directory = join(root, 'native-streaming-272');
+describe('native streaming delivery', () => {
+  it.each(['2.7.2', '2.8.0'])('serves %s metrics without the 2.6.3 streaming patch', async (version) => {
+    const directory = join(root, `native-streaming-${version}`);
     await mkdir(join(directory, 'assets'), { recursive: true });
     const streaming = 'const Markdown={__name:"Markdown"};const props={mode:"chat",final:x.value,' +
       '"show-tooltips":!1,"smooth-streaming":y.streaming,"batch-rendering":z.value};';
@@ -193,7 +193,7 @@ describe('exact 2.7.2 native streaming delivery', () => {
     await writeFile(join(directory, 'index.html'), html);
     await writeFile(join(directory, 'assets/main.js'), original);
     const other = await createLauncher({ publicDir: directory, target: 'http://127.0.0.1:1', host: '127.0.0.1', port: 0,
-      interfaces: {}, officialPresentation: true, officialWebVersion: '2.7.2' });
+      interfaces: {}, officialPresentation: true, officialWebVersion: version });
     try {
       expect(other.requestMetricsState).toBe('active');
       expect(other.streamingState).toBe('disabled');

@@ -6,6 +6,8 @@ export const sources = ['effortOrder.js', 'mobileSubagentModelApi.js', 'mobileSu
   .map((name) => readFileSync(resolve(`packages/launcher/src/mobile/${name}`), 'utf8'));
 const localeSource = readFileSync(resolve('packages/launcher/src/mobile/locale.js'), 'utf8');
 export const tick = async () => { await new Promise((done) => setTimeout(done, 0)); };
+export const open = async (ui) => { ui.query('trigger').click(); await ui.settled(); };
+export const current = (ui) => ui.rows().find((row) => row.classList.contains('is-current'))?.dataset.model;
 export const response = (data) => new Response(JSON.stringify({
   code: 0, msg: 'success', data, request_id: 'fixture',
 }));

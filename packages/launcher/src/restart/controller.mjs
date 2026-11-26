@@ -3,10 +3,11 @@ import { requestJson } from '../cron/transport.mjs';
 import { conditionalShutdown } from './conditional.mjs';
 import { RestartError } from './http.mjs';
 
-const SUPPORTED = new Set(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2']);
+const CONDITIONAL = new Set(['2.7.2', '2.8.0']);
+const SUPPORTED = new Set(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', ...CONDITIONAL]);
 const BUSY_QUERY = '/api/v2/sessions?activity.status=running&activity.status=approval&activity.status=question' +
   '&meta.archived=all&page_size=1&fields=id,archived';
-const BUSY_QUERY_272 = '/api/v1/sessions?busy=true&archived=all&page_size=1&fields=id,archived';
+const CONDITIONAL_BUSY_QUERY = '/api/v1/sessions?busy=true&archived=all&page_size=1&fields=id,archived';
 
 async function authorized(state, header) {
   if (typeof header !== 'string' || !/^Bearer\s+\S+$/i.test(header)) throw new RestartError('unauthorized', 401);
@@ -24,7 +25,7 @@ function validatePage(data) {
 
 async function assertIdle(state, header) {
   let data;
-  const path = state.conditional ? BUSY_QUERY_272 : BUSY_QUERY;
+  const path = state.conditional ? CONDITIONAL_BUSY_QUERY : BUSY_QUERY;
   try { data = await requestJson(state.fetchImpl, new URL(path, state.target), header); }
   catch { throw new RestartError('idle-check-failed', 502); }
   validatePage(data);
@@ -34,7 +35,7 @@ async function assertIdle(state, header) {
 function unavailableReason(state, version) {
   if (state.closed || typeof state.prepare !== 'function' || typeof state.stop !== 'function') return 'unmanaged-or-unsupported';
   if (!SUPPORTED.has(version)) return 'unmanaged-or-unsupported';
-  if (version === '2.7.2' && (!state.backend || !state.quiesce)) return 'atomic-restart-unavailable';
+  if (CONDITIONAL.has(version) && (!state.backend || !state.quiesce)) return 'atomic-restart-unavailable';
 }
 
 function finishOperation(state) {
@@ -106,7 +107,7 @@ async function reserve(state, header, readBody, signal) {
   if (state.operation || Date.now() < state.retryAfter) throw new RestartError('restart-pending');
   state.operation = true;
   state.settled = new Promise((resolve) => { state.finish = resolve; });
-  state.conditional = meta.server_version === '2.7.2';
+  state.conditional = CONDITIONAL.has(meta.server_version);
   state.shutdownSent = false; state.backendExited = false; state.lastError = undefined; state.requestCanceled = false;
   try {
     validateBody(await readBody(), state.instance);

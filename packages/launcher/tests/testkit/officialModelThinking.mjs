@@ -12,3 +12,12 @@ export const switcher = 'async function apply(alias){const sid=state.activeSessi
   '(store.setDraftModel(alias),state.thinking=next,changed&&(state.draftThinkingExplicit=!1),!0)}';
 
 export const modelThinkingFixture = registry + switcher;
+
+export const preview = ';const composer=define({__name:"Composer",props:{},setup(){' +
+  'const live=computed(()=>normalize(activeModel.value,effort.value)),' +
+  'pending=computed(()=>normalize(target.value,pick(target.value,effort.value,target.value?.id!==activeModel.value?.id,' +
+  'session.value===null||session.value===void 0?stores.config.value?.thinking:void 0))),' +
+  'shown=computed(()=>override.value===void 0?pending.value:normalizeExplicit(target.value,override.value));' +
+  'return {live,pending,shown}}});';
+
+export const composerThinkingFixture = modelThinkingFixture + preview;

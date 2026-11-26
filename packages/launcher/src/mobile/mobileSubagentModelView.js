@@ -6,6 +6,7 @@
     if (stored === 'zh' || stored === 'en') return stored;
     return navigator.language?.toLowerCase().startsWith('zh') ? 'zh' : 'en';
   };
+  const clearsPool = (state) => !state.choice.model && Object.keys(state.data?.section?.models ?? {}).length > 0;
   const copy = () => locale() === 'zh' ? {
     title: '子智能体默认模型', description: '全局设置；不改变当前会话的主模型。',
     follow: '跟随主模型', unknown: '点按查看', effort: '思考档位', all: '全部',
@@ -14,6 +15,8 @@
     auto: '自动', autoHint: '自动按全局思考设置／模型默认解析。',
     effortNames: { on: '开启', off: '关闭', minimal: '极低', low: '低', medium: '中', high: '高', xhigh: '极高', max: '最高' },
     save: '保存', cancel: '取消', retry: '重试', loading: '正在加载…', saving: '正在保存…',
+    clearPoolAndFollow: '清空候选池并跟随', clearPoolHint: '保存后会清除独立候选及说明，再跟随主模型。',
+    configChanged: '子智能体设置已变化。请重试以加载最新设置。',
     noModels: '没有已配置模型。可保持跟随主模型，或先在供应商设置中添加模型。',
     followHint: '未配置独立模型时，子智能体继承调用者的模型和思考档位。',
     poolHint: '保留已有模型池：只有一个模型时固定使用它，有多个时供子智能体选择。思考档位须适用于整个池。',
@@ -32,6 +35,9 @@
     effortNames: { on: 'On', off: 'Off', minimal: 'Minimal', low: 'Low', medium: 'Medium', high: 'High',
       xhigh: 'Xhigh', max: 'Max' },
     save: 'Save', cancel: 'Cancel', retry: 'Retry', loading: 'Loading…', saving: 'Saving…',
+    clearPoolAndFollow: 'Clear pool and follow',
+    clearPoolHint: 'Saving removes the separate candidates and their descriptions before following the main model.',
+    configChanged: 'Subagent settings have changed. Retry to load the latest settings.',
     noModels: 'No configured models. Keep following the main model, or add a model in provider settings first.',
     followHint: "Without a separate model, subagents inherit the caller's model and thinking effort.",
     poolHint: 'Keeps the model pool: one model is fixed; multiple models are available to subagents. ' +
@@ -309,7 +315,11 @@
       `${words.alias}: ${state.choice.model}`, `${words.modelId}: ${model?.modelId || state.choice.model}`,
       words.poolHint,
     ].join('\n') : '');
-    text(ui.hint, !state.data.models.length ? words.noModels : state.choice.model ? words.autoHint : words.followHint);
+    let hint = words.followHint;
+    if (clearsPool(state)) hint = words.clearPoolHint;
+    else if (!state.data.models.length) hint = words.noModels;
+    else if (state.choice.model) hint = words.autoHint;
+    text(ui.hint, hint);
   };
   const localize = (ui) => {
     const words = copy();
@@ -335,5 +345,5 @@
     attr(ui.summary, 'title', ui.summary.textContent);
   };
   window.__okwMobileSubagentView = { copy, effortLabel, text, attr, build, buildPicker, localize, renderSummary,
-    renderPicker, renderActivity, renderEfforts };
+    renderPicker, renderActivity, renderEfforts, clearsPool };
 }

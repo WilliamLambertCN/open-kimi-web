@@ -11,7 +11,7 @@ import { cp, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } fr
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-export const OFFICIAL_FALLBACK_VERSION = '2.7.2';
+export const OFFICIAL_FALLBACK_VERSION = '2.8.0';
 export const OFFICIAL_PAGE_TITLE = 'open Kimi-Code web';
 export const OPEN_WEB_BRAND = 'open Kimi-Code';
 

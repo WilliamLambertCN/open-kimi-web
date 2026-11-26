@@ -108,7 +108,7 @@
       const anchor = target.closest(selector);
       if (anchor) { remember(anchor); return true; }
       record.addedNodes.forEach(collect);
-      return target.matches('.chat, .history-window, .top-sentinel') || !!target.closest('.history-row');
+      return target.matches('.chat, .history-window, .transcript-list, .top-sentinel') || !!target.closest('.history-row');
     };
     const watchChat = () => {
       chatObserver?.disconnect();
