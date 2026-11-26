@@ -53,18 +53,8 @@ async function finishNavigation(test, result) {
   if (error) throw error;
   return value;
 }
-function setup(options = {}) {
-  const frame = document.createElement('iframe'); document.body.append(frame); frames.push(frame);
-  const view = frame.contentWindow; const doc = view.document;
-  doc.body.innerHTML = '<main class="app mobile"><section class="con"><div class="chat-scroll is-following">' +
-    '<div class="content-wrap"><div class="chat"><div class="history-window" data-virtual-scroll-root></div>' +
-    '</div></div></div></section></main>';
-  const root = doc.querySelector('.chat-scroll'); const chat = doc.querySelector('.chat');
-  const history = chat.firstElementChild; const data = options.turns ?? turns;
-  const controller = new view.AbortController(); const isCurrent = vi.fn(() => true);
-  const items = data.filter((turn) => turn.user).map(({ id }) => ({ id, label: 'Repeated question' }));
-  const { scroll, layout } = installLayout(view, root, options); const clicks = []; const focused = [];
-  const state = { active: 0, callbacks: 0, storm: false, current: true };
+function trackObservers(view) {
+  const state = { active: 0, callbacks: 0, storm: false };
   const Native = view.MutationObserver;
   view.MutationObserver = class {
     constructor(callback) {
@@ -79,6 +69,32 @@ function setup(options = {}) {
       };
     }
   };
+  return state;
+}
+function rowContent(row, transcript, user) {
+  if (!transcript) return row;
+  const content = row.ownerDocument.createElement('div');
+  content.className = 'chat-row'; content.dataset.rowKind = user ? 'user' : 'assistant';
+  row.append(content);
+  return content;
+}
+function setup(options = {}) {
+  const frame = document.createElement('iframe'); document.body.append(frame); frames.push(frame);
+  const view = frame.contentWindow; const doc = view.document;
+  doc.body.innerHTML = '<main class="app mobile"><section class="con"><div class="chat-scroll is-following">' +
+    '<div class="content-wrap"><div class="chat"><div class="history-window" data-virtual-scroll-root></div>' +
+    '</div></div></div></section></main>';
+  const root = doc.querySelector('.chat-scroll'); const chat = doc.querySelector('.chat');
+  const history = chat.firstElementChild; const data = options.turns ?? turns;
+  const keyAttribute = options.transcript ? 'data-row-key' : 'data-history-key';
+  if (options.transcript) {
+    history.className = 'transcript-list'; history.setAttribute('role', 'list');
+    history.removeAttribute('data-virtual-scroll-root');
+  }
+  const controller = new view.AbortController(); const isCurrent = vi.fn(() => true);
+  const items = data.filter((turn) => turn.user).map(({ id }) => ({ id, label: 'Repeated question' }));
+  const { scroll, layout } = installLayout(view, root, options); const clicks = []; const focused = [];
+  const state = trackObservers(view);
   const wheel = vi.fn((event) => {
     if (event.deltaY < 0) { root.scrollTo({ top: root.scrollTop, behavior: 'auto' }); state.following = false; }
   });
@@ -105,10 +121,11 @@ function setup(options = {}) {
   };
   function makeRow(index) {
     const turn = data[index]; const row = doc.createElement('div'); row.className = 'history-row';
-    row.setAttribute('data-history-key', turn.id); row.setAttribute('aria-posinset', String(index + 1));
+    row.setAttribute(keyAttribute, turn.id); row.setAttribute('aria-posinset', String(index + 1));
     row.setAttribute('aria-setsize', String(data.length)); row.tabIndex = -1;
-    if (turn.user) makeBubble(row, turn.id);
-    else { const assistant = doc.createElement('div'); assistant.className = 'a-msg'; row.append(assistant); }
+    const content = rowContent(row, options.transcript, turn.user);
+    if (turn.user) makeBubble(content, turn.id);
+    else { const assistant = doc.createElement('div'); assistant.className = 'a-msg'; content.append(assistant); }
     for (const direction of [-1, 1]) {
       const next = index + direction; if (next < 0 || next >= data.length) continue;
       const button = doc.createElement('button'); button.className = direction < 0 ? 'history-previous' : 'history-next';
@@ -201,6 +218,24 @@ describe('exact main-chat target', () => {
   });
 });
 describe('native virtual history navigation', () => {
+  it.each([true, false])('uses the 2.8 transcript row identity for a mounted=%s target', async (mounted) => {
+    const test = setup({ transcript: true, mounted: mounted ? [0, 2, 4] : [4] });
+    expect(await test.complete('user-first')).toBe(true);
+    expect(test.doc.activeElement.getAttribute('data-row-key')).toBe('user-first');
+    expect(test.scroll.mock.calls[0][0].getAttribute('data-turn-id')).toBe('user-first');
+    expect(test.clicks).toHaveLength(mounted ? 0 : 4);
+    quiet(test);
+  });
+  it('rejects ambiguous main lists and mismatched transcript identities', async () => {
+    const test = setup({ transcript: true, mounted: [4] });
+    const row = test.history.firstElementChild;
+    row.setAttribute('data-row-key', 'user-first');
+    await rejects(test, 'identity');
+    row.setAttribute('data-row-key', 'user-last');
+    test.history.after(test.history.cloneNode());
+    await rejects(test, 'identity');
+    expect(test.clicks).toEqual([]);
+  });
   it('walks each adjacent display row and reaches exact duplicate-text users within microtasks', async () => {
     const test = setup(); const task = vi.fn(); const timeout = setTimeout(task, 0);
     const result = test.navigate('user-last'); await microtasks();

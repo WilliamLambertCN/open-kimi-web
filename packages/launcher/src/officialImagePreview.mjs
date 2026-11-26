@@ -13,7 +13,7 @@ const mediaDimensions = new RegExp(
 
 export function patchOfficialImagePreview(source, version) {
   const unchanged = { text: source, patched: false };
-  if (version !== '2.7.2' || !source.includes('__name:"MediaLightbox"')) return unchanged;
+  if (!['2.7.2', '2.8.0'].includes(version) || !source.includes('__name:"MediaLightbox"')) return unchanged;
   const matches = [...source.matchAll(mediaDimensions)];
   if (matches.length !== 1) return unchanged;
   const match = matches[0];

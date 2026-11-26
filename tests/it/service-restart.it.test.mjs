@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WebSocket, WebSocketServer } from 'ws';
 import { createLauncher } from '../../packages/launcher/src/serve.mjs';
-import { listenHttp } from '../testkit/httpPort.mjs';
+import { availableHttpPort, listenHttp } from '../testkit/httpPort.mjs';
 import { createRestartController } from '../../packages/launcher/src/restart/controller.mjs';
 
 const AUTH = 'Bearer fictional-restart-token';
@@ -58,7 +58,7 @@ async function fixture({ managed = true, enhanced = true, version = '2.5.2' } = 
   control.manageBackend({ address: { pid: 123456, host: '127.0.0.1', port: upstream.address().port },
     alive: () => !state.exited, waitForExit: async () => state.exited });
   const launcher = await createLauncher({ target: `http://127.0.0.1:${upstream.address().port}`,
-    publicDir, host: '127.0.0.1', port: 0, officialPresentation: enhanced,
+    publicDir, host: '127.0.0.1', port: await availableHttpPort(), officialPresentation: enhanced,
     officialWebVersion: version, restartControl: control });
   cleanups.push(() => launcher.close());
   const call = async (path, options = {}) => {
@@ -112,6 +112,15 @@ describe('service restart authenticated HTTP contract', () => {
     expect((await f.restart({ headers: { 'content-type': 'text/plain' } })).status).toBe(415);
     expect(f.prepare).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
   });
+  it.each(['2.7.2', '2.8.0'])('leaves external %s targets outside process management', async (version) => {
+    const f = await fixture({ managed: false, version }); const ws = await opened(f.launcher.url);
+    expect((await f.status()).body).toMatchObject({ available: false, reason: 'unmanaged-or-unsupported' });
+    expect(await f.restart()).toMatchObject({ status: 409, body: { error: 'unmanaged-or-unsupported' } });
+    expect(f.prepare).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
+    expect(f.state.calls.some((path) => path.includes('/shutdown'))).toBe(false);
+    const echoed = new Promise((resolve) => ws.once('message', (data) => resolve(String(data))));
+    ws.send('external-target-unchanged'); expect(await echoed).toBe('external-target-unchanged');
+  });
   it('reports unmanaged instances and leaves custom frontend control unavailable', async () => {
     const unmanaged = await fixture({ managed: false });
     expect((await unmanaged.status()).body.available).toBe(false);
@@ -120,8 +129,8 @@ describe('service restart authenticated HTTP contract', () => {
     const response = await fetch(custom.launcher.url + PREFIX + 'restart', { method: 'POST' });
     expect(response.status).toBe(405); expect(custom.prepare).not.toHaveBeenCalled();
   });
-  it('keeps exact 2.7.2 available and rejects visible work without disconnecting its proxy client', async () => {
-    const f = await fixture({ version: '2.7.2' }); const ws = await opened(f.launcher.url);
+  it.each(['2.7.2', '2.8.0'])('keeps exact %s available and refuses visible work without disconnecting WS', async (version) => {
+    const f = await fixture({ version }); const ws = await opened(f.launcher.url);
     expect((await f.status()).body).toMatchObject({ available: true, phase: 'ready' }); f.state.busy = true;
     expect(await f.restart()).toMatchObject({ status: 409, body: { error: 'service-busy' } });
     expect(f.prepare).not.toHaveBeenCalled(); expect(f.stop).not.toHaveBeenCalled();
@@ -180,9 +189,9 @@ describe('service restart lifecycle and concurrent writes', () => {
 });
 
 
-describe('2.7.2 official conditional shutdown through real HTTP and WS proxies', () => {
+describe.each(['2.7.2', '2.8.0'])('%s official conditional shutdown through real HTTP and WS proxies', (version) => {
   it('closes only this launcher proxy WS before a single conditional POST and waits for owned exit', async () => {
-    const f = await fixture({ version: '2.7.2' }); const ws = await opened(f.launcher.url);
+    const f = await fixture({ version }); const ws = await opened(f.launcher.url);
     const closed = new Promise((resolve) => ws.once('close', resolve));
     expect((await f.restart()).status).toBe(202); expect(await closed).toBe(1013);
     expect(f.reservation.commit).toHaveBeenCalledOnce(); expect(f.reservation.release).toHaveBeenCalledOnce();
@@ -192,7 +201,7 @@ describe('2.7.2 official conditional shutdown through real HTTP and WS proxies',
   });
 
   it('leaves direct and other-launcher clients connected when the official endpoint refuses shutdown', async () => {
-    const f = await fixture({ version: '2.7.2' }); const own = await opened(f.launcher.url);
+    const f = await fixture({ version }); const own = await opened(f.launcher.url);
     const otherLauncher = await createLauncher({ target: f.target, publicDir: f.publicDir,
       host: '127.0.0.1', port: 0 });
     cleanups.push(() => otherLauncher.close());
@@ -211,7 +220,7 @@ describe('2.7.2 official conditional shutdown through real HTTP and WS proxies',
   });
 
   it('blocks reads that can restore sessions, writes and reconnects while the final decision is pending', async () => {
-    const f = await fixture({ version: '2.7.2' }); const hold = deferred(); f.state.shutdownHold = hold.promise;
+    const f = await fixture({ version }); const hold = deferred(); f.state.shutdownHold = hold.promise;
     const restart = f.restart(); await f.state.shutdownStarted.promise;
     for (const method of ['GET', 'POST']) expect((await f.call('/api/v1/fixture', { method })).status).toBe(409);
     const attempt = new WebSocket(f.launcher.url.replace(/^http/, 'ws') + '/api/v1/ws'); attempt.on('error', () => {});
@@ -224,7 +233,7 @@ describe('2.7.2 official conditional shutdown through real HTTP and WS proxies',
   });
 
   it.each([true, false])('handles an actual dropped shutdown HTTP response with owned exit=%s', async (exited) => {
-    const f = await fixture({ version: '2.7.2' }); f.state.shutdown = 'lost'; f.state.exit = exited;
+    const f = await fixture({ version }); f.state.shutdown = 'lost'; f.state.exit = exited;
     const result = await f.restart();
     if (exited) {
       expect(result.status).toBe(202); expect(f.stop).toHaveBeenCalledWith({ backendExited: true });
@@ -237,7 +246,7 @@ describe('2.7.2 official conditional shutdown through real HTTP and WS proxies',
   });
 
   it('completes after a real HTTP client disconnect once conditional shutdown is in flight', async () => {
-    const f = await fixture({ version: '2.7.2' }); const current = await f.status(); const hold = deferred();
+    const f = await fixture({ version }); const current = await f.status(); const hold = deferred();
     f.state.shutdownHold = hold.promise;
     const request = httpRequest(f.launcher.url, { path: PREFIX + 'restart', method: 'POST',
       headers: { authorization: AUTH, 'content-type': 'application/json' } });

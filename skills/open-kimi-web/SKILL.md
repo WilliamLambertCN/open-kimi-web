@@ -11,22 +11,23 @@ description: |
 Open Kimi Web 是**非官方**的轻量增强 launcher：默认保留 Kimi Code 官方 Web 与后端，
 在外层增加 HTTPS、直达链接、移动页面修复、供应商模型排序、工作区置顶和已归档会话永久删除。
 
-本轮目标版本 `v2.7.2-r4`，兼容目标官方 `2.7.2`，保留 `2.6.0`／`2.6.1` 支持；发布状态以[正式 Release][current-release]为准。
-请求指标不查版本号，只在实际入口的全部代码结构匹配后启用；已实测官方2.5.2／2.5.3／2.6.0／2.6.1。
+[`2.8.0-r1`][current-release] 适配官方 `2.8.0`，保留 `2.7.2`／`2.6.0`／`2.6.1`。
+请求指标不查版本号，只在实际入口的全部代码结构匹配后启用；已实测官方 `2.5.2`／`2.5.3`／`2.6.0`／`2.6.1`／`2.8.0`。
 看终端 `request metrics: active` 或首页 `open-kimi-web-request-metrics` 确认状态；不只凭增强网址判断成功。
 保留逐调用 TTFT、包含等待的平均 TPS、缓存命中和历史位置；侧聊可独立选模。
 受管服务可从网页发起重启，忙碌时不强制停机，不自动刷新草稿或重发消息。外部 `serve --target` 不接管后端。
-手机目录与时间适配准确 2.6.0／2.6.1／2.7.2 turns/items，首屏使用原生 WS，旧页沿用官方分页，不复制正文或另拉完整历史。
+手机目录与时间适配准确 2.6.0／2.6.1／2.7.2／2.8.0 turns/items，首屏用原生 WS、旧页用官方分页，不复制正文。
 更新后须手动重启并刷新；系统缓存旧桌面图标时，可移除旧快捷方式再重新添加。
-精确 2.5.2／2.6.0／2.6.1／2.7.2 支持子代理恢复跟随；后三版允许普通 primary 别名。全文索引关闭时解释开启方法，不自动开启。
+精确 2.5.2／2.6.0／2.6.1／2.7.2／2.8.0 支持子代理恢复跟随；后四版允许普通 primary 别名。
+全文索引关闭时解释开启方法，不自动开启。
 保留双端菜单、手机置顶、局域网 CA、脱敏日志、App 安装入口和普通 CLI 原样透传；发送与插队交给官方。
 保留推理档位排序、Tower 条件说明及已有 Kimi 发现／运行时检查；不强制开启实验、不改当前选择或保存数组。
-精确 2.6.0／2.6.1／2.7.2 停用重复的默认折叠补丁；2.7.2 使用原生归档删除和流式显示。
-`2.7.2-r2` 起，主输入框换模型时保留目标支持的当前思考档位，否则用目标默认档位。
-`2.7.2-r3` 修复官方 2.7.2 的局部图片预览拉伸；`2.7.2-r4` 修复部分含媒体的新会话显示错误。
+精确 2.6.0／2.6.1／2.7.2／2.8.0 停用重复的默认折叠补丁；2.7.2／2.8.0 使用原生归档删除和流式显示。
+`2.7.2-r2` 起，主输入框换模型时保留目标支持的当前思考档位，否则用目标默认档位；2.8.0 同样适用。
+`2.7.2-r3` 修复局部图片预览拉伸，2.8.0 延用；2.7.2 的会话媒体错误由 r4 修复，2.8.0 已有官方修复。
 更新后需要重启 launcher 并刷新页面，其他错误仍需按现场情况排查。
 有差异的增强保留，不将诊断或官方修复等同现场慢加载已解决。
-不擅自改用户配置、不升级实际官方 CLI 或重启生产；缺官方时校验安装 2.7.2，metadata 失败的 UI fallback 也为 2.7.2。
+不擅自改用户配置、不升级实际官方 CLI 或重启生产。只有缺少官方 Kimi 时才校验安装 `2.8.0`，网页 fallback 也为 `2.8.0`。
 保留 `2.3.1-r2` 新模型默认：仅 `video_in`、`image_out` 不选，其它能力、六档 effort 及 `adaptive_thinking` 选中。
 已有显式数组（含空数组）、未知值与 false 不自动改写；保留 r1 的发现选择、唯一可见表单及逐字段保存。
 默认是用户偏好，不保证模型服务支持。历史 Coding 对照为 low 成功、xhigh 400，修后 thinking:on 未显式 effort 成功；
@@ -34,7 +35,7 @@ medium/high/max 未逐档验证，不依据默认勾选承诺这些参数可用�
 子代理候选池可编辑两套说明模板，保存保留主模型与全局思考档位；官方接口无单项删除，不做清空重建。
 指标行不再显示悬停解释。已完成列表标题宽度修复和候选池扁平布局来自此前版本。
 此前候选池、工作空间与导航、触摸提示和供应商保存的记录见[更新日志][changelog-doc]，不作为本轮验收。
-2.7.2 兼容结果见 [UPSTREAM][upstream-doc]；未记录的 CI、包与线上检查不视为通过。
+2.8.0 与 2.7.2 的兼容验证见 [UPSTREAM][upstream-doc]；未记录的 CI、包与线上检查不视为通过。
 2.5.2-r1、2.4.1-r3／r2／r1、2.3.1-r2 及其 [Release][r2-release]均属历史；更早的 r1 和下方 r9／r10 记录不代表本轮结果。
 
 本 skill 管理独立的 `open-kimi-web`，驱动 `integrate install|status|repair|uninstall` 和 `update`。
@@ -97,13 +98,13 @@ Windows PowerShell ≥ 5.1／macOS-Linux sh 的新版命令固定 Release 版本
 正式发布前不说入口已在线可用。本地入口与 helpers 也必须同提交：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r4
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.7.2-r4 --no-integrate
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.8.0-r1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 --version 2.8.0-r1 --no-integrate
 ```
 
 ```sh
-sh scripts/install.sh --version 2.7.2-r4
-sh scripts/install.sh --version 2.7.2-r4 --no-integrate
+sh scripts/install.sh --version 2.8.0-r1
+sh scripts/install.sh --version 2.8.0-r1 --no-integrate
 ```
 
 - 无需预装 Node／npm／Corepack／pnpm／Git／官方 Kimi，仍需联网与标准 PATH curl／tar，不是离线安装。
@@ -113,10 +114,10 @@ sh scripts/install.sh --version 2.7.2-r4 --no-integrate
   Windows 持久 Machine／User PATH、APPDATA/npm 及所选 Node 旁标准命令，不递归扫盘或修改持久 PATH 来搜索。
   多份无明确优先级需显式 override；未知 PowerShell 函数／脚本／带参 wrapper 不执行，不猜新旧。
   先明确复用已有可用官方 CLI，不下载或升级它；坏、歧义、不支持候选拒绝，不当 missing 后另装。
-- 只有确认缺失才准备固定官方 `2.7.2` tarball／SHA-512，ignore-scripts 避免旧 Python 迁移。
-  旧 owned `2.6.1`／`2.6.0`／`2.4.1`／`2.3.1`／`2.1.1` 仅在精确 version／integrity、package 身份与 entry／shim digests 全通过后复用。
+- 只有确认缺失才校验 SHA-512 并安装固定官方 `2.8.0` tarball。
+  旧 owned `2.7.2`／`2.6.1`／`2.6.0`／`2.4.1`／`2.3.1`／`2.1.1` 验证身份及 entry／shim digests 后复用。
   未知归属／坏 override／partial 拒绝，不自动续装。适当的真实 probe 成功才写 record；重复 probe，坏安装不自动重建。
-- 官方 `2.7.2`／`2.6.1`／`2.6.0`／`2.4.1` 无 node-pty，按精确身份做真实 Node `child_process` shell probe；不是任意缺 node-pty 都算成功。
+- 官方 `2.8.0`／`2.7.2`／`2.6.1`／`2.6.0`／`2.4.1` 做真实 Node `child_process` shell probe，不是缺 node-pty 就算成功。
   旧 owned 版仍需真实 PTY；Linux **只有 legacy rebuild** 需 Python 3、C／C++ 和 make，不再无条件要求新版装编译工具链。
   legacy rebuild 仅审计固定 node-pty 1.1.0／node-addon-api 7.1.1 并限定绝对目录，不跑根 Kimi 或其它包脚本，不 sudo／apt。
 - Windows Git Bash 仍必需，可用即复用，缺失才验证 portable Git；不改系统 Git，未知 `KIMI_SHELL_PATH` 报错。
@@ -127,14 +128,13 @@ sh scripts/install.sh --version 2.7.2-r4 --no-integrate
 - PowerShell `--` 参数原样传递，Bypass 仅限此次进程；不猜写成 `-Version`／`-NoIntegrate`。
   本地薄入口 `--help` 不要求 Node、不联网、不写入，非法参数也在 runtime 前拒绝；独立入口须显式匹配 revision。
 - PATH 遮挡或 shell 不支持时按输出处理，不把包已安装当接管生效；不自动登录、启动生产服务、读真实会话或发付费调用。
-  macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收。
-  本轮安装、交付包及线上检查须有 2.7.2-r4 自身的证据，不把旧 r9、本地 pack 或 Git Bash 当作全平台通过。
+  macOS／arm64、Windows 真注册表／新终端及实体手机未全面验收，不以旧版或单平台结果替代。
 
-已有 Node ≥ 22／npm 可手动装 launcher，但不准备官方 Kimi；官方 npm `2.7.2` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
-不需要 Corepack／pnpm；正式发布后使用固定 URL：
+已有 Node ≥ 22／npm 可手动装 launcher，但不准备官方 Kimi；官方 npm `2.8.0` 需 Node ≥ 22.19.0，Windows 仍需 Git Bash。
+不需要 Corepack／pnpm：
 
 ```sh
-npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.7.2-r4/open-kimi-web-2.7.2-r4.tgz
+npm install -g https://github.com/WilliamLambertCN/open-kimi-web/releases/download/v2.8.0-r1/open-kimi-web-2.8.0-r1.tgz
 ```
 
 仅用户明确需要源码开发且已有 Node ≥ 22／Git／Corepack 时，提供源码路线：
@@ -228,7 +228,7 @@ KIMI_CODE_EXPERIMENTAL_TOWER=true kimi web --host
 - `2.4.1` Read 默认 100,000 字符或约 25,000 tokens 先到为准，`read.max_chars` 可调；内置 prompt／重复提醒精简及 Web 修复。
 
 cron 默认 off，显式 `kimi web --scheduled-tasks` 才启用。
-READ 精确 `2.3.1`／`2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2` 只读；
+READ 精确 `2.3.1`／`2.4.1`／`2.5.2`／`2.6.0`／`2.6.1`／`2.7.2`／`2.8.0` 只读；
 WRITE 仍只精确 `2.1.1`／`2.2.0` 且须显式恢复确认；未知与相邻未列版本拒绝。
 保留 transport／route 双写 gate、鉴权、冷会话不恢复和普通／编码 debug 封闭；不能与同实例 RC 并用，外部 target 不开放。
 不伪造 cron 编辑／暂停／独立任务模型；Tower 每任务模型不是 cron 模型能力。
@@ -263,7 +263,7 @@ Windows 一键安装器加入的私有 Node User PATH 项在 r9 撤销后仍保�
 ## 安装自更新（r8 起可用）
 
 `v2.1.1-r8` 起提供 update；安装版本与固定 tgz 链接见项目 README 的“快速上手”。
-旧版可运行 `update --check`／`update`，先核对实际安装和目标 `2.7.2-r4`。
+旧版可运行 `update --check`／`update`，先核对实际安装和目标 `2.8.0-r1`。
 不要求同版重装、重跑安装器或追加 `--switch-installation`；源码仍须干净 main 跟踪 origin/main，只做快进。
 历史清理前的旧克隆不能快进：先备份改动，再重新克隆并按 README 切换接管，不强制覆盖。
 完成后用户自行重启旧 launcher／对应 backend 并刷新；独立 target 须重启实际后端，不自动开启 Tower。
@@ -298,9 +298,9 @@ open-kimi-web update --check
 ## 大会话加载诊断
 
 `2.4.1-r2` 起提供最近页优化；增强 UI 精确 2.3.1／2.4.1／2.5.2 的 main 无 cursor 最近页先取 1 轮。
-准确 2.6.0／2.6.1／2.7.2 沿用官方首批 WS 及 before_ordinal 旧页，不套用旧 transcript 改写。
+准确 2.6.0／2.6.1／2.7.2／2.8.0 沿用官方首批 WS 及 before_ordinal 旧页，不套用旧 transcript 改写。
 手机目录只保留有界短标签和定位信息，不存正文或另拉全会话；自定义 UI 和其它版本不改请求。
-无偏好时默认折叠工具活动，已有值不迁移；2.6.0／2.6.1／2.7.2 使用官方同义默认，不注入重复脚本。
+无偏好时默认折叠工具活动，已有值不迁移；2.6.0／2.6.1／2.7.2／2.8.0 不注入重复脚本。
 旧用户可在官方设置开启折叠，短首屏可用原生“加载更早消息”。
 不承诺自动预取或巨大单轮秒开，后端恢复、实体和解析仍可能慢。
 发布状态以[正式 Release][current-release]为准，下方 r9 数据是历史结果，不代替本轮验收。
@@ -328,7 +328,7 @@ open-kimi-web update --check
 同供应商同名长 alias 前置真实唯一差异，保存完整值；不调用 Vue 私有实例或主模型写入回滚，不恢复编号原生 SELECT。
 读取官方 config／models，仅 POST `/api/v1/config` 的 `secondary_model` 并合并池，不写主模型、权限／其它配置或 localStorage。
 Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字段清除配置。
-准确 2.5.2／2.6.0／2.6.1／2.7.2 使用原生 `secondary_model: null` 恢复跟随主模型，其它版本不猜测支持。
+准确 2.5.2／2.6.0／2.6.1／2.7.2／2.8.0 使用原生 `secondary_model: null` 恢复跟随主模型，其它版本不猜测支持。
 取消不写、失败不假报成功；用户授权变更后才保存，不用付费模型调用验证。
 
 增强层 locale 以官方 `kimi-locale` 为准，本轮覆盖的英文系统 text／title／aria／placeholder 随语言切换刷新，
@@ -353,6 +353,6 @@ Auto 合法提交 `defaultEffort: ''`；旧版不能以空／null 或省略字�
 [upstream-menu]:
   https://github.com/WilliamLambertCN/open-kimi-web/blob/main/UPSTREAM.md#session-menus-and-opt-in-local-ca-in-241-r3
 [changelog-doc]: https://github.com/WilliamLambertCN/open-kimi-web/blob/main/CHANGELOG.md
-[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.7.2-r4
+[current-release]: https://github.com/WilliamLambertCN/open-kimi-web/releases/tag/v2.8.0-r1
 [official-changelog]: https://www.kimi.com/code/docs/en/kimi-code-cli/release-notes/changelog.html
 [official-tower]: https://www.kimi.com/code/docs/en/kimi-code-cli/guides/tower.html

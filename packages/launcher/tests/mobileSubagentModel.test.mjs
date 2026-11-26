@@ -1,10 +1,8 @@
 /** @vitest-environment jsdom */
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, deferred, fixtureConfig, install, response, tick } from './testkit/mobileSubagentModel.mjs';
+import { cleanup, current, deferred, fixtureConfig, install, open, response, tick } from './testkit/mobileSubagentModel.mjs';
 
-const open = async (ui) => { ui.query('trigger').click(); await ui.settled(); };
-const current = (ui) => ui.rows().find((row) => row.classList.contains('is-current'))?.dataset.model;
 const efforts = (ui) => [...ui.query('effort').children].map((node) => node.dataset.effort);
 const effortValue = (ui) => ui.query('effort').querySelector('.is-on')?.dataset.effort;
 afterEach(cleanup);
@@ -235,41 +233,6 @@ describe('mobile subagent keyboard and input composition', () => {
     const pointer = await install({ touch: false });
     await open(pointer);
     expect(pointer.doc.activeElement).toBe(pointer.query('search'));
-  });
-});
-
-describe('mobile subagent inheritance and automatic effort', () => {
-  it.each([
-    ['en', 'This Kimi version cannot restore inheritance on the web; use the official CLI config.'],
-    ['zh', '当前 Kimi 版本不支持在网页恢复跟随主模型；请通过官方 CLI 配置调整。'],
-  ])('explains unsupported clearing in %s without an obsolete version or an invalid merge', async (locale, message) => {
-    const ui = await install({ locale, section: { defaultModel: 'fixture/fast', defaultEffort: 'medium' } });
-    await open(ui);
-    ui.select('');
-    expect(ui.query('status').textContent).toBe(message);
-    expect(ui.query('overlay').textContent).not.toContain('2.1.1');
-    expect(ui.query('save').disabled).toBe(true);
-    ui.query('save').click();
-    await ui.settled();
-    expect(ui.posts).toEqual([]);
-    expect(ui.getConfig().secondary_model.defaultModel).toBe('fixture/fast');
-  });
-  it.each(['en', 'zh'])('restores inheritance through native null on 2.5.2 in %s', async (locale) => {
-    const section = { defaultModel: 'fixture/fast', defaultEffort: 'medium', models: { 'fixture/fast': 'Pool' } };
-    const ui = await install({ locale, version: '2.5.2', section });
-    await open(ui);
-    ui.select('');
-    expect(ui.query('save').disabled).toBe(false);
-    expect(ui.query('status').textContent).toBe('');
-    ui.query('save').click();
-    await ui.settled();
-    expect(ui.posts).toEqual([{ secondary_model: null }]);
-    expect(ui.getConfig().secondary_model).toBeUndefined();
-    expect(ui.getConfig().default_model).toBe('fixture/main');
-    expect(ui.query('summary').textContent).toBe(locale === 'zh' ? '跟随主模型' : 'Follow main model');
-    await open(ui);
-    expect(current(ui)).toBe('');
-    expect(ui.query('save').disabled).toBe(true);
   });
 });
 

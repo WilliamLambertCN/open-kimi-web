@@ -1,4 +1,4 @@
-import { assertCronReadVersion } from './compatibility.mjs';
+import { assertCronReadVersion, CRON_UNIFIED_VERSIONS } from './compatibility.mjs';
 import { CronClientError } from './errors.mjs';
 import { createScanBudget, readCronServerJournal, readCronWire, safeCronPathId } from './journal.mjs';
 import { readLoadedSessions } from './loadedSessions.mjs';
@@ -35,7 +35,7 @@ async function runtimeVersion(context, authorization) {
 }
 
 function directoryUrl(origin, cursor, version) {
-  const unified = version === '2.7.2';
+  const unified = CRON_UNIFIED_VERSIONS.includes(version);
   const url = new URL(unified ? '/api/v1/sessions' : '/api/v2/sessions', origin);
   url.searchParams.set(unified ? 'archived' : 'meta.archived', 'all');
   url.searchParams.set('page_size', String(PAGE_SIZE));
@@ -86,11 +86,11 @@ function validateDirectory(data, version, cursor) {
   if (data.has_more && !safeCursor(data.next_page_token)) {
     throw new CronClientError('invalid-response');
   }
-  if (version === '2.7.2') validateUnifiedPage(data, cursor);
-  const items = rows.map(version === '2.7.2' ? unifiedDirectoryItem : validateDirectoryItem);
+  if (CRON_UNIFIED_VERSIONS.includes(version)) validateUnifiedPage(data, cursor);
+  const items = rows.map(CRON_UNIFIED_VERSIONS.includes(version) ? unifiedDirectoryItem : validateDirectoryItem);
   if (new Set(items.map((item) => item.id)).size !== items.length) throw new CronClientError('invalid-response');
   return { items, hasMore: data.has_more, cursor: data.has_more ? data.next_page_token : null,
-    ...(version === '2.7.2' ? { total: data.total } : {}) };
+    ...(CRON_UNIFIED_VERSIONS.includes(version) ? { total: data.total } : {}) };
 }
 
 function workspaceName(workspace) {
@@ -143,7 +143,7 @@ function unavailable(reason) {
 
 async function readHistory(context, args) {
   const version = await runtimeVersion(context, args.authorization);
-  const suffix = version === '2.7.2' ? '' : '/profile';
+  const suffix = CRON_UNIFIED_VERSIONS.includes(version) ? '' : '/profile';
   const session = await requestJson(context.fetchImpl,
     `${context.origin}/api/v1/sessions/${encodeURIComponent(args.sessionId)}${suffix}`, args.authorization);
   if (!recordOf(session) || session.id !== args.sessionId || !safeCronPathId(session.workspace_id)) {

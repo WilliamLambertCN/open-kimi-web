@@ -10,7 +10,7 @@ const args = { sessionId, authorization };
 const init = { cron: '7 9 * * *', prompt: 'Fictional reminder' };
 const now = new Date(2026, 9, 19, 8).getTime();
 const meta = { server_version: '2.1.1', backend: 'v2', dangerous_bypass_auth: false };
-const runtimeMeta = (version) => version === '2.7.2'
+const runtimeMeta = (version) => ['2.7.2', '2.8.0'].includes(version)
   ? { server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false }
   : { ...meta, server_version: version };
 const task = { ...init, id: '01K7Y36F6R2H6TXMNDS8WM0N9B', createdAt: now, recurring: true };
@@ -70,7 +70,8 @@ describe('restricted Cron client contract', () => {
 
 });
 
-describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])('exact %s read-only client boundary', (version) => {
+describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'])(
+  'exact %s read-only client boundary', (version) => {
   it('reads task memory but rejects create/remove before all debug calls', async () => {
     const { client, fetchImpl } = fixture({ meta: runtimeMeta(version), list: [task] });
     expect(await client.list(args)).toEqual([task]);
@@ -102,7 +103,8 @@ describe.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])('exact %s 
 });
 
 it.each(['2.3.0', '2.3.2', '2.3.1-modified', '2.4.0', '2.4.2', '2.4.1-modified',
-  '2.5.0', '2.5.1', '2.5.3', '2.5.2-modified', '2.7.1', '2.7.3', '2.7.2-modified', '2.7.2-rc.1'])(
+  '2.5.0', '2.5.1', '2.5.3', '2.5.2-modified', '2.7.1', '2.7.3', '2.7.2-modified', '2.7.2-rc.1',
+  '2.8.1', '2.9.0', '3.0.0', '2.8.0-modified', '2.8.0-rc.1'])(
   'does not extend readonly support to unverified %s', async (version) => {
     const { client, fetchImpl } = fixture({ meta: runtimeMeta(version) });
     await expect(client.list(args)).rejects.toMatchObject({ code: 'unsupported-version' });
@@ -154,6 +156,10 @@ describe('target, argument and authorization boundaries', () => {
     [{ server_version: '2.7.2', backend: 'v2', dangerous_bypass_auth: false }, 'unsupported-version'],
     [{ ...runtimeMeta('2.7.2'), kimi_agent_protocol_version: 'unknown' }, 'unsupported-version'],
     [{ ...runtimeMeta('2.7.2'), dangerous_bypass_auth: true }, 'unsafe-auth'],
+    [{ ...meta, server_version: '2.8.0' }, 'unsupported-version'],
+    [{ ...runtimeMeta('2.8.0'), kimi_agent_protocol_version: '1.1.0' }, 'unsupported-version'],
+    [{ ...runtimeMeta('2.8.0'), dangerous_bypass_auth: true }, 'unsafe-auth'],
+    [{ server_version: '2.8.0', kimi_agent_protocol_version: '1.0.0' }, 'unsafe-auth'],
   ])('fails closed on actual metadata %#', async (actual, code) => {
     const { client, fetchImpl } = fixture({ meta: actual });
     await expect(client.create({ ...args, init })).rejects.toMatchObject({ code });

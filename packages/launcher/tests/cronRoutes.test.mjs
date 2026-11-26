@@ -4,7 +4,7 @@ import { createCronRouteService, serveCron, CRON_PREFIX, CRON_BODY_TIMEOUT_MS } 
 
 const authorization = 'Bearer fictional-route-token';
 const meta = { server_version: '2.2.0', backend: 'v2', dangerous_bypass_auth: false };
-const runtimeMeta = (version) => version === '2.7.2'
+const runtimeMeta = (version) => ['2.7.2', '2.8.0'].includes(version)
   ? { server_version: version, kimi_agent_protocol_version: '1.0.0', dangerous_bypass_auth: false }
   : { ...meta, server_version: version };
 const tasksPath = CRON_PREFIX + '/sessions/fixture-session/tasks';
@@ -95,7 +95,7 @@ describe('read-only Cron inventory route boundaries', () => {
 });
 
 describe('version-specific Cron read/write capabilities', () => {
-  it.each(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])(
+  it.each(['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'])(
     'separates enabled read and write capabilities for exact backend %s', async (version) => {
     const writable = ['2.1.1', '2.2.0'].includes(version);
     const { service, fetchImpl } = fixture(true, { meta: runtimeMeta(version) },
@@ -103,14 +103,15 @@ describe('version-specific Cron read/write capabilities', () => {
     const { res } = await call(service, CRON_PREFIX);
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ available: true, version,
-      versions: ['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'], writeVersions: ['2.1.1', '2.2.0'],
+      versions: ['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'],
+      writeVersions: ['2.1.1', '2.2.0'],
       capabilities: { list: true, create: writable, remove: writable, inventory: true, history: true } });
     if (writable) expect(res.body).not.toHaveProperty('reason');
     else expect(res.body).toMatchObject({ reason: 'read-only-version', message: expect.stringContaining('ownership') });
     expect(fetchImpl.mock.calls.map(([url]) => url.pathname)).toEqual(['/api/v1/meta', '/api/v1/remote-control']);
   });
 
-  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'])(
+  it.each(['2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'])(
     'rejects %s creates and exact-ID removes without debug mutation or uncertain outcome', async (version) => {
     const { service, fetchImpl } = fixture(true, { meta: runtimeMeta(version) });
     for (const [path, body] of [[tasksPath, { cron: task.cron, prompt: task.prompt }],
@@ -154,7 +155,8 @@ describe('fixed Cron routes availability and path boundaries', () => {
     const { res } = await call(service, CRON_PREFIX);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ available: false, reason: 'not-enabled', version: '2.2.0',
-      versions: ['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2'], writeVersions: ['2.1.1', '2.2.0'],
+      versions: ['2.1.1', '2.2.0', '2.3.1', '2.4.1', '2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'],
+      writeVersions: ['2.1.1', '2.2.0'],
       capabilities: { list: false, create: false, remove: false, inventory: false, history: false } });
     expect(fetchImpl.mock.calls.map(([url]) => url.pathname)).toEqual(['/api/v1/meta']);
     expect(res.headers).toMatchObject({ 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });

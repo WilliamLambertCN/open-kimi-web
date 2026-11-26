@@ -120,7 +120,8 @@ describe('native whole-journal Cron projection', () => {
     expect(() => project([], { version })).toThrow('Unsupported Cron journal version.');
   });
 
-  it.each(['2.1.1', '2.2.0', '2.3.1'])('keeps journal order, undo independence and precise %s fork semantics', (version) => {
+  it.each(['2.1.1', '2.2.0', '2.3.1', '2.8.0'])(
+    'keeps journal order, undo independence and precise %s fork semantics', (version) => {
     const result = project([
       event('cron.add', { task }), event('cron.cursor', { id: task.id, lastFiredAt: 200 }),
       event('context.undo'), event('context.clear'), prompt(0),

@@ -24,8 +24,8 @@
       try {
         const envelope = await response.clone().json();
         const version = envelope?.code === 0 ? envelope.data?.server_version : undefined;
-        state.primaryAlias = ['2.6.0', '2.6.1', '2.7.2'].includes(version);
-        state.canClear = ['2.5.2', '2.6.0', '2.6.1', '2.7.2'].includes(version);
+        state.primaryAlias = ['2.6.0', '2.6.1', '2.7.2', '2.8.0'].includes(version);
+        state.canClear = ['2.5.2', '2.6.0', '2.6.1', '2.7.2', '2.8.0'].includes(version);
       } catch {}
       return response;
     };
@@ -165,11 +165,19 @@
       const [config, catalog] = await Promise.all([request('config', { signal }), request('models', { signal })]);
       return { section: config.secondary_model, models: modelsFor(config, catalog) };
     };
-    const save = async (choice, signal) => {
+    const sameSection = (before, latest) => {
+      const expected = before?.models ?? {};
+      const actual = latest?.models ?? {};
+      return ['defaultModel', 'defaultEffort', 'model', 'force'].every((key) => before?.[key] === latest?.[key]) &&
+        Object.keys(expected).length === Object.keys(actual).length &&
+        Object.entries(expected).every(([id, description]) => Object.hasOwn(actual, id) && actual[id] === description);
+    };
+    const save = async (choice, signal, baseSection) => {
       const latest = await load(signal);
       const patch = patchFor(latest.section, choice, latest.models);
       if (!patch) return latest;
       if (signal?.aborted) throw new Error('requestFailed');
+      if (!choice.model && !sameSection(baseSection, latest.section)) throw new Error('configChanged');
       const config = await request('config', { method: 'POST', body: JSON.stringify(patch), signal });
       verifySaved(config, choice);
       return { section: config.secondary_model, models: latest.models };

@@ -323,6 +323,28 @@ describe('subagent pool save round trips', () => {
   });
 });
 
+describe('2.8.0 subagent pool preservation', () => {
+  it('keeps ordinary primary, all candidates and thinking effort after an incremental real-shape edit', async () => {
+    const ui = install();
+    ui.queue.push(envelope({ server_version: '2.8.0' }));
+    await ui.authorize();
+    const section = { defaultModel: 'primary', defaultEffort: 'high', models: { primary: 'Primary alias', fast: 'Keep fast' } };
+    ui.serve(section, 'primary', 'fast', 'extra');
+    const readBack = { defaultModel: 'fast', defaultEffort: 'high',
+      models: { primary: 'Primary alias', fast: 'Updated fast', extra: 'Extra candidate' } };
+    ui.queue.push(envelope(wireConfig(readBack)));
+    ui.serve(readBack, 'primary', 'fast', 'extra');
+    const draft = ui.api.draftFor(section);
+    draft.defaultModel = 'fast';
+    draft.entries.set('fast', 'Updated fast');
+    draft.entries.set('extra', 'Extra candidate');
+    await expect(ui.api.save(draft)).resolves.toMatchObject({ section: readBack });
+    expect(postBodies(ui.nativeFetch)).toEqual([{ secondary_model: { defaultModel: 'fast',
+      models: { fast: 'Updated fast', extra: 'Extra candidate' } } }]);
+    expect(ui.localStorage.setItem).not.toHaveBeenCalled();
+  });
+});
+
 describe('subagent pool concurrent preservation', () => {
   it('preserves concurrently added candidates and the latest effort without resending them', async () => {
     const ui = install();
@@ -378,9 +400,9 @@ describe('subagent pool cancellation and metadata gate', () => {
     await expect(late.api.save(draft, controller.signal)).rejects.toThrow('requestFailed');
     expect(postBodies(late.nativeFetch)).toHaveLength(1);
   });
-  it('allows ordinary primary candidates only under the existing 2.6 metadata gate', async () => {
+  it.each(['2.6.1', '2.7.2', '2.8.0'])('allows ordinary primary candidates on verified %s', async (version) => {
     const ui = install();
-    ui.queue.push(envelope({ server_version: '2.6.1' }));
+    ui.queue.push(envelope({ server_version: version }));
     await ui.authorize();
     const draft = ui.api.draftFor(undefined);
     draft.entries.set('primary', '');

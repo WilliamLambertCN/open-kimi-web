@@ -82,7 +82,9 @@
       renderAvailability(state);
       ui.save.disabled = !!state.busy || !selection.changed || !!error;
       ui.retry.hidden = !state.error || !!state.busy;
-      view.text(ui.save, state.busy === 'saving' ? view.copy().saving : view.copy().save);
+      const words = view.copy();
+      const label = !error && view.clearsPool(state) ? words.clearPoolAndFollow : words.save;
+      view.text(ui.save, state.busy === 'saving' ? words.saving : label);
     };
     const hover = (state, id) => {
       if (state.busy) return;
@@ -155,7 +157,7 @@
       state.controller = controller;
       renderData(state);
       try {
-        const data = await api.save({ ...state.choice }, controller.signal);
+        const data = await api.save({ ...state.choice }, controller.signal, state.data.section);
         if (generation !== state.generation || !active(state)) return;
         state.data = data;
         view.renderSummary(state.ui, data);
